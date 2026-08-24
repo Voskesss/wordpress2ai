@@ -3,75 +3,87 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We denken graag mee.",
+    "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We kijken gratis mee en je krijgt binnen één werkdag antwoord.",
 };
+
+const inputStijl =
+  "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-100";
 
 export default function Contact() {
   return (
-    <div className="mx-auto max-w-2xl px-6 py-20">
-      <h1 className="text-4xl font-bold tracking-tight">Contact</h1>
-      <p className="mt-4 text-zinc-600">
-        Benieuwd of jouw site geschikt is? Stuur een bericht — we kijken
-        vrijblijvend mee en je krijgt binnen één werkdag antwoord.
-      </p>
+    <div className="mx-auto max-w-5xl px-6 py-20 grid gap-14 lg:grid-cols-5">
+      <div className="lg:col-span-2">
+        <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
+          Zullen we even kijken?
+        </h1>
+        <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+          Stuur je websiteadres mee en we kijken gratis en vrijblijvend of je
+          site geschikt is voor de overstap. Je krijgt binnen één werkdag een
+          eerlijk antwoord — óók als het (nog) niet past.
+        </p>
+        <ul className="mt-8 space-y-3 text-stone-600">
+          {[
+            "Gratis check van je huidige site",
+            "Duidelijke prijs vooraf, geen verrassingen",
+            "Geen verplichtingen, geen opdringerige opvolging",
+          ].map((punt) => (
+            <li key={punt} className="flex gap-3">
+              <span className="mt-1 text-violet-600 shrink-0">✓</span>
+              {punt}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <form
-        className="mt-10 space-y-5"
+        className="lg:col-span-3 reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm space-y-5"
         action="https://formspree.io/f/VERVANG_MET_JOUW_ID"
         method="POST"
       >
-        <div>
-          <label htmlFor="naam" className="block text-sm font-medium">
-            Naam
-          </label>
-          <input
-            id="naam"
-            name="naam"
-            type="text"
-            required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
-          />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="naam" className="block text-sm font-semibold">
+              Naam
+            </label>
+            <input id="naam" name="naam" type="text" required className={inputStijl} />
+          </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-semibold">
+              E-mailadres
+            </label>
+            <input id="email" name="email" type="email" required className={inputStijl} />
+          </div>
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            E-mailadres
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label htmlFor="website" className="block text-sm font-medium">
-            Je huidige website (optioneel)
+          <label htmlFor="website" className="block text-sm font-semibold">
+            Je huidige website
           </label>
           <input
             id="website"
             name="website"
             type="url"
             placeholder="https://"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
+            className={inputStijl}
           />
         </div>
         <div>
-          <label htmlFor="bericht" className="block text-sm font-medium">
-            Bericht
+          <label htmlFor="bericht" className="block text-sm font-semibold">
+            Waar kunnen we je mee helpen?
           </label>
           <textarea
             id="bericht"
             name="bericht"
             rows={5}
             required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
+            placeholder="Vertel kort over je site en waar je vanaf wilt..."
+            className={inputStijl}
           />
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-violet-600 px-6 py-3 text-white font-medium hover:bg-violet-700"
+          className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
         >
-          Versturen
+          Verstuur — je hoort binnen één werkdag van ons
         </button>
       </form>
     </div>
