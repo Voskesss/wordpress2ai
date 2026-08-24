@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { messages, sites } from "@/db/schema";
+import { changes, messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
 
@@ -32,6 +32,25 @@ export default async function Portal() {
     historieMap[site.id] = rows
       .slice(-30)
       .map((m) => ({ rol: m.rol, tekst: m.tekst }));
+  }
+
+  const openConceptMap: Record<
+    number,
+    { previewUrl: string | null; changeId: number } | undefined
+  > = {};
+  for (const site of mijnSites) {
+    const rows = await db
+      .select()
+      .from(changes)
+      .where(eq(changes.siteId, site.id))
+      .orderBy(changes.id);
+    const laatsteConcept = rows.filter((c) => c.status === "concept").at(-1);
+    if (laatsteConcept) {
+      openConceptMap[site.id] = {
+        previewUrl: laatsteConcept.previewUrl,
+        changeId: laatsteConcept.id,
+      };
+    }
   }
 
   return (
@@ -72,6 +91,7 @@ export default async function Portal() {
                   siteId={site.id}
                   historie={historieMap[site.id] ?? []}
                   liveUrl={site.domein}
+                  openConcept={openConceptMap[site.id]}
                 />
               </div>
             </div>

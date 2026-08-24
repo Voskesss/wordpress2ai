@@ -14,17 +14,24 @@ export default function Chat({
   siteId,
   historie,
   liveUrl,
+  openConcept,
 }: {
   siteId: number;
   historie: Bericht[];
   liveUrl?: string | null;
+  openConcept?: { previewUrl: string | null; changeId: number };
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
   const [bezig, setBezig] = useState(false);
   const [huidigePagina, setHuidigePagina] = useState("/");
-  const [conceptUrl, setConceptUrl] = useState<string | null>(null);
+  const [conceptUrl, setConceptUrl] = useState<string | null>(
+    openConcept?.previewUrl ?? null
+  );
   const [toonConcept, setToonConcept] = useState(false);
+  const [openConceptId, setOpenConceptId] = useState<number | null>(
+    openConcept?.changeId ?? null
+  );
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +144,41 @@ export default function Chat({
             title="Je website"
             className="w-full h-[26rem] bg-white"
           />
+        </div>
+      )}
+
+      {/* Openstaand concept na herladen */}
+      {openConceptId && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3 flex items-center justify-between gap-3 text-sm flex-wrap">
+          <span className="font-medium text-amber-900">
+            Er staat nog een concept klaar dat niet gepubliceerd is.
+          </span>
+          <div className="flex gap-2">
+            {conceptUrl && (
+              <button
+                onClick={() => setToonConcept(true)}
+                className="rounded-full border border-amber-400 px-4 py-1.5 font-medium hover:border-amber-600 cursor-pointer"
+              >
+                Bekijk
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                const res = await fetch("/api/publiceer", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ changeId: openConceptId }),
+                });
+                if (res.ok) {
+                  setOpenConceptId(null);
+                  setToonConcept(false);
+                }
+              }}
+              className="rounded-full bg-violet-700 px-4 py-1.5 text-white font-medium hover:bg-violet-600 cursor-pointer"
+            >
+              Publiceer
+            </button>
+          </div>
         </div>
       )}
 
