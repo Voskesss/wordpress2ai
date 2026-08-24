@@ -69,6 +69,48 @@ Flow per wijziging:
   (via ons ↔ eigen key), site pauzeren/opzeggen
 - Fair-use signalering: badge bij >25 wijzigingen deze maand
 
+### Admin migratie-module (de "Migrator") — `/admin/migraties`
+Het hele omzetproces van een klant als begeleide workflow in het portal,
+zodat elke migratie hetzelfde loopt en niets vergeten wordt.
+
+**Stap 1 — Intake (formulier)**
+- Klantgegevens: naam, e-mail, telefoonnummer, bedrijf
+- Huidige site-URL, domeinregistrar, huidige hoster
+- Automatische checks bij invoer: MX-records (zit e-mail bij de oude
+  hosting? → e-mailmigratie nodig ja/nee), DNS-overzicht, aantal pagina's
+  (quick crawl), CMS-detectie
+- Plan-keuze: via ons / eigen key; afgesproken prijs
+
+**Stap 2 — Import**
+Twee routes, beide in het portal:
+- **WordPress XML-export uploaden** (WXR-bestand): parser haalt pagina's,
+  posts, menu's en media-verwijzingen eruit; media wordt gedownload van de
+  oude site
+- **Scraper-route** (als er geen export te krijgen is): crawler haalt alle
+  pagina's + afbeeldingen op vanaf de live site
+Beide routes produceren hetzelfde tussenformaat: content per pagina
+(markdown/HTML) + het `seo-manifest.json` (zie SEO-sectie) + media-map.
+
+**Stap 3 — Review & opbouw**
+- Admin ziet alle geïmporteerde pagina's naast elkaar: welke gaan mee,
+  welke vervallen (met automatische redirect-suggestie)
+- Template/stijl kiezen: design overnemen (standaard) of nieuw design
+- Knop "Bouw site": maakt de klant-repo aan vanuit een sjabloon, commit
+  content + media + seo-manifest, koppelt Netlify → preview-URL
+
+**Stap 4 — Validatie & livegang (checklist met statussen)**
+- Automatische SEO-validatie tegen het manifest (titles, descriptions,
+  URL's, redirects — zie SEO-sectie); rood/groen per pagina
+- E-mailmigratie afvinken (indien nodig), pre-migratie snapshot gearchiveerd
+- DNS-instructies + status; sitemap indienen bij Google Search Console
+- Klant uitnodigen (Clerk-invite) → site verschijnt in diens /portal
+- Pas als alles groen is: "Live" markeren; 4-weken GSC-monitoring start
+
+Elke migratie heeft een statuspagina (intake → import → opbouw → validatie
+→ live) zodat je in één oogopslag ziet waar elk traject staat.
+Datamodel erbij: `migrations`-tabel (site_id, stap, checklist-json,
+manifest-verwijzing, notities).
+
 ## SEO-behoud bij migratie (verplichte checklist per klant)
 
 Alles wat Google nu van de site weet moet 1-op-1 mee. Per pagina vastleggen
@@ -129,8 +171,11 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
 4. **Publiceer-knop** (merge) + usage-teller + fair-use limiet
 5. **Image-upload** in de chat (sharp → commit → AI plaatst)
 6. **Eigen-API-key flow**: invoer + encryptie + tutorial-video-plek
-7. **Admin-dashboard**
-8. Later: Netlify site-provisioning via API (nu nog handmatig koppelen)
+7. **Admin-dashboard** (klantoverzicht, usage, plannen)
+8. **Migrator stap voor stap**: eerst de XML-import + seo-manifest-generator
+   als losse tool (levert direct tijdwinst bij de eerste echte klant), daarna
+   intake-formulier, "Bouw site"-knop en de validatie-checklist
+9. Later: scraper-route, Netlify site-provisioning via API, R2-backups
 
 ## Benodigde accounts/secrets (env vars op Vercel)
 - `DATABASE_URL` (Neon)
