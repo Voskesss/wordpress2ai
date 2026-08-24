@@ -65,9 +65,10 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-  const { siteId, bericht } = (await req.json()) as {
+  const { siteId, bericht, huidigePagina } = (await req.json()) as {
     siteId: number;
     bericht: string;
+    huidigePagina?: string;
   };
   if (!bericht?.trim()) {
     return NextResponse.json({ error: "Leeg bericht" }, { status: 400 });
@@ -106,6 +107,11 @@ export async function POST(req: Request) {
     role: m.rol === "klant" ? "user" : "assistant",
     content: m.tekst,
   }));
+
+  if (huidigePagina && conversatie.length > 0) {
+    const laatste = conversatie[conversatie.length - 1];
+    laatste.content = `[De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.]\n\n${laatste.content}`;
+  }
 
   const client = new Anthropic();
   const repo = site.githubRepo;
