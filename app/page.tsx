@@ -59,27 +59,11 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-1.5 text-sm font-semibold text-violet-700">
-              Heb jij een WordPress-website?
+              Klaar met het WordPress-gedoe?
             </p>
             <h1 className="font-display mt-6 text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
-              Klaar met het{" "}
-              <span className="relative inline-block text-violet-700">
-                gedoe?
-                <svg
-                  viewBox="0 0 120 12"
-                  aria-hidden
-                  className="absolute -bottom-1 left-0 w-full"
-                >
-                  <path
-                    d="M4 8c30-6 82-6 112-2"
-                    fill="none"
-                    stroke="#f6c453"
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>{" "}
-              Vanaf nu vraag je het gewoon.
+              Van WordPress-website naar{" "}
+              <span className="text-violet-700">AI-website</span> met chat
             </h1>
             <p className="mt-6 text-lg text-stone-600 max-w-xl leading-relaxed">
               Bij iedere wijziging weer in WordPress duiken — hoe zat het ook
@@ -108,6 +92,43 @@ export default function Home() {
           </div>
           <div className="float-card">
             <HeroIllustration />
+          </div>
+        </div>
+      </section>
+
+      {/* Van → naar */}
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="reveal grid items-stretch gap-4 sm:grid-cols-[1fr_auto_1fr]">
+          <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">
+              Wat je nu hebt
+            </p>
+            <h2 className="font-display mt-2 text-2xl font-semibold">
+              WordPress-website
+            </h2>
+            <p className="mt-3 text-stone-600 leading-relaxed">
+              Zelf inloggen en klikken in een ingewikkeld systeem. Plugins en
+              updates bijhouden. Hosting betalen. Of voor elke aanpassing je
+              webbouwer inschakelen.
+            </p>
+          </div>
+          <div className="flex items-center justify-center">
+            <span className="font-display text-4xl text-violet-700 rotate-90 sm:rotate-0">
+              →
+            </span>
+          </div>
+          <div className="rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
+            <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
+              Wat je krijgt
+            </p>
+            <h2 className="font-display mt-2 text-2xl font-semibold">
+              AI-website met chat
+            </h2>
+            <p className="mt-3 text-stone-600 leading-relaxed">
+              Dezelfde site, maar zonder onderhoud — en met een chat. Typ
+              &ldquo;vervang de foto op de homepage&rdquo;, bekijk het concept,
+              zeg &ldquo;ja&rdquo; en het staat live. Dat is alles.
+            </p>
           </div>
         </div>
       </section>

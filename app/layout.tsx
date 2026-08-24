@@ -19,7 +19,7 @@ const siteUrl = "https://wordpresstoai.nl";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WordPressToAI — Je website aanpassen door het gewoon te vragen",
+    default: "WordPressToAI — Van WordPress-website naar AI-website met chat",
     template: "%s | WordPressToAI",
   },
   description:
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: siteUrl,
     siteName: "WordPressToAI",
-    title: "WordPressToAI — Je website aanpassen door het gewoon te vragen",
+    title: "WordPressToAI — Van WordPress-website naar AI-website met chat",
     description:
       "Weg met plugin-updates en hosting-gedoe. Eén keer overzetten, daarna wijzig je alles via AI-chat.",
   },
