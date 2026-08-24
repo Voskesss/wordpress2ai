@@ -121,7 +121,7 @@ export async function POST(req: Request) {
   const gewijzigd: string[] = [];
 
   let response = await client.messages.create({
-    model: "claude-opus-5",
+    model: "claude-sonnet-5",
     max_tokens: 16000,
     system: systeemPrompt(site.naam),
     tools,
@@ -163,7 +163,7 @@ export async function POST(req: Request) {
     conversatie.push({ role: "assistant", content: response.content });
     conversatie.push({ role: "user", content: toolResults });
     response = await client.messages.create({
-      model: "claude-opus-5",
+      model: "claude-sonnet-5",
       max_tokens: 16000,
       system: systeemPrompt(site.naam),
       tools,
@@ -186,20 +186,21 @@ export async function POST(req: Request) {
       `Wijziging via chat`,
       `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd.map((p) => `- ${p}`).join("\n")}`
     )) as { number: number; html_url: string };
-    previewUrl = site.netlifySiteId
-      ? `https://deploy-preview-${pr.number}--${site.netlifySiteId}.netlify.app`
-      : pr.html_url;
     const [row] = await db
       .insert(changes)
       .values({
         siteId: site.id,
         branch,
         prNumber: pr.number,
-        previewUrl,
         promptTekst: bericht,
       })
       .returning({ id: changes.id });
     changeRowId = row.id;
+    previewUrl = `/preview/${row.id}/`;
+    await db
+      .update(changes)
+      .set({ previewUrl })
+      .where(eq(changes.id, row.id));
 
     if (verbruik) {
       await db

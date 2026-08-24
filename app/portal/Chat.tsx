@@ -38,7 +38,7 @@ export default function Chat({
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {
-        setHuidigePagina(e.data.pad);
+        setHuidigePagina(e.data.pad.replace(/^\/preview\/\d+/, "") || "/");
       }
     }
     window.addEventListener("message", onMessage);
