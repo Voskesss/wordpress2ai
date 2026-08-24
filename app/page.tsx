@@ -110,19 +110,23 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-1.5 text-sm font-semibold text-violet-700">
-              👋 Klaar met WordPress-gedoe?
+              👋 Heb jij een WordPress-website?
             </p>
-            <h1 className="mt-6 text-4xl sm:text-6xl font-bold tracking-tight leading-[1.05]">
-              Je website aanpassen in{" "}
+            <h1 className="mt-6 text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
+              Moet je er bij iedere wijziging zelf weer induiken —{" "}
               <span className="bg-gradient-to-r from-violet-600 to-emerald-500 bg-clip-text text-transparent">
-                1 minuut
+                hoe zat het ook alweer?
               </span>
-              . Gewoon door het te vragen.
             </h1>
             <p className="mt-6 text-lg text-zinc-600 max-w-xl">
-              Geen plugin-updates. Geen dure hosting. Geen webbouwer nodig voor
-              elke kleine wijziging. Wij zetten je WordPress-site één keer over
-              — daarna regel je álles via een simpele chat.
+              Of iemand anders vragen (en betalen) om het aan te passen? Ben je
+              er klaar mee om plugins te updaten — en een veiligheidsrisico te
+              lopen als je het niet doet?
+            </p>
+            <p className="mt-4 text-lg font-semibold text-zinc-900 max-w-xl">
+              Stap dan nu over van WordPress naar je eigen AI, die alles aanpast
+              zoals jíj het wilt. Je hoeft het alleen maar te vragen: de AI zet
+              het klaar, en als je tevreden bent zeg je gewoon &ldquo;ja&rdquo;.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
