@@ -58,13 +58,14 @@ export default function Home() {
       <section className="relative overflow-hidden">
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-1.5 text-sm font-semibold text-violet-700">
-              Klaar met het WordPress-gedoe?
-            </p>
-            <h1 className="font-display mt-6 text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
+            <h1 className="font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
               Een website die{" "}
               <span className="text-violet-700">doet wat je zegt</span>
             </h1>
+            <p className="font-display mt-5 text-xl sm:text-2xl font-semibold text-stone-800">
+              Hét betere alternatief voor je WordPress-website — wij zetten hem
+              over, jij hebt er nooit meer omkijken naar.
+            </p>
             <p className="mt-6 text-lg text-stone-600 max-w-xl leading-relaxed">
               Nooit meer zelf in WordPress duiken of je webbouwer bellen. Vanaf
               nu geef je een wijziging gewoon dóór — &ldquo;nieuw
