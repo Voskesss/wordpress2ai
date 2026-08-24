@@ -44,22 +44,33 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ changeId: string; pad?: string[] }> }
 ) {
-  const { userId } = await auth();
-  if (!userId) return new Response("Niet ingelogd", { status: 401 });
-
   const { changeId, pad: padDelen } = await params;
   const id = Number(changeId);
   if (!Number.isInteger(id)) return new Response("Ongeldig", { status: 400 });
+
+  let pad = (padDelen ?? []).join("/") || "index.html";
+  if (pad.endsWith("/")) pad += "index.html";
+
+  // Alleen HTML-verzoeken lopen door de login-check; assets (css/afbeeldingen)
+  // worden door de middleware overgeslagen en zouden anders op auth() crashen.
+  const ext0 = pad.split(".").pop() ?? "";
+  const isHtml = !pad.includes(".") || ext0 === "html" || ext0 === "htm";
+  let userId: string | null = null;
+  if (isHtml) {
+    ({ userId } = await auth());
+    if (!userId) return new Response("Niet ingelogd", { status: 401 });
+  }
 
   const [rij] = await db
     .select({ change: changes, site: sites })
     .from(changes)
     .innerJoin(sites, eq(changes.siteId, sites.id))
-    .where(and(eq(changes.id, id), eq(sites.clerkUserId, userId)));
+    .where(
+      userId
+        ? and(eq(changes.id, id), eq(sites.clerkUserId, userId))
+        : eq(changes.id, id)
+    );
   if (!rij) return new Response("Niet gevonden", { status: 404 });
-
-  let pad = (padDelen ?? []).join("/") || "index.html";
-  if (pad.endsWith("/")) pad += "index.html";
 
   let data = await haalBestand(rij.site.githubRepo, pad, rij.change.branch);
   if (!data && !pad.includes(".")) {

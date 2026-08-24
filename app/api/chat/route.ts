@@ -120,7 +120,18 @@ export async function POST(req: Request) {
   let branchGemaakt = false;
   const gewijzigd: string[] = [];
 
-  let response = await client.messages.create({
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const stuur = (data: object) =>
+        controller.enqueue(encoder.encode(JSON.stringify(data) + "\n"));
+      const paginaNaam = (pad: string) =>
+        pad === "index.html" ? "de homepage" : `de pagina ${pad.replace(".html", "")}`;
+
+      try {
+        stuur({ type: "status", tekst: "Ik kijk even naar je website..." });
+
+        let response = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 16000,
     system: systeemPrompt(site.naam),
@@ -129,90 +140,111 @@ export async function POST(req: Request) {
   });
 
   while (response.stop_reason === "tool_use") {
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of response.content) {
-      if (block.type !== "tool_use") continue;
-      let result: string;
-      try {
-        if (block.name === "lijst_bestanden") {
-          result = (await lijstBestanden(repo, branchGemaakt ? branch : undefined)).join("\n");
-        } else if (block.name === "lees_bestand") {
-          const { pad } = block.input as { pad: string };
-          result = await leesBestand(repo, pad, branchGemaakt ? branch : undefined);
-        } else if (block.name === "schrijf_bestand") {
-          const { pad, inhoud } = block.input as { pad: string; inhoud: string };
-          if (!branchGemaakt) {
-            await maakBranch(repo, branch);
-            branchGemaakt = true;
+          const toolResults: Anthropic.ToolResultBlockParam[] = [];
+          for (const block of response.content) {
+            if (block.type !== "tool_use") continue;
+            let result: string;
+            try {
+              if (block.name === "lijst_bestanden") {
+                stuur({ type: "status", tekst: "Ik kijk welke pagina's je site heeft..." });
+                result = (await lijstBestanden(repo, branchGemaakt ? branch : undefined)).join("\n");
+              } else if (block.name === "lees_bestand") {
+                const { pad } = block.input as { pad: string };
+                stuur({ type: "status", tekst: `Ik lees ${paginaNaam(pad)}...` });
+                result = await leesBestand(repo, pad, branchGemaakt ? branch : undefined);
+              } else if (block.name === "schrijf_bestand") {
+                const { pad, inhoud } = block.input as { pad: string; inhoud: string };
+                stuur({ type: "status", tekst: `Ik pas ${paginaNaam(pad)} aan...` });
+                if (!branchGemaakt) {
+                  await maakBranch(repo, branch);
+                  branchGemaakt = true;
+                }
+                await schrijfBestand(repo, pad, inhoud, `Wijziging via chat: ${pad}`, branch);
+                gewijzigd.push(pad);
+                result = `Opgeslagen: ${pad}`;
+              } else {
+                result = "Onbekende tool";
+              }
+            } catch (e) {
+              result = `Fout: ${e instanceof Error ? e.message : String(e)}`;
+            }
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              content: result,
+            });
           }
-          await schrijfBestand(repo, pad, inhoud, `Wijziging via chat: ${pad}`, branch);
-          gewijzigd.push(pad);
-          result = `Opgeslagen: ${pad}`;
-        } else {
-          result = "Onbekende tool";
+          conversatie.push({ role: "assistant", content: response.content });
+          conversatie.push({ role: "user", content: toolResults });
+          response = await client.messages.create({
+            model: "claude-sonnet-5",
+            max_tokens: 16000,
+            system: systeemPrompt(site.naam),
+            tools,
+            messages: conversatie,
+          });
         }
+
+        const reply = response.content
+          .filter((b): b is Anthropic.TextBlock => b.type === "text")
+          .map((b) => b.text)
+          .join("\n");
+
+        let previewUrl: string | null = null;
+        let changeRowId: number | null = null;
+
+        if (branchGemaakt) {
+          stuur({ type: "status", tekst: "Ik zet het concept voor je klaar..." });
+          const pr = (await maakPullRequest(
+            repo,
+            branch,
+            `Wijziging via chat`,
+            `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd.map((p) => `- ${p}`).join("\n")}`
+          )) as { number: number; html_url: string };
+          const [row] = await db
+            .insert(changes)
+            .values({
+              siteId: site.id,
+              branch,
+              prNumber: pr.number,
+              promptTekst: bericht,
+            })
+            .returning({ id: changes.id });
+          changeRowId = row.id;
+          previewUrl = `/preview/${row.id}/`;
+          await db
+            .update(changes)
+            .set({ previewUrl })
+            .where(eq(changes.id, row.id));
+
+          if (verbruik) {
+            await db
+              .update(usage)
+              .set({ wijzigingen: verbruik.wijzigingen + 1 })
+              .where(eq(usage.id, verbruik.id));
+          } else {
+            await db.insert(usage).values({ siteId: site.id, maand, wijzigingen: 1 });
+          }
+        }
+
+        await db.insert(messages).values({ siteId: site.id, rol: "assistent", tekst: reply });
+
+        stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId });
       } catch (e) {
-        result = `Fout: ${e instanceof Error ? e.message : String(e)}`;
+        stuur({
+          type: "klaar",
+          reply: "Er ging iets mis, probeer het opnieuw.",
+          previewUrl: null,
+          changeId: null,
+        });
+        console.error(e);
+      } finally {
+        controller.close();
       }
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: block.id,
-        content: result,
-      });
-    }
-    conversatie.push({ role: "assistant", content: response.content });
-    conversatie.push({ role: "user", content: toolResults });
-    response = await client.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 16000,
-      system: systeemPrompt(site.naam),
-      tools,
-      messages: conversatie,
-    });
-  }
+    },
+  });
 
-  const reply = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
-
-  let previewUrl: string | null = null;
-  let changeRowId: number | null = null;
-
-  if (branchGemaakt) {
-    const pr = (await maakPullRequest(
-      repo,
-      branch,
-      `Wijziging via chat`,
-      `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd.map((p) => `- ${p}`).join("\n")}`
-    )) as { number: number; html_url: string };
-    const [row] = await db
-      .insert(changes)
-      .values({
-        siteId: site.id,
-        branch,
-        prNumber: pr.number,
-        promptTekst: bericht,
-      })
-      .returning({ id: changes.id });
-    changeRowId = row.id;
-    previewUrl = `/preview/${row.id}/`;
-    await db
-      .update(changes)
-      .set({ previewUrl })
-      .where(eq(changes.id, row.id));
-
-    if (verbruik) {
-      await db
-        .update(usage)
-        .set({ wijzigingen: verbruik.wijzigingen + 1 })
-        .where(eq(usage.id, verbruik.id));
-    } else {
-      await db.insert(usage).values({ siteId: site.id, maand, wijzigingen: 1 });
-    }
-  }
-
-  await db.insert(messages).values({ siteId: site.id, rol: "assistent", tekst: reply });
-
-  return NextResponse.json({ reply, previewUrl, changeId: changeRowId });
+  return new Response(stream, {
+    headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-store" },
+  });
 }

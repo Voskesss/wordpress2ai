@@ -24,6 +24,7 @@ export default function Chat({
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
   const [bezig, setBezig] = useState(false);
+  const [statusTekst, setStatusTekst] = useState<string | null>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const [conceptUrl, setConceptUrl] = useState<string | null>(
     openConcept?.previewUrl ?? null
@@ -58,18 +59,45 @@ export default function Chat({
     setInvoer("");
     setBerichten((b) => [...b, { rol: "klant", tekst }]);
     setBezig(true);
+    setStatusTekst("Even nadenken...");
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ siteId, bericht: tekst, huidigePagina }),
       });
-      const data = await res.json();
+      if (!res.body) throw new Error("geen stream");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let klaar: {
+        reply?: string;
+        previewUrl?: string | null;
+        changeId?: number | null;
+      } | null = null;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const regels = buffer.split("\n");
+        buffer = regels.pop() ?? "";
+        for (const regel of regels) {
+          if (!regel.trim()) continue;
+          try {
+            const event = JSON.parse(regel);
+            if (event.type === "status") setStatusTekst(event.tekst);
+            if (event.type === "klaar") klaar = event;
+          } catch {
+            // halve regel, negeren
+          }
+        }
+      }
+      const data = klaar ?? {};
       setBerichten((b) => [
         ...b,
         {
           rol: "assistent",
-          tekst: data.reply ?? data.error ?? "Er ging iets mis, probeer het opnieuw.",
+          tekst: data.reply ?? "Er ging iets mis, probeer het opnieuw.",
           previewUrl: data.previewUrl,
           changeId: data.changeId,
         },
@@ -85,6 +113,7 @@ export default function Chat({
       ]);
     } finally {
       setBezig(false);
+      setStatusTekst(null);
     }
   }
 
@@ -244,8 +273,8 @@ export default function Chat({
             </div>
           ))}
           {bezig && (
-            <p className="text-stone-400 text-sm animate-pulse">
-              Bezig met je wijziging...
+            <p className="text-violet-600 text-sm animate-pulse font-medium">
+              {statusTekst ?? "Bezig met je wijziging..."}
             </p>
           )}
         </div>
