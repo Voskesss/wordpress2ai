@@ -120,6 +120,21 @@ export async function schrijfBestand(
   });
 }
 
+/** Lijst van alle bestandspaden in de repo (default branch of gegeven branch). */
+export async function lijstBestanden(
+  repo: string,
+  branch?: string
+): Promise<string[]> {
+  const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as {
+    default_branch: string;
+  };
+  const ref = branch ?? repoInfo.default_branch;
+  const tree = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`
+  )) as { tree: { path: string; type: string }[] };
+  return tree.tree.filter((t) => t.type === "blob").map((t) => t.path);
+}
+
 /** Maakt een branch vanaf de default branch. */
 export async function maakBranch(repo: string, naam: string) {
   const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as {

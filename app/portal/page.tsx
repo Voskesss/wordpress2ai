@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { sites } from "@/db/schema";
+import { messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import Chat from "./Chat";
 
 export const metadata: Metadata = {
   title: "Mijn website",
@@ -17,6 +18,21 @@ export default async function Portal() {
     .select()
     .from(sites)
     .where(eq(sites.clerkUserId, userId));
+
+  const historieMap: Record<
+    number,
+    { rol: "klant" | "assistent"; tekst: string }[]
+  > = {};
+  for (const site of mijnSites) {
+    const rows = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.siteId, site.id))
+      .orderBy(messages.id);
+    historieMap[site.id] = rows
+      .slice(-30)
+      .map((m) => ({ rol: m.rol, tekst: m.tekst }));
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
@@ -51,9 +67,12 @@ export default async function Portal() {
                   {site.plan === "via_ons" ? "Via ons" : "Eigen AI-account"}
                 </span>
               </div>
-              <p className="mt-4 text-stone-600 text-sm">
-                De chat om wijzigingen door te geven komt hier binnenkort.
-              </p>
+              <div className="mt-6">
+                <Chat
+                  siteId={site.id}
+                  historie={historieMap[site.id] ?? []}
+                />
+              </div>
             </div>
           ))}
         </div>
