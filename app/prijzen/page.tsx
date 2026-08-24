@@ -25,7 +25,7 @@ export default function Prijzen() {
           <ul className="mt-4 space-y-2 text-zinc-600 text-sm">
             <li>Complete migratie van je WordPress-site (tot ± 10 pagina&apos;s)</li>
             <li>Design blijft zoals je het kent</li>
-            <li>E-mailmigratie inbegrepen</li>
+            <li>E-mailmigratie inbegrepen (het e-mailabonnement zelf, vanaf ± €8 p/m, sluit je af bij een Nederlandse provider)</li>
             <li>SEO-behoud: redirects, sitemap, Google Search Console</li>
             <li>Contactformulier standaard inbegrepen</li>
           </ul>
@@ -38,7 +38,7 @@ export default function Prijzen() {
           <ul className="mt-4 space-y-2 text-zinc-600 text-sm">
             <li>Wijzigingen aanvragen via chat, met preview vóór publicatie</li>
             <li>Via ons account (alles-inbegrepen, fair use) óf met je eigen AI-account</li>
-            <li>Hosting, SSL en domeinkoppeling geregeld</li>
+            <li>Hosting, SSL en domeinkoppeling geregeld (bij uitzonderlijk veel verkeer maken we aparte afspraken)</li>
             <li>Maandelijks opzegbaar, overstappen kan altijd</li>
           </ul>
         </div>
