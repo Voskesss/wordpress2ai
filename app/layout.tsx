@@ -1,4 +1,5 @@
 import { ClerkProvider, SignInButton, Show, UserButton } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
@@ -61,7 +62,9 @@ const nav = [
   { href: "/prijzen", label: "Prijzen" },
 ];
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const user = await currentUser();
+  const isAdmin = user?.publicMetadata?.role === "admin";
   return (
     <html
       lang="nl"
@@ -105,6 +108,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </SignInButton>
           </Show>
           <Show when="signed-in">
+            <Link
+              href="/portal"
+              className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
+            >
+              Mijn website
+            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="px-2 py-1 text-violet-700 font-semibold hover:text-violet-900 transition-colors"
+              >
+                Admin
+              </Link>
+            )}
             <UserButton />
           </Show>
           </nav>
