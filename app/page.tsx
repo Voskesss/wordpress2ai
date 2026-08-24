@@ -192,12 +192,19 @@ export default function Home() {
         <div className="reveal rounded-3xl border border-violet-100 bg-violet-50/60 p-10">
           <p className="font-display text-2xl leading-snug text-stone-800">
             &ldquo;Ik heb te veel ondernemers gezien die &apos;s avonds nog
-            zaten te worstelen met hun website, of elke maand betaalden voor
-            iets dat stilstond. Dat kan zoveel simpeler. Jij runt je bedrijf —
-            je website moet gewoon meewerken.&rdquo;
+            zaten te worstelen met hun website, die niet durfden te klikken uit
+            angst iets kapot te maken, of elke maand betaalden voor iets dat
+            stilstond. Dat kan zoveel simpeler. Jij runt je bedrijf — je
+            website moet gewoon meewerken.&rdquo;
           </p>
           <p className="mt-6 font-semibold text-violet-700">
             — Jos, oprichter WordPressToAI
+          </p>
+          <p className="mt-6 text-stone-600 leading-relaxed">
+            En gaat er tóch een keer iets fout? Dan geef je het gewoon door en
+            zet de AI het weer goed. Van elke versie van je website wordt
+            automatisch een back-up bewaard — je kunt altijd terug naar hoe het
+            was.
           </p>
         </div>
       </section>

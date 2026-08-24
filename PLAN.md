@@ -69,6 +69,25 @@ Flow per wijziging:
   (via ons ↔ eigen key), site pauzeren/opzeggen
 - Fair-use signalering: badge bij >25 wijzigingen deze maand
 
+## Back-ups & herstel (verplicht onderdeel van de techniek)
+
+Git geeft al volledige versiegeschiedenis (elke wijziging = commit, alles
+terug te draaien), maar dat is niet genoeg als enige vangnet:
+
+- **"Zet het terug"-tool in de chat**: de AI kan op verzoek een eerdere versie
+  herstellen ("zet de homepage terug zoals gisteren") — via git revert op de
+  betreffende bestanden, met dezelfde preview → publiceer-flow.
+- **Externe backup los van GitHub**: nachtelijke job (Vercel Cron) die van
+  elke klant-repo een archief (git bundle of tarball) wegschrijft naar aparte
+  opslag (bv. Cloudflare R2/S3), retentie ~90 dagen. Beschermt tegen
+  account-/org-problemen bij GitHub zelf, per ongeluk verwijderde repos, of
+  een force-push.
+- **Pre-migratie snapshot**: vóór elke migratie een volledige kopie van de
+  oude WordPress-site (XML-export + bestanden) archiveren, zodat er altijd
+  een weg terug is tijdens het traject.
+- Herstelpunt tonen in het portal: lijst van gepubliceerde versies met datum,
+  klant kan per versie een preview zien en terugzetten aanvragen.
+
 ## 3. Bouwvolgorde
 
 1. **Fundament**: Clerk + Neon + Drizzle in de bestaande app; `/portal` en
