@@ -50,7 +50,7 @@ export default function HoeHetWerkt() {
       <ol className="mt-10 space-y-8">
         {stappen.map((stap, i) => (
           <li key={stap.titel} className="flex gap-4">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-semibold">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white font-semibold">
               {i + 1}
             </span>
             <div>
@@ -60,9 +60,9 @@ export default function HoeHetWerkt() {
           </li>
         ))}
       </ol>
-      <section className="mt-14 rounded-3xl bg-zinc-950 text-white p-8">
-        <h2 className="font-bold text-emerald-400">Eerst zien, dan live</h2>
-        <p className="mt-2 text-zinc-300">
+      <section className="mt-14 rounded-3xl bg-violet-50 border border-violet-100 p-8">
+        <h2 className="font-bold text-violet-700">Eerst zien, dan live</h2>
+        <p className="mt-2 text-zinc-600">
           Vraag je een wijziging aan via de chat, dan krijg je eerst een
           preview-link van het resultaat. Goed zo? Eén klik op
           &ldquo;Publiceer&rdquo; en binnen twee minuten staat het op je echte

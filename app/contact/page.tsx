@@ -28,7 +28,7 @@ export default function Contact() {
             name="naam"
             type="text"
             required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-emerald-600 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
           />
         </div>
         <div>
@@ -40,7 +40,7 @@ export default function Contact() {
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-emerald-600 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
           />
         </div>
         <div>
@@ -52,7 +52,7 @@ export default function Contact() {
             name="website"
             type="url"
             placeholder="https://"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-emerald-600 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
           />
         </div>
         <div>
@@ -64,12 +64,12 @@ export default function Contact() {
             name="bericht"
             rows={5}
             required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-emerald-600 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-violet-600 focus:outline-none"
           />
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-emerald-600 px-6 py-3 text-white font-medium hover:bg-emerald-700"
+          className="rounded-lg bg-violet-600 px-6 py-3 text-white font-medium hover:bg-violet-700"
         >
           Versturen
         </button>

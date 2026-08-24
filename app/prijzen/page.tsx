@@ -30,7 +30,7 @@ export default function Prijzen() {
             <li>Contactformulier standaard inbegrepen</li>
           </ul>
         </div>
-        <div className="rounded-3xl border-2 border-emerald-600 p-6">
+        <div className="rounded-3xl border-2 border-violet-600 p-6">
           <h2 className="font-semibold text-lg">De AI-koppeling</h2>
           <p className="mt-2 text-3xl font-bold">
             €20 <span className="text-base font-normal text-zinc-500">per maand</span>
@@ -53,7 +53,7 @@ export default function Prijzen() {
         </p>
         <Link
           href="/contact"
-          className="mt-6 inline-block rounded-lg bg-emerald-600 px-6 py-3 text-white font-medium hover:bg-emerald-700"
+          className="mt-6 inline-block rounded-lg bg-violet-600 px-6 py-3 text-white font-medium hover:bg-violet-700"
         >
           Vraag een offerte aan
         </Link>

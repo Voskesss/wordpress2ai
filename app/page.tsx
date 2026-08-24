@@ -4,7 +4,7 @@ function ChatMockup() {
   const messages = [
     {
       side: "right",
-      cls: "bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-br-sm",
+      cls: "bg-violet-600 text-white rounded-br-sm",
       text: "Zet ons nieuwe telefoonnummer op de contactpagina: 06-12345678",
       delay: "0.3s",
     },
@@ -17,7 +17,7 @@ function ChatMockup() {
     },
     {
       side: "right",
-      cls: "bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-br-sm",
+      cls: "bg-violet-600 text-white rounded-br-sm",
       text: "Perfect, publiceer maar 🚀",
       delay: "1.7s",
     },
@@ -29,7 +29,7 @@ function ChatMockup() {
     },
   ];
   return (
-    <div className="float-card mx-auto w-full max-w-md rounded-3xl border border-white/60 bg-white/80 backdrop-blur-xl p-4 shadow-2xl shadow-fuchsia-300/40 text-left text-sm">
+    <div className="float-card mx-auto w-full max-w-md rounded-3xl border border-white/60 bg-white/80 backdrop-blur-xl p-4 shadow-2xl shadow-violet-300/40 text-left text-sm">
       <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
         <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -90,37 +90,32 @@ const voordelen = [
     emoji: "💬",
     kop: "Typ het, en het staat erop",
     tekst: "Wijziging nodig? Gewoon vragen in de chat. In 1 minuut geregeld.",
-    kleur: "from-violet-500/10 to-fuchsia-500/10 border-violet-200",
   },
+
   {
     emoji: "🔒",
     kop: "Nooit meer updates",
     tekst: "Geen plugins, geen lekken, niets te onderhouden. Klaar is klaar.",
-    kleur: "from-emerald-500/10 to-teal-500/10 border-emerald-200",
   },
   {
     emoji: "⚡",
     kop: "Bloedsnel & goed voor Google",
     tekst: "Je nieuwe site laadt direct. Google beloont dat met betere posities.",
-    kleur: "from-amber-500/10 to-orange-500/10 border-amber-200",
   },
   {
     emoji: "👀",
     kop: "Eerst zien, dan live",
     tekst: "Elke wijziging eerst als preview. Pas na jouw akkoord staat het erop.",
-    kleur: "from-sky-500/10 to-cyan-500/10 border-sky-200",
   },
   {
     emoji: "🔓",
     kop: "Geen lock-in",
     tekst: "Maandelijks opzegbaar. Je site en je AI-account blijven van jou.",
-    kleur: "from-rose-500/10 to-pink-500/10 border-rose-200",
   },
   {
     emoji: "🧘",
     kop: "Eindelijk rust",
     tekst: "Je website is gewoon áf. Jij kunt weer ondernemen.",
-    kleur: "from-lime-500/10 to-green-500/10 border-lime-200",
   },
 ];
 
@@ -129,9 +124,8 @@ export default function Home() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div aria-hidden className="blob -top-32 -left-32 h-[28rem] w-[28rem] bg-violet-400/50" />
-        <div aria-hidden className="blob top-24 -right-24 h-96 w-96 bg-fuchsia-300/50" style={{ animationDelay: "-5s" }} />
-        <div aria-hidden className="blob bottom-0 left-1/3 h-80 w-80 bg-amber-200/60" style={{ animationDelay: "-9s" }} />
+        <div aria-hidden className="blob -top-32 -left-32 h-[28rem] w-[28rem] bg-violet-300/50" />
+        <div aria-hidden className="blob top-24 -right-24 h-96 w-96 bg-violet-200/60" style={{ animationDelay: "-5s" }} />
         <div className="relative mx-auto max-w-6xl px-6 pt-24 pb-28 grid items-center gap-14 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/70 backdrop-blur px-4 py-1.5 text-sm font-semibold text-violet-700 shadow-sm">
@@ -154,7 +148,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/contact"
-                className="lift rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-semibold text-white shadow-lg shadow-fuchsia-300/60"
+                className="lift rounded-full bg-violet-600 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-300/60 hover:bg-violet-500"
               >
                 Ja, verlos me van het gedoe →
               </Link>
@@ -171,13 +165,12 @@ export default function Home() {
       </section>
 
       {/* Het probleem */}
-      <section className="relative overflow-hidden bg-zinc-950 text-white">
-        <div aria-hidden className="blob -top-20 right-0 h-96 w-96 bg-violet-600/20" />
-        <div className="relative mx-auto max-w-6xl px-6 py-28">
+      <section className="bg-zinc-50 border-y border-zinc-200">
+        <div className="mx-auto max-w-6xl px-6 py-28">
           <h2 className="reveal text-center text-4xl sm:text-6xl font-bold tracking-tight">
             Herken je dit? 😤
           </h2>
-          <p className="reveal mt-5 text-center text-lg text-zinc-400 max-w-2xl mx-auto">
+          <p className="reveal mt-5 text-center text-lg text-zinc-600 max-w-2xl mx-auto">
             Een WordPress-site is nooit af. Hij blijft tijd, geld en energie
             kosten zolang hij bestaat.
           </p>
@@ -185,11 +178,11 @@ export default function Home() {
             {herkenbaar.map((item) => (
               <div
                 key={item.kop}
-                className="reveal lift rounded-3xl bg-zinc-900/80 border border-zinc-800 p-8 hover:border-violet-500/50"
+                className="reveal lift rounded-3xl bg-white border border-zinc-200 p-8 shadow-sm hover:border-violet-300"
               >
                 <span className="text-4xl">{item.emoji}</span>
                 <h3 className="mt-4 text-xl font-bold">{item.kop}</h3>
-                <p className="mt-2 text-zinc-400">{item.tekst}</p>
+                <p className="mt-2 text-zinc-600">{item.tekst}</p>
               </div>
             ))}
           </div>
@@ -213,7 +206,7 @@ export default function Home() {
           {voordelen.map((v) => (
             <div
               key={v.kop}
-              className={`reveal lift rounded-3xl border bg-gradient-to-br p-8 ${v.kleur}`}
+              className="reveal lift rounded-3xl border border-violet-100 bg-violet-50/50 p-8 hover:border-violet-300"
             >
               <span className="text-4xl">{v.emoji}</span>
               <h3 className="mt-4 text-lg font-bold">{v.kop}</h3>
@@ -225,16 +218,15 @@ export default function Home() {
 
       {/* Prijs-teaser + CTA */}
       <section className="mx-auto max-w-6xl px-6 pb-28">
-        <div className="reveal relative overflow-hidden rounded-[2.5rem] bg-zinc-950 px-8 py-20 text-center text-white shadow-2xl">
-          <div aria-hidden className="blob -top-32 left-1/4 h-96 w-96 bg-violet-600/40" />
-          <div aria-hidden className="blob -bottom-24 right-1/4 h-80 w-80 bg-fuchsia-600/30" style={{ animationDelay: "-6s" }} />
+        <div className="reveal relative overflow-hidden rounded-[2.5rem] bg-violet-600 px-8 py-20 text-center text-white shadow-xl shadow-violet-200">
+          <div aria-hidden className="blob -top-32 left-1/4 h-96 w-96 bg-violet-400/50" />
           <div className="relative">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
               Eén keer overstappen.
               <br />
-              <span className="gradient-text">Voor altijd rust.</span>
+              Voor altijd rust.
             </h2>
-            <p className="mt-5 text-lg text-zinc-300 max-w-xl mx-auto">
+            <p className="mt-5 text-lg text-violet-100 max-w-xl mx-auto">
               Eenmalig vanaf €500 voor de complete overstap (inclusief e-mail en
               SEO-behoud), daarna €20 per maand. Dat is minder dan de meeste
               mensen nu al kwijt zijn aan hosting en plugins.
@@ -242,13 +234,13 @@ export default function Home() {
             <div className="mt-9 flex justify-center flex-wrap gap-4">
               <Link
                 href="/contact"
-                className="lift rounded-full bg-white px-7 py-3.5 font-semibold text-zinc-950"
+                className="lift rounded-full bg-white px-7 py-3.5 font-semibold text-violet-700"
               >
                 Vrijblijvend kennismaken
               </Link>
               <Link
                 href="/prijzen"
-                className="lift rounded-full border-2 border-zinc-700 px-7 py-3.5 font-semibold text-white hover:border-zinc-400"
+                className="lift rounded-full border-2 border-violet-400 px-7 py-3.5 font-semibold text-white hover:border-white"
               >
                 Alle prijzen
               </Link>
