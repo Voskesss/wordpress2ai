@@ -69,6 +69,38 @@ Flow per wijziging:
   (via ons ↔ eigen key), site pauzeren/opzeggen
 - Fair-use signalering: badge bij >25 wijzigingen deze maand
 
+## SEO-behoud bij migratie (verplichte checklist per klant)
+
+Alles wat Google nu van de site weet moet 1-op-1 mee. Per pagina vastleggen
+vóór de migratie (scriptbaar: crawl van de oude site + WordPress XML-export):
+
+- **URL's**: exacte paden overnemen (`/over-ons/` blijft `/over-ons/`,
+  inclusief trailing slash-gedrag). Wijzigt een URL onvermijdelijk, dan een
+  301-redirect van oud naar nieuw (Netlify `_redirects`).
+- **Page titles** (`<title>`) — letterlijk overnemen
+- **Meta descriptions** — letterlijk overnemen
+- **Overige meta tags**: canonical, robots (noindex-pagina's!), Open Graph
+  (og:title/description/image), twitter cards
+- **Headingstructuur** (h1/h2) per pagina behouden
+- **Afbeeldingen**: bestandsnamen en alt-teksten overnemen
+- **Structured data** (JSON-LD van bv. Yoast/RankMath: LocalBusiness, FAQ) meenemen
+- **Sitemap.xml** genereren met dezelfde URL's; **robots.txt** overnemen
+- Interne links controleren (geen verwijzingen naar oude WP-paden zoals
+  `/wp-content/...` — afbeeldings-URL's redirecten of herschrijven)
+
+Na livegang:
+- Sitemap indienen in Google Search Console; oude property behouden
+- Eerste 4 weken: GSC monitoren op 404's en dekking-fouten; elke 404 direct
+  een redirect geven
+- Crawl-vergelijk (oud vs. nieuw) als slotcontrole: zelfde titles,
+  descriptions en status 200 op alle oude URL's
+
+Tooling die we bouwen: een migratie-script dat de oude site crawlt en een
+`seo-manifest.json` maakt (url, title, description, meta, headings, images
++ alt). De nieuwe site wordt daartegen automatisch gevalideerd — pas als
+alles matcht gaat de DNS om. De AI-chat mag titles/descriptions later alleen
+wijzigen als de klant er expliciet om vraagt.
+
 ## Back-ups & herstel (verplicht onderdeel van de techniek)
 
 Git geeft al volledige versiegeschiedenis (elke wijziging = commit, alles
