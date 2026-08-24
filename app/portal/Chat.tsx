@@ -13,9 +13,11 @@ type Bericht = {
 export default function Chat({
   siteId,
   historie,
+  liveUrl,
 }: {
   siteId: number;
   historie: Bericht[];
+  liveUrl?: string | null;
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
@@ -99,7 +101,18 @@ export default function Chat({
                 {m.changeId &&
                   (m.gepubliceerd ? (
                     <span className="text-emerald-700 font-medium">
-                      Gepubliceerd — staat binnen 2 minuten live
+                      Gepubliceerd — {liveUrl ? (
+                        <a
+                          href={`https://${liveUrl}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          binnen 2 minuten live
+                        </a>
+                      ) : (
+                        "staat binnen 2 minuten live"
+                      )}
                     </span>
                   ) : (
                     <button

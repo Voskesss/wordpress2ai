@@ -71,6 +71,7 @@ export default async function Portal() {
                 <Chat
                   siteId={site.id}
                   historie={historieMap[site.id] ?? []}
+                  liveUrl={site.domein}
                 />
               </div>
             </div>

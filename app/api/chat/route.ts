@@ -180,7 +180,9 @@ export async function POST(req: Request) {
       `Wijziging via chat`,
       `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd.map((p) => `- ${p}`).join("\n")}`
     )) as { number: number; html_url: string };
-    previewUrl = pr.html_url;
+    previewUrl = site.netlifySiteId
+      ? `https://deploy-preview-${pr.number}--${site.netlifySiteId}.netlify.app`
+      : pr.html_url;
     const [row] = await db
       .insert(changes)
       .values({
