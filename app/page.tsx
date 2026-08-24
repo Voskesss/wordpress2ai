@@ -62,18 +62,21 @@ export default function Home() {
               Klaar met het WordPress-gedoe?
             </p>
             <h1 className="font-display mt-6 text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
-              Van WordPress-website naar{" "}
-              <span className="text-violet-700">AI-website</span> met chat
+              Een website die{" "}
+              <span className="text-violet-700">doet wat je zegt</span>
             </h1>
             <p className="mt-6 text-lg text-stone-600 max-w-xl leading-relaxed">
-              Bij iedere wijziging weer in WordPress duiken — hoe zat het ook
-              alweer? Of iemand anders vragen (en betalen)? Plugins updaten, en
-              een veiligheidsrisico lopen als je het vergeet?
+              Nooit meer zelf in WordPress duiken of je webbouwer bellen. Vanaf
+              nu geef je een wijziging gewoon dóór — &ldquo;nieuw
+              telefoonnummer op de contactpagina&rdquo;, &ldquo;andere foto op
+              de homepage&rdquo;, &ldquo;voeg een pagina toe over
+              dakisolatie&rdquo; — en de AI voert het uit. Waar het ook staat,
+              wat het ook is.
             </p>
             <p className="mt-4 text-lg text-stone-800 max-w-xl leading-relaxed font-medium">
-              Wij zetten je site één keer over. Daarna typ je gewoon wat je
-              wilt, de AI zet het klaar — en als je tevreden bent zeg je
-              &ldquo;ja&rdquo;. Meer is het niet.
+              Jij hoeft niet te weten hoe je website werkt. De AI zet elke
+              wijziging voor je klaar, jij bekijkt het resultaat — en als je
+              tevreden bent zeg je &ldquo;ja&rdquo;. Meer is het niet.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -122,12 +125,13 @@ export default function Home() {
               Wat je krijgt
             </p>
             <h2 className="font-display mt-2 text-2xl font-semibold">
-              AI-website met chat
+              Een website met een eigen AI-beheerder
             </h2>
             <p className="mt-3 text-stone-600 leading-relaxed">
-              Dezelfde site, maar zonder onderhoud — en met een chat. Typ
-              &ldquo;vervang de foto op de homepage&rdquo;, bekijk het concept,
-              zeg &ldquo;ja&rdquo; en het staat live. Dat is alles.
+              Dezelfde site, maar zonder onderhoud. Wil je iets veranderd
+              hebben? Je geeft het gewoon door, in gewone taal. De AI zoekt
+              zelf uit waar het staat en past het aan. Jij bekijkt het
+              resultaat en zegt &ldquo;ja&rdquo; — dan staat het live.
             </p>
           </div>
         </div>
