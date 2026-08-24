@@ -3,25 +3,21 @@ import HeroIllustration from "./HeroIllustration";
 
 const herkenbaar = [
   {
-    emoji: "🔧",
     kop: "Wéér een plugin-update",
     tekst:
       "Elke week meldingen: updaten, updaten, updaten. En durf je het niet? Dan ligt je site open voor hackers.",
   },
   {
-    emoji: "💸",
     kop: "Betalen voor elke aanpassing",
     tekst:
       "Een tekstje wijzigen? Je webbouwer mailen, wachten, en een factuur ontvangen. Voor twee zinnen.",
   },
   {
-    emoji: "🏋️",
     kop: "Dure hosting die maar doorloopt",
     tekst:
       "Elke maand betalen, of je site nu iets doet of stilstaat. Plus losse abonnementen voor plugins.",
   },
   {
-    emoji: "😰",
     kop: "Zelf klooien in WordPress",
     tekst:
       "Inloggen, zoeken waar dat blokje ook alweer zat, per ongeluk iets slopen... en dan maar hopen.",
@@ -30,32 +26,26 @@ const herkenbaar = [
 
 const voordelen = [
   {
-    emoji: "💬",
     kop: "Typ het, en het staat erop",
     tekst: "Wijziging nodig? Gewoon vragen in de chat. In 1 minuut geregeld.",
   },
   {
-    emoji: "🔒",
     kop: "Nooit meer updates",
     tekst: "Geen plugins, geen lekken, niets te onderhouden. Klaar is klaar.",
   },
   {
-    emoji: "⚡",
     kop: "Bloedsnel & goed voor Google",
     tekst: "Je nieuwe site laadt direct. Google beloont dat met betere posities.",
   },
   {
-    emoji: "👀",
     kop: "Eerst zien, dan live",
     tekst: "Elke wijziging eerst als preview. Pas na jouw akkoord staat het erop.",
   },
   {
-    emoji: "🔓",
     kop: "Geen lock-in",
     tekst: "Maandelijks opzegbaar. Je site en je AI-account blijven van jou.",
   },
   {
-    emoji: "🧘",
     kop: "Eindelijk rust",
     tekst: "Je website is gewoon áf. Jij kunt weer ondernemen.",
   },
@@ -69,7 +59,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-1.5 text-sm font-semibold text-violet-700">
-              👋 Heb jij een WordPress-website?
+              Heb jij een WordPress-website?
             </p>
             <h1 className="font-display mt-6 text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
               Klaar met het{" "}
@@ -138,8 +128,7 @@ export default function Home() {
                 key={item.kop}
                 className="reveal lift rounded-3xl bg-white border border-stone-200 p-8 shadow-sm"
               >
-                <span className="text-4xl">{item.emoji}</span>
-                <h3 className="mt-4 text-xl font-bold">{item.kop}</h3>
+                <h3 className="text-xl font-bold">{item.kop}</h3>
                 <p className="mt-2 text-stone-600">{item.tekst}</p>
               </div>
             ))}
@@ -165,8 +154,7 @@ export default function Home() {
               key={v.kop}
               className="reveal lift rounded-3xl border border-stone-200 bg-white p-8 shadow-sm"
             >
-              <span className="text-4xl">{v.emoji}</span>
-              <h3 className="mt-4 text-lg font-bold">{v.kop}</h3>
+              <h3 className="text-lg font-bold">{v.kop}</h3>
               <p className="mt-2 text-stone-600 leading-relaxed">{v.tekst}</p>
             </div>
           ))}

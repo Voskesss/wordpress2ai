@@ -82,7 +82,7 @@ export default function HeroIllustration() {
       <g>
         <rect x="60" y="150" width="150" height="40" rx="20" fill="#7c5cc4" />
         <text x="135" y="176" textAnchor="middle" fill="#fff" fontSize="17" fontFamily="sans-serif">
-          Nieuwe foto? 📸
+          Nieuwe foto?
         </text>
         <rect x="96" y="204" width="120" height="38" rx="19" fill="#ffffff" stroke="#e5ddd0" />
         <text x="156" y="229" textAnchor="middle" fill="#44403c" fontSize="16" fontFamily="sans-serif">
