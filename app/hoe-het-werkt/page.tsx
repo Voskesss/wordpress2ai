@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 
 const stappen = [
   {
-    titel: "E-mail veiligstellen",
+    titel: "E-mail checken en veiligstellen",
     tekst:
-      "Zit je e-mail bij je WordPress-hosting? Dan verhuizen we die eerst naar een aparte Nederlandse e-mailprovider, zodat je mail blijft werken als de oude hosting stopt.",
+      "We checken eerst waar je e-mail draait. Zit die bij je oude WordPress-hosting in het pakket, dan verhuizen we die eerst naar een aparte e-mailprovider, zodat je mail blijft werken als de oude hosting stopt. Draait je mail al ergens anders (zoals Microsoft 365 of Google Workspace)? Dan hoeft hier niets te gebeuren.",
   },
   {
     titel: "Content overnemen",
