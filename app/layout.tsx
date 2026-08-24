@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     "AI website beheer",
     "WordPress alternatief",
   ],
+  alternates: { canonical: "./" },
   openGraph: {
     type: "website",
     locale: "nl_NL",
@@ -37,39 +38,79 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: "WordPressToAI",
+  url: siteUrl,
+  description:
+    "Migratie van WordPress-websites naar snelle, onderhoudsvrije statische sites met AI-chat voor wijzigingen.",
+  areaServed: "NL",
+  priceRange: "€€",
+};
+
 const nav = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="nl" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-zinc-900">
-        <header className="border-b border-zinc-200">
-          <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="font-bold text-lg">
+      <body className="min-h-full flex flex-col bg-white text-zinc-900 font-[family-name:var(--font-geist-sans)]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-lg">
+          <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-emerald-400 text-sm font-mono">
+                →
+              </span>
               WordPress<span className="text-emerald-600">To</span>AI
             </Link>
-            <nav className="flex gap-6 text-sm">
+            <nav className="flex items-center gap-2 sm:gap-6 text-sm font-medium">
               {nav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="hover:text-emerald-600"
+                  className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
                 >
                   {item.label}
                 </Link>
               ))}
+              <Link
+                href="/contact"
+                className="rounded-full bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700 transition-colors"
+              >
+                Kennismaken
+              </Link>
             </nav>
           </div>
         </header>
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-zinc-200 text-sm text-zinc-500">
-          <div className="mx-auto max-w-5xl px-6 py-8 flex flex-col sm:flex-row justify-between gap-4">
-            <p>© {new Date().getFullYear()} WordPressToAI</p>
-            <p>Van WordPress-stress naar rust.</p>
+        <footer className="bg-zinc-950 text-zinc-400">
+          <div className="mx-auto max-w-6xl px-6 py-12">
+            <div className="flex flex-col sm:flex-row justify-between gap-8">
+              <div>
+                <p className="font-bold text-white text-lg">
+                  WordPress<span className="text-emerald-400">To</span>AI
+                </p>
+                <p className="mt-2 text-sm max-w-xs">
+                  Van WordPress-stress naar rust. Eén keer overzetten, daarna
+                  aanpassen door het gewoon te vragen.
+                </p>
+              </div>
+              <nav className="flex flex-col gap-2 text-sm">
+                <Link href="/hoe-het-werkt" className="hover:text-white">Hoe het werkt</Link>
+                <Link href="/prijzen" className="hover:text-white">Prijzen</Link>
+                <Link href="/contact" className="hover:text-white">Contact</Link>
+              </nav>
+            </div>
+            <p className="mt-10 pt-6 border-t border-zinc-800 text-xs">
+              © {new Date().getFullYear()} WordPressToAI
+            </p>
           </div>
         </footer>
       </body>

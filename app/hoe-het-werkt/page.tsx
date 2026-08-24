@@ -41,8 +41,8 @@ const stappen = [
 
 export default function HoeHetWerkt() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-bold">Hoe het werkt</h1>
+    <div className="mx-auto max-w-3xl px-6 py-20">
+      <h1 className="text-4xl font-bold tracking-tight">Hoe het werkt</h1>
       <p className="mt-4 text-zinc-600">
         Eén zorgvuldige overstap, daarna nooit meer onderhoud. Zo pakken we het
         aan:
@@ -60,9 +60,9 @@ export default function HoeHetWerkt() {
           </li>
         ))}
       </ol>
-      <section className="mt-14 rounded-xl bg-zinc-50 border border-zinc-200 p-6">
-        <h2 className="font-semibold">Eerst zien, dan live</h2>
-        <p className="mt-2 text-zinc-600">
+      <section className="mt-14 rounded-3xl bg-zinc-950 text-white p-8">
+        <h2 className="font-bold text-emerald-400">Eerst zien, dan live</h2>
+        <p className="mt-2 text-zinc-300">
           Vraag je een wijziging aan via de chat, dan krijg je eerst een
           preview-link van het resultaat. Goed zo? Eén klik op
           &ldquo;Publiceer&rdquo; en binnen twee minuten staat het op je echte

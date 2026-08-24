@@ -9,15 +9,15 @@ export const metadata: Metadata = {
 
 export default function Prijzen() {
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-3xl font-bold">Prijzen</h1>
+    <div className="mx-auto max-w-4xl px-6 py-20">
+      <h1 className="text-4xl font-bold tracking-tight">Prijzen</h1>
       <p className="mt-4 text-zinc-600">
         Eén keer betalen voor de overstap, daarna een vast laag bedrag per
         maand. Geen verrassingen, geen lock-in.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-xl border border-zinc-200 p-6">
+        <div className="rounded-3xl border border-zinc-200 p-6">
           <h2 className="font-semibold text-lg">De overstap</h2>
           <p className="mt-2 text-3xl font-bold">
             vanaf €500 <span className="text-base font-normal text-zinc-500">eenmalig</span>
@@ -30,7 +30,7 @@ export default function Prijzen() {
             <li>Contactformulier standaard inbegrepen</li>
           </ul>
         </div>
-        <div className="rounded-xl border-2 border-emerald-600 p-6">
+        <div className="rounded-3xl border-2 border-emerald-600 p-6">
           <h2 className="font-semibold text-lg">De AI-koppeling</h2>
           <p className="mt-2 text-3xl font-bold">
             €20 <span className="text-base font-normal text-zinc-500">per maand</span>
