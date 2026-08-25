@@ -3,30 +3,28 @@
  * Draait in GitHub Actions (geen tijdslimiet van de webserver).
  * Start: npx tsx worker/run-job.ts
  */
-import { and, asc, eq, lt, or } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bouwJobs } from "@/db/schema";
 import { voerBouwUit } from "@/lib/bouw";
 
 async function claimJob() {
-  const staleGrens = new Date(Date.now() - 15 * 60_000);
-  const [job] = await db
-    .select()
-    .from(bouwJobs)
-    .where(
-      or(
-        eq(bouwJobs.status, "wachtend"),
-        // Gecrashte run: 'bezig' maar al 15 min geen voortgang meer
-        and(eq(bouwJobs.status, "bezig"), lt(bouwJobs.bijgewerkt, staleGrens))
-      )
-    )
-    .orderBy(asc(bouwJobs.id));
-  if (!job) return null;
-  await db
+  // Atomair claimen: één statement, zodat parallelle workers nooit
+  // dezelfde opdracht pakken. Gecrashte runs (15 min stil) tellen ook mee.
+  const geclaimd = await db
     .update(bouwJobs)
     .set({ status: "bezig", voortgang: "Gestart...", bijgewerkt: new Date() })
-    .where(eq(bouwJobs.id, job.id));
-  return job;
+    .where(
+      sql`${bouwJobs.id} = (
+        SELECT id FROM bouw_jobs
+        WHERE status = 'wachtend'
+           OR (status = 'bezig' AND bijgewerkt < now() - interval '15 minutes')
+        ORDER BY id
+        LIMIT 1
+      )`
+    )
+    .returning();
+  return geclaimd[0] ?? null;
 }
 
 async function main() {
