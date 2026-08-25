@@ -23,6 +23,7 @@ export const sites = pgTable("sites", {
     .notNull()
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
+  notificatieEmail: text("notificatie_email"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
@@ -109,5 +110,15 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   id: serial("id").primaryKey(),
   siteRepo: text("site_repo").notNull(),
   velden: jsonb("velden").notNull(),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
+export const kennisDocumenten = pgTable("kennis_documenten", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id")
+    .notNull()
+    .references(() => sites.id),
+  naam: text("naam").notNull(),
+  inhoud: text("inhoud").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

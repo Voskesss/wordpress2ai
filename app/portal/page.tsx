@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
+import SiteExtra from "./SiteExtra";
 
 export const metadata: Metadata = {
   title: "Mijn website",
@@ -105,6 +106,11 @@ export default async function Portal() {
                   openConcept={openConceptMap[site.id]}
                 />
               </div>
+              <SiteExtra
+                siteId={site.id}
+                siteRepo={site.githubRepo}
+                notificatieEmail={site.notificatieEmail}
+              />
             </div>
           ))}
         </div>

@@ -266,13 +266,19 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
 
 ## Roadmap-ideeën (nog niet gepland)
 
+- **Formulier-doormail**: nieuwe inzendingen automatisch mailen naar het
+  notificatie-adres dat de klant in zijn portal instelt (veld bestaat al;
+  vergt een maildienst zoals Resend/Postmark).
 - **Chatbot voor op de klantwebsite** (extra product): elke klant kan een
   eigen AI-chatbot op zijn site krijgen die bezoekersvragen beantwoordt
   (openingstijden, diensten, offerte aanvragen) op basis van de eigen
   site-content. Apart maandelijks abonnement bovenop de €20 — prijs nog te
   bepalen; heroverweeg dan het hele prijsmodel (bv. basis €20 /
   plus-met-chatbot €45), inclusief de token-kosten van bezoekersgesprekken
-  (fair use of eigen API-key, zelfde smaken als de beheer-chat).
+  (fair use of eigen API-key, zelfde smaken als de beheer-chat). De
+  kennisbank bestaat al: klanten uploaden documenten (.txt/.md) in hun
+  portal (tabel kennis_documenten) — de chatbot leest die straks als bron
+  naast de site-content.
 
 ## Benodigde accounts/secrets (env vars op Vercel)
 - `DATABASE_URL` (Neon)
