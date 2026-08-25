@@ -207,11 +207,11 @@ export default async function KlantDetail({
             />
           </label>
           <label className="block text-sm font-semibold">
-            Netlify-sitenaam (voor previews)
+            Hosting-naam (Cloudflare)
             <input
               name="netlifySiteId"
               defaultValue={site.netlifySiteId ?? ""}
-              placeholder="bv. testklant"
+              placeholder="meestal gelijk aan de repo-naam"
               className={invoerStijl}
             />
           </label>
@@ -370,7 +370,7 @@ export default async function KlantDetail({
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" name="ookNetlify" className="h-4 w-4" />
-            Ook de Netlify-site verwijderen{site.netlifySiteId ? ` (${site.netlifySiteId})` : " (geen gekoppeld)"}
+            Ook de online site (hosting) verwijderen{site.netlifySiteId ? ` (${site.netlifySiteId})` : " (geen gekoppeld)"}
           </label>
           <label className="block font-semibold">
             Typ de naam van de site om te bevestigen:{" "}

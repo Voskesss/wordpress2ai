@@ -221,8 +221,7 @@ export default function MigratieImport() {
                   >
                     Bekijk de bestanden
                   </a>{" "}
-                  · Volgende stap: koppel de repo in Netlify (Add new project →
-                  Import) en zet de sitenaam in het admin-overzicht.
+                  · Volgende stap: open de klantpagina en klik op "Zet site online".
                 </p>
               </div>
             )}
