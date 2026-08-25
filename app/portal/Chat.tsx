@@ -163,7 +163,7 @@ export default function Chat({
               <span className="font-medium truncate">
                 {toonConcept && conceptUrl ? "Concept-versie" : "Live site"}
               </span>
-              <span className="text-stone-400 truncate">{huidigePagina}</span>
+              <span className="hidden sm:inline text-stone-400 truncate">{huidigePagina}</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {conceptUrl && (
@@ -241,7 +241,7 @@ export default function Chat({
           {berichten.map((m, i) => (
             <div key={i}>
               <div
-                className={`w-fit max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                className={`w-fit max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
                   m.rol === "klant"
                     ? "ml-auto bg-violet-600 text-white rounded-br-sm"
                     : "bg-stone-100 text-stone-800 rounded-bl-sm"
@@ -342,13 +342,13 @@ export default function Chat({
             onChange={(e) => setInvoer(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && verstuur()}
             placeholder={`Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${huidigePagina}` : ""}?`}
-            className="flex-1 rounded-full border border-stone-300 px-5 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+            className="flex-1 min-w-0 rounded-full border border-stone-300 px-4 sm:px-5 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
             disabled={bezig}
           />
           <button
             onClick={verstuur}
             disabled={bezig}
-            className="rounded-full bg-violet-700 px-6 py-2.5 text-white font-semibold text-sm hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+            className="shrink-0 rounded-full bg-violet-700 px-4 sm:px-6 py-2.5 text-white font-semibold text-sm hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
           >
             Verstuur
           </button>
