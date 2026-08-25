@@ -66,6 +66,49 @@ export async function gewijzigdeBestanden(
   return gewijzigd;
 }
 
+/**
+ * Plattegrond van de site voor in de systeemprompt: per pagina de titel en
+ * koppen, plus de beschikbare afbeeldingen. Scheelt de agent een hoop
+ * verkennende Glob/Grep/Read-beurten per wijziging.
+ */
+export async function maakSiteOverzicht(dir: string): Promise<string> {
+  const paden = await alleBestanden(dir);
+  const regels: string[] = [];
+  const afbeeldingen: string[] = [];
+  const overig: string[] = [];
+
+  const kaal = (s: string) =>
+    s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+
+  for (const pad of paden.sort()) {
+    if (/\.html?$/i.test(pad)) {
+      const html = (await readFile(path.join(dir, pad), "utf8")).slice(0, 300_000);
+      const titel = kaal(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
+      const koppen = [...html.matchAll(/<h([1-4])[^>]*>([\s\S]*?)<\/h\1>/gi)]
+        .map((m) => `h${m[1]} ${kaal(m[2])}`)
+        .filter((k) => k.length > 3)
+        .slice(0, 12);
+      regels.push(`- ${pad}${titel ? ` — "${titel}"` : ""}${koppen.length ? `\n  ${koppen.join(" | ")}` : ""}`);
+    } else if (/\.(png|jpe?g|webp|gif|svg|avif)$/i.test(pad)) {
+      afbeeldingen.push(pad);
+    } else if (/\.(css|js|json|xml|txt)$/i.test(pad)) {
+      overig.push(pad);
+    }
+  }
+
+  let overzicht = `PLATTEGROND VAN DE SITE (vooraf voor je in kaart gebracht — gebruik dit om direct het juiste bestand te openen in plaats van eerst te zoeken):
+
+Pagina's:
+${regels.join("\n")}
+
+Overige bestanden: ${overig.join(", ") || "geen"}
+
+Afbeeldingen (${afbeeldingen.length}): ${afbeeldingen.slice(0, 60).join(", ")}${afbeeldingen.length > 60 ? ", ..." : ""}`;
+
+  if (overzicht.length > 8000) overzicht = overzicht.slice(0, 8000) + "\n(...ingekort)";
+  return overzicht;
+}
+
 export async function ruimWerkmapOp(dir: string) {
   await rm(dir, { recursive: true, force: true });
 }

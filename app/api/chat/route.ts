@@ -14,6 +14,7 @@ import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
 import {
   gewijzigdeBestanden,
   laadWerkmap,
+  maakSiteOverzicht,
   maakSnapshot,
   ruimWerkmapOp,
 } from "@/lib/werkmap";
@@ -35,7 +36,7 @@ function systeemPrompt(siteNaam: string, richtlijnen?: string | null, isDemo = f
   return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordSwap. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
-- Voer de gevraagde wijziging uit in de bestanden van de werkmap. Zoek zelf uit waar iets staat.
+- Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
 - Controleer na je wijziging of het resultaat consistent is (bv. menu's die op elke pagina staan, dubbele vermeldingen van hetzelfde gegeven elders op de site) en meld het als je iets tegenstrijdigs ziet.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
@@ -203,6 +204,7 @@ export async function POST(req: Request) {
         });
         werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
         const snapshot = await maakSnapshot(werkmap);
+        const siteOverzicht = await maakSiteOverzicht(werkmap);
 
         if (afbeelding) {
           const doel = path.join(werkmap, afbeelding.naam);
@@ -211,6 +213,7 @@ export async function POST(req: Request) {
         }
 
         const contextRegels = [
+          siteOverzicht,
           site.chatGeheugen
             ? `Geheugen van eerdere gesprekken met deze eigenaar:\n${site.chatGeheugen}`
             : null,
