@@ -372,9 +372,16 @@ export default async function KlantDetail({
             <input type="checkbox" name="ookNetlify" className="h-4 w-4" />
             Ook de Netlify-site verwijderen{site.netlifySiteId ? ` (${site.netlifySiteId})` : " (geen gekoppeld)"}
           </label>
-          <label className="flex items-center gap-2 font-semibold">
-            <input type="checkbox" name="bevestiging" required className="h-4 w-4" />
-            Ja, ik weet zeker dat ik &ldquo;{site.naam}&rdquo; wil verwijderen
+          <label className="block font-semibold">
+            Typ de naam van de site om te bevestigen:{" "}
+            <span className="font-mono font-normal">{site.naam}</span>
+            <input
+              name="bevestigNaam"
+              required
+              autoComplete="off"
+              placeholder={site.naam}
+              className="mt-2 w-full max-w-md rounded-xl border border-red-300 bg-white px-4 py-2.5 font-normal text-sm focus:border-red-500 focus:outline-none"
+            />
           </label>
         </div>
         <button

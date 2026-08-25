@@ -102,13 +102,16 @@ export async function nieuweSite(formData: FormData) {
 export async function verwijderKlant(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
-  const bevestiging = formData.get("bevestiging") === "on";
   const ookRepo = formData.get("ookRepo") === "on";
   const ookNetlify = formData.get("ookNetlify") === "on";
-  if (!Number.isInteger(siteId) || !bevestiging) return;
+  if (!Number.isInteger(siteId)) return;
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
+
+  // Typ-bevestiging: de ingevoerde naam moet exact overeenkomen
+  const getypt = String(formData.get("bevestigNaam") ?? "").trim();
+  if (getypt !== site.naam) return;
 
   const { changes, messages, usage, apiKeys, migrations } = await import(
     "@/db/schema"
