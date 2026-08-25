@@ -52,15 +52,9 @@ export async function GET(
   let pad = (padDelen ?? []).join("/") || "index.html";
   if (pad.endsWith("/")) pad += "index.html";
 
-  // Alleen HTML-verzoeken lopen door de login-check; assets (css/afbeeldingen)
-  // worden door de middleware overgeslagen en zouden anders op auth() crashen.
-  const ext0 = pad.split(".").pop() ?? "";
-  const isHtml = !pad.includes(".") || ext0 === "html" || ext0 === "htm";
-  let userId: string | null = null;
-  if (isHtml) {
-    ({ userId } = await auth());
-    if (!userId) return new Response("Niet ingelogd", { status: 401 });
-  }
+  // Login vereist voor ALLE preview-verzoeken (middleware dekt /preview volledig)
+  const { userId } = await auth();
+  if (!userId) return new Response("Niet ingelogd", { status: 401 });
 
   const [rij] = await db
     .select({ change: changes, site: sites })
@@ -68,7 +62,7 @@ export async function GET(
     .innerJoin(sites, eq(changes.siteId, sites.id))
     .where(eq(changes.id, id));
   if (!rij) return new Response("Niet gevonden", { status: 404 });
-  if (userId && rij.site.clerkUserId !== userId && !(await isBeheerder())) {
+  if (rij.site.clerkUserId !== userId && !(await isBeheerder())) {
     return new Response("Niet gevonden", { status: 404 });
   }
 
@@ -89,7 +83,16 @@ export async function GET(
       /(href|src|action)=(["'])\//g,
       `$1=$2/preview/${id}/`
     );
-    return new Response(html, { headers: { "Content-Type": mime } });
+    return new Response(html, {
+      headers: {
+        "Content-Type": mime,
+        // Sandbox: klantcontent kan nooit bij portal-cookies of -sessie
+        "Content-Security-Policy":
+          "sandbox allow-scripts allow-forms allow-popups",
+        "X-Robots-Tag": "noindex",
+        "Cache-Control": "no-store",
+      },
+    });
   }
 
   return new Response(data, {
