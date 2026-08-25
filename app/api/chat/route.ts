@@ -171,6 +171,15 @@ export async function POST(req: Request) {
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
             permissionMode: "bypassPermissions",
             maxTurns: 40,
+            env: {
+              ...process.env,
+              // Op Vercel is alleen /tmp beschrijfbaar; de motor wil zijn
+              // instellingen en cache ergens kwijt kunnen.
+              HOME: "/tmp",
+              XDG_CONFIG_HOME: "/tmp/.config",
+              XDG_CACHE_HOME: "/tmp/.cache",
+              CLAUDE_CONFIG_DIR: "/tmp/.claude",
+            },
           },
         })) {
           if (message.type === "assistant") {
