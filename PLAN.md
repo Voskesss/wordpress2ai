@@ -147,6 +147,43 @@ Tooling die we bouwen: een migratie-script dat de oude site crawlt en een
 alles matcht gaat de DNS om. De AI-chat mag titles/descriptions later alleen
 wijzigen als de klant er expliciet om vraagt.
 
+## Standaard veiligheidspakket (elke klantsite, onderdeel van de Migrator)
+
+Statisch = het grootste risico is al weg (geen plugins, database of admin-login
+om te hacken). Wat standaard geregeld wordt per site:
+
+**Formulieren (het belangrijkste restrisico):**
+- Alleen via Netlify Forms — nooit eigen scripts of externe formulierdiensten
+  zonder afspraak
+- **Honeypot-veld** standaard aan (onzichtbaar veld dat bots wél invullen →
+  automatisch geweigerd) + Netlify's ingebouwde spamfilter (Akismet)
+- Bij aanhoudende spam: reCAPTCHA aanzetten (ingebouwde optie, geen maatwerk)
+- Inzendingen alleen doorsturen naar het e-mailadres van de klant; geen
+  onnodige opslag, inzendingen in Netlify periodiek opschonen (AVG:
+  dataminimalisatie)
+- Geen gevoelige gegevens via formulieren vragen (BSN, betaalgegevens) —
+  intake-check
+
+**Elke site standaard (via `_headers`-bestand in het sjabloon):**
+- HTTPS afgedwongen + HSTS (Netlify regelt het certificaat)
+- Security headers: X-Content-Type-Options, X-Frame-Options (clickjacking),
+  Referrer-Policy, en een Content-Security-Policy die alleen de eigen site +
+  de afgesproken meetscripts (GA4/GTM) toestaat — dus zelfs als er ooit iets
+  vreemds in de content sluipt, blokkeert de browser het
+
+**E-maildomein (bij de e-mailmigratie):**
+- SPF, DKIM en DMARC goed zetten — voorkomt dat anderen mail versturen
+  namens het klantdomein (phishing uit naam van de klant)
+
+**AI-waarborgen (zit al in de huisregels):**
+- AI voegt nooit nieuwe externe scripts of trackers toe
+- Formulieren wijzigt de AI alleen binnen de Netlify Forms-aanpak
+- Alles via concept + goedkeuring; volledige versiegeschiedenis als vangnet
+
+Marketingwaarde: dit pakket is een verkoopargument — "uw site kan niet
+gehackt worden zoals een WordPress-site, en uw formulier is beschermd tegen
+spam" — en mag genoemd worden op de site/prijzenpagina.
+
 ## Back-ups & herstel (verplicht onderdeel van de techniek)
 
 Git geeft al volledige versiegeschiedenis (elke wijziging = commit, alles

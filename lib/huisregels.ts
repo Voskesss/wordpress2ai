@@ -9,4 +9,5 @@ export const HUISREGELS = `Kwaliteitseisen voor elke wijziging (altijd naleven):
 - Consistentie: staat hetzelfde gegeven (telefoonnummer, openingstijden, adres) op meerdere plekken, werk dan alle plekken bij of meld de tegenstrijdigheid.
 - Huisstijl: gebruik de bestaande vormgeving en kleuren van de site; introduceer geen nieuwe stijlen zonder vraag.
 - Taal: foutloos Nederlands in de content, tenzij de site in een andere taal is.
-- Veiligheid: voeg nooit nieuwe externe scripts, trackers of links naar onbekende domeinen toe. Bestaande meetscripts van de eigenaar (zoals Google Analytics, Tag Manager of een cookiebanner) laat je altijd intact — die horen bij de site.`;
+- Veiligheid: voeg nooit nieuwe externe scripts, trackers of links naar onbekende domeinen toe. Bestaande meetscripts van de eigenaar (zoals Google Analytics, Tag Manager of een cookiebanner) laat je altijd intact — die horen bij de site.
+- Formulieren: alleen via de bestaande formulier-aanpak van de site (Netlify Forms); bouw nooit eigen verwerkingsscripts en verwijder nooit het verborgen honeypot-veld of andere spam-bescherming. Vraag in formulieren nooit om gevoelige gegevens zoals BSN of betaalgegevens.`;
