@@ -123,7 +123,18 @@ async function haalLiveOntwerp(
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) continue;
-      await writeFile(path.join(doelDir, `stijl-${cssN++}.css`), await res.text());
+      const css = await res.text();
+      await writeFile(path.join(doelDir, `stijl-${cssN++}.css`), css);
+      // Decoratieve beelden die alleen in de CSS leven (wolken, patronen,
+      // iconen): url(...)-verwijzingen oplossen t.o.v. het CSS-bestand zelf
+      for (const m of css.matchAll(/url\((['"]?)([^)'"]+)\1\)/g)) {
+        try {
+          const u = new URL(m[2], url).href;
+          if (/\.(png|jpe?g|webp|gif|svg)([?#]|$)/i.test(u)) {
+            afbeeldingUrls.add(u);
+          }
+        } catch {}
+      }
     } catch {}
   }
 
@@ -486,6 +497,7 @@ Instructies:
 - EMBEDS ZIJN VERPLICHT: oud-ontwerp/embeds-op-paginas.json toont per pagina exact welke video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) er op de oude site stonden; oud-ontwerp/bestek-*.json geeft ook afmetingen. Plaats élke embed letterlijk terug op de overeenkomstige pagina, responsief (max-width: 100%, behoud beeldverhouding via aspect-ratio). Een pagina die in het origineel een video of kaart had maar in jouw versie niet, is FOUT.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
 - NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
+- DECORATIE HOORT ERBIJ: sfeer-elementen uit het thema (wolken, bladeren, golven, patronen, iconen die als CSS-achtergrond staan) zijn onderdeel van het ontwerp en staan gedownload in site/afbeeldingen/. Plaats ze terug als CSS-achtergronden op de overeenkomstige secties — de screenshots tonen waar ze horen.
 - SLIDERS (Revolution Slider en vergelijkbaar): bouw ze als een statische hero-sectie met de eerste (of mooiste) slide-afbeelding als achtergrond, of als eenvoudige CSS-crossfade met de echte slide-afbeeldingen. De slide-beelden staan in de afbeeldingen-kaart (gemarkeerd als slider/lazy). Nooit een lege of nagemaakte hero.
 - AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
