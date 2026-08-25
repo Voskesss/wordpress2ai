@@ -7,12 +7,12 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { migrations, sites } from "@/db/schema";
-import { maakKlantRepo, schrijfBestand } from "@/lib/github";
+import { maakKlantRepo, pushBestanden, schrijfBestand } from "@/lib/github";
 import { HUISREGELS } from "@/lib/huisregels";
 import { ruimWerkmapOp } from "@/lib/werkmap";
 import { maakSeoManifest, parseWxr } from "@/lib/wxr";
 
-export const maxDuration = 300;
+export const maxDuration = 800;
 
 const MAX_MEDIA = 30;
 
@@ -87,35 +87,40 @@ export async function POST(req: Request) {
         const mediaUrls = manifest.mediaUrls.slice(0, MAX_MEDIA);
         const mediaMap: Record<string, string> = {};
         let gedownload = 0;
-        for (const url of mediaUrls) {
-          try {
-            stuur({
-              type: "status",
-              tekst: `Afbeeldingen ophalen (${gedownload + 1}/${mediaUrls.length})...`,
-            });
-            const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-            if (!res.ok) continue;
-            const buf = Buffer.from(await res.arrayBuffer());
-            if (buf.length > 10 * 1024 * 1024) continue;
-            const basis = path
-              .basename(new URL(url).pathname)
-              .replace(/\.[^.]+$/, "")
-              .toLowerCase()
-              .replace(/[^a-z0-9-]+/g, "-")
-              .slice(0, 60);
-            const doel = `afbeeldingen/${basis}.webp`;
-            const data = await sharp(buf)
-              .rotate()
-              .resize({ width: 2000, withoutEnlargement: true })
-              .webp({ quality: 82 })
-              .toBuffer();
-            await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
-            await writeFile(path.join(siteDir, doel), data);
-            mediaMap[url] = `/${doel}`;
-            gedownload++;
-          } catch {
-            // niet-afbeeldingen of mislukte downloads overslaan
-          }
+        await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
+        stuur({ type: "status", tekst: `Afbeeldingen ophalen (${mediaUrls.length})...` });
+        for (let i = 0; i < mediaUrls.length; i += 5) {
+          await Promise.all(
+            mediaUrls.slice(i, i + 5).map(async (url) => {
+              try {
+                const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+                if (!res.ok) return;
+                const buf = Buffer.from(await res.arrayBuffer());
+                if (buf.length > 10 * 1024 * 1024) return;
+                const basis = path
+                  .basename(new URL(url).pathname)
+                  .replace(/\.[^.]+$/, "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]+/g, "-")
+                  .slice(0, 60);
+                const doel = `afbeeldingen/${basis}.webp`;
+                const data = await sharp(buf)
+                  .rotate()
+                  .resize({ width: 2000, withoutEnlargement: true })
+                  .webp({ quality: 82 })
+                  .toBuffer();
+                await writeFile(path.join(siteDir, doel), data);
+                mediaMap[url] = `/${doel}`;
+                gedownload++;
+              } catch {
+                // overslaan
+              }
+            })
+          );
+          stuur({
+            type: "status",
+            tekst: `Afbeeldingen ophalen (${Math.min(i + 5, mediaUrls.length)}/${mediaUrls.length})...`,
+          });
         }
         await writeFile(
           path.join(werkmap, "media-map.json"),
@@ -188,22 +193,21 @@ ${HUISREGELS}`;
         await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`);
         await new Promise((r) => setTimeout(r, 2000));
 
-        let gepusht = 0;
-        for (const bestand of siteBestanden) {
-          stuur({
-            type: "status",
-            tekst: `Publiceren (${++gepusht}/${siteBestanden.length}): ${bestand}`,
-          });
-          const inhoud = await readFile(path.join(siteDir, bestand));
-          await schrijfBestand(repoNaam, bestand, inhoud, `Migratie: ${bestand}`, "main");
-        }
-        await schrijfBestand(
-          repoNaam,
-          "seo-manifest.json",
-          await readFile(path.join(werkmap, "seo-manifest.json")),
-          "SEO-manifest van de oude site",
-          "main"
+        stuur({
+          type: "status",
+          tekst: `Publiceren van ${siteBestanden.length} bestanden...`,
+        });
+        const tePushen = await Promise.all(
+          siteBestanden.map(async (bestand) => ({
+            pad: bestand,
+            inhoud: await readFile(path.join(siteDir, bestand)),
+          }))
         );
+        tePushen.push({
+          pad: "seo-manifest.json",
+          inhoud: await readFile(path.join(werkmap, "seo-manifest.json")),
+        });
+        await pushBestanden(repoNaam, tePushen, `Migratie van ${siteNaam} via WordSwap`);
 
         const [siteRow] = await db
           .insert(sites)

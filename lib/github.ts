@@ -190,3 +190,59 @@ export async function maakKlantRepo(naam: string, omschrijving: string) {
     }),
   });
 }
+
+/** Pusht meerdere bestanden als één commit (Git Data API — veel sneller dan per bestand). */
+export async function pushBestanden(
+  repo: string,
+  bestanden: { pad: string; inhoud: Buffer }[],
+  bericht: string,
+  branch = "main"
+) {
+  const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as {
+    default_branch: string;
+  };
+  const ref = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/ref/heads/${branch ?? repoInfo.default_branch}`
+  )) as { object: { sha: string } };
+  const basisCommit = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/commits/${ref.object.sha}`
+  )) as { tree: { sha: string } };
+
+  // Blobs parallel aanmaken (in groepjes van 10)
+  const blobs: { path: string; mode: string; type: string; sha: string }[] = [];
+  for (let i = 0; i < bestanden.length; i += 10) {
+    const groep = bestanden.slice(i, i + 10);
+    const resultaten = await Promise.all(
+      groep.map(async (b) => {
+        const blob = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/blobs`, {
+          method: "POST",
+          body: JSON.stringify({
+            content: b.inhoud.toString("base64"),
+            encoding: "base64",
+          }),
+        })) as { sha: string };
+        return { path: b.pad, mode: "100644", type: "blob", sha: blob.sha };
+      })
+    );
+    blobs.push(...resultaten);
+  }
+
+  const tree = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/trees`, {
+    method: "POST",
+    body: JSON.stringify({ base_tree: basisCommit.tree.sha, tree: blobs }),
+  })) as { sha: string };
+
+  const commit = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits`, {
+    method: "POST",
+    body: JSON.stringify({
+      message: bericht,
+      tree: tree.sha,
+      parents: [ref.object.sha],
+    }),
+  })) as { sha: string };
+
+  return gh(`/repos/${GITHUB_ORG}/${repo}/git/refs/heads/${branch}`, {
+    method: "PATCH",
+    body: JSON.stringify({ sha: commit.sha }),
+  });
+}
