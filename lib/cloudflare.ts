@@ -34,6 +34,15 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
 export async function deployRepoNaarCloudflare(repo: string, naam: string) {
   const werkmap = await laadWerkmap(repo);
   try {
+    return await deployMapNaarCloudflare(werkmap, naam);
+  } finally {
+    await ruimWerkmapOp(werkmap).catch(() => {});
+  }
+}
+
+/** Deployt een lokale map als statische site op Cloudflare Workers. */
+export async function deployMapNaarCloudflare(werkmap: string, naam: string) {
+  {
     const bestanden = await alleBestanden(werkmap);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
@@ -140,8 +149,6 @@ export async function deployRepoNaarCloudflare(repo: string, naam: string) {
     });
 
     return { url: `https://${naam}.${CF_SUBDOMEIN}.workers.dev` };
-  } finally {
-    await ruimWerkmapOp(werkmap).catch(() => {});
   }
 }
 

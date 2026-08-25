@@ -176,6 +176,7 @@ export default async function KlantDetail({
           siteId={site.id}
           historie={chatHistorie}
           liveUrl={site.domein}
+          werkversieUrl={site.netlifySiteId ? `wv-${site.netlifySiteId}.wordswap.workers.dev` : null}
           openConcept={
             openConcept
               ? {

@@ -25,11 +25,13 @@ export default function Chat({
   siteId,
   historie,
   liveUrl,
+  werkversieUrl,
   openConcept,
 }: {
   siteId: number;
   historie: Bericht[];
   liveUrl?: string | null;
+  werkversieUrl?: string | null;
   openConcept?: Concept;
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
@@ -77,8 +79,13 @@ export default function Chat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [berichten, bezig]);
 
-  // Het venster toont altijd de werkversie (concept als dat er is, anders live)
-  const basisUrl = `/site-weergave/${siteId}/`;
+  // Concept open → werkversie-adres; anders de live site (identiek aan werkversie)
+  const basisUrl =
+    concept && werkversieUrl
+      ? `https://${werkversieUrl}/`
+      : liveUrl
+        ? `https://${liveUrl}/`
+        : `/site-weergave/${siteId}/`;
 
   async function verstuur() {
     const tekst = invoer.trim();

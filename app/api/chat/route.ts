@@ -10,6 +10,7 @@ import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, maakPullRequest, schrijfBestand } from "@/lib/github";
 import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
+import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
 import {
   gewijzigdeBestanden,
   laadWerkmap,
@@ -300,6 +301,13 @@ export async function POST(req: Request) {
           } else {
             await db.insert(usage).values({ siteId: site.id, maand, wijzigingen: 1 });
           }
+        }
+
+        if (gewijzigd.length > 0 && site.netlifySiteId) {
+          stuur({ type: "status", tekst: "Werkversie bijwerken..." });
+          await deployMapNaarCloudflare(werkmap!, `wv-${site.netlifySiteId}`).catch(
+            (e) => console.error("Werkversie-deploy mislukt:", e)
+          );
         }
 
         await db

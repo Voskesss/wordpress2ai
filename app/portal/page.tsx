@@ -101,6 +101,7 @@ export default async function Portal() {
                   siteId={site.id}
                   historie={historieMap[site.id] ?? []}
                   liveUrl={site.domein}
+                  werkversieUrl={site.netlifySiteId ? `wv-${site.netlifySiteId}.wordswap.workers.dev` : null}
                   openConcept={openConceptMap[site.id]}
                 />
               </div>

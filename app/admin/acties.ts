@@ -149,6 +149,8 @@ export async function koppelNetlify(formData: FormData) {
 
   const { deployRepoNaarCloudflare, CF_SUBDOMEIN } = await import("@/lib/cloudflare");
   await deployRepoNaarCloudflare(site.githubRepo, site.githubRepo);
+  // Werkversie-adres alvast klaarzetten (SSL heeft even nodig bij eerste keer)
+  await deployRepoNaarCloudflare(site.githubRepo, `wv-${site.githubRepo}`).catch(() => {});
   await db
     .update(sites)
     .set({
