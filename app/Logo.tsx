@@ -37,10 +37,17 @@ export function LogoIcoon({ maat = 36 }: { maat?: number }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M32 26l1.8 4.2L38 32l-4.2 1.8L32 38l-1.8-4.2L26 32l4.2-1.8z"
-        fill="#f6c453"
-      />
+      <text
+        x="32"
+        y="37"
+        textAnchor="middle"
+        fontFamily="Geist, sans-serif"
+        fontWeight="800"
+        fontSize="16"
+        fill="#292524"
+      >
+        ai
+      </text>
     </svg>
   );
 }
@@ -48,11 +55,12 @@ export function LogoIcoon({ maat = 36 }: { maat?: number }) {
 export function LogoWoordmerk({ klein = false }: { klein?: boolean }) {
   return (
     <span
-      className={`inline-flex items-baseline ${klein ? "text-xl" : "text-2xl"}`}
+      className={`inline-flex items-baseline ${klein ? "text-2xl" : "text-4xl"}`}
     >
-      <span className="font-[family-name:var(--font-garamond)] font-semibold text-[#464342]">
-        Word
+      <span className="font-[family-name:var(--font-garamond)] font-semibold italic text-[#464342]">
+        W
       </span>
+      <span className="font-bold tracking-tight text-zinc-900">ord</span>
       <span className="font-bold tracking-tight bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">
         swap
       </span>
@@ -63,7 +71,7 @@ export function LogoWoordmerk({ klein = false }: { klein?: boolean }) {
 export default function Logo({ klein = false }: { klein?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <LogoIcoon maat={klein ? 30 : 36} />
+      <LogoIcoon maat={klein ? 40 : 56} />
       <LogoWoordmerk klein={klein} />
     </span>
   );
