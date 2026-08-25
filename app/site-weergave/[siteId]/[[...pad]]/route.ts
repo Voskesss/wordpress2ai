@@ -1,8 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import {
   SITE_MIME,
   herschrijfHtml,
@@ -21,25 +19,10 @@ export async function GET(
   const id = Number(siteId);
   if (!Number.isInteger(id)) return new Response("Ongeldig", { status: 400 });
 
-  // De HTML zelf vereist login; losse bestanden (css/afbeeldingen) niet,
-  // omdat de gesandboxte weergave geen cookies kan meesturen bij die
-  // verzoeken. Site-bestanden zijn dezelfde content die (straks) publiek is.
-  const ruwPad = (padDelen ?? []).join("/");
-  const laatsteDeel = ruwPad.split("/").pop() ?? "";
-  const isAsset =
-    laatsteDeel.includes(".") && !/\.html?$/i.test(laatsteDeel);
-  if (!isAsset) {
-    const { userId } = await auth();
-    if (!userId) return new Response("Niet ingelogd", { status: 401 });
-    const [eigenaarCheck] = await db.select().from(sites).where(eq(sites.id, id));
-    if (
-      !eigenaarCheck ||
-      (eigenaarCheck.clerkUserId !== userId && !(await isBeheerder()))
-    ) {
-      return new Response("Niet gevonden", { status: 404 });
-    }
-  }
-
+  // Bewust zonder login: de gesandboxte weergave kan geen cookies meesturen
+  // (ook niet bij doorklikken). Deze route serveert uitsluitend
+  // site-bestanden — content die live staat of op publiceren wacht — nooit
+  // portal- of klantgegevens. noindex + no-store houden hem privé genoeg.
   const [site] = await db.select().from(sites).where(eq(sites.id, id));
   if (!site) return new Response("Niet gevonden", { status: 404 });
 
