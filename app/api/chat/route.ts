@@ -236,6 +236,7 @@ export async function POST(req: Request) {
               branch,
               prNumber: pr.number,
               promptTekst: bericht,
+              bestanden: gewijzigd,
             })
             .returning({ id: changes.id });
           changeRowId = row.id;
@@ -256,7 +257,7 @@ export async function POST(req: Request) {
           .insert(messages)
           .values({ siteId: site.id, rol: "assistent", tekst: reply });
 
-        stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId });
+        stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId, bestanden: gewijzigd, prompt: bericht });
       } catch (e) {
         console.error(e);
         stuur({

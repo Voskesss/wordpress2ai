@@ -36,7 +36,13 @@ export default async function Portal() {
 
   const openConceptMap: Record<
     number,
-    { previewUrl: string | null; changeId: number } | undefined
+    | {
+        previewUrl: string | null;
+        changeId: number;
+        prompt: string;
+        paginas: string[];
+      }
+    | undefined
   > = {};
   for (const site of mijnSites) {
     const rows = await db
@@ -49,12 +55,16 @@ export default async function Portal() {
       openConceptMap[site.id] = {
         previewUrl: laatsteConcept.previewUrl,
         changeId: laatsteConcept.id,
+        prompt: laatsteConcept.promptTekst,
+        paginas: Array.isArray(laatsteConcept.bestanden)
+          ? (laatsteConcept.bestanden as string[])
+          : [],
       };
     }
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
+    <div className="mx-auto max-w-[1500px] px-4 sm:px-6 py-10">
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         Mijn website
       </h1>

@@ -50,6 +50,7 @@ export const changes = pgTable("changes", {
     .notNull()
     .default("concept"),
   promptTekst: text("prompt_tekst").notNull(),
+  bestanden: jsonb("bestanden").notNull().default([]),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
