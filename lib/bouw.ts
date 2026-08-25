@@ -37,6 +37,7 @@ async function haalLiveOntwerp(
 ) {
   const afbeeldingUrls = new Set<string>();
   const afbeeldingenPerPagina: Record<string, { src: string; alt: string }[]> = {};
+  const embedsPerPagina: Record<string, { html: string }[]> = {};
   if (!bronUrl.startsWith("http"))
     return { paginas: 0, screenshots: 0, afbeeldingUrls: [] as string[] };
   await mkdir(doelDir, { recursive: true });
@@ -65,6 +66,37 @@ async function haalLiveOntwerp(
           cssUrls.add(new URL(m[1], bronUrl).href);
         } catch {}
       }
+      // Afbeeldingen op deze pagina vastleggen (img-tags én inline achtergronden)
+      const paginaImgs: { src: string; alt: string }[] = [];
+      for (const m of html.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/g)) {
+        try {
+          const u = new URL(m[1], bronUrl).href;
+          if (/\.(png|jpe?g|webp|gif|svg)([?#]|$)/i.test(u)) {
+            afbeeldingUrls.add(u);
+            const alt = /alt=["']([^"']*)["']/.exec(m[0])?.[1] ?? "";
+            paginaImgs.push({ src: u, alt });
+          }
+        } catch {}
+      }
+      for (const m of html.matchAll(/url\((['"]?)([^)'"]+)\1\)/g)) {
+        try {
+          const u = new URL(m[2], bronUrl).href;
+          if (/\.(png|jpe?g|webp|gif)([?#]|$)/i.test(u)) {
+            afbeeldingUrls.add(u);
+            paginaImgs.push({ src: u, alt: "(achtergrond)" });
+          }
+        } catch {}
+      }
+      afbeeldingenPerPagina[pad] = paginaImgs;
+      // Embeds (YouTube/Vimeo/Maps-iframes, video's) op deze pagina vastleggen
+      const paginaEmbeds: { html: string }[] = [];
+      for (const m of html.matchAll(/<iframe[^>]*src=["'][^"']*(youtube|youtu\.be|vimeo|google\.com\/maps|maps\.google)[^"']*["'][^>]*>(<\/iframe>)?/gi)) {
+        paginaEmbeds.push({ html: m[0].slice(0, 600) });
+      }
+      for (const m of html.matchAll(/<video[^>]*>[\s\S]{0,400}?<\/video>/gi)) {
+        paginaEmbeds.push({ html: m[0].slice(0, 600) });
+      }
+      if (paginaEmbeds.length > 0) embedsPerPagina[pad] = paginaEmbeds;
     } catch {}
   }
 
@@ -187,6 +219,10 @@ async function haalLiveOntwerp(
   await writeFile(
     path.join(doelDir, "afbeeldingen-op-paginas.json"),
     JSON.stringify(afbeeldingenPerPagina, null, 1)
+  );
+  await writeFile(
+    path.join(doelDir, "embeds-op-paginas.json"),
+    JSON.stringify(embedsPerPagina, null, 1)
   );
   return {
     paginas: paginasOpgehaald,
@@ -427,7 +463,7 @@ Instructies:
 - Elk bestand in bronmateriaal/ is één pagina; de commentaarregels bovenaan geven het URL-pad, de titel en samenvatting. Bouw elke pagina op EXACT dat pad: "/over-ons/" wordt site/over-ons/index.html, "/" wordt site/index.html.
 - Behoud per pagina de titel als <title> en gebruik de samenvatting (of de eerste zinnen) als meta description. Zie ook seo-manifest.json.
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
-- EMBEDS BEHOUDEN: video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) staan per pagina in oud-ontwerp/bestek-*.json onder "embeds". Plaats ze letterlijk terug op de juiste plek, responsief (max-width: 100%, behoud beeldverhouding). Sla ze nooit over.
+- EMBEDS ZIJN VERPLICHT: oud-ontwerp/embeds-op-paginas.json toont per pagina exact welke video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) er op de oude site stonden; oud-ontwerp/bestek-*.json geeft ook afmetingen. Plaats élke embed letterlijk terug op de overeenkomstige pagina, responsief (max-width: 100%, behoud beeldverhouding via aspect-ratio). Een pagina die in het origineel een video of kaart had maar in jouw versie niet, is FOUT.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
 - AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
