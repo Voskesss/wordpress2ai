@@ -25,6 +25,8 @@ export default function Chat({
   const [invoer, setInvoer] = useState("");
   const [bezig, setBezig] = useState(false);
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
+  const [afbeelding, setAfbeelding] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const [conceptUrl, setConceptUrl] = useState<string | null>(
     openConcept?.previewUrl ?? null
@@ -57,15 +59,30 @@ export default function Chat({
     const tekst = invoer.trim();
     if (!tekst || bezig) return;
     setInvoer("");
-    setBerichten((b) => [...b, { rol: "klant", tekst }]);
+    const teVersturen = afbeelding;
+    setAfbeelding(null);
+    setBerichten((b) => [
+      ...b,
+      { rol: "klant", tekst: teVersturen ? `\u{1F4CE} ${tekst}` : tekst },
+    ]);
     setBezig(true);
-    setStatusTekst("Even nadenken...");
+    setStatusTekst(teVersturen ? "Ik verwerk je afbeelding..." : "Even nadenken...");
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, bericht: tekst, huidigePagina }),
-      });
+      let res: Response;
+      if (teVersturen) {
+        const form = new FormData();
+        form.set("siteId", String(siteId));
+        form.set("bericht", tekst);
+        form.set("huidigePagina", huidigePagina);
+        form.set("afbeelding", teVersturen);
+        res = await fetch("/api/chat", { method: "POST", body: form });
+      } else {
+        res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ siteId, bericht: tekst, huidigePagina }),
+        });
+      }
       if (!res.body) throw new Error("geen stream");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -278,7 +295,48 @@ export default function Chat({
             </p>
           )}
         </div>
-        <div className="border-t border-stone-200 p-4 flex gap-3">
+        <div className="border-t border-stone-200 p-4">
+          {afbeelding && (
+            <div className="mb-3 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 w-fit">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={URL.createObjectURL(afbeelding)}
+                alt="Gekozen afbeelding"
+                className="h-12 w-12 rounded-lg object-cover"
+              />
+              <span className="text-sm text-stone-600 max-w-[12rem] truncate">
+                {afbeelding.name}
+              </span>
+              <button
+                onClick={() => setAfbeelding(null)}
+                aria-label="Afbeelding verwijderen"
+                className="text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <div className="flex gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => setAfbeelding(e.target.files?.[0] ?? null)}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={bezig}
+            aria-label="Afbeelding toevoegen"
+            title="Afbeelding toevoegen"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-300 hover:border-violet-400 disabled:opacity-50 cursor-pointer"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" strokeWidth="2"/>
+              <circle cx="9" cy="10" r="1.8" fill="currentColor"/>
+              <path d="M5 17l4.5-4 3.5 3 2.5-2L19 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <input
             value={invoer}
             onChange={(e) => setInvoer(e.target.value)}
@@ -294,6 +352,7 @@ export default function Chat({
           >
             Verstuur
           </button>
+          </div>
         </div>
       </div>
     </div>

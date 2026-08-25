@@ -127,6 +127,10 @@ vóór de migratie (scriptbaar: crawl van de oude site + WordPress XML-export):
 - **Afbeeldingen**: bestandsnamen en alt-teksten overnemen
 - **Structured data** (JSON-LD van bv. Yoast/RankMath: LocalBusiness, FAQ) meenemen
 - **Sitemap.xml** genereren met dezelfde URL's; **robots.txt** overnemen
+- **Meet- en marketingscripts overnemen**: Google Analytics (GA4), Google Tag
+  Manager, Search Console-verificatie, Facebook/Meta pixel, en de
+  cookiebanner/consent-oplossing — 1-op-1 mee naar de nieuwe site, zodat
+  statistieken en campagnes gewoon doorlopen
 - Interne links controleren (geen verwijzingen naar oude WP-paden zoals
   `/wp-content/...` — afbeeldings-URL's redirecten of herschrijven)
 
@@ -176,6 +180,16 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
    als losse tool (levert direct tijdwinst bij de eerste echte klant), daarna
    intake-formulier, "Bouw site"-knop en de validatie-checklist
 9. Later: scraper-route, Netlify site-provisioning via API, R2-backups
+
+## Roadmap-ideeën (nog niet gepland)
+
+- **Chatbot voor op de klantwebsite** (extra product): elke klant kan een
+  eigen AI-chatbot op zijn site krijgen die bezoekersvragen beantwoordt
+  (openingstijden, diensten, offerte aanvragen) op basis van de eigen
+  site-content. Apart maandelijks abonnement bovenop de €20 — prijs nog te
+  bepalen; heroverweeg dan het hele prijsmodel (bv. basis €20 /
+  plus-met-chatbot €45), inclusief de token-kosten van bezoekersgesprekken
+  (fair use of eigen API-key, zelfde smaken als de beheer-chat).
 
 ## Benodigde accounts/secrets (env vars op Vercel)
 - `DATABASE_URL` (Neon)

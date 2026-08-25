@@ -1,7 +1,8 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { auth } from "@clerk/nextjs/server";
+import sharp from "sharp";
 import { and, eq } from "drizzle-orm";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
@@ -53,11 +54,48 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
 
-  const { siteId, bericht, huidigePagina } = (await req.json()) as {
-    siteId: number;
-    bericht: string;
-    huidigePagina?: string;
-  };
+  let siteId: number;
+  let bericht: string;
+  let huidigePagina: string | undefined;
+  let afbeelding: { naam: string; data: Buffer } | null = null;
+
+  const contentType = req.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    siteId = Number(form.get("siteId"));
+    bericht = String(form.get("bericht") ?? "");
+    huidigePagina = String(form.get("huidigePagina") ?? "") || undefined;
+    const file = form.get("afbeelding");
+    if (file instanceof File && file.size > 0) {
+      if (file.size > 8 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: "Afbeelding is te groot (max 8 MB)" },
+          { status: 400 }
+        );
+      }
+      const basisnaam = file.name
+        .replace(/\.[^.]+$/, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60) || "afbeelding";
+      const data = await sharp(Buffer.from(await file.arrayBuffer()))
+        .rotate()
+        .resize({ width: 2000, withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+      afbeelding = { naam: `afbeeldingen/${basisnaam}.webp`, data };
+    }
+  } else {
+    const body = (await req.json()) as {
+      siteId: number;
+      bericht: string;
+      huidigePagina?: string;
+    };
+    siteId = body.siteId;
+    bericht = body.bericht;
+    huidigePagina = body.huidigePagina;
+  }
   if (!bericht?.trim()) {
     return NextResponse.json({ error: "Leeg bericht" }, { status: 400 });
   }
@@ -101,6 +139,12 @@ export async function POST(req: Request) {
         werkmap = await laadWerkmap(site.githubRepo);
         const snapshot = await maakSnapshot(werkmap);
 
+        if (afbeelding) {
+          const doel = path.join(werkmap, afbeelding.naam);
+          await mkdir(path.dirname(doel), { recursive: true });
+          await writeFile(doel, afbeelding.data);
+        }
+
         const contextRegels = [
           historie.length > 1
             ? `Eerdere gespreksgeschiedenis:\n${historie
@@ -110,6 +154,9 @@ export async function POST(req: Request) {
             : null,
           huidigePagina && huidigePagina !== "/"
             ? `De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.`
+            : null,
+          afbeelding
+            ? `De eigenaar heeft een afbeelding meegestuurd; die staat klaar op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). Plaats hem waar de eigenaar vraagt, met een passende beschrijvende alt-tekst.`
             : null,
           `Verzoek van de eigenaar: ${bericht}`,
         ].filter(Boolean);
