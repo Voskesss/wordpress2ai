@@ -98,6 +98,81 @@ async function haalLiveOntwerp(
           });
           screenshots++;
           await stuur(`Screenshot van de oude site: ${naam} (${label})`);
+          if (label === "desktop") {
+            // Ontwerp-bestek: gemeten stijlen, secties en embeds — feiten i.p.v. interpretatie
+            const bestek = await page.evaluate(() => {
+              const stijl = (el: Element) => {
+                const c = getComputedStyle(el as HTMLElement);
+                return {
+                  font: c.fontFamily.split(",")[0].replace(/["']/g, ""),
+                  size: c.fontSize,
+                  weight: c.fontWeight,
+                  kleur: c.color,
+                  achtergrond: c.backgroundColor,
+                };
+              };
+              const pak = (sel: string) => {
+                const el = document.querySelector(sel);
+                return el ? stijl(el) : null;
+              };
+              const kleuren = new Map<string, number>();
+              document.querySelectorAll("*").forEach((el) => {
+                const c = getComputedStyle(el as HTMLElement);
+                for (const k of [c.backgroundColor, c.color]) {
+                  if (k && k !== "rgba(0, 0, 0, 0)")
+                    kleuren.set(k, (kleuren.get(k) ?? 0) + 1);
+                }
+              });
+              const knop = document.querySelector(
+                "a[class*='btn'],button,a[class*='button'],.wp-block-button a"
+              );
+              const secties: object[] = [];
+              document
+                .querySelectorAll("body > *, main > *, #page > *, .site > *")
+                .forEach((el) => {
+                  const h = (el as HTMLElement).offsetHeight;
+                  if (h < 40) return;
+                  const c = getComputedStyle(el as HTMLElement);
+                  secties.push({
+                    tag: el.tagName.toLowerCase(),
+                    class: (el.className || "").toString().slice(0, 80),
+                    hoogte: h,
+                    achtergrond: c.backgroundColor,
+                    achtergrondAfbeelding:
+                      c.backgroundImage !== "none" ? c.backgroundImage.slice(0, 200) : null,
+                    tekst: (el.textContent || "").trim().slice(0, 120),
+                  });
+                });
+              const embeds: object[] = [];
+              document.querySelectorAll("iframe, video, audio").forEach((el) => {
+                const src = el.getAttribute("src") ?? "";
+                embeds.push({
+                  tag: el.tagName.toLowerCase(),
+                  src,
+                  breedte: (el as HTMLElement).offsetWidth,
+                  hoogte: (el as HTMLElement).offsetHeight,
+                  html: el.outerHTML.slice(0, 600),
+                });
+              });
+              return {
+                body: pak("body"),
+                h1: pak("h1"),
+                h2: pak("h2"),
+                nav: pak("nav, header"),
+                knop: knop ? stijl(knop) : null,
+                topKleuren: [...kleuren.entries()]
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 12)
+                  .map(([k]) => k),
+                secties: secties.slice(0, 20),
+                embeds,
+              };
+            });
+            await writeFile(
+              path.join(doelDir, `bestek-${naam}.json`),
+              JSON.stringify(bestek, null, 1)
+            );
+          }
         } catch {}
       }
       await page.close();
@@ -112,6 +187,110 @@ async function haalLiveOntwerp(
     screenshots,
     afbeeldingUrls: [...afbeeldingUrls],
   };
+}
+
+
+/** Serveert een map lokaal, maakt screenshots van de nieuwe site en laat de AI verschillen wegwerken. */
+async function vergelijkEnVerbeter(
+  werkmap: string,
+  paden: string[],
+  siteNaam: string,
+  stuur: (tekst: string) => void | Promise<void>,
+  rondes = 2
+) {
+  let chromium;
+  try {
+    ({ chromium } = await import("playwright"));
+  } catch {
+    return; // geen browser beschikbaar (lokaal) — lus overslaan
+  }
+  const { createServer } = await import("node:http");
+  const siteDir = path.join(werkmap, "site");
+  const MIME: Record<string, string> = {
+    html: "text/html", css: "text/css", js: "text/javascript",
+    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
+    webp: "image/webp", svg: "image/svg+xml", gif: "image/gif",
+  };
+  const server = createServer(async (req, res) => {
+    try {
+      let p = decodeURIComponent((req.url ?? "/").split("?")[0]);
+      if (p.endsWith("/")) p += "index.html";
+      if (!p.includes(".")) p += "/index.html";
+      const data = await readFile(path.join(siteDir, p));
+      res.writeHead(200, {
+        "Content-Type": MIME[p.split(".").pop() ?? ""] ?? "application/octet-stream",
+      });
+      res.end(data);
+    } catch {
+      res.writeHead(404).end("niet gevonden");
+    }
+  });
+  await new Promise<void>((r) => server.listen(0, () => r()));
+  const adres = server.address();
+  const poort = typeof adres === "object" && adres ? adres.port : 0;
+
+  try {
+    const tePakken = paden.slice(0, 5);
+    for (let ronde = 1; ronde <= rondes; ronde++) {
+      await stuur(`Vergelijkingsronde ${ronde}: nieuwe site naast de oude leggen...`);
+      const browser = await chromium.launch();
+      const nieuwDir = path.join(werkmap, "nieuw-schermen");
+      await mkdir(nieuwDir, { recursive: true });
+      for (const [label, viewport] of [
+        ["desktop", { width: 1280, height: 900 }],
+        ["mobiel", { width: 375, height: 812 }],
+      ] as const) {
+        const page = await browser.newPage({ viewport });
+        for (const pad of tePakken) {
+          try {
+            await page.goto(`http://127.0.0.1:${poort}${pad}`, {
+              waitUntil: "networkidle",
+              timeout: 15000,
+            });
+            const naam = (pad.replace(/\//g, "-").replace(/^-|-$/g, "") || "home");
+            await page.screenshot({
+              path: path.join(nieuwDir, `screenshot-${label}-${naam}.png`),
+              fullPage: true,
+            });
+          } catch {}
+        }
+        await page.close();
+      }
+      await browser.close();
+
+      await stuur(`Vergelijkingsronde ${ronde}: verschillen wegwerken...`);
+      for await (const message of query({
+        prompt: `Vergelijk het ontwerp van de nieuwe site met de oude en werk de verschillen weg.
+
+- In oud-ontwerp/ staan screenshots van de OUDE site (screenshot-desktop-*.png en screenshot-mobiel-*.png) en per pagina een bestek-*.json met gemeten kleuren, lettertypen, secties en embeds.
+- In nieuw-schermen/ staan dezelfde screenshots van de NIEUWE site (uit site/).
+- Bekijk per pagina beide screenshots met Read. Benoem voor jezelf de concrete verschillen (kleuren, lettertype, hero-opbouw, achtergrondafbeeldingen, spacing, fotogrids, ontbrekende embeds zoals YouTube/Vimeo/Maps-iframes) en pas de bestanden in site/ aan om de nieuwe site visueel gelijk te maken aan de oude.
+- Embeds uit het bestek (iframes/video) moeten letterlijk aanwezig zijn op de juiste plek, responsief gemaakt (max-width: 100%, vaste beeldverhouding).
+- Verander GEEN teksten of URL-paden; alleen vormgeving en structuur.
+- De site is "${siteNaam}". Werk grondig maar breek niets.`,
+        options: {
+          cwd: werkmap,
+          model: "claude-sonnet-5",
+          systemPrompt:
+            "Je bent de ontwerp-controleur van WordSwap. Je maakt de nieuwe statische site visueel gelijk aan de oude.",
+          allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
+          permissionMode: "bypassPermissions",
+          maxTurns: 60,
+          env: {
+            ...process.env,
+            HOME: "/tmp",
+            XDG_CONFIG_HOME: "/tmp/.config",
+            XDG_CACHE_HOME: "/tmp/.cache",
+            CLAUDE_CONFIG_DIR: "/tmp/.claude",
+          },
+        },
+      })) {
+        if (message.type === "result") break;
+      }
+    }
+  } finally {
+    server.close();
+  }
 }
 
 export type BouwResultaat = {
@@ -224,6 +403,7 @@ Instructies:
 - Elk bestand in bronmateriaal/ is één pagina; de commentaarregels bovenaan geven het URL-pad, de titel en samenvatting. Bouw elke pagina op EXACT dat pad: "/over-ons/" wordt site/over-ons/index.html, "/" wordt site/index.html.
 - Behoud per pagina de titel als <title> en gebruik de samenvatting (of de eerste zinnen) als meta description. Zie ook seo-manifest.json.
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
+- EMBEDS BEHOUDEN: video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) staan per pagina in oud-ontwerp/bestek-*.json onder "embeds". Plaats ze letterlijk terug op de juiste plek, responsief (max-width: 100%, behoud beeldverhouding). Sla ze nooit over.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
 - Afbeeldingen: media-map.json koppelt oude URL's aan lokale paden (al gedownload in site/afbeeldingen/). Vervang verwijzingen; geef elke afbeelding een beschrijvende alt-tekst. Verwijzingen naar niet-gedownloade media laat je weg.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
@@ -272,10 +452,19 @@ ${HUISREGELS}`;
     }
   }
 
-  const siteBestanden = await alleBestanden(siteDir);
-  if (!siteBestanden.some((b) => b === "index.html")) {
+  if (!(await alleBestanden(siteDir)).some((b) => b === "index.html")) {
     throw new Error("De bouw leverde geen homepage op — probeer opnieuw");
   }
+
+  // Vergelijk-en-verbeter: nieuwe site naast de oude leggen tot het klopt
+  await vergelijkEnVerbeter(
+    werkmap,
+    paginas.map((p) => p.pad),
+    siteNaam,
+    stuurStatus
+  );
+
+  const siteBestanden = await alleBestanden(siteDir);
 
   stuur({ type: "status", tekst: "Site-omgeving aanmaken..." });
   await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`);
