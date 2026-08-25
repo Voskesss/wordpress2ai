@@ -206,6 +206,18 @@ async function haalLiveOntwerp(
                     tekst: (el.textContent || "").trim().slice(0, 120),
                   });
                 });
+              // Alle beelden zoals de browser ze ECHT toont (vangt sliders,
+              // lazy-load en JS-injectie af, ongeacht de plugin)
+              const gerenderdeBeelden: { src: string; alt: string }[] = [];
+              document.querySelectorAll("img").forEach((img) => {
+                const src = (img as HTMLImageElement).currentSrc || img.getAttribute("src") || "";
+                if (src) gerenderdeBeelden.push({ src, alt: img.getAttribute("alt") ?? "" });
+              });
+              document.querySelectorAll("*").forEach((el) => {
+                const bg = getComputedStyle(el as HTMLElement).backgroundImage;
+                const m = /url\(["']?([^"')]+)["']?\)/.exec(bg ?? "");
+                if (m) gerenderdeBeelden.push({ src: m[1], alt: "(achtergrond)" });
+              });
               const embeds: object[] = [];
               document.querySelectorAll("iframe, video, audio").forEach((el) => {
                 const src = el.getAttribute("src") ?? "";
@@ -218,6 +230,7 @@ async function haalLiveOntwerp(
                 });
               });
               return {
+                gerenderdeBeelden: gerenderdeBeelden.slice(0, 60),
                 body: pak("body"),
                 h1: pak("h1"),
                 h2: pak("h2"),
@@ -235,6 +248,15 @@ async function haalLiveOntwerp(
               path.join(doelDir, `bestek-${naam}.json`),
               JSON.stringify(bestek, null, 1)
             );
+            for (const b of (bestek as { gerenderdeBeelden?: { src: string; alt: string }[] }).gerenderdeBeelden ?? []) {
+              try {
+                const u = new URL(b.src, bronUrl).href;
+                if (/\.(png|jpe?g|webp|gif|svg)([?#]|$)/i.test(u)) {
+                  afbeeldingUrls.add(u);
+                  (afbeeldingenPerPagina[pad] ??= []).push({ src: u, alt: b.alt || "(gerenderd)" });
+                }
+              } catch {}
+            }
           }
         } catch {}
       }
@@ -323,6 +345,37 @@ async function vergelijkEnVerbeter(
               path: path.join(nieuwDir, `screenshot-${label}-${naam}.png`),
               fullPage: true,
             });
+            if (label === "desktop") {
+              // Meetbare layoutproblemen: tekst tegen de rand, overlopende blokken
+              const problemen = await page.evaluate(() => {
+                const uit: string[] = [];
+                const vw = document.documentElement.clientWidth;
+                document
+                  .querySelectorAll("h1,h2,h3,p,section,main,article,div")
+                  .forEach((el) => {
+                    const r = el.getBoundingClientRect();
+                    const tekst = (el.textContent || "").trim();
+                    if (!tekst || r.width === 0) return;
+                    if (r.left <= 4 && r.width > vw * 0.85 && /^(H1|H2|H3|P)$/.test(el.tagName)) {
+                      uit.push(
+                        `${el.tagName.toLowerCase()} plakt tegen de linkerrand zonder container-padding: "${tekst.slice(0, 60)}"`
+                      );
+                    }
+                    if (r.right > vw + 4) {
+                      uit.push(
+                        `${el.tagName.toLowerCase()} loopt buiten beeld (${Math.round(r.right - vw)}px): "${tekst.slice(0, 60)}"`
+                      );
+                    }
+                  });
+                return uit.slice(0, 25);
+              });
+              if (problemen.length > 0) {
+                await writeFile(
+                  path.join(nieuwDir, `layout-rapport-${naam}.json`),
+                  JSON.stringify(problemen, null, 1)
+                );
+              }
+            }
           } catch {}
         }
         await page.close();
@@ -337,6 +390,7 @@ async function vergelijkEnVerbeter(
 - In nieuw-schermen/ staan dezelfde screenshots van de NIEUWE site (uit site/).
 - Bekijk per pagina beide screenshots met Read. Benoem voor jezelf de concrete verschillen (kleuren, lettertype, hero-opbouw, achtergrondafbeeldingen, spacing, fotogrids, ontbrekende embeds zoals YouTube/Vimeo/Maps-iframes) en pas de bestanden in site/ aan om de nieuwe site visueel gelijk te maken aan de oude.
 - Embeds uit het bestek (iframes/video) moeten letterlijk aanwezig zijn op de juiste plek, responsief gemaakt (max-width: 100%, vaste beeldverhouding).
+- LAYOUT: nieuw-schermen/layout-rapport-*.json bevat GEMETEN problemen (tekst die tegen de linkerrand plakt, blokken die buiten beeld lopen). Los elk gemeld probleem op: geef content-secties een nette container (max-width + horizontale padding, zoals het origineel op de screenshots) en voorkom horizontale overflow.
 - AFBEELDINGEN: vergelijk per pagina het aantal zichtbare afbeeldingen op de oude screenshots met de nieuwe. Mist er beeld (hero-achtergrond, fotogrid, portretten), plaats het terug vanuit site/afbeeldingen/ — oud-ontwerp/afbeeldingen-op-paginas.json en media-map.json vertellen welk bestand waar hoort.
 - Verander GEEN teksten of URL-paden; alleen vormgeving en structuur. Uitzondering: dode interne links (naar /tag/, /category/ of andere niet-gebouwde pagina's) mag je repareren door ze naar het blogoverzicht te laten wijzen of er platte tekst van te maken.
 - De site is "${siteNaam}". Werk grondig maar breek niets.`,

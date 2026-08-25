@@ -190,7 +190,11 @@ export default function Chat({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] items-start">
+    <div
+      className={`grid gap-6 items-start ${
+        apparaat === "desktop" ? "" : "xl:grid-cols-[minmax(0,1fr)_400px]"
+      }`}
+    >
       {/* Linkerkolom: website-viewer */}
       <div className="space-y-4 min-w-0">
         {(
