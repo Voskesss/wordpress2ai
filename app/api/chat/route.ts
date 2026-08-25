@@ -1,64 +1,49 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { query } from "@anthropic-ai/claude-agent-sdk";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
+import { maakBranch, maakPullRequest, schrijfBestand } from "@/lib/github";
 import {
-  leesBestand,
-  lijstBestanden,
-  maakBranch,
-  maakPullRequest,
-  schrijfBestand,
-} from "@/lib/github";
+  gewijzigdeBestanden,
+  laadWerkmap,
+  maakSnapshot,
+  ruimWerkmapOp,
+} from "@/lib/werkmap";
 
 export const maxDuration = 300;
 
 const FAIR_USE_LIMIET = 30;
 
-const tools: Anthropic.Tool[] = [
-  {
-    name: "lijst_bestanden",
-    description:
-      "Geeft alle bestandspaden in de website-repository terug. Gebruik dit om te ontdekken welke pagina's en bestanden er zijn.",
-    input_schema: { type: "object", properties: {}, required: [] },
-  },
-  {
-    name: "lees_bestand",
-    description: "Leest de inhoud van een bestand uit de website-repository.",
-    input_schema: {
-      type: "object",
-      properties: {
-        pad: { type: "string", description: "Pad van het bestand, bv. index.html" },
-      },
-      required: ["pad"],
-    },
-  },
-  {
-    name: "schrijf_bestand",
-    description:
-      "Schrijft de volledige nieuwe inhoud van een bestand naar de concept-versie van de website. Geef altijd de complete bestandsinhoud, niet alleen het gewijzigde stuk.",
-    input_schema: {
-      type: "object",
-      properties: {
-        pad: { type: "string" },
-        inhoud: { type: "string", description: "Volledige nieuwe bestandsinhoud" },
-      },
-      required: ["pad", "inhoud"],
-    },
-  },
-];
-
 function systeemPrompt(siteNaam: string) {
-  return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordPressToAI. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis.
+  return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordPressToAI. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
-- Voer de gevraagde wijziging uit met de tools. Zoek zelf uit in welk bestand iets staat (lijst_bestanden, lees_bestand).
+- Voer de gevraagde wijziging uit in de bestanden van de werkmap. Zoek zelf uit waar iets staat.
+- Controleer na je wijziging of het resultaat consistent is (bv. menu's die op elke pagina staan, dubbele vermeldingen van hetzelfde gegeven elders op de site) en meld het als je iets tegenstrijdigs ziet.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
-- Schrijfwijzigingen komen in een concept-versie terecht; de eigenaar keurt ze daarna goed. Vertel na afloop kort en in gewone taal wat je hebt aangepast en dat het concept klaarstaat om te bekijken.
-- Kun je iets niet (bv. het verzoek is onduidelijk of raakt iets dat niet in de site zit), zeg dat dan eerlijk en stel een vervolgvraag.
-- Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit of HTML in je antwoord).`;
+- Wijzigingen komen in een concept-versie; de eigenaar keurt ze daarna goed. Sluit af met een korte samenvatting in gewone taal van wat je hebt aangepast.
+- Kun je iets niet, zeg dat eerlijk en stel een vervolgvraag.
+- Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html").`;
+}
+
+const STATUS_PER_TOOL: Record<string, (input: Record<string, unknown>) => string> = {
+  Read: (i) => `Ik lees ${paginaNaam(String(i.file_path ?? ""))}...`,
+  Glob: () => "Ik kijk welke pagina's je site heeft...",
+  Grep: () => "Ik zoek waar het staat...",
+  Edit: (i) => `Ik pas ${paginaNaam(String(i.file_path ?? ""))} aan...`,
+  Write: (i) => `Ik werk ${paginaNaam(String(i.file_path ?? ""))} bij...`,
+};
+
+function paginaNaam(pad: string) {
+  const naam = path.basename(pad);
+  if (naam === "index.html") return "de homepage";
+  if (naam.endsWith(".css") || naam.endsWith(".js")) return "de vormgeving";
+  return `de pagina ${naam.replace(/\.html?$/, "")}`;
 }
 
 export async function POST(req: Request) {
@@ -80,7 +65,6 @@ export async function POST(req: Request) {
     .where(and(eq(sites.id, siteId), eq(sites.clerkUserId, userId)));
   if (!site) return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
 
-  // Fair use check
   const maand = new Date().toISOString().slice(0, 7);
   const [verbruik] = await db
     .select()
@@ -95,112 +79,97 @@ export async function POST(req: Request) {
 
   await db.insert(messages).values({ siteId: site.id, rol: "klant", tekst: bericht });
 
-  // Recente geschiedenis als context
   const historie = await db
     .select()
     .from(messages)
     .where(eq(messages.siteId, site.id))
     .orderBy(messages.id)
-    .then((rows) => rows.slice(-20));
-
-  const conversatie: Anthropic.MessageParam[] = historie.map((m) => ({
-    role: m.rol === "klant" ? "user" : "assistant",
-    content: m.tekst,
-  }));
-
-  if (huidigePagina && conversatie.length > 0) {
-    const laatste = conversatie[conversatie.length - 1];
-    laatste.content = `[De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.]\n\n${laatste.content}`;
-  }
-
-  const client = new Anthropic();
-  const repo = site.githubRepo;
-  const changeId = Date.now();
-  const branch = `wijziging-${changeId}`;
-  let branchGemaakt = false;
-  const gewijzigd: string[] = [];
+    .then((rows) => rows.slice(-12));
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       const stuur = (data: object) =>
         controller.enqueue(encoder.encode(JSON.stringify(data) + "\n"));
-      const paginaNaam = (pad: string) =>
-        pad === "index.html" ? "de homepage" : `de pagina ${pad.replace(".html", "")}`;
 
+      let werkmap: string | null = null;
       try {
-        stuur({ type: "status", tekst: "Ik kijk even naar je website..." });
+        stuur({ type: "status", tekst: "Ik pak je website erbij..." });
+        werkmap = await laadWerkmap(site.githubRepo);
+        const snapshot = await maakSnapshot(werkmap);
 
-        let response = await client.messages.create({
-    model: "claude-sonnet-5",
-    max_tokens: 16000,
-    system: systeemPrompt(site.naam),
-    tools,
-    messages: conversatie,
-  });
+        const contextRegels = [
+          historie.length > 1
+            ? `Eerdere gespreksgeschiedenis:\n${historie
+                .slice(0, -1)
+                .map((m) => `${m.rol === "klant" ? "Eigenaar" : "Jij"}: ${m.tekst}`)
+                .join("\n")}`
+            : null,
+          huidigePagina && huidigePagina !== "/"
+            ? `De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.`
+            : null,
+          `Verzoek van de eigenaar: ${bericht}`,
+        ].filter(Boolean);
 
-  while (response.stop_reason === "tool_use") {
-          const toolResults: Anthropic.ToolResultBlockParam[] = [];
-          for (const block of response.content) {
-            if (block.type !== "tool_use") continue;
-            let result: string;
-            try {
-              if (block.name === "lijst_bestanden") {
-                stuur({ type: "status", tekst: "Ik kijk welke pagina's je site heeft..." });
-                result = (await lijstBestanden(repo, branchGemaakt ? branch : undefined)).join("\n");
-              } else if (block.name === "lees_bestand") {
-                const { pad } = block.input as { pad: string };
-                stuur({ type: "status", tekst: `Ik lees ${paginaNaam(pad)}...` });
-                result = await leesBestand(repo, pad, branchGemaakt ? branch : undefined);
-              } else if (block.name === "schrijf_bestand") {
-                const { pad, inhoud } = block.input as { pad: string; inhoud: string };
-                stuur({ type: "status", tekst: `Ik pas ${paginaNaam(pad)} aan...` });
-                if (!branchGemaakt) {
-                  await maakBranch(repo, branch);
-                  branchGemaakt = true;
-                }
-                await schrijfBestand(repo, pad, inhoud, `Wijziging via chat: ${pad}`, branch);
-                gewijzigd.push(pad);
-                result = `Opgeslagen: ${pad}`;
-              } else {
-                result = "Onbekende tool";
-              }
-            } catch (e) {
-              result = `Fout: ${e instanceof Error ? e.message : String(e)}`;
-            }
-            toolResults.push({
-              type: "tool_result",
-              tool_use_id: block.id,
-              content: result,
-            });
-          }
-          conversatie.push({ role: "assistant", content: response.content });
-          conversatie.push({ role: "user", content: toolResults });
-          response = await client.messages.create({
+        let reply = "";
+        for await (const message of query({
+          prompt: contextRegels.join("\n\n"),
+          options: {
+            cwd: werkmap,
             model: "claude-sonnet-5",
-            max_tokens: 16000,
-            system: systeemPrompt(site.naam),
-            tools,
-            messages: conversatie,
-          });
+            systemPrompt: systeemPrompt(site.naam),
+            allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
+            permissionMode: "bypassPermissions",
+            maxTurns: 40,
+          },
+        })) {
+          if (message.type === "assistant") {
+            for (const block of message.message.content) {
+              if (block.type === "tool_use") {
+                const maker = STATUS_PER_TOOL[block.name];
+                if (maker) {
+                  stuur({
+                    type: "status",
+                    tekst: maker(block.input as Record<string, unknown>),
+                  });
+                }
+              }
+            }
+          }
+          if (message.type === "result") {
+            reply =
+              message.subtype === "success"
+                ? message.result
+                : "Er ging iets mis, probeer het opnieuw.";
+          }
         }
 
-        const reply = response.content
-          .filter((b): b is Anthropic.TextBlock => b.type === "text")
-          .map((b) => b.text)
-          .join("\n");
-
+        const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
         let previewUrl: string | null = null;
         let changeRowId: number | null = null;
 
-        if (branchGemaakt) {
+        if (gewijzigd.length > 0) {
           stuur({ type: "status", tekst: "Ik zet het concept voor je klaar..." });
+          const branch = `wijziging-${Date.now()}`;
+          await maakBranch(site.githubRepo, branch);
+          for (const pad of gewijzigd) {
+            const inhoud = await readFile(path.join(werkmap, pad));
+            await schrijfBestand(
+              site.githubRepo,
+              pad,
+              inhoud,
+              `Wijziging via chat: ${pad}`,
+              branch
+            );
+          }
           const pr = (await maakPullRequest(
-            repo,
+            site.githubRepo,
             branch,
-            `Wijziging via chat`,
-            `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd.map((p) => `- ${p}`).join("\n")}`
-          )) as { number: number; html_url: string };
+            "Wijziging via chat",
+            `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd
+              .map((p) => `- ${p}`)
+              .join("\n")}`
+          )) as { number: number };
           const [row] = await db
             .insert(changes)
             .values({
@@ -212,10 +181,7 @@ export async function POST(req: Request) {
             .returning({ id: changes.id });
           changeRowId = row.id;
           previewUrl = `/preview/${row.id}/`;
-          await db
-            .update(changes)
-            .set({ previewUrl })
-            .where(eq(changes.id, row.id));
+          await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
 
           if (verbruik) {
             await db
@@ -227,18 +193,21 @@ export async function POST(req: Request) {
           }
         }
 
-        await db.insert(messages).values({ siteId: site.id, rol: "assistent", tekst: reply });
+        await db
+          .insert(messages)
+          .values({ siteId: site.id, rol: "assistent", tekst: reply });
 
         stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId });
       } catch (e) {
+        console.error(e);
         stuur({
           type: "klaar",
           reply: "Er ging iets mis, probeer het opnieuw.",
           previewUrl: null,
           changeId: null,
         });
-        console.error(e);
       } finally {
+        if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
         controller.close();
       }
     },
