@@ -7,6 +7,7 @@ type Job = {
   status: "wachtend" | "bezig" | "klaar" | "fout";
   voortgang: string | null;
   siteNaam: string;
+  resultaat?: { siteId?: number; paginas?: number } | null;
 };
 
 const STIJL: Record<string, string> = {
@@ -63,7 +64,7 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
                   {job.voortgang}
                 </span>
               </td>
-              <td className="px-6 py-3 text-right">
+              <td className="px-6 py-3 text-right whitespace-nowrap">
                 {(job.status === "wachtend" || job.status === "bezig") && (
                   <button
                     onClick={() => annuleer(job.id)}
@@ -71,6 +72,14 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
                   >
                     Annuleer
                   </button>
+                )}
+                {job.status === "klaar" && job.resultaat?.siteId && (
+                  <a
+                    href={`/admin/klant/${job.resultaat.siteId}`}
+                    className="rounded-full bg-violet-700 px-4 py-1.5 text-white font-semibold hover:bg-violet-600"
+                  >
+                    Naar klantpagina →
+                  </a>
                 )}
               </td>
             </tr>

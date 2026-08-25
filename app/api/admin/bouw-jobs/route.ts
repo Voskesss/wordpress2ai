@@ -15,6 +15,7 @@ export async function GET() {
       status: bouwJobs.status,
       voortgang: bouwJobs.voortgang,
       siteNaam: bouwJobs.siteNaam,
+      resultaat: bouwJobs.resultaat,
       bijgewerkt: bouwJobs.bijgewerkt,
     })
     .from(bouwJobs)

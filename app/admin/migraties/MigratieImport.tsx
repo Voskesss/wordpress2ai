@@ -20,6 +20,7 @@ export default function MigratieImport() {
   const [siteNaam, setSiteNaam] = useState("");
   const [repoNaam, setRepoNaam] = useState("");
   const [bouwStatus, setBouwStatus] = useState<string | null>(null);
+  const [gestart, setGestart] = useState<string | null>(null);
   const [bouwResultaat, setBouwResultaat] = useState<{
     repoUrl: string;
     siteId?: number;
@@ -32,6 +33,7 @@ export default function MigratieImport() {
     setFout(null);
     setOverzicht(null);
     setBouwResultaat(null);
+    setGestart(null);
     setWxrFile(file);
     try {
       const form = new FormData();
@@ -61,8 +63,7 @@ export default function MigratieImport() {
   async function bouwSite() {
     if (!wxrFile || bouwStatus) return;
     setFout(null);
-    setBouwResultaat(null);
-    setBouwStatus("Starten...");
+    setBouwStatus("In de wachtrij zetten...");
     try {
       const form = new FormData();
       form.set("wxr", wxrFile);
@@ -74,24 +75,15 @@ export default function MigratieImport() {
       });
       const start = await res.json();
       if (!res.ok) throw new Error(start.error ?? "Er ging iets mis");
-      if (!start.workerGestart) {
-        setBouwStatus(
-          "Opdracht staat klaar, maar de worker kon niet automatisch starten (GITHUB_ACTIONS_PAT ontbreekt). Start hem handmatig via GitHub → Actions → bouw-worker."
-        );
-      }
-      // Voortgang volgen tot de worker klaar is
-      for (;;) {
-        await new Promise((r) => setTimeout(r, 4000));
-        const st = await fetch(`/api/admin/migratie-status?id=${start.jobId}`).then(
-          (r) => r.json()
-        );
-        if (st.status === "fout") throw new Error(st.voortgang ?? "Bouw mislukt");
-        if (st.status === "klaar") {
-          setBouwResultaat(st.resultaat);
-          break;
-        }
-        setBouwStatus(st.voortgang ?? "Bezig...");
-      }
+      // Paneel leegmaken voor de volgende klant; volgen gebeurt in de Bouwwachtrij
+      setGestart(
+        `Opdracht #${start.jobId} staat in de wachtrij — volg de voortgang hierboven in de Bouwwachtrij.` +
+          (start.workerGestart ? "" : " Let op: start de worker handmatig via GitHub → Actions → bouw-worker.")
+      );
+      setOverzicht(null);
+      setWxrFile(null);
+      setSiteNaam("");
+      setRepoNaam("");
     } catch (e) {
       setFout(e instanceof Error ? e.message : "Er ging iets mis");
     } finally {
@@ -131,6 +123,12 @@ export default function MigratieImport() {
           In WordPress: Extra → Exporteren → Alle content → Download exportbestand
         </p>
       </label>
+
+      {gestart && (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-emerald-900 text-sm">
+          {gestart}
+        </p>
+      )}
 
       {fout && (
         <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-red-800 text-sm">
