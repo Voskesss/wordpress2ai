@@ -17,17 +17,31 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ siteId: string; pad?: string[] }> }
 ) {
-  const { userId } = await auth();
-  if (!userId) return new Response("Niet ingelogd", { status: 401 });
-
   const { siteId, pad: padDelen } = await params;
   const id = Number(siteId);
   if (!Number.isInteger(id)) return new Response("Ongeldig", { status: 400 });
 
-  const [site] = await db.select().from(sites).where(eq(sites.id, id));
-  if (!site || (site.clerkUserId !== userId && !(await isBeheerder()))) {
-    return new Response("Niet gevonden", { status: 404 });
+  // De HTML zelf vereist login; losse bestanden (css/afbeeldingen) niet,
+  // omdat de gesandboxte weergave geen cookies kan meesturen bij die
+  // verzoeken. Site-bestanden zijn dezelfde content die (straks) publiek is.
+  const ruwPad = (padDelen ?? []).join("/");
+  const laatsteDeel = ruwPad.split("/").pop() ?? "";
+  const isAsset =
+    laatsteDeel.includes(".") && !/\.html?$/i.test(laatsteDeel);
+  if (!isAsset) {
+    const { userId } = await auth();
+    if (!userId) return new Response("Niet ingelogd", { status: 401 });
+    const [eigenaarCheck] = await db.select().from(sites).where(eq(sites.id, id));
+    if (
+      !eigenaarCheck ||
+      (eigenaarCheck.clerkUserId !== userId && !(await isBeheerder()))
+    ) {
+      return new Response("Niet gevonden", { status: 404 });
+    }
   }
+
+  const [site] = await db.select().from(sites).where(eq(sites.id, id));
+  if (!site) return new Response("Niet gevonden", { status: 404 });
 
   const [openConcept] = await db
     .select()
