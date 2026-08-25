@@ -1,4 +1,5 @@
-import { ClerkProvider, SignInButton, Show, UserButton } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
+import HeaderNav from "./HeaderNav";
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
@@ -57,11 +58,6 @@ const jsonLd = {
   priceRange: "€€",
 };
 
-const nav = [
-  { href: "/hoe-het-werkt", label: "Hoe het werkt" },
-  { href: "/prijzen", label: "Prijzen" },
-];
-
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
   const isAdmin = user?.publicMetadata?.role === "admin";
@@ -84,47 +80,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </span>
           WordPress<span className="text-violet-600">To</span>AI
           </Link>
-          <nav className="flex items-center gap-2 sm:gap-6 text-sm font-medium">
-          {nav.map((item) => (
-          <Link
-          key={item.href}
-          href={item.href}
-          className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
-          >
-          {item.label}
-          </Link>
-          ))}
-          <Link
-          href="/contact"
-          className="rounded-full bg-violet-600 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
-          >
-          Kennismaken
-          </Link>
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
-                Inloggen
-              </button>
-            </SignInButton>
-          </Show>
-          <Show when="signed-in">
-            <Link
-              href="/portal"
-              className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
-            >
-              Mijn website
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="px-2 py-1 text-violet-700 font-semibold hover:text-violet-900 transition-colors"
-              >
-                Admin
-              </Link>
-            )}
-            <UserButton />
-          </Show>
-          </nav>
+          <HeaderNav isAdmin={isAdmin} />
           </div>
           </header>
           <main className="flex-1">{children}</main>

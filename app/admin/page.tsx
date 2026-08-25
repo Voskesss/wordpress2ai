@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { bewaarRichtlijnen } from "./acties";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -61,6 +62,42 @@ export default async function Admin() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <h2 className="font-display mt-12 text-2xl font-semibold">
+        Richtlijnen per website
+      </h2>
+      <p className="mt-2 text-stone-600 text-sm">
+        Extra regels die de AI bij deze specifieke site altijd naleeft, bovenop
+        de algemene huisregels (mobielvriendelijk, SEO-behoud,
+        toegankelijkheid, consistentie).
+      </p>
+      <div className="mt-6 space-y-6">
+        {alleSites.map((site) => (
+          <form
+            key={site.id}
+            action={bewaarRichtlijnen}
+            className="rounded-2xl border border-stone-200 bg-white p-6"
+          >
+            <input type="hidden" name="siteId" value={site.id} />
+            <p className="font-semibold">{site.naam}</p>
+            <textarea
+              name="richtlijnen"
+              rows={4}
+              defaultValue={site.richtlijnen ?? ""}
+              placeholder={
+                "Bijv.:\n- Spreek bezoekers aan met 'u'\n- Prijzen altijd met € en twee decimalen\n- De huiskleur is donkerbruin, gebruik geen andere kleuren"
+              }
+              className="mt-3 w-full rounded-xl border border-stone-300 px-4 py-3 text-sm focus:border-violet-600 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+            >
+              Opslaan
+            </button>
+          </form>
+        ))}
       </div>
     </div>
   );

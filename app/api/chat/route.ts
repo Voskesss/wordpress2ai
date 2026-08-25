@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, maakPullRequest, schrijfBestand } from "@/lib/github";
+import { HUISREGELS } from "@/lib/huisregels";
 import {
   gewijzigdeBestanden,
   laadWerkmap,
@@ -18,7 +19,7 @@ export const maxDuration = 300;
 
 const FAIR_USE_LIMIET = 30;
 
-function systeemPrompt(siteNaam: string) {
+function systeemPrompt(siteNaam: string, richtlijnen?: string | null) {
   return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordPressToAI. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
@@ -28,7 +29,9 @@ Werkwijze:
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
 - Wijzigingen komen in een concept-versie; de eigenaar keurt ze daarna goed. Sluit af met een korte samenvatting in gewone taal van wat je hebt aangepast.
 - Kun je iets niet, zeg dat eerlijk en stel een vervolgvraag.
-- Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html").`;
+- Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html").
+
+${HUISREGELS}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}`;
 }
 
 const STATUS_PER_TOOL: Record<string, (input: Record<string, unknown>) => string> = {
@@ -117,7 +120,7 @@ export async function POST(req: Request) {
           options: {
             cwd: werkmap,
             model: "claude-sonnet-5",
-            systemPrompt: systeemPrompt(site.naam),
+            systemPrompt: systeemPrompt(site.naam, site.richtlijnen),
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
             permissionMode: "bypassPermissions",
             maxTurns: 40,

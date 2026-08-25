@@ -22,6 +22,7 @@ export const sites = pgTable("sites", {
   })
     .notNull()
     .default("migratie"),
+  richtlijnen: text("richtlijnen"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
