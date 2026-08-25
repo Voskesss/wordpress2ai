@@ -54,6 +54,12 @@ export default async function Admin() {
           </p>
         </div>
         <div className="flex gap-3 flex-wrap">
+          <Link
+            href="/admin/media"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-stone-600 text-sm font-semibold hover:border-violet-400"
+          >
+            Merkmateriaal
+          </Link>
           <a
             href="/api/opruimen"
             target="_blank"
