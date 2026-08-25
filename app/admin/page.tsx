@@ -17,9 +17,17 @@ export default async function Admin() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="font-display text-4xl font-semibold tracking-tight">
-        Admin
-      </h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h1 className="font-display text-4xl font-semibold tracking-tight">
+          Admin
+        </h1>
+        <a
+          href="/admin/migraties"
+          className="rounded-full bg-violet-700 px-5 py-2.5 text-white text-sm font-semibold hover:bg-violet-600"
+        >
+          Migraties
+        </a>
+      </div>
       <p className="mt-3 text-stone-600">
         {alleSites.length} klantsite{alleSites.length === 1 ? "" : "s"}
       </p>
