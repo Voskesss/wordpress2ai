@@ -229,7 +229,7 @@ export default function Home() {
             website moet gewoon meewerken.&rdquo;
           </p>
           <p className="mt-6 font-semibold text-violet-700">
-            — Jos, oprichter WordPressToAI
+            — Jos, oprichter WordSwap
           </p>
           <p className="mt-6 text-stone-600 leading-relaxed">
             En gaat er tóch een keer iets fout? Dan geef je het gewoon door en

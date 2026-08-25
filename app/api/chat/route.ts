@@ -21,7 +21,7 @@ export const maxDuration = 300;
 const FAIR_USE_LIMIET = 30;
 
 function systeemPrompt(siteNaam: string, richtlijnen?: string | null) {
-  return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordPressToAI. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
+  return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordSwap. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Zoek zelf uit waar iets staat.

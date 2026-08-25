@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const base = "https://wordpresstoai.nl";
+const base = "https://wordswap.nl";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return ["", "/hoe-het-werkt", "/prijzen", "/contact"].map((path) => ({

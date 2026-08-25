@@ -95,7 +95,7 @@ export default function Prijzen() {
                   <th className="p-4 font-medium"></th>
                   <th className="p-4 font-medium">Nu met WordPress</th>
                   <th className="p-4 font-medium text-violet-700">
-                    Met WordPressToAI
+                    Met WordSwap
                   </th>
                 </tr>
               </thead>
@@ -111,7 +111,7 @@ export default function Prijzen() {
             </table>
           </div>
           <p className="mt-4 text-sm text-stone-500">
-            Bedragen zijn indicatief. Bij WordPressToAI betaal je €20 p/m voor
+            Bedragen zijn indicatief. Bij WordSwap betaal je €20 p/m voor
             de AI-koppeling; alleen je e-mailabonnement (vanaf ± €8 p/m) loopt
             apart bij je e-mailprovider.
           </p>
