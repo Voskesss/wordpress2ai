@@ -55,7 +55,7 @@ export function LogoIcoon({ maat = 36 }: { maat?: number }) {
 export function LogoWoordmerk({ klein = false }: { klein?: boolean }) {
   return (
     <span
-      className={`inline-flex items-baseline ${klein ? "text-2xl" : "text-4xl"}`}
+      className={`inline-flex items-baseline ${klein ? "text-3xl" : "text-5xl"}`}
     >
       <span className="font-[family-name:var(--font-garamond)] font-semibold italic text-[#464342]">
         W
@@ -71,7 +71,7 @@ export function LogoWoordmerk({ klein = false }: { klein?: boolean }) {
 export default function Logo({ klein = false }: { klein?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <LogoIcoon maat={klein ? 40 : 56} />
+      <LogoIcoon maat={klein ? 48 : 72} />
       <LogoWoordmerk klein={klein} />
     </span>
   );

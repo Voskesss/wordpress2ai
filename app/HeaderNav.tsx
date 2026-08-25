@@ -89,7 +89,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-16 z-50 sm:hidden border-b border-zinc-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-20 z-50 sm:hidden border-b border-zinc-200 bg-white shadow-lg">
           <nav className="flex flex-col p-4 gap-1 text-base font-medium">
             {links.map((item) => (
               <Link

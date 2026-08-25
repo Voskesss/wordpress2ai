@@ -79,7 +79,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
           <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-lg">
-          <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+          <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
           <Link href="/" aria-label="WordSwap home">
           <Logo klein />
           </Link>
