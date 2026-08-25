@@ -1,3 +1,9 @@
 {
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/opruimen",
+      "schedule": "0 4 * * 1"
+    }
+  ]
 }

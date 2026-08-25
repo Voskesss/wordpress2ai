@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
-import { gh, GITHUB_ORG } from "@/lib/github";
+import { gh, GITHUB_ORG, verwijderBranch } from "@/lib/github";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({ state: "closed" }),
     });
   }
+  await verwijderBranch(rij.site.githubRepo, rij.change.branch);
   await db
     .update(changes)
     .set({ status: "afgewezen" })

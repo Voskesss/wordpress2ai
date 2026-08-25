@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
-import { mergePullRequest } from "@/lib/github";
+import { mergePullRequest, verwijderBranch } from "@/lib/github";
 import { deployRepoNaarCloudflare } from "@/lib/cloudflare";
 
 export async function POST(req: Request) {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
   }
 
   await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+  await verwijderBranch(rij.site.githubRepo, rij.change.branch);
   if (rij.site.netlifySiteId) {
     // Live zetten: bestanden direct naar Cloudflare (gratis, geen wachtrij)
     await deployRepoNaarCloudflare(rij.site.githubRepo, rij.site.netlifySiteId).catch(

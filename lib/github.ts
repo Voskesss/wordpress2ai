@@ -256,3 +256,10 @@ export async function repoBestaat(repo: string): Promise<boolean> {
     return false;
   }
 }
+
+/** Verwijdert een branch (opruimen na publiceren of verwerpen). */
+export async function verwijderBranch(repo: string, branch: string) {
+  return gh(`/repos/${GITHUB_ORG}/${repo}/git/refs/heads/${branch}`, {
+    method: "DELETE",
+  }).catch(() => {});
+}

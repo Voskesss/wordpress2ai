@@ -53,7 +53,16 @@ export default async function Admin() {
             {alleSites.length} site{alleSites.length === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <a
+            href="/api/opruimen"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-stone-600 text-sm font-semibold hover:border-violet-400"
+            title="Oude bouwopdrachten en branches opruimen"
+          >
+            Opruimen
+          </a>
           <Link
             href="/admin/nieuw"
             className="rounded-full border-2 border-violet-600 px-5 py-2.5 text-violet-700 text-sm font-semibold hover:bg-violet-50"
