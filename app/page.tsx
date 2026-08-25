@@ -97,10 +97,16 @@ export default function Home() {
                 Ja, verlos me van het gedoe →
               </Link>
               <Link
+                href="/portal"
+                className="lift rounded-full border-2 border-violet-300 bg-white px-7 py-3.5 font-semibold text-violet-700"
+              >
+                Probeer de demo gratis
+              </Link>
+              <Link
                 href="/hoe-het-werkt"
                 className="lift rounded-full border-2 border-stone-200 bg-white px-7 py-3.5 font-semibold"
               >
-                Eerst zien hoe het werkt
+                Hoe het werkt
               </Link>
             </div>
           </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, sites, usage } from "@/db/schema";
+import { changes, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -19,8 +19,55 @@ const STATUS_KLEUR: Record<string, string> = {
   opgezegd: "bg-red-50 border-red-200 text-red-700",
 };
 
+async function demoLeads() {
+  const demoSiteIds = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(eq(sites.isDemo, true));
+  if (demoSiteIds.length === 0) return [];
+  const { inArray, isNotNull, and: en, desc, sql } = await import("drizzle-orm");
+  const rijen = await db
+    .select({
+      clerkUserId: messages.clerkUserId,
+      laatste: sql<string>`max(${messages.aangemaakt})`,
+      aantal: sql<number>`count(*)`,
+    })
+    .from(messages)
+    .where(
+      en(
+        inArray(messages.siteId, demoSiteIds.map((s) => s.id)),
+        isNotNull(messages.clerkUserId),
+        eq(messages.rol, "klant")
+      )
+    )
+    .groupBy(messages.clerkUserId)
+    .orderBy(desc(sql`max(${messages.aangemaakt})`))
+    .then((r) => r.slice(0, 25));
+  const leads: { email: string; aantal: number; laatste: string }[] = [];
+  for (const rij of rijen) {
+    if (!rij.clerkUserId) continue;
+    try {
+      const res = await fetch(
+        `https://api.clerk.com/v1/users/${rij.clerkUserId}`,
+        { headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` } }
+      );
+      if (!res.ok) continue;
+      const u = (await res.json()) as {
+        email_addresses?: { email_address: string }[];
+      };
+      leads.push({
+        email: u.email_addresses?.[0]?.email_address ?? "onbekend",
+        aantal: Number(rij.aantal),
+        laatste: new Date(rij.laatste).toLocaleString("nl-NL"),
+      });
+    } catch {}
+  }
+  return leads;
+}
+
 export default async function Admin() {
   await requireAdmin();
+  const leads = await demoLeads();
   const alleSites = await db.select().from(sites).orderBy(sites.id);
   const maand = new Date().toISOString().slice(0, 7);
 
@@ -123,6 +170,38 @@ export default async function Admin() {
           </Link>
         ))}
       </div>
+
+      {leads.length > 0 && (
+        <div className="mt-10">
+          <h2 className="font-display text-2xl font-semibold">Demo-leads</h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Mensen die de probeer-demo hebben gebruikt — warme leads om na te
+            bellen of te mailen.
+          </p>
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 text-stone-500">
+                  <th className="p-3 font-medium">E-mail</th>
+                  <th className="p-3 font-medium">Berichten</th>
+                  <th className="p-3 font-medium">Laatst actief</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((lead) => (
+                  <tr key={lead.email} className="border-t border-stone-100">
+                    <td className="p-3 font-medium text-stone-800">
+                      {lead.email}
+                    </td>
+                    <td className="p-3 text-stone-600">{lead.aantal}</td>
+                    <td className="p-3 text-stone-600">{lead.laatste}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

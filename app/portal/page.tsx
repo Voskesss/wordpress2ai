@@ -15,10 +15,11 @@ export const dynamic = "force-dynamic";
 
 export default async function Portal() {
   const userId = await requireUser();
+  const { and, or } = await import("drizzle-orm");
   const mijnSites = await db
     .select()
     .from(sites)
-    .where(eq(sites.clerkUserId, userId));
+    .where(or(eq(sites.clerkUserId, userId), eq(sites.isDemo, true)));
 
   const historieMap: Record<
     number,
@@ -28,7 +29,11 @@ export default async function Portal() {
     const rows = await db
       .select()
       .from(messages)
-      .where(eq(messages.siteId, site.id))
+      .where(
+        site.isDemo
+          ? and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId))
+          : eq(messages.siteId, site.id)
+      )
       .orderBy(messages.id);
     historieMap[site.id] = rows
       .slice(-30)
@@ -106,11 +111,20 @@ export default async function Portal() {
                   openConcept={openConceptMap[site.id]}
                 />
               </div>
-              <SiteExtra
-                siteId={site.id}
-                siteRepo={site.githubRepo}
-                notificatieEmail={site.notificatieEmail}
-              />
+              {site.isDemo ? (
+                <p className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3 text-sm text-violet-900">
+                  Dit is een <strong>gratis probeer-demo</strong>: vraag een
+                  wijziging in de chat, bekijk het concept en publiceer hem
+                  zelf. De demo-site wordt elk uur teruggezet. Zoiets voor je
+                  eigen website? Neem contact op!
+                </p>
+              ) : (
+                <SiteExtra
+                  siteId={site.id}
+                  siteRepo={site.githubRepo}
+                  notificatieEmail={site.notificatieEmail}
+                />
+              )}
             </div>
           ))}
         </div>

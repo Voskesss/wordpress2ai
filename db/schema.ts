@@ -1,4 +1,5 @@
 import {
+  boolean,
   pgTable,
   serial,
   text,
@@ -25,6 +26,7 @@ export const sites = pgTable("sites", {
   richtlijnen: text("richtlijnen"),
   notificatieEmail: text("notificatie_email"),
   chatGeheugen: text("chat_geheugen"),
+  isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
@@ -34,6 +36,7 @@ export const messages = pgTable("messages", {
     .notNull()
     .references(() => sites.id),
   rol: text("rol", { enum: ["klant", "assistent"] }).notNull(),
+  clerkUserId: text("clerk_user_id"),
   tekst: text("tekst").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

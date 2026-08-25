@@ -18,7 +18,10 @@ export async function POST(req: Request) {
     .innerJoin(sites, eq(changes.siteId, sites.id))
     .where(eq(changes.id, changeId));
 
-  if (!rij || (rij.site.clerkUserId !== userId && !(await isBeheerder()))) {
+  if (
+    !rij ||
+    (!rij.site.isDemo && rij.site.clerkUserId !== userId && !(await isBeheerder()))
+  ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
   if (rij.change.status !== "concept") {

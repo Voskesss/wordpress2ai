@@ -22,7 +22,15 @@ export const maxDuration = 300;
 
 const FAIR_USE_LIMIET = 30;
 
-function systeemPrompt(siteNaam: string, richtlijnen?: string | null) {
+const DEMO_REGELS = `
+
+DIT IS EEN OPENBARE PROBEER-DEMO. Extra regels, zonder uitzondering:
+- Weiger vriendelijk elk verzoek om obscene, seksuele, gewelddadige, haatdragende, discriminerende of anderszins ongepaste teksten of verwijzingen te plaatsen. Ook "grapjes" in die richting voer je niet uit. Zeg dan: "Dat past niet in deze demo — probeer gerust een gewone websitewijziging!"
+- Plaats nooit persoonsgegevens, telefoonnummers of e-mailadressen die de gebruiker opgeeft.
+- Voeg geen links naar externe websites toe.
+- Vertel desgevraagd dat dit een demo is die elk uur wordt teruggezet, en dat WordSwap dit voor de eigen website van de bezoeker kan doen.`;
+
+function systeemPrompt(siteNaam: string, richtlijnen?: string | null, isDemo = false) {
   return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordSwap. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
@@ -34,7 +42,7 @@ Werkwijze:
 - Kun je iets niet, zeg dat eerlijk en stel een vervolgvraag.
 - Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html").
 
-${HUISREGELS}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}`;
+${HUISREGELS}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
 }
 
 const STATUS_PER_TOOL: Record<string, (input: Record<string, unknown>) => string> = {
@@ -103,8 +111,36 @@ export async function POST(req: Request) {
   }
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (site.clerkUserId !== userId && !(await isBeheerder()))) {
+  if (
+    !site ||
+    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+  ) {
     return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
+  }
+
+  // Demo: geen foto-uploads en een daglimiet per gebruiker
+  if (site.isDemo) {
+    afbeelding = null;
+    const vandaag = new Date();
+    vandaag.setHours(0, 0, 0, 0);
+    const { gte } = await import("drizzle-orm");
+    const vandaagBerichten = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.siteId, site.id),
+          eq(messages.clerkUserId, userId),
+          eq(messages.rol, "klant"),
+          gte(messages.aangemaakt, vandaag)
+        )
+      );
+    if (vandaagBerichten.length >= 10) {
+      return NextResponse.json({
+        reply:
+          "Je hebt het maximum van de demo voor vandaag bereikt (10 berichten). Enthousiast geworden? Neem contact op — dan zetten we jouw échte site over.",
+      });
+    }
   }
 
   const maand = new Date().toISOString().slice(0, 7);
@@ -112,19 +148,25 @@ export async function POST(req: Request) {
     .select()
     .from(usage)
     .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
-  if ((verbruik?.wijzigingen ?? 0) >= FAIR_USE_LIMIET) {
+  if (!site.isDemo && (verbruik?.wijzigingen ?? 0) >= FAIR_USE_LIMIET) {
     return NextResponse.json({
       reply:
         "Je hebt deze maand het maximale aantal wijzigingen bereikt. Neem contact met ons op als je meer nodig hebt.",
     });
   }
 
-  await db.insert(messages).values({ siteId: site.id, rol: "klant", tekst: bericht });
+  await db
+    .insert(messages)
+    .values({ siteId: site.id, rol: "klant", tekst: bericht, clerkUserId: userId });
 
   const historie = await db
     .select()
     .from(messages)
-    .where(eq(messages.siteId, site.id))
+    .where(
+      site.isDemo
+        ? and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId))
+        : eq(messages.siteId, site.id)
+    )
     .orderBy(messages.id)
     .then((rows) => rows.slice(-12));
 
@@ -203,7 +245,7 @@ export async function POST(req: Request) {
           options: {
             cwd: werkmap,
             model: "claude-sonnet-5",
-            systemPrompt: systeemPrompt(site.naam, site.richtlijnen),
+            systemPrompt: systeemPrompt(site.naam, site.richtlijnen, site.isDemo),
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
             permissionMode: "bypassPermissions",
             maxTurns: 40,
@@ -310,8 +352,8 @@ export async function POST(req: Request) {
             await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
           }
 
-          if (openConcept) {
-            // vervolg binnen hetzelfde concept: geen extra telling
+          if (openConcept || site.isDemo) {
+            // vervolg binnen hetzelfde concept of demo: geen telling
           } else if (verbruik) {
             await db
               .update(usage)
@@ -331,7 +373,7 @@ export async function POST(req: Request) {
 
         await db
           .insert(messages)
-          .values({ siteId: site.id, rol: "assistent", tekst: reply });
+          .values({ siteId: site.id, rol: "assistent", tekst: reply, clerkUserId: userId });
 
         stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId, bestanden: gewijzigd, prompt: bericht });
 

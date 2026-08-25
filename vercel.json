@@ -4,6 +4,10 @@
     {
       "path": "/api/opruimen",
       "schedule": "0 4 * * 1"
+    },
+    {
+      "path": "/api/demo-reset",
+      "schedule": "0 * * * *"
     }
   ]
 }
