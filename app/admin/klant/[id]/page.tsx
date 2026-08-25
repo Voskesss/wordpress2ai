@@ -5,7 +5,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, migrations, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { bewaarRichtlijnen, bewaarSite, koppelKlant } from "../../acties";
+import {
+  bewaarRichtlijnen,
+  bewaarSite,
+  koppelKlant,
+  verwijderKlant,
+} from "../../acties";
 
 export const metadata: Metadata = {
   title: "Klant",
@@ -284,6 +289,42 @@ export default async function KlantDetail({
           </tbody>
         </table>
       </div>
+
+      {/* Danger zone */}
+      <form
+        action={verwijderKlant}
+        className="mt-6 rounded-3xl border-2 border-red-200 bg-red-50/50 p-6"
+      >
+        <input type="hidden" name="siteId" value={site.id} />
+        <h2 className="font-display text-xl font-semibold text-red-900">
+          Klant verwijderen
+        </h2>
+        <p className="mt-2 text-sm text-red-800">
+          Verwijdert deze klant met alle chatgeschiedenis, wijzigingen en
+          verbruiksgegevens uit het systeem. Dit kan niet ongedaan worden
+          gemaakt.
+        </p>
+        <div className="mt-4 space-y-2 text-sm text-red-900">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="ookRepo" className="h-4 w-4" />
+            Ook de bestanden (repo <span className="font-mono">{site.githubRepo}</span>) permanent verwijderen
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="ookNetlify" className="h-4 w-4" />
+            Ook de Netlify-site verwijderen{site.netlifySiteId ? ` (${site.netlifySiteId})` : " (geen gekoppeld)"}
+          </label>
+          <label className="flex items-center gap-2 font-semibold">
+            <input type="checkbox" name="bevestiging" required className="h-4 w-4" />
+            Ja, ik weet zeker dat ik &ldquo;{site.naam}&rdquo; wil verwijderen
+          </label>
+        </div>
+        <button
+          type="submit"
+          className="mt-4 rounded-full bg-red-600 px-5 py-2 text-white text-sm font-semibold hover:bg-red-500 cursor-pointer"
+        >
+          Definitief verwijderen
+        </button>
+      </form>
     </div>
   );
 }

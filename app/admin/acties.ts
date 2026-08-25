@@ -97,3 +97,49 @@ export async function nieuweSite(formData: FormData) {
   revalidatePath("/admin");
   redirect(`/admin/klant/${rij.id}`);
 }
+
+/** Verwijdert een klant volledig: databasegegevens, en optioneel repo en Netlify-site. */
+export async function verwijderKlant(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const bevestiging = formData.get("bevestiging") === "on";
+  const ookRepo = formData.get("ookRepo") === "on";
+  const ookNetlify = formData.get("ookNetlify") === "on";
+  if (!Number.isInteger(siteId) || !bevestiging) return;
+
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+
+  const { changes, messages, usage, apiKeys, migrations } = await import(
+    "@/db/schema"
+  );
+  await db.delete(changes).where(eq(changes.siteId, siteId));
+  await db.delete(messages).where(eq(messages.siteId, siteId));
+  await db.delete(usage).where(eq(usage.siteId, siteId));
+  await db.delete(apiKeys).where(eq(apiKeys.siteId, siteId));
+  await db.delete(migrations).where(eq(migrations.siteId, siteId));
+  await db.delete(sites).where(eq(sites.id, siteId));
+
+  if (ookRepo) {
+    const { gh, GITHUB_ORG } = await import("@/lib/github");
+    await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}`, {
+      method: "DELETE",
+    }).catch(() => {});
+  }
+
+  if (ookNetlify && site.netlifySiteId && process.env.NETLIFY_TOKEN) {
+    const lijst = await fetch("https://api.netlify.com/api/v1/sites", {
+      headers: { Authorization: `Bearer ${process.env.NETLIFY_TOKEN}` },
+    }).then((r) => r.json() as Promise<{ id: string; name: string }[]>);
+    const netlifySite = lijst.find((s) => s.name === site.netlifySiteId);
+    if (netlifySite) {
+      await fetch(`https://api.netlify.com/api/v1/sites/${netlifySite.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${process.env.NETLIFY_TOKEN}` },
+      }).catch(() => {});
+    }
+  }
+
+  revalidatePath("/admin");
+  redirect("/admin");
+}
