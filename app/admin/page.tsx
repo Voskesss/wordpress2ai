@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { sites } from "@/db/schema";
+import { changes, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { bewaarRichtlijnen } from "./acties";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -11,100 +12,100 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const STATUS_KLEUR: Record<string, string> = {
+  actief: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  migratie: "bg-amber-50 border-amber-200 text-amber-700",
+  gepauzeerd: "bg-stone-100 border-stone-200 text-stone-500",
+  opgezegd: "bg-red-50 border-red-200 text-red-700",
+};
+
 export default async function Admin() {
   await requireAdmin();
-  const alleSites = await db.select().from(sites);
+  const alleSites = await db.select().from(sites).orderBy(sites.id);
+  const maand = new Date().toISOString().slice(0, 7);
+
+  const rijen = await Promise.all(
+    alleSites.map(async (site) => {
+      const [verbruik] = await db
+        .select()
+        .from(usage)
+        .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
+      const alleChanges = await db
+        .select()
+        .from(changes)
+        .where(eq(changes.siteId, site.id));
+      return {
+        site,
+        wijzigingen: verbruik?.wijzigingen ?? 0,
+        openConcepten: alleChanges.filter((c) => c.status === "concept").length,
+      };
+    })
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="font-display text-4xl font-semibold tracking-tight">
-          Admin
-        </h1>
-        <a
-          href="/admin/migraties"
-          className="rounded-full bg-violet-700 px-5 py-2.5 text-white text-sm font-semibold hover:bg-violet-600"
-        >
-          Migraties
-        </a>
-      </div>
-      <p className="mt-3 text-stone-600">
-        {alleSites.length} klantsite{alleSites.length === 1 ? "" : "s"}
-      </p>
-      <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-stone-200 text-stone-500">
-              <th className="p-4 font-medium">Site</th>
-              <th className="p-4 font-medium">Domein</th>
-              <th className="p-4 font-medium">Repo</th>
-              <th className="p-4 font-medium">Plan</th>
-              <th className="p-4 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {alleSites.length === 0 ? (
-              <tr>
-                <td className="p-4 text-stone-500" colSpan={5}>
-                  Nog geen sites — de eerste klant (je eigen site) voegen we
-                  toe zodra de database gekoppeld is.
-                </td>
-              </tr>
-            ) : (
-              alleSites.map((site) => (
-                <tr
-                  key={site.id}
-                  className="border-b border-stone-100 last:border-0"
-                >
-                  <td className="p-4 font-semibold text-stone-800">
-                    {site.naam}
-                  </td>
-                  <td className="p-4 text-stone-600">{site.domein ?? "—"}</td>
-                  <td className="p-4 text-stone-600">{site.githubRepo}</td>
-                  <td className="p-4 text-stone-600">
-                    {site.plan === "via_ons" ? "Via ons" : "Eigen key"}
-                  </td>
-                  <td className="p-4 text-stone-600">{site.status}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div>
+          <h1 className="font-display text-4xl font-semibold tracking-tight">
+            Klanten
+          </h1>
+          <p className="mt-2 text-stone-600">
+            {alleSites.length} site{alleSites.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            href="/admin/nieuw"
+            className="rounded-full border-2 border-violet-600 px-5 py-2.5 text-violet-700 text-sm font-semibold hover:bg-violet-50"
+          >
+            + Nieuwe klant
+          </Link>
+          <Link
+            href="/admin/migraties"
+            className="rounded-full bg-violet-700 px-5 py-2.5 text-white text-sm font-semibold hover:bg-violet-600"
+          >
+            Migraties
+          </Link>
+        </div>
       </div>
 
-      <h2 className="font-display mt-12 text-2xl font-semibold">
-        Richtlijnen per website
-      </h2>
-      <p className="mt-2 text-stone-600 text-sm">
-        Extra regels die de AI bij deze specifieke site altijd naleeft, bovenop
-        de algemene huisregels (mobielvriendelijk, SEO-behoud,
-        toegankelijkheid, consistentie).
-      </p>
-      <div className="mt-6 space-y-6">
-        {alleSites.map((site) => (
-          <form
+      <div className="mt-8 space-y-3">
+        {rijen.length === 0 && (
+          <p className="rounded-3xl border border-stone-200 bg-white p-8 text-stone-500">
+            Nog geen klanten. Start een migratie of maak een klant aan.
+          </p>
+        )}
+        {rijen.map(({ site, wijzigingen, openConcepten }) => (
+          <Link
             key={site.id}
-            action={bewaarRichtlijnen}
-            className="rounded-2xl border border-stone-200 bg-white p-6"
+            href={`/admin/klant/${site.id}`}
+            className="lift flex items-center justify-between gap-4 rounded-3xl border border-stone-200 bg-white p-6 shadow-sm hover:border-violet-300"
           >
-            <input type="hidden" name="siteId" value={site.id} />
-            <p className="font-semibold">{site.naam}</p>
-            <textarea
-              name="richtlijnen"
-              rows={4}
-              defaultValue={site.richtlijnen ?? ""}
-              placeholder={
-                "Bijv.:\n- Spreek bezoekers aan met 'u'\n- Prijzen altijd met € en twee decimalen\n- De huiskleur is donkerbruin, gebruik geen andere kleuren"
-              }
-              className="mt-3 w-full rounded-xl border border-stone-300 px-4 py-3 text-sm focus:border-violet-600 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-            >
-              Opslaan
-            </button>
-          </form>
+            <div className="min-w-0">
+              <p className="font-display text-lg font-semibold truncate">
+                {site.naam}
+              </p>
+              <p className="text-sm text-stone-500 truncate">
+                {site.domein ?? "geen domein"} · {site.githubRepo}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 text-sm">
+              {openConcepten > 0 && (
+                <span className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-medium text-amber-800">
+                  {openConcepten} concept{openConcepten === 1 ? "" : "en"}
+                </span>
+              )}
+              <span className="hidden sm:inline rounded-full bg-violet-50 border border-violet-200 px-3 py-1 font-medium text-violet-700">
+                {wijzigingen}/30 deze maand
+              </span>
+              <span
+                className={`rounded-full border px-3 py-1 font-medium capitalize ${STATUS_KLEUR[site.status] ?? ""}`}
+              >
+                {site.status}
+              </span>
+              <span className="text-stone-300 text-xl">›</span>
+            </div>
+          </Link>
         ))}
       </div>
     </div>

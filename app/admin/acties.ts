@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
@@ -15,5 +16,84 @@ export async function bewaarRichtlijnen(formData: FormData) {
     .update(sites)
     .set({ richtlijnen: richtlijnen || null })
     .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+export async function bewaarSite(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const naam = String(formData.get("naam") ?? "").trim();
+  const domein = String(formData.get("domein") ?? "").trim();
+  const netlifySiteId = String(formData.get("netlifySiteId") ?? "").trim();
+  const plan = String(formData.get("plan") ?? "via_ons");
+  const status = String(formData.get("status") ?? "migratie");
+  if (!naam) return;
+  await db
+    .update(sites)
+    .set({
+      naam,
+      domein: domein || null,
+      netlifySiteId: netlifySiteId || null,
+      plan: plan === "eigen_key" ? "eigen_key" : "via_ons",
+      status: (["migratie", "actief", "gepauzeerd", "opgezegd"].includes(status)
+        ? status
+        : "migratie") as "migratie" | "actief" | "gepauzeerd" | "opgezegd",
+    })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");
+}
+
+/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; nodigt uit als het account nog niet bestaat. */
+export async function koppelKlant(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!Number.isInteger(siteId) || !email.includes("@")) return;
+
+  const secret = process.env.CLERK_SECRET_KEY;
+  const res = await fetch(
+    `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(email)}`,
+    { headers: { Authorization: `Bearer ${secret}` } }
+  );
+  const users = (await res.json()) as { id: string }[];
+
+  if (Array.isArray(users) && users.length > 0) {
+    await db
+      .update(sites)
+      .set({ clerkUserId: users[0].id })
+      .where(eq(sites.id, siteId));
+  } else {
+    // Account bestaat nog niet: uitnodiging sturen; koppeling volgt zodra
+    // de klant zich registreert (dan handmatig of via webhook later).
+    await fetch("https://api.clerk.com/v1/invitations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email_address: email }),
+    });
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+export async function nieuweSite(formData: FormData) {
+  const admin = await requireAdmin();
+  const naam = String(formData.get("naam") ?? "").trim();
+  const githubRepo = String(formData.get("githubRepo") ?? "").trim();
+  const domein = String(formData.get("domein") ?? "").trim();
+  if (!naam || !githubRepo) return;
+  const [rij] = await db
+    .insert(sites)
+    .values({
+      clerkUserId: admin.id,
+      naam,
+      githubRepo,
+      domein: domein || null,
+    })
+    .returning({ id: sites.id });
+  revalidatePath("/admin");
+  redirect(`/admin/klant/${rij.id}`);
 }
