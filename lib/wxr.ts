@@ -34,6 +34,19 @@ function tekst(x: unknown): string {
   return String(x);
 }
 
+// WordPress-exports bevatten vaak dubbel-gecodeerde entiteiten (&#124;, &amp; etc.)
+function ontEntiteer(s: string): string {
+  return s
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
 export function parseWxr(xml: string): WxrResultaat {
   const parser = new XMLParser({
     ignoreAttributes: true,
@@ -50,7 +63,7 @@ export function parseWxr(xml: string): WxrResultaat {
 
   const siteUrl = tekst(channel.link).replace(/\/$/, "");
   const resultaat: WxrResultaat = {
-    siteTitel: tekst(channel.title),
+    siteTitel: ontEntiteer(tekst(channel.title)),
     siteUrl,
     paginas: [],
     berichten: [],
@@ -69,7 +82,7 @@ export function parseWxr(xml: string): WxrResultaat {
       pad = "/";
     }
     const wxrItem: WxrItem = {
-      titel: tekst(item.title) || "(zonder titel)",
+      titel: ontEntiteer(tekst(item.title)) || "(zonder titel)",
       type,
       status,
       pad,
