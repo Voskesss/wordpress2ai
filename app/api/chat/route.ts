@@ -127,6 +127,14 @@ export async function POST(req: Request) {
     .orderBy(messages.id)
     .then((rows) => rows.slice(-12));
 
+  // Openstaand concept? Dan werken we daarin verder i.p.v. een nieuw te maken
+  const openConcept = await db
+    .select()
+    .from(changes)
+    .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
+    .orderBy(messages.id)
+    .then((rows) => rows.at(-1) ?? null);
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -135,8 +143,13 @@ export async function POST(req: Request) {
 
       let werkmap: string | null = null;
       try {
-        stuur({ type: "status", tekst: "Ik pak je website erbij..." });
-        werkmap = await laadWerkmap(site.githubRepo);
+        stuur({
+          type: "status",
+          tekst: openConcept
+            ? "Ik pak het openstaande concept erbij..."
+            : "Ik pak je website erbij...",
+        });
+        werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
         const snapshot = await maakSnapshot(werkmap);
 
         if (afbeelding) {
@@ -157,6 +170,9 @@ export async function POST(req: Request) {
             : null,
           afbeelding
             ? `De eigenaar heeft een afbeelding meegestuurd; die staat klaar op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). Plaats hem waar de eigenaar vraagt, met een passende beschrijvende alt-tekst.`
+            : null,
+          openConcept
+            ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
             : null,
           `Verzoek van de eigenaar: ${bericht}`,
         ].filter(Boolean);
@@ -209,41 +225,74 @@ export async function POST(req: Request) {
 
         if (gewijzigd.length > 0) {
           stuur({ type: "status", tekst: "Ik zet het concept voor je klaar..." });
-          const branch = `wijziging-${Date.now()}`;
-          await maakBranch(site.githubRepo, branch);
-          for (const pad of gewijzigd) {
-            const inhoud = await readFile(path.join(werkmap, pad));
-            await schrijfBestand(
-              site.githubRepo,
+          const bestanden = await Promise.all(
+            gewijzigd.map(async (pad) => ({
               pad,
-              inhoud,
-              `Wijziging via chat: ${pad}`,
+              inhoud: await readFile(path.join(werkmap!, pad)),
+            }))
+          );
+          if (openConcept) {
+            // Verder op het bestaande concept: zelfde branch en PR
+            const { pushBestanden } = await import("@/lib/github");
+            await pushBestanden(
+              site.githubRepo,
+              bestanden,
+              `Vervolg via chat: ${bericht.slice(0, 60)}`,
+              openConcept.branch
+            );
+            const samengevoegd = [
+              ...new Set([
+                ...(Array.isArray(openConcept.bestanden)
+                  ? (openConcept.bestanden as string[])
+                  : []),
+                ...gewijzigd,
+              ]),
+            ];
+            await db
+              .update(changes)
+              .set({
+                bestanden: samengevoegd,
+                promptTekst: `${openConcept.promptTekst} → ${bericht}`.slice(0, 500),
+              })
+              .where(eq(changes.id, openConcept.id));
+            changeRowId = openConcept.id;
+            previewUrl = openConcept.previewUrl ?? `/preview/${openConcept.id}/`;
+          } else {
+            const branch = `wijziging-${Date.now()}`;
+            await maakBranch(site.githubRepo, branch);
+            const { pushBestanden } = await import("@/lib/github");
+            await pushBestanden(
+              site.githubRepo,
+              bestanden,
+              `Wijziging via chat: ${bericht.slice(0, 60)}`,
               branch
             );
-          }
-          const pr = (await maakPullRequest(
-            site.githubRepo,
-            branch,
-            "Wijziging via chat",
-            `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd
-              .map((p) => `- ${p}`)
-              .join("\n")}`
-          )) as { number: number };
-          const [row] = await db
-            .insert(changes)
-            .values({
-              siteId: site.id,
+            const pr = (await maakPullRequest(
+              site.githubRepo,
               branch,
-              prNumber: pr.number,
-              promptTekst: bericht,
-              bestanden: gewijzigd,
-            })
-            .returning({ id: changes.id });
-          changeRowId = row.id;
-          previewUrl = `/preview/${row.id}/`;
-          await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
+              "Wijziging via chat",
+              `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd
+                .map((p) => `- ${p}`)
+                .join("\n")}`
+            )) as { number: number };
+            const [row] = await db
+              .insert(changes)
+              .values({
+                siteId: site.id,
+                branch,
+                prNumber: pr.number,
+                promptTekst: bericht,
+                bestanden: gewijzigd,
+              })
+              .returning({ id: changes.id });
+            changeRowId = row.id;
+            previewUrl = `/preview/${row.id}/`;
+            await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
+          }
 
-          if (verbruik) {
+          if (openConcept) {
+            // vervolg binnen hetzelfde concept: geen extra telling
+          } else if (verbruik) {
             await db
               .update(usage)
               .set({ wijzigingen: verbruik.wijzigingen + 1 })

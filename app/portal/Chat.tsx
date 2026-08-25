@@ -50,6 +50,18 @@ export default function Chat({
     "desktop"
   );
   const scrollRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [schaal, setSchaal] = useState(1);
+
+  useEffect(() => {
+    const el = viewerRef.current;
+    if (!el) return;
+    const meet = () => setSchaal(Math.min(1, el.clientWidth / 1280));
+    meet();
+    const ro = new ResizeObserver(meet);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     function onMessage(e: MessageEvent) {
@@ -262,23 +274,37 @@ export default function Chat({
               </div>
             )}
             <div
+              ref={viewerRef}
               className={`h-[30rem] xl:h-[42rem] ${
                 apparaat === "desktop"
-                  ? ""
+                  ? "overflow-hidden"
                   : "bg-stone-100 flex justify-center overflow-y-auto py-6"
               }`}
             >
-              <iframe
-                src={basisUrl}
-                title="Je website"
-                className={
-                  apparaat === "desktop"
-                    ? "w-full h-full bg-white"
-                    : apparaat === "tablet"
+              {apparaat === "desktop" ? (
+                // Echte desktop-breedte (1280px), geschaald naar het venster
+                <iframe
+                  src={basisUrl}
+                  title="Je website"
+                  style={{
+                    width: 1280,
+                    height: `${100 / schaal}%`,
+                    transform: `scale(${schaal})`,
+                    transformOrigin: "top left",
+                  }}
+                  className="bg-white"
+                />
+              ) : (
+                <iframe
+                  src={basisUrl}
+                  title="Je website"
+                  className={
+                    apparaat === "tablet"
                       ? "w-[768px] max-w-full h-[1024px] shrink-0 bg-white rounded-2xl border-8 border-stone-800 shadow-xl"
                       : "w-[375px] h-[812px] shrink-0 bg-white rounded-[2rem] border-8 border-stone-800 shadow-xl"
-                }
-              />
+                  }
+                />
+              )}
             </div>
           </div>
         )}

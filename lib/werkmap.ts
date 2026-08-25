@@ -6,10 +6,10 @@ import * as tar from "tar";
 import { GITHUB_ORG, installationToken } from "./github";
 
 /** Downloadt de repo als tarball en pakt hem uit in een tijdelijke werkmap. */
-export async function laadWerkmap(repo: string): Promise<string> {
+export async function laadWerkmap(repo: string, ref?: string): Promise<string> {
   const token = await installationToken();
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_ORG}/${repo}/tarball`,
+    `https://api.github.com/repos/${GITHUB_ORG}/${repo}/tarball${ref ? `/${encodeURIComponent(ref)}` : ""}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) throw new Error(`Tarball ophalen mislukt: ${res.status}`);

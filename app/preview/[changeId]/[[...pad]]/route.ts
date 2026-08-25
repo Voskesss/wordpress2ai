@@ -67,9 +67,14 @@ export async function GET(
   }
 
   let data = await haalBestand(rij.site.githubRepo, pad, rij.change.branch);
-  if (!data && !pad.includes(".")) {
-    pad = `${pad}.html`;
-    data = await haalBestand(rij.site.githubRepo, pad, rij.change.branch);
+  if (!data && !pad.split("/").pop()!.includes(".")) {
+    for (const variant of [`${pad}/index.html`, `${pad}.html`]) {
+      data = await haalBestand(rij.site.githubRepo, variant, rij.change.branch);
+      if (data) {
+        pad = variant;
+        break;
+      }
+    }
   }
   if (!data) return new Response("Pagina niet gevonden", { status: 404 });
 
@@ -83,6 +88,14 @@ export async function GET(
       /(href|src|action)=(["'])\//g,
       `$1=$2/preview/${id}/`
     );
+    // Base-tag zodat relatieve paden (subpagina's!) net als op de echte site oplossen
+    const map = pad.includes("/") ? pad.slice(0, pad.lastIndexOf("/") + 1) : "";
+    if (!/<base\s/i.test(html)) {
+      html = html.replace(
+        /<head([^>]*)>/i,
+        `<head$1><base href="/preview/${id}/${map}">`
+      );
+    }
     return new Response(html, {
       headers: {
         "Content-Type": mime,
