@@ -46,6 +46,16 @@ const voordelen = [
     tekst: "Maandelijks opzegbaar. Je site en je AI-account blijven van jou.",
   },
   {
+    kop: "Bloggen vanaf je telefoon",
+    tekst:
+      "Nieuwtje delen? Typ het in de chat, foto erbij, klaar. Geen CMS meer nodig — de AI helpt zelfs met schrijven.",
+  },
+  {
+    kop: "Beschermd tegen spam en hackers",
+    tekst:
+      "Niets te hacken, en je contactformulier is standaard beveiligd tegen spam-robots.",
+  },
+  {
     kop: "Eindelijk rust",
     tekst: "Je website is gewoon áf. Jij kunt weer ondernemen.",
   },
@@ -174,7 +184,7 @@ export default function Home() {
           We zetten je site één keer over naar een moderne, veilige omgeving.
           Daarna is aanpassen net zo makkelijk als een appje sturen.
         </p>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {voordelen.map((v) => (
             <div
               key={v.kop}
@@ -184,6 +194,27 @@ export default function Home() {
               <p className="mt-2 text-stone-600 leading-relaxed">{v.tekst}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* WordPress heeft toch ook AI? */}
+      <section className="bg-[#f6f1e7] border-y border-stone-200">
+        <div className="mx-auto max-w-3xl px-6 py-20">
+          <h2 className="font-display reveal text-3xl sm:text-4xl font-semibold tracking-tight">
+            &ldquo;Maar WordPress heeft toch ook AI?&rdquo;
+          </h2>
+          <p className="reveal mt-5 text-stone-700 leading-relaxed text-lg">
+            Klopt! WordPress kan tegenwoordig ook teksten en pagina&apos;s
+            genereren. Maar dan heb je nog steeds… een WordPress-site. Met
+            plugin-updates, hosting, beveiligingsrisico&apos;s en een systeem
+            waar je alsnog zelf in moet klikken.
+          </p>
+          <p className="reveal mt-4 text-stone-800 leading-relaxed text-lg font-medium">
+            Wij verkopen geen AI — die heeft straks iedereen. Wij halen het
+            gedoe zelf weg: geen onderhoud, geen updates, niets te hacken. En
+            elke wijziging keur jij eerst goed voordat hij live gaat. De AI is
+            het middel; de rust is het product.
+          </p>
         </div>
       </section>
 

@@ -245,6 +245,22 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
    intake-formulier, "Bouw site"-knop en de validatie-checklist
 9. Later: scraper-route, Netlify site-provisioning via API, R2-backups
 
+## Positionering & naam
+
+- **Verkoopverhaal aangescherpt**: niet "wij hebben AI" (WordPress heeft ook
+  AI-functies) maar "wij halen het gedoe weg" — geen onderhoud, geen updates,
+  niets te hacken, goedkeuring vooraf. De AI is het middel; de rust is het
+  product. Staat als eigen blok op de homepage.
+- **Drie AI-smaken**: (1) via ons account, (2) eigen API-key in ons portal,
+  (3) volledig zelfstandig — klant krijgt repo-toegang, Netlify bouwt
+  automatisch, klant koppelt zelf Claude Code/ChatGPT (expert-optie zonder
+  vangnet: geen preview-flow, huisregels of fair use; evt. lagere maandprijs).
+  Optie 3 is tevens het ultieme geen-lock-in-bewijs.
+- **Naam**: "WordPress" is merkrechtelijk beschermd; de Foundation verbiedt
+  het in domein-/productnamen → hernoemen vóór lancering. wordswap.nl is
+  vrij; kandidaten: WordSwap (voorkeur), KlaarSite, SiteRust, WisselWeb.
+  Bij keuze: site, metadata, Clerk-appnaam en e-mail omzetten.
+
 ## Roadmap-ideeën (nog niet gepland)
 
 - **Chatbot voor op de klantwebsite** (extra product): elke klant kan een

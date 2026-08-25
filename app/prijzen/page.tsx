@@ -18,7 +18,7 @@ const overstap = [
 
 const koppeling = [
   "Onbeperkt vragen stellen in de chat; wijzigingen met preview vóór publicatie (fair use: 30 wijzigingen per maand)",
-  "Via ons account (alles-inbegrepen) óf met je eigen AI-account — wisselen kan altijd",
+  "Drie smaken: via ons account (alles-inbegrepen), met je eigen AI-account, of volledig zelfstandig met je eigen AI-tools op je eigen site (expert-optie) — wisselen kan altijd",
   "Hosting, SSL-certificaat en domeinkoppeling geregeld (bij uitzonderlijk veel verkeer maken we aparte afspraken)",
   "Complete versiegeschiedenis: elke eerdere versie van je site kan teruggezet worden",
   "Maandelijks opzegbaar — geen lock-in, je neemt alles mee",
