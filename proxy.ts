@@ -8,5 +8,6 @@ export const config = {
     "/(api|trpc)(.*)",
     "/__clerk/:path*",
     "/preview/:path*",
+    "/site-weergave/:path*",
   ],
 };

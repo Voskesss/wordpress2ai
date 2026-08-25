@@ -44,7 +44,7 @@ export default function Chat({
       ? { ...openConcept, paginas: openConcept.paginas.map(paginaLabel) }
       : null
   );
-  const [toonConcept, setToonConcept] = useState(Boolean(openConcept));
+  const [reloadTeller, setReloadTeller] = useState(0);
   const [conceptActie, setConceptActie] = useState<string | null>(null);
   const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
     "desktop"
@@ -77,13 +77,8 @@ export default function Chat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [berichten, bezig]);
 
-  const conceptBeschikbaar = concept?.previewUrl != null;
-  const basisUrl =
-    toonConcept && conceptBeschikbaar
-      ? concept!.previewUrl!
-      : liveUrl
-        ? `https://${liveUrl}`
-        : null;
+  // Het venster toont altijd de werkversie (concept als dat er is, anders live)
+  const basisUrl = `/site-weergave/${siteId}/`;
 
   async function verstuur() {
     const tekst = invoer.trim();
@@ -156,7 +151,7 @@ export default function Chat({
           prompt: data.prompt ?? "",
           paginas: (data.bestanden ?? []).map(paginaLabel),
         });
-        setToonConcept(true);
+        setReloadTeller((t) => t + 1);
       }
     } catch {
       setBerichten((b) => [
@@ -189,7 +184,7 @@ export default function Chat({
         },
       ]);
       setConcept(null);
-      setToonConcept(false);
+      setReloadTeller((t) => t + 1);
     }
     setConceptActie(null);
   }
@@ -198,81 +193,36 @@ export default function Chat({
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] items-start">
       {/* Linkerkolom: website-viewer */}
       <div className="space-y-4 min-w-0">
-        {basisUrl && (
+        {(
           <div
             className={`rounded-3xl border-2 bg-white shadow-sm overflow-hidden ${
-              toonConcept && conceptBeschikbaar
-                ? "border-amber-400"
-                : "border-stone-200"
+              concept ? "border-amber-400" : "border-stone-200"
             }`}
           >
             <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
-              <div className="flex items-center rounded-full border border-stone-200 p-0.5 text-sm font-medium">
-                <button
-                  onClick={() => setToonConcept(false)}
-                  className={`rounded-full px-3.5 py-1.5 cursor-pointer flex items-center gap-1.5 ${
-                    !toonConcept
-                      ? "bg-stone-900 text-white"
-                      : "text-stone-500 hover:text-stone-800"
-                  }`}
-                >
+              {concept ? (
+                <span className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  Concept — nog niet zichtbaar voor bezoekers
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Live site
-                </button>
-                {conceptBeschikbaar && (
-                  <button
-                    onClick={() => setToonConcept(true)}
-                    className={`rounded-full px-3.5 py-1.5 cursor-pointer flex items-center gap-1.5 ${
-                      toonConcept
-                        ? "bg-amber-400 text-stone-900"
-                        : "text-stone-500 hover:text-stone-800"
-                    }`}
-                  >
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    Concept
-                  </button>
-                )}
-              </div>
-              <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
-                {(
-                  [
-                    ["telefoon", "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm4 17.2h.01"],
-                    ["tablet", "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm6 17h.01"],
-                    ["desktop", "M3 4h18v12H3zM9 20h6m-3-4v4"],
-                  ] as const
-                ).map(([naam, pad]) => (
-                  <button
-                    key={naam}
-                    onClick={() => setApparaat(naam)}
-                    aria-label={`Bekijk op ${naam}`}
-                    title={`Bekijk op ${naam}`}
-                    className={`flex h-8 w-8 items-center justify-center rounded-full cursor-pointer ${
-                      apparaat === naam
-                        ? "bg-stone-900 text-white"
-                        : "text-stone-400 hover:text-stone-700"
-                    }`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d={pad} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                ))}
-              </div>
-              <a
-                href={basisUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-violet-700 font-medium hover:underline shrink-0"
-              >
-                Open<span className="hidden sm:inline"> in nieuw tabblad</span>
-              </a>
+                  Gelijk aan de live site
+                </span>
+              )}
+              {liveUrl && (
+                <a
+                  href={`https://${liveUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-violet-700 font-medium hover:underline shrink-0"
+                >
+                  Open live site
+                </a>
+              )}
             </div>
-            {toonConcept && conceptBeschikbaar && (
-              <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
-                Dit is een <strong>concept</strong> — bezoekers zien dit nog
-                niet. Publiceer om het live te zetten.
-              </div>
-            )}
+
             <div
               ref={viewerRef}
               className={`h-[30rem] xl:h-[42rem] ${
@@ -284,6 +234,7 @@ export default function Chat({
               {apparaat === "desktop" ? (
                 // Echte desktop-breedte (1280px), geschaald naar het venster
                 <iframe
+                  key={reloadTeller}
                   src={basisUrl}
                   title="Je website"
                   style={{
@@ -296,6 +247,7 @@ export default function Chat({
                 />
               ) : (
                 <iframe
+                  key={reloadTeller}
                   src={basisUrl}
                   title="Je website"
                   className={
@@ -334,14 +286,7 @@ export default function Chat({
               </p>
             )}
             <div className="mt-4 flex flex-wrap gap-2">
-              {conceptBeschikbaar && (
-                <button
-                  onClick={() => setToonConcept(true)}
-                  className="rounded-full border border-amber-500 px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100 cursor-pointer"
-                >
-                  Bekijk
-                </button>
-              )}
+
               <button
                 onClick={() => conceptVerwerken("publiceer")}
                 disabled={conceptActie !== null}
