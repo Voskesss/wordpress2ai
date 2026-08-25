@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
 import { mergePullRequest } from "@/lib/github";
+import { deployRepoNaarNetlify } from "@/lib/netlify";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -29,6 +30,12 @@ export async function POST(req: Request) {
   }
 
   await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+  if (rij.site.netlifySiteId) {
+    // Live zetten: bestanden direct naar Netlify (geen build/wachtrij)
+    await deployRepoNaarNetlify(rij.site.githubRepo, rij.site.netlifySiteId).catch((e) =>
+      console.error("Netlify deploy na publiceren mislukt:", e)
+    );
+  }
   await db
     .update(changes)
     .set({ status: "gepubliceerd" })

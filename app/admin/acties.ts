@@ -144,7 +144,7 @@ export async function verwijderKlant(formData: FormData) {
   redirect("/admin");
 }
 
-/** Maakt een Netlify-site aan, koppelt de repo, zet previews open en slaat alles op. */
+/** Maakt een Netlify-site aan en deployt de repo-inhoud direct (geen build nodig). */
 export async function koppelNetlify(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -152,50 +152,14 @@ export async function koppelNetlify(formData: FormData) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site || site.netlifySiteId) return;
 
-  const hdr = {
-    Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
-    "Content-Type": "application/json",
-  };
-  const res = await fetch("https://api.netlify.com/api/v1/sites", {
-    method: "POST",
-    headers: hdr,
-    body: JSON.stringify({
-      name: site.githubRepo,
-      repo: {
-        provider: "github",
-        repo: `wordpress2ai/${site.githubRepo}`,
-        private: true,
-        branch: "main",
-        cmd: "",
-        dir: "/",
-        // Installatie van de Netlify GitHub-app op de organisatie —
-        // zonder dit blijven builds op 'new' hangen
-        installation_id: 156294237,
-      },
-    }),
-  });
-  if (!res.ok) {
-    console.error("Netlify koppelen mislukt:", res.status, await res.text());
-    return;
-  }
-  const data = (await res.json()) as { id: string; name: string };
-  // Previews openzetten (anders zitten concepten achter een Netlify-login)
-  await fetch(`https://api.netlify.com/api/v1/sites/${data.id}`, {
-    method: "PATCH",
-    headers: hdr,
-    body: JSON.stringify({ sso_login: false }),
-  });
-  // Eerste build expliciet starten (gebeurt bij API-koppeling niet vanzelf)
-  await fetch(`https://api.netlify.com/api/v1/sites/${data.id}/builds`, {
-    method: "POST",
-    headers: hdr,
-    body: "{}",
-  }).catch(() => {});
+  const { maakNetlifySite, deployRepoNaarNetlify } = await import("@/lib/netlify");
+  const netlifySite = await maakNetlifySite(site.githubRepo);
+  await deployRepoNaarNetlify(site.githubRepo, netlifySite.name);
   await db
     .update(sites)
     .set({
-      netlifySiteId: data.name,
-      domein: `${data.name}.netlify.app`,
+      netlifySiteId: netlifySite.name,
+      domein: `${netlifySite.name}.netlify.app`,
     })
     .where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
