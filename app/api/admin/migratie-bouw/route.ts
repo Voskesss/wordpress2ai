@@ -5,6 +5,18 @@ import { bouwJobs } from "@/db/schema";
 
 export const maxDuration = 60;
 
+async function leesWxr(form: FormData): Promise<string | null> {
+  const file = form.get("wxr");
+  if (!(file instanceof File) || file.size === 0) return null;
+  const buf = Buffer.from(await file.arrayBuffer());
+  if (form.get("gz") === "1") {
+    const { gunzipSync } = await import("node:zlib");
+    return gunzipSync(buf).toString("utf8");
+  }
+  return buf.toString("utf8");
+}
+
+
 /** Zet een bouwopdracht klaar en start de worker (GitHub Action). */
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -13,14 +25,14 @@ export async function POST(req: Request) {
   }
 
   const form = await req.formData();
-  const file = form.get("wxr");
+  const xmlInhoud = await leesWxr(form);
   const siteNaam = String(form.get("siteNaam") ?? "").trim();
   const repoNaam = String(form.get("repoNaam") ?? "")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  if (!(file instanceof File) || !siteNaam || !repoNaam) {
+  if (!xmlInhoud || !siteNaam || !repoNaam) {
     return NextResponse.json({ error: "Ontbrekende gegevens" }, { status: 400 });
   }
 
@@ -30,7 +42,7 @@ export async function POST(req: Request) {
       siteNaam,
       repoNaam,
       clerkUserId: user.id,
-      wxr: await file.text(),
+      wxr: xmlInhoud,
       voortgang: "In de wachtrij...",
     })
     .returning({ id: bouwJobs.id });

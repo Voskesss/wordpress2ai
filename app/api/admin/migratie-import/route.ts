@@ -4,6 +4,18 @@ import { maakSeoManifest, parseWxr } from "@/lib/wxr";
 
 export const maxDuration = 60;
 
+async function leesWxr(form: FormData): Promise<string | null> {
+  const file = form.get("wxr");
+  if (!(file instanceof File) || file.size === 0) return null;
+  const buf = Buffer.from(await file.arrayBuffer());
+  if (form.get("gz") === "1") {
+    const { gunzipSync } = await import("node:zlib");
+    return gunzipSync(buf).toString("utf8");
+  }
+  return buf.toString("utf8");
+}
+
+
 export async function POST(req: Request) {
   const user = await currentUser();
   if (user?.publicMetadata?.role !== "admin") {
@@ -11,16 +23,13 @@ export async function POST(req: Request) {
   }
 
   const form = await req.formData();
-  const file = form.get("wxr");
-  if (!(file instanceof File) || file.size === 0) {
+  const xmlInhoud = await leesWxr(form);
+  if (!xmlInhoud) {
     return NextResponse.json({ error: "Geen bestand ontvangen" }, { status: 400 });
-  }
-  if (file.size > 50 * 1024 * 1024) {
-    return NextResponse.json({ error: "Bestand te groot (max 50 MB)" }, { status: 400 });
   }
 
   try {
-    const xml = await file.text();
+    const xml = xmlInhoud;
     const wxr = parseWxr(xml);
     const manifest = maakSeoManifest(wxr);
     return NextResponse.json({

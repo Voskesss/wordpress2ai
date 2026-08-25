@@ -12,6 +12,24 @@ type Overzicht = {
   manifest: object;
 };
 
+async function comprimeer(file: File): Promise<Blob> {
+  const stream = file.stream().pipeThrough(new CompressionStream("gzip"));
+  return new Response(stream).blob();
+}
+
+async function leesJson(res: Response) {
+  const tekst = await res.text();
+  try {
+    return JSON.parse(tekst);
+  } catch {
+    throw new Error(
+      res.status === 413
+        ? "Het bestand is te groot om te uploaden, ook na compressie. Neem contact op."
+        : `Serverfout (${res.status}): ${tekst.slice(0, 120)}`
+    );
+  }
+}
+
 export default function MigratieImport() {
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
@@ -37,12 +55,13 @@ export default function MigratieImport() {
     setWxrFile(file);
     try {
       const form = new FormData();
-      form.set("wxr", file);
+      form.set("wxr", await comprimeer(file), file.name + ".gz");
+      form.set("gz", "1");
       const res = await fetch("/api/admin/migratie-import", {
         method: "POST",
         body: form,
       });
-      const data = await res.json();
+      const data = await leesJson(res);
       if (!res.ok) throw new Error(data.error ?? "Er ging iets mis");
       setOverzicht(data);
       setSiteNaam(data.siteTitel ?? "");
@@ -66,14 +85,15 @@ export default function MigratieImport() {
     setBouwStatus("In de wachtrij zetten...");
     try {
       const form = new FormData();
-      form.set("wxr", wxrFile);
+      form.set("wxr", await comprimeer(wxrFile), wxrFile.name + ".gz");
+      form.set("gz", "1");
       form.set("siteNaam", siteNaam);
       form.set("repoNaam", repoNaam);
       const res = await fetch("/api/admin/migratie-bouw", {
         method: "POST",
         body: form,
       });
-      const start = await res.json();
+      const start = await leesJson(res);
       if (!res.ok) throw new Error(start.error ?? "Er ging iets mis");
       // Paneel leegmaken voor de volgende klant; volgen gebeurt in de Bouwwachtrij
       setGestart(
