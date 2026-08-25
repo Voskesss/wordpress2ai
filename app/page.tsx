@@ -74,7 +74,7 @@ export default function Home() {
             </h1>
             <p className="font-display mt-5 text-xl sm:text-2xl font-semibold text-stone-800">
               Hét betere alternatief voor je WordPress-website — wij zetten hem
-              over, jij hebt er nooit meer omkijken naar.
+              over, jij hebt er geen onderhoud meer aan.
             </p>
             <p className="mt-6 text-lg text-stone-600 max-w-xl leading-relaxed">
               Nooit meer zelf in WordPress duiken of je webbouwer bellen. Vanaf
