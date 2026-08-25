@@ -204,16 +204,26 @@ export default function Home() {
             &ldquo;Maar WordPress heeft toch ook AI?&rdquo;
           </h2>
           <p className="reveal mt-5 text-stone-700 leading-relaxed text-lg">
-            Klopt! WordPress kan tegenwoordig ook teksten en pagina&apos;s
-            genereren. Maar dan heb je nog steeds… een WordPress-site. Met
-            plugin-updates, hosting, beveiligingsrisico&apos;s en een systeem
-            waar je alsnog zelf in moet klikken.
+            Klopt — en het wordt steeds beter. WordPress.com heeft sinds begin
+            2026 een ingebouwde AI-assistent die teksten schrijft en je layout
+            aanpast, Jetpack AI helpt in de editor, en sommige hosters hebben
+            AI-hulpjes die zelfs plugins updaten.
+          </p>
+          <p className="reveal mt-4 text-stone-700 leading-relaxed text-lg">
+            Maar al die AI&apos;s werken <em>ín</em> de WordPress-machine — en
+            die machine zelf blijft draaien: updates, plugins, hosting,
+            back-ups en beveiligingsrisico&apos;s verdwijnen er niet door.
+            De slimste assistent van WordPress.com werkt bovendien alleen op
+            wordpress.com-abonnementen, niet op de eigen hosting waar de
+            meeste ondernemers zitten. En wijzigingen gaan er direct live —
+            zonder concept dat jij eerst goedkeurt.
           </p>
           <p className="reveal mt-4 text-stone-800 leading-relaxed text-lg font-medium">
-            Wij verkopen geen AI — die heeft straks iedereen. Wij halen het
-            gedoe zelf weg: geen onderhoud, geen updates, niets te hacken. En
-            elke wijziging keur jij eerst goed voordat hij live gaat. De AI is
-            het middel; de rust is het product.
+            Wij doen het andersom: wij halen de machine zelf weg. Geen
+            onderhoud, geen updates, niets te hacken — en elke wijziging zie
+            je eerst als concept voordat hij live gaat. De AI is niet een
+            hulpje in je CMS; hij ís je websitebeheerder. De rust is het
+            product.
           </p>
         </div>
       </section>
