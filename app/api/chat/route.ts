@@ -132,7 +132,7 @@ export async function POST(req: Request) {
     .select()
     .from(changes)
     .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
-    .orderBy(messages.id)
+    .orderBy(changes.id)
     .then((rows) => rows.at(-1) ?? null);
 
   const encoder = new TextEncoder();
