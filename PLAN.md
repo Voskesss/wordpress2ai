@@ -101,6 +101,14 @@ Beide routes produceren hetzelfde tussenformaat: content per pagina
 **Stap 4 — Validatie & livegang (checklist met statussen)**
 - Automatische SEO-validatie tegen het manifest (titles, descriptions,
   URL's, redirects — zie SEO-sectie); rood/groen per pagina
+- **Mobiel-validatie per pagina** (verplicht, Google indexeert mobiel-eerst):
+  - viewport-meta aanwezig, geen horizontale scroll op 375px breedte,
+    leesbare tekstgrootte (≥16px basis), aantikbare knoppen/links (≥44px),
+    menu werkt op touch (hamburger indien nodig), afbeeldingen schalen mee
+  - automatische screenshots van elke pagina op telefoonformaat in de
+    checklist (naast desktop), zodat je het in één oogopslag ziet
+  - Lighthouse mobile-score als eindcheck; minimaal gelijk aan (meestal
+    ruim beter dan) de oude WordPress-site
 - E-mailmigratie afvinken (indien nodig), pre-migratie snapshot gearchiveerd
 - DNS-instructies + status; sitemap indienen bij Google Search Console
 - Klant uitnodigen (Clerk-invite) → site verschijnt in diens /portal
