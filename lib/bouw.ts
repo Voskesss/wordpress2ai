@@ -26,6 +26,94 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
   return paden;
 }
 
+
+/** Haalt het echte ontwerp van de live site op: gerenderde HTML, CSS en screenshots. */
+async function haalLiveOntwerp(
+  bronUrl: string,
+  paden: string[],
+  doelDir: string,
+  stuur: (tekst: string) => void | Promise<void>
+) {
+  const afbeeldingUrls = new Set<string>();
+  if (!bronUrl.startsWith("http"))
+    return { paginas: 0, screenshots: 0, afbeeldingUrls: [] as string[] };
+  await mkdir(doelDir, { recursive: true });
+  let paginasOpgehaald = 0;
+  const cssUrls = new Set<string>();
+
+  const tePakken = paden.slice(0, 12);
+  for (const pad of tePakken) {
+    try {
+      const res = await fetch(new URL(pad, bronUrl).href, {
+        signal: AbortSignal.timeout(15000),
+        headers: { "User-Agent": "Mozilla/5.0 (WordSwap Migrator)" },
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const naam = (pad.replace(/\//g, "-").replace(/^-|-$/g, "") || "home") + ".html";
+      await writeFile(path.join(doelDir, naam), html);
+      paginasOpgehaald++;
+      for (const m of html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/g)) {
+        try {
+          cssUrls.add(new URL(m[1], bronUrl).href);
+        } catch {}
+      }
+      for (const m of html.matchAll(/href=["']([^"']+)["'][^>]*rel=["']stylesheet["']/g)) {
+        try {
+          cssUrls.add(new URL(m[1], bronUrl).href);
+        } catch {}
+      }
+    } catch {}
+  }
+
+  let cssN = 0;
+  for (const url of [...cssUrls].slice(0, 12)) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) continue;
+      await writeFile(path.join(doelDir, `stijl-${cssN++}.css`), await res.text());
+    } catch {}
+  }
+
+  // Screenshots met een echte browser (alleen beschikbaar in de worker/Actions)
+  let screenshots = 0;
+  try {
+    const { chromium } = await import("playwright");
+    const browser = await chromium.launch();
+    for (const [label, viewport] of [
+      ["desktop", { width: 1280, height: 900 }],
+      ["mobiel", { width: 375, height: 812 }],
+    ] as const) {
+      const page = await browser.newPage({ viewport });
+      for (const pad of tePakken.slice(0, 5)) {
+        try {
+          await page.goto(new URL(pad, bronUrl).href, {
+            waitUntil: "networkidle",
+            timeout: 20000,
+          });
+          const naam = (pad.replace(/\//g, "-").replace(/^-|-$/g, "") || "home");
+          await page.screenshot({
+            path: path.join(doelDir, `screenshot-${label}-${naam}.png`),
+            fullPage: true,
+          });
+          screenshots++;
+          await stuur(`Screenshot van de oude site: ${naam} (${label})`);
+        } catch {}
+      }
+      await page.close();
+    }
+    await browser.close();
+  } catch {
+    // playwright niet beschikbaar (bv. lokaal zonder browsers) — geen screenshots
+  }
+
+  return {
+    paginas: paginasOpgehaald,
+    screenshots,
+    afbeeldingUrls: [...afbeeldingUrls],
+  };
+}
+
 export type BouwResultaat = {
   repo: string;
   repoUrl: string;
@@ -70,8 +158,19 @@ export async function voerBouwUit(
     JSON.stringify(manifest, null, 2)
   );
 
+  // Het echte ontwerp van de live site ophalen (HTML, CSS, screenshots)
+  await stuurStatus("Vormgeving van de oude site ophalen...");
+  const ontwerp = await haalLiveOntwerp(
+    wxr.siteUrl,
+    paginas.map((p) => p.pad),
+    path.join(werkmap, "oud-ontwerp"),
+    stuurStatus
+  );
+
   // Media downloaden en optimaliseren
-  const mediaUrls = manifest.mediaUrls.slice(0, MAX_MEDIA);
+  const mediaUrls = [
+    ...new Set([...manifest.mediaUrls, ...ontwerp.afbeeldingUrls]),
+  ].slice(0, 60);
   const mediaMap: Record<string, string> = {};
   let gedownload = 0;
   await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
@@ -124,7 +223,8 @@ export async function voerBouwUit(
 Instructies:
 - Elk bestand in bronmateriaal/ is één pagina; de commentaarregels bovenaan geven het URL-pad, de titel en samenvatting. Bouw elke pagina op EXACT dat pad: "/over-ons/" wordt site/over-ons/index.html, "/" wordt site/index.html.
 - Behoud per pagina de titel als <title> en gebruik de samenvatting (of de eerste zinnen) als meta description. Zie ook seo-manifest.json.
-- Ontdo de WordPress-content van shortcodes ([...]), inline styles en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
+- Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
+- ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
 - Afbeeldingen: media-map.json koppelt oude URL's aan lokale paden (al gedownload in site/afbeeldingen/). Vervang verwijzingen; geef elke afbeelding een beschrijvende alt-tekst. Verwijzingen naar niet-gedownloade media laat je weg.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.

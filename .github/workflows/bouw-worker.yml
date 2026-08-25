@@ -18,6 +18,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npx tsx worker/run-job.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
