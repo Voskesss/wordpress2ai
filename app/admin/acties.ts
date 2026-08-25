@@ -143,3 +143,52 @@ export async function verwijderKlant(formData: FormData) {
   revalidatePath("/admin");
   redirect("/admin");
 }
+
+/** Maakt een Netlify-site aan, koppelt de repo, zet previews open en slaat alles op. */
+export async function koppelNetlify(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site || site.netlifySiteId) return;
+
+  const hdr = {
+    Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+    "Content-Type": "application/json",
+  };
+  const res = await fetch("https://api.netlify.com/api/v1/sites", {
+    method: "POST",
+    headers: hdr,
+    body: JSON.stringify({
+      name: site.githubRepo,
+      repo: {
+        provider: "github",
+        repo: `wordpress2ai/${site.githubRepo}`,
+        private: true,
+        branch: "main",
+        cmd: "",
+        dir: "/",
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error("Netlify koppelen mislukt:", res.status, await res.text());
+    return;
+  }
+  const data = (await res.json()) as { id: string; name: string };
+  // Previews openzetten (anders zitten concepten achter een Netlify-login)
+  await fetch(`https://api.netlify.com/api/v1/sites/${data.id}`, {
+    method: "PATCH",
+    headers: hdr,
+    body: JSON.stringify({ sso_login: false }),
+  });
+  await db
+    .update(sites)
+    .set({
+      netlifySiteId: data.name,
+      domein: `${data.name}.netlify.app`,
+    })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/admin");
+}

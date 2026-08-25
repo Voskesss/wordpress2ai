@@ -9,6 +9,7 @@ import {
   bewaarRichtlijnen,
   bewaarSite,
   koppelKlant,
+  koppelNetlify,
   verwijderKlant,
 } from "../../acties";
 
@@ -125,6 +126,29 @@ export default async function KlantDetail({
           </p>
         </div>
       </div>
+
+      {/* Netlify koppelen */}
+      {!site.netlifySiteId && (
+        <form
+          action={koppelNetlify}
+          className="mt-6 rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-6"
+        >
+          <input type="hidden" name="siteId" value={site.id} />
+          <h2 className="font-display text-xl font-semibold">
+            Site nog niet online
+          </h2>
+          <p className="mt-2 text-sm text-stone-600">
+            Eén klik: maakt de hosting aan, koppelt de bestanden, zet previews
+            open en vult domein en sitenaam automatisch in.
+          </p>
+          <button
+            type="submit"
+            className="mt-4 rounded-full bg-violet-700 px-6 py-2.5 text-white font-semibold hover:bg-violet-600 cursor-pointer"
+          >
+            Zet site online
+          </button>
+        </form>
+      )}
 
       {/* Instellingen */}
       <form
