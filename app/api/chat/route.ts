@@ -259,9 +259,11 @@ export async function POST(req: Request) {
         stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId });
       } catch (e) {
         console.error(e);
+        const detail = e instanceof Error ? e.message : String(e);
         stuur({
           type: "klaar",
-          reply: "Er ging iets mis, probeer het opnieuw.",
+          // TODO: detail weghalen zodra de Vercel-run stabiel is
+          reply: `Er ging iets mis, probeer het opnieuw. (technisch: ${detail.slice(0, 200)})`,
           previewUrl: null,
           changeId: null,
         });
