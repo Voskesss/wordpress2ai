@@ -36,6 +36,7 @@ async function haalLiveOntwerp(
   stuur: (tekst: string) => void | Promise<void>
 ) {
   const afbeeldingUrls = new Set<string>();
+  const afbeeldingenPerPagina: Record<string, { src: string; alt: string }[]> = {};
   if (!bronUrl.startsWith("http"))
     return { paginas: 0, screenshots: 0, afbeeldingUrls: [] as string[] };
   await mkdir(doelDir, { recursive: true });
@@ -183,6 +184,10 @@ async function haalLiveOntwerp(
     // playwright niet beschikbaar (bv. lokaal zonder browsers) — geen screenshots
   }
 
+  await writeFile(
+    path.join(doelDir, "afbeeldingen-op-paginas.json"),
+    JSON.stringify(afbeeldingenPerPagina, null, 1)
+  );
   return {
     paginas: paginasOpgehaald,
     screenshots,
@@ -267,6 +272,7 @@ async function vergelijkEnVerbeter(
 - In nieuw-schermen/ staan dezelfde screenshots van de NIEUWE site (uit site/).
 - Bekijk per pagina beide screenshots met Read. Benoem voor jezelf de concrete verschillen (kleuren, lettertype, hero-opbouw, achtergrondafbeeldingen, spacing, fotogrids, ontbrekende embeds zoals YouTube/Vimeo/Maps-iframes) en pas de bestanden in site/ aan om de nieuwe site visueel gelijk te maken aan de oude.
 - Embeds uit het bestek (iframes/video) moeten letterlijk aanwezig zijn op de juiste plek, responsief gemaakt (max-width: 100%, vaste beeldverhouding).
+- AFBEELDINGEN: vergelijk per pagina het aantal zichtbare afbeeldingen op de oude screenshots met de nieuwe. Mist er beeld (hero-achtergrond, fotogrid, portretten), plaats het terug vanuit site/afbeeldingen/ — oud-ontwerp/afbeeldingen-op-paginas.json en media-map.json vertellen welk bestand waar hoort.
 - Verander GEEN teksten of URL-paden; alleen vormgeving en structuur.
 - De site is "${siteNaam}". Werk grondig maar breek niets.`,
         options: {
@@ -406,6 +412,9 @@ export async function voerBouwUit(
     path.join(werkmap, "media-map.json"),
     JSON.stringify(mediaMap, null, 2)
   );
+  await stuurStatus(
+    `${Object.keys(mediaMap).length} afbeeldingen gedownload en gekoppeld aan pagina's`
+  );
 
   stuur({
     type: "status",
@@ -420,7 +429,7 @@ Instructies:
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
 - EMBEDS BEHOUDEN: video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) staan per pagina in oud-ontwerp/bestek-*.json onder "embeds". Plaats ze letterlijk terug op de juiste plek, responsief (max-width: 100%, behoud beeldverhouding). Sla ze nooit over.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
-- Afbeeldingen: media-map.json koppelt oude URL's aan lokale paden (al gedownload in site/afbeeldingen/). Vervang verwijzingen; geef elke afbeelding een beschrijvende alt-tekst. Verwijzingen naar niet-gedownloade media laat je weg.
+- AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.
 - Berichten (type post): maak ook een blogoverzichtspagina op site/blog/index.html met links, als er berichten zijn.
