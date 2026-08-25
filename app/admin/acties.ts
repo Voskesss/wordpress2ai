@@ -127,24 +127,16 @@ export async function verwijderKlant(formData: FormData) {
     }).catch(() => {});
   }
 
-  if (ookNetlify && site.netlifySiteId && process.env.NETLIFY_TOKEN) {
-    const lijst = await fetch("https://api.netlify.com/api/v1/sites", {
-      headers: { Authorization: `Bearer ${process.env.NETLIFY_TOKEN}` },
-    }).then((r) => r.json() as Promise<{ id: string; name: string }[]>);
-    const netlifySite = lijst.find((s) => s.name === site.netlifySiteId);
-    if (netlifySite) {
-      await fetch(`https://api.netlify.com/api/v1/sites/${netlifySite.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${process.env.NETLIFY_TOKEN}` },
-      }).catch(() => {});
-    }
+  if (ookNetlify && site.netlifySiteId) {
+    const { verwijderCloudflareSite } = await import("@/lib/cloudflare");
+    await verwijderCloudflareSite(site.netlifySiteId);
   }
 
   revalidatePath("/admin");
   redirect("/admin");
 }
 
-/** Maakt een Netlify-site aan en deployt de repo-inhoud direct (geen build nodig). */
+/** Zet de site online op Cloudflare (gratis, direct, geen build). */
 export async function koppelNetlify(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -152,14 +144,13 @@ export async function koppelNetlify(formData: FormData) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site || site.netlifySiteId) return;
 
-  const { maakNetlifySite, deployRepoNaarNetlify } = await import("@/lib/netlify");
-  const netlifySite = await maakNetlifySite(site.githubRepo);
-  await deployRepoNaarNetlify(site.githubRepo, netlifySite.name);
+  const { deployRepoNaarCloudflare, CF_SUBDOMEIN } = await import("@/lib/cloudflare");
+  await deployRepoNaarCloudflare(site.githubRepo, site.githubRepo);
   await db
     .update(sites)
     .set({
-      netlifySiteId: netlifySite.name,
-      domein: `${netlifySite.name}.netlify.app`,
+      netlifySiteId: site.githubRepo,
+      domein: `${site.githubRepo}.${CF_SUBDOMEIN}.workers.dev`,
     })
     .where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
