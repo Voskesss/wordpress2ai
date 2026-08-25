@@ -135,6 +135,9 @@ vóór de migratie (scriptbaar: crawl van de oude site + WordPress XML-export):
 - **Afbeeldingen**: bestandsnamen en alt-teksten overnemen
 - **Structured data** (JSON-LD van bv. Yoast/RankMath: LocalBusiness, FAQ) meenemen
 - **Sitemap.xml** genereren met dezelfde URL's; **robots.txt** overnemen
+- **llms.txt** genereren (vindbaarheid in AI-assistenten zoals ChatGPT en
+  Claude): feitelijke bedrijfsbeschrijving + pagina-overzicht; de chat-AI
+  houdt hem bij wanneer pagina's wijzigen
 - **Meet- en marketingscripts overnemen**: Google Analytics (GA4), Google Tag
   Manager, Search Console-verificatie, Facebook/Meta pixel, en de
   cookiebanner/consent-oplossing — 1-op-1 mee naar de nieuwe site, zodat

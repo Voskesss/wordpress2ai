@@ -132,6 +132,7 @@ Instructies:
 - Zet vlak voor </body> van elke pagina exact dit snippet: ${PORTAL_SNIPPET}
 - Maak site/_headers met beveiligingsheaders (X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Strict-Transport-Security: max-age=31536000; includeSubDomains).
 - Maak site/sitemap.xml (relatieve paden zijn prima als placeholder-domein https://VERVANG.nl) en site/robots.txt.
+- Maak site/llms.txt (markdown): begin met "# <bedrijfsnaam>", dan een blockquote met een beknopte, feitelijke beschrijving van het bedrijf en zijn diensten op basis van de content, gevolgd door een "## Pagina's"-lijst met per pagina een link en één zin waar de pagina over gaat. Dit bestand helpt AI-assistenten het bedrijf goed te begrijpen; niets verzinnen dat niet in de content staat.
 
 ${HUISREGELS}`;
 
