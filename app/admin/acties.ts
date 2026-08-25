@@ -168,6 +168,9 @@ export async function koppelNetlify(formData: FormData) {
         branch: "main",
         cmd: "",
         dir: "/",
+        // Installatie van de Netlify GitHub-app op de organisatie —
+        // zonder dit blijven builds op 'new' hangen
+        installation_id: 156294237,
       },
     }),
   });
