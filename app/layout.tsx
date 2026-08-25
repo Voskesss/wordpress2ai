@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { nlNL } from "@clerk/localizations";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import { currentUser } from "@clerk/nextjs/server";
@@ -73,7 +74,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${fraunces.variable} ${garamond.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 font-[family-name:var(--font-geist-sans)]">
-        <ClerkProvider>
+        <ClerkProvider localization={nlNL}>
           <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

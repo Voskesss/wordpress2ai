@@ -7,6 +7,7 @@ import { useState } from "react";
 const links = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
+  { href: "/demo", label: "Demo" },
 ];
 
 export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {

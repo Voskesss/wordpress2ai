@@ -97,7 +97,7 @@ export default function Home() {
                 Ja, verlos me van het gedoe →
               </Link>
               <Link
-                href="/portal"
+                href="/demo"
                 className="lift rounded-full border-2 border-violet-300 bg-white px-7 py-3.5 font-semibold text-violet-700"
               >
                 Probeer de demo gratis
