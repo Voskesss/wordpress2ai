@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { db } from "@/db";
 import { migrations, sites } from "@/db/schema";
-import { maakKlantRepo, pushBestanden } from "@/lib/github";
+import { maakKlantRepo, pushBestanden, repoBestaat, lijstBestanden } from "@/lib/github";
+import { laadWerkmap } from "@/lib/werkmap";
 import { HUISREGELS } from "@/lib/huisregels";
 import { ruimWerkmapOp } from "@/lib/werkmap";
 import { maakSeoManifest, parseWxr } from "@/lib/wxr";
@@ -324,6 +325,20 @@ export async function voerBouwUit(
   await mkdir(bronDir, { recursive: true });
   await mkdir(siteDir, { recursive: true });
 
+  // Hervatten: staat er al een eerder gebouwde tussenstand in de repo?
+  let hervatten = false;
+  if (await repoBestaat(repoNaam)) {
+    const bestaand = await lijstBestanden(repoNaam).catch(() => [] as string[]);
+    if (bestaand.includes("index.html")) {
+      hervatten = true;
+      await stuurStatus("Eerdere bouw gevonden — hervatten zonder opnieuw te bouwen...");
+      const eerdereMap = await laadWerkmap(repoNaam);
+      const { cp } = await import("node:fs/promises");
+      await cp(eerdereMap, siteDir, { recursive: true });
+      await ruimWerkmapOp(eerdereMap).catch(() => {});
+    }
+  }
+
   // Bronmateriaal per pagina wegschrijven
   for (const p of paginas) {
     const naam = (p.slug || p.titel).replace(/[^a-zA-Z0-9-]+/g, "-");
@@ -347,9 +362,9 @@ export async function voerBouwUit(
   );
 
   // Media downloaden en optimaliseren
-  const mediaUrls = [
-    ...new Set([...manifest.mediaUrls, ...ontwerp.afbeeldingUrls]),
-  ].slice(0, 60);
+  const mediaUrls = hervatten
+    ? []
+    : [...new Set([...manifest.mediaUrls, ...ontwerp.afbeeldingUrls])].slice(0, 60);
   const mediaMap: Record<string, string> = {};
   let gedownload = 0;
   await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
@@ -417,6 +432,7 @@ Instructies:
 ${HUISREGELS}`;
 
   let verslag = "";
+  if (!hervatten)
   for await (const message of query({
     prompt,
     options: {
@@ -456,6 +472,25 @@ ${HUISREGELS}`;
     throw new Error("De bouw leverde geen homepage op — probeer opnieuw");
   }
 
+  // Tussenstand veiligstellen: als de verify-lus of push hierna sneuvelt,
+  // hervat een volgende run vanaf dit punt (geen AI-bouwkosten opnieuw)
+  if (!hervatten) {
+    await stuurStatus("Tussenstand veiligstellen...");
+    await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`).catch(() => {});
+    await new Promise((r) => setTimeout(r, 2000));
+    const tussenstand = await alleBestanden(siteDir);
+    await pushBestanden(
+      repoNaam,
+      await Promise.all(
+        tussenstand.map(async (b) => ({
+          pad: b,
+          inhoud: await readFile(path.join(siteDir, b)),
+        }))
+      ),
+      "Tussenstand na hoofdbouw"
+    ).catch((e) => console.error("Tussenstand pushen mislukt:", e));
+  }
+
   // Vergelijk-en-verbeter: nieuwe site naast de oude leggen tot het klopt
   await vergelijkEnVerbeter(
     werkmap,
@@ -467,8 +502,10 @@ ${HUISREGELS}`;
   const siteBestanden = await alleBestanden(siteDir);
 
   stuur({ type: "status", tekst: "Site-omgeving aanmaken..." });
-  await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`);
-  await new Promise((r) => setTimeout(r, 2000));
+  if (!(await repoBestaat(repoNaam))) {
+    await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`);
+    await new Promise((r) => setTimeout(r, 2000));
+  }
 
   stuur({
     type: "status",
@@ -486,16 +523,24 @@ ${HUISREGELS}`;
   });
   await pushBestanden(repoNaam, tePushen, `Migratie van ${siteNaam} via WordSwap`);
 
-  const [siteRow] = await db
-    .insert(sites)
-    .values({
-      clerkUserId: opdracht.clerkUserId,
-      naam: siteNaam,
-      githubRepo: repoNaam,
-      status: "migratie",
-    })
-    .returning({ id: sites.id });
-  await db.insert(migrations).values({
+  const { eq } = await import("drizzle-orm");
+  const bestaandeSites = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(eq(sites.githubRepo, repoNaam));
+  const [siteRow] =
+    bestaandeSites.length > 0
+      ? bestaandeSites
+      : await db
+          .insert(sites)
+          .values({
+            clerkUserId: opdracht.clerkUserId,
+            naam: siteNaam,
+            githubRepo: repoNaam,
+            status: "migratie",
+          })
+          .returning({ id: sites.id });
+  if (bestaandeSites.length === 0) await db.insert(migrations).values({
     siteId: siteRow.id,
     stap: "opbouw",
     checklist: {

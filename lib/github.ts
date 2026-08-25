@@ -246,3 +246,13 @@ export async function pushBestanden(
     body: JSON.stringify({ sha: commit.sha }),
   });
 }
+
+/** Bestaat de repo al in de organisatie? */
+export async function repoBestaat(repo: string): Promise<boolean> {
+  try {
+    await gh(`/repos/${GITHUB_ORG}/${repo}`);
+    return true;
+  } catch {
+    return false;
+  }
+}

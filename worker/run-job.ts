@@ -3,16 +3,23 @@
  * Draait in GitHub Actions (geen tijdslimiet van de webserver).
  * Start: npx tsx worker/run-job.ts
  */
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, lt, or } from "drizzle-orm";
 import { db } from "@/db";
 import { bouwJobs } from "@/db/schema";
 import { voerBouwUit } from "@/lib/bouw";
 
 async function claimJob() {
+  const staleGrens = new Date(Date.now() - 15 * 60_000);
   const [job] = await db
     .select()
     .from(bouwJobs)
-    .where(eq(bouwJobs.status, "wachtend"))
+    .where(
+      or(
+        eq(bouwJobs.status, "wachtend"),
+        // Gecrashte run: 'bezig' maar al 15 min geen voortgang meer
+        and(eq(bouwJobs.status, "bezig"), lt(bouwJobs.bijgewerkt, staleGrens))
+      )
+    )
     .orderBy(asc(bouwJobs.id));
   if (!job) return null;
   await db
