@@ -13,10 +13,16 @@ const ICOON = (kleur1: string, kleur2: string, ai: string) => `
   <path d="M18 52v-9h9" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="32" y="37" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="16" fill="${ai}">ai</text>`;
 
-const WOORDMERK = (donker: string) => `
-  <text x="0" y="46" font-family="Georgia, serif" font-style="italic" font-weight="600" font-size="44" fill="#464342">W</text>
-  <text x="34" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="${donker}">ord</text>
-  <text x="103" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#8b5cf6">swap</text>`;
+const WOORDMERK = (donker: string, wDonker = "#464342") => `
+  <defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+  </defs>
+  <text x="0" y="46" font-family="Georgia, serif" font-style="italic" font-weight="600" font-size="46" fill="${wDonker}">W</text>
+  <text x="44" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1.5" fill="${donker}">ord</text>
+  <text x="108" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1.5" fill="url(#tg)">swap</text>`;
 
 type Asset = {
   naam: string;
@@ -51,7 +57,7 @@ const ASSETS: Asset[] = [
     breedte: 320,
     hoogte: 64,
     donkereAchtergrond: true,
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64"><g>${ICOON("#a78bfa", "#e879f9", "#ffffff")}</g><g transform="translate(76,2)"><text x="0" y="46" font-family="Georgia, serif" font-style="italic" font-weight="600" font-size="44" fill="#d6d3d1">W</text><text x="34" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#ffffff">ord</text><text x="103" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#c4b5fd">swap</text></g></svg>`,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64"><g>${ICOON("#a78bfa", "#e879f9", "#ffffff")}</g><g transform="translate(76,2)">${WOORDMERK("#ffffff", "#d6d3d1")}</g></svg>`,
   },
   {
     naam: "video-kaart-9x16",
@@ -60,7 +66,7 @@ const ASSETS: Asset[] = [
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
       <rect width="1080" height="1920" fill="#fdfbf7"/>
       <g transform="translate(396,780) scale(4.5)">${ICOON("#7c3aed", "#d946ef", "#292524")}</g>
-      <g transform="translate(220,1120) scale(2)">${WOORDMERK("#18181b")}</g>
+      <g transform="translate(240,1120) scale(2)">${WOORDMERK("#18181b")}</g>
       <text x="540" y="1290" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="#57534e">van WordPress naar een website die doet wat je zegt</text>
     </svg>`,
   },
@@ -72,7 +78,7 @@ const ASSETS: Asset[] = [
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
       <rect width="1080" height="1920" fill="#1c1917"/>
       <g transform="translate(396,780) scale(4.5)">${ICOON("#a78bfa", "#e879f9", "#ffffff")}</g>
-      <g transform="translate(220,1120) scale(2)"><text x="0" y="46" font-family="Georgia, serif" font-style="italic" font-weight="600" font-size="44" fill="#d6d3d1">W</text><text x="34" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#ffffff">ord</text><text x="103" y="46" font-family="Arial, sans-serif" font-weight="700" font-size="42" letter-spacing="-1" fill="#c4b5fd">swap</text></g>
+      <g transform="translate(240,1120) scale(2)">${WOORDMERK("#ffffff", "#d6d3d1")}</g>
       <text x="540" y="1290" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="#a8a29e">van WordPress naar een website die doet wat je zegt</text>
     </svg>`,
   },
