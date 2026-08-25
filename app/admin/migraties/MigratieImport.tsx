@@ -71,29 +71,25 @@ export default function MigratieImport() {
         method: "POST",
         body: form,
       });
-      if (!res.body) throw new Error("geen stream");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      const start = await res.json();
+      if (!res.ok) throw new Error(start.error ?? "Er ging iets mis");
+      if (!start.workerGestart) {
+        setBouwStatus(
+          "Opdracht staat klaar, maar de worker kon niet automatisch starten (GITHUB_ACTIONS_PAT ontbreekt). Start hem handmatig via GitHub → Actions → bouw-worker."
+        );
+      }
+      // Voortgang volgen tot de worker klaar is
       for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const regels = buffer.split("\n");
-        buffer = regels.pop() ?? "";
-        for (const regel of regels) {
-          if (!regel.trim()) continue;
-          try {
-            const event = JSON.parse(regel);
-            if (event.type === "status") setBouwStatus(event.tekst);
-            if (event.type === "fout") throw new Error(event.tekst);
-            if (event.type === "klaar") setBouwResultaat(event);
-          } catch (e) {
-            if (e instanceof Error && e.message !== "Unexpected end of JSON input") {
-              if (!e.message.startsWith("Unexpected")) throw e;
-            }
-          }
+        await new Promise((r) => setTimeout(r, 4000));
+        const st = await fetch(`/api/admin/migratie-status?id=${start.jobId}`).then(
+          (r) => r.json()
+        );
+        if (st.status === "fout") throw new Error(st.voortgang ?? "Bouw mislukt");
+        if (st.status === "klaar") {
+          setBouwResultaat(st.resultaat);
+          break;
         }
+        setBouwStatus(st.voortgang ?? "Bezig...");
       }
     } catch (e) {
       setFout(e instanceof Error ? e.message : "Er ging iets mis");

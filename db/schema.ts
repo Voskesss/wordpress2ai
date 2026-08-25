@@ -87,3 +87,20 @@ export const migrations = pgTable("migrations", {
   notities: text("notities"),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
+
+export const bouwJobs = pgTable("bouw_jobs", {
+  id: serial("id").primaryKey(),
+  status: text("status", {
+    enum: ["wachtend", "bezig", "klaar", "fout"],
+  })
+    .notNull()
+    .default("wachtend"),
+  voortgang: text("voortgang"),
+  siteNaam: text("site_naam").notNull(),
+  repoNaam: text("repo_naam").notNull(),
+  clerkUserId: text("clerk_user_id").notNull(),
+  wxr: text("wxr").notNull(),
+  resultaat: jsonb("resultaat"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+});

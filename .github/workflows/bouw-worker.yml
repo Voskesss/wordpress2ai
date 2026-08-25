@@ -1,0 +1,27 @@
+name: bouw-worker
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: bouw-worker
+  cancel-in-progress: false
+
+jobs:
+  bouw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsx worker/run-job.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_APP_ID: ${{ secrets.WS_GITHUB_APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.WS_GITHUB_APP_INSTALLATION_ID }}
+          GITHUB_APP_PRIVATE_KEY_BASE64: ${{ secrets.WS_GITHUB_APP_PRIVATE_KEY_BASE64 }}
