@@ -68,6 +68,24 @@ async function haalLiveOntwerp(
       }
       // Afbeeldingen op deze pagina vastleggen (img-tags én inline achtergronden)
       const paginaImgs: { src: string; alt: string }[] = [];
+      // Lazy-load- en slider-attributen (Revolution Slider e.d.)
+      for (const m of html.matchAll(/(?:data-src|data-lazy-src|data-lazyload|data-bg|data-thumb|data-background)=["']([^"']+)["']/gi)) {
+        try {
+          const u = new URL(m[1], bronUrl).href;
+          if (/\.(png|jpe?g|webp|gif|svg)([?#]|$)/i.test(u)) {
+            afbeeldingUrls.add(u);
+            paginaImgs.push({ src: u, alt: "(slider/lazy)" });
+          }
+        } catch {}
+      }
+      for (const m of html.matchAll(/srcset=["']([^"']+)["']/gi)) {
+        for (const deel of m[1].split(",")) {
+          try {
+            const u = new URL(deel.trim().split(/\s+/)[0], bronUrl).href;
+            if (/\.(png|jpe?g|webp)([?#]|$)/i.test(u)) afbeeldingUrls.add(u);
+          } catch {}
+        }
+      }
       for (const m of html.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/g)) {
         try {
           const u = new URL(m[1], bronUrl).href;
@@ -405,9 +423,10 @@ export async function voerBouwUit(
   );
 
   // Media downloaden en optimaliseren
+  // Beelden die daadwerkelijk op pagina's staan krijgen voorrang op de rest
   const mediaUrls = hervatten
     ? []
-    : [...new Set([...manifest.mediaUrls, ...ontwerp.afbeeldingUrls])].slice(0, 60);
+    : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])].slice(0, 120);
   const mediaMap: Record<string, string> = {};
   let gedownload = 0;
   await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
@@ -466,6 +485,8 @@ Instructies:
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
 - EMBEDS ZIJN VERPLICHT: oud-ontwerp/embeds-op-paginas.json toont per pagina exact welke video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) er op de oude site stonden; oud-ontwerp/bestek-*.json geeft ook afmetingen. Plaats élke embed letterlijk terug op de overeenkomstige pagina, responsief (max-width: 100%, behoud beeldverhouding via aspect-ratio). Een pagina die in het origineel een video of kaart had maar in jouw versie niet, is FOUT.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
+- NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
+- SLIDERS (Revolution Slider en vergelijkbaar): bouw ze als een statische hero-sectie met de eerste (of mooiste) slide-afbeelding als achtergrond, of als eenvoudige CSS-crossfade met de echte slide-afbeeldingen. De slide-beelden staan in de afbeeldingen-kaart (gemarkeerd als slider/lazy). Nooit een lege of nagemaakte hero.
 - AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.
@@ -474,6 +495,8 @@ Instructies:
 - Maak site/_headers met beveiligingsheaders (X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Strict-Transport-Security: max-age=31536000; includeSubDomains).
 - Maak site/sitemap.xml (relatieve paden zijn prima als placeholder-domein https://VERVANG.nl) en site/robots.txt.
 - Maak site/llms.txt (markdown): begin met "# <bedrijfsnaam>", dan een blockquote met een beknopte, feitelijke beschrijving van het bedrijf en zijn diensten op basis van de content, gevolgd door een "## Pagina's"-lijst met per pagina een link en één zin waar de pagina over gaat. Dit bestand helpt AI-assistenten het bedrijf goed te begrijpen; niets verzinnen dat niet in de content staat.
+
+- FORMULIEREN: bouw elk contactformulier van de oude site na als statisch formulier met dezelfde velden, in de stijl van de site, met method="POST" en action="https://wordpress2ai-beta.vercel.app/api/formulier", een verborgen input name="_site" value="${repoNaam}", en een verborgen honeypot-veld name="_extra" (leeg laten, via CSS verborgen).
 
 ${HUISREGELS}`;
 

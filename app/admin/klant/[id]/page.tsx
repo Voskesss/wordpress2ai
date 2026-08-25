@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, migrations, sites, usage } from "@/db/schema";
+import { changes, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import Chat from "@/app/portal/Chat";
 import { messages } from "@/db/schema";
@@ -74,6 +74,12 @@ export default async function KlantDetail({
     .from(migrations)
     .where(eq(migrations.siteId, site.id));
   const gebruiker = await clerkGebruiker(site.clerkUserId);
+  const inzendingen = await db
+    .select()
+    .from(formulierInzendingen)
+    .where(eq(formulierInzendingen.siteRepo, site.githubRepo))
+    .orderBy(desc(formulierInzendingen.id))
+    .then((r) => r.slice(0, 5));
   const chatHistorie = await db
     .select()
     .from(messages)
@@ -347,6 +353,45 @@ export default async function KlantDetail({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Formulier-inzendingen */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">
+          Formulier-inzendingen
+        </h2>
+        {inzendingen.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-500">
+            Nog geen inzendingen via het contactformulier.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {inzendingen.map((inz) => (
+              <div
+                key={inz.id}
+                className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm"
+              >
+                <p className="text-xs text-stone-400">
+                  {inz.aangemaakt.toLocaleString("nl-NL")}
+                </p>
+                <dl className="mt-1 space-y-0.5">
+                  {Object.entries(inz.velden as Record<string, string>).map(
+                    ([k, v]) => (
+                      <div key={k} className="flex gap-2">
+                        <dt className="font-semibold text-stone-700 shrink-0">
+                          {k}:
+                        </dt>
+                        <dd className="text-stone-600 break-words min-w-0">
+                          {v}
+                        </dd>
+                      </div>
+                    )
+                  )}
+                </dl>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Danger zone */}
