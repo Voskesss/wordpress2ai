@@ -22,6 +22,7 @@ export default function MigratieImport() {
   const [bouwStatus, setBouwStatus] = useState<string | null>(null);
   const [bouwResultaat, setBouwResultaat] = useState<{
     repoUrl: string;
+    siteId?: number;
     paginas: number;
     afbeeldingen: number;
   } | null>(null);
@@ -212,7 +213,15 @@ export default function MigratieImport() {
                   Site gebouwd: {bouwResultaat.paginas} pagina&apos;s,{" "}
                   {bouwResultaat.afbeeldingen} afbeeldingen
                 </p>
-                <p className="mt-1">
+                <div className="mt-3 flex items-center gap-3 flex-wrap">
+                  {bouwResultaat.siteId && (
+                    <a
+                      href={`/admin/klant/${bouwResultaat.siteId}`}
+                      className="rounded-full bg-emerald-700 px-5 py-2 text-white font-semibold hover:bg-emerald-600"
+                    >
+                      Volgende stap: zet de site online →
+                    </a>
+                  )}
                   <a
                     href={bouwResultaat.repoUrl}
                     target="_blank"
@@ -220,9 +229,8 @@ export default function MigratieImport() {
                     className="underline font-medium"
                   >
                     Bekijk de bestanden
-                  </a>{" "}
-                  · Volgende stap: open de klantpagina en klik op "Zet site online".
-                </p>
+                  </a>
+                </div>
               </div>
             )}
           </div>

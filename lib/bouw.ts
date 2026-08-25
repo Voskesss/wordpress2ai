@@ -339,6 +339,7 @@ async function vergelijkEnVerbeter(
 export type BouwResultaat = {
   repo: string;
   repoUrl: string;
+  siteId: number;
   paginas: number;
   afbeeldingen: number;
   verslag: string;
@@ -598,6 +599,7 @@ ${HUISREGELS}`;
     return {
       repo: repoNaam,
       repoUrl: `https://github.com/wordpress2ai/${repoNaam}`,
+      siteId: siteRow.id,
       paginas: siteBestanden.filter((b) => b.endsWith(".html")).length,
       afbeeldingen: gedownload,
       verslag,
