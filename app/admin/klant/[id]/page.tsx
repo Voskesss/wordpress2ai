@@ -5,6 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import ActieKnop from "./ActieKnop";
 import Chat from "@/app/portal/Chat";
 import { messages } from "@/db/schema";
 import {
@@ -158,12 +159,11 @@ export default async function KlantDetail({
             Eén klik: maakt de hosting aan, koppelt de bestanden, zet previews
             open en vult domein en sitenaam automatisch in.
           </p>
-          <button
-            type="submit"
+          <ActieKnop
+            label="Zet site online"
+            bezigLabel="Bezig met online zetten... (kan een minuut duren)"
             className="mt-4 rounded-full bg-violet-700 px-6 py-2.5 text-white font-semibold hover:bg-violet-600 cursor-pointer"
-          >
-            Zet site online
-          </button>
+          />
         </form>
       )}
 
@@ -246,12 +246,11 @@ export default async function KlantDetail({
             </select>
           </label>
         </div>
-        <button
-          type="submit"
+        <ActieKnop
+          label="Opslaan"
+          bezigLabel="Opslaan..."
           className="mt-4 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-        >
-          Opslaan
-        </button>
+        />
       </form>
 
       {/* Klantaccount */}
@@ -277,12 +276,11 @@ export default async function KlantDetail({
             placeholder="klant@bedrijf.nl"
             className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
           />
-          <button
-            type="submit"
+          <ActieKnop
+            label="Koppel / nodig uit"
+            bezigLabel="Bezig..."
             className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-          >
-            Koppel / nodig uit
-          </button>
+          />
         </form>
         <p className="mt-2 text-xs text-stone-500">
           Bestaat het account al, dan wordt het direct gekoppeld. Anders krijgt
@@ -308,12 +306,11 @@ export default async function KlantDetail({
           placeholder={"Bijv.:\n- Spreek bezoekers aan met 'u'\n- Prijzen altijd met € en twee decimalen"}
           className="mt-3 w-full rounded-xl border border-stone-300 px-4 py-3 text-sm focus:border-violet-600 focus:outline-none"
         />
-        <button
-          type="submit"
+        <ActieKnop
+          label="Opslaan"
+          bezigLabel="Opslaan..."
           className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-        >
-          Opslaan
-        </button>
+        />
       </form>
 
       {/* Laatste wijzigingen */}
@@ -429,12 +426,11 @@ export default async function KlantDetail({
             />
           </label>
         </div>
-        <button
-          type="submit"
+        <ActieKnop
+          label="Definitief verwijderen"
+          bezigLabel="Verwijderen... (repo en hosting opruimen)"
           className="mt-4 rounded-full bg-red-600 px-5 py-2 text-white text-sm font-semibold hover:bg-red-500 cursor-pointer"
-        >
-          Definitief verwijderen
-        </button>
+        />
       </form>
     </div>
   );
