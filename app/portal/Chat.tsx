@@ -342,15 +342,19 @@ export default function Chat({
             onChange={(e) => setInvoer(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && verstuur()}
             placeholder={`Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${huidigePagina}` : ""}?`}
-            className="flex-1 min-w-0 rounded-full border border-stone-300 px-4 sm:px-5 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+            className="flex-1 min-w-0 rounded-full border border-stone-300 px-4 sm:px-5 py-2.5 text-base sm:text-sm focus:border-violet-600 focus:outline-none"
             disabled={bezig}
           />
           <button
             onClick={verstuur}
             disabled={bezig}
-            className="shrink-0 rounded-full bg-violet-700 px-4 sm:px-6 py-2.5 text-white font-semibold text-sm hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+            aria-label="Verstuur"
+            className="shrink-0 rounded-full bg-violet-700 px-3.5 sm:px-6 py-2.5 text-white font-semibold text-sm hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
           >
-            Verstuur
+            <span className="hidden sm:inline">Verstuur</span>
+            <svg className="sm:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           </div>
         </div>
