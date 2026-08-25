@@ -46,6 +46,9 @@ export default function Chat({
   );
   const [toonConcept, setToonConcept] = useState(Boolean(openConcept));
   const [conceptActie, setConceptActie] = useState<string | null>(null);
+  const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
+    "desktop"
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -218,6 +221,31 @@ export default function Chat({
                   </button>
                 )}
               </div>
+              <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
+                {(
+                  [
+                    ["telefoon", "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm4 17.2h.01"],
+                    ["tablet", "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm6 17h.01"],
+                    ["desktop", "M3 4h18v12H3zM9 20h6m-3-4v4"],
+                  ] as const
+                ).map(([naam, pad]) => (
+                  <button
+                    key={naam}
+                    onClick={() => setApparaat(naam)}
+                    aria-label={`Bekijk op ${naam}`}
+                    title={`Bekijk op ${naam}`}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full cursor-pointer ${
+                      apparaat === naam
+                        ? "bg-stone-900 text-white"
+                        : "text-stone-400 hover:text-stone-700"
+                    }`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d={pad} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
               <a
                 href={basisUrl}
                 target="_blank"
@@ -233,11 +261,25 @@ export default function Chat({
                 niet. Publiceer om het live te zetten.
               </div>
             )}
-            <iframe
-              src={basisUrl}
-              title="Je website"
-              className="w-full h-[30rem] xl:h-[42rem] bg-white"
-            />
+            <div
+              className={`h-[30rem] xl:h-[42rem] ${
+                apparaat === "desktop"
+                  ? ""
+                  : "bg-stone-100 flex justify-center overflow-y-auto py-6"
+              }`}
+            >
+              <iframe
+                src={basisUrl}
+                title="Je website"
+                className={
+                  apparaat === "desktop"
+                    ? "w-full h-full bg-white"
+                    : apparaat === "tablet"
+                      ? "w-[768px] max-w-full h-[1024px] shrink-0 bg-white rounded-2xl border-8 border-stone-800 shadow-xl"
+                      : "w-[375px] h-[812px] shrink-0 bg-white rounded-[2rem] border-8 border-stone-800 shadow-xl"
+                }
+              />
+            </div>
           </div>
         )}
       </div>
