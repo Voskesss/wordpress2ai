@@ -155,6 +155,25 @@ Tooling die we bouwen: een migratie-script dat de oude site crawlt en een
 alles matcht gaat de DNS om. De AI-chat mag titles/descriptions later alleen
 wijzigen als de klant er expliciet om vraagt.
 
+## Blogs
+
+**Bij migratie:**
+- Elk WordPress-bericht wordt een eigen statische pagina met exact dezelfde
+  URL (SEO-behoud); blogoverzichtspagina in het design van de site; RSS-feed
+  opnieuw genereren op hetzelfde pad
+- Categorie-/tag-/archiefpagina's niet 1-op-1 overzetten: 301-redirect naar
+  het blogoverzicht (weinig SEO-waarde, veel onderhoudslast)
+
+**Nieuwe blogs (via de chat — verkoopargument):**
+- Klant typt (of dicteert vanaf telefoon) het bericht in de chat, evt. met
+  foto's via de image-upload; AI schrijft/plaatst het in de sitestijl
+- AI regelt automatisch: nieuwe pagina met nette title + meta description
+  (huisregel), toevoeging aan het blogoverzicht, sitemap en RSS bijwerken
+- Zelfde preview → publiceer-flow; AI kan ook helpen schrijven/redigeren
+- Fair use: een blogpost telt als één wijziging
+- Marketing: "bloggen vanaf je telefoon, zonder CMS" — makkelijker dan
+  WordPress zelf
+
 ## Standaard veiligheidspakket (elke klantsite, onderdeel van de Migrator)
 
 Statisch = het grootste risico is al weg (geen plugins, database of admin-login
