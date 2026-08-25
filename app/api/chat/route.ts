@@ -128,6 +128,14 @@ export async function POST(req: Request) {
     .orderBy(messages.id)
     .then((rows) => rows.slice(-12));
 
+  // Wijzigingslogboek: feitelijk geheugen van wat er eerder is gebeurd
+  const logboek = await db
+    .select()
+    .from(changes)
+    .where(eq(changes.siteId, site.id))
+    .orderBy(changes.id)
+    .then((rows) => rows.slice(-15));
+
   // Openstaand concept? Dan werken we daarin verder i.p.v. een nieuw te maken
   const openConcept = await db
     .select()
@@ -160,6 +168,17 @@ export async function POST(req: Request) {
         }
 
         const contextRegels = [
+          site.chatGeheugen
+            ? `Geheugen van eerdere gesprekken met deze eigenaar:\n${site.chatGeheugen}`
+            : null,
+          logboek.length > 0
+            ? `Wijzigingslogboek van deze site (nieuwste onderaan):\n${logboek
+                .map(
+                  (c) =>
+                    `- ${c.aangemaakt.toLocaleDateString("nl-NL")} [${c.status}] "${c.promptTekst.slice(0, 120)}" → ${(Array.isArray(c.bestanden) ? (c.bestanden as string[]) : []).join(", ")}`
+                )
+                .join("\n")}\nGebruik dit om verzoeken als "zet dat weer terug" of "zoals vóór de feestdagen" precies te begrijpen: je weet wat er wanneer veranderd is en in welke bestanden.`
+            : null,
           historie.length > 1
             ? `Eerdere gespreksgeschiedenis:\n${historie
                 .slice(0, -1)
@@ -315,6 +334,52 @@ export async function POST(req: Request) {
           .values({ siteId: site.id, rol: "assistent", tekst: reply });
 
         stuur({ type: "klaar", reply, previewUrl, changeId: changeRowId, bestanden: gewijzigd, prompt: bericht });
+
+        // Geheugen-onderhoud: oude berichten samenvatten zodra het gesprek te lang wordt
+        try {
+          const alleBerichten = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.siteId, site.id))
+            .orderBy(messages.id);
+          if (alleBerichten.length > 40) {
+            const teSamenvatten = alleBerichten.slice(0, -16);
+            const Anthropic = (await import("@anthropic-ai/sdk")).default;
+            const client = new Anthropic();
+            const resp = await client.messages.create({
+              model: "claude-sonnet-5",
+              max_tokens: 1500,
+              system:
+                "Je onderhoudt het langetermijngeheugen van een website-beheerchat. Vat samen wat blijvend relevant is: voorkeuren van de eigenaar (toon, stijl, werkwijze), afspraken, terugkerende onderwerpen, en tijdelijke wijzigingen die later teruggedraaid moeten worden (zoals feestdagen-openingstijden — noteer wat de oorspronkelijke situatie was). Laat koetjes-en-kalfjes weg. Schrijf compact in het Nederlands, als opsomming.",
+              messages: [
+                {
+                  role: "user",
+                  content: `Bestaand geheugen:\n${site.chatGeheugen ?? "(leeg)"}\n\nNieuwe gespreksfragmenten om in het geheugen te verwerken:\n${teSamenvatten
+                    .map((m) => `${m.rol}: ${m.tekst.slice(0, 400)}`)
+                    .join("\n")}\n\nGeef het volledige bijgewerkte geheugen terug (bestaand + nieuw samengevoegd, gededupliceerd).`,
+                },
+              ],
+            });
+            const nieuwGeheugen = resp.content
+              .filter((b) => b.type === "text")
+              .map((b) => (b as { text: string }).text)
+              .join("\n")
+              .slice(0, 8000);
+            if (nieuwGeheugen.trim()) {
+              await db
+                .update(sites)
+                .set({ chatGeheugen: nieuwGeheugen })
+                .where(eq(sites.id, site.id));
+              const grens = teSamenvatten[teSamenvatten.length - 1].id;
+              const { lte } = await import("drizzle-orm");
+              await db
+                .delete(messages)
+                .where(and(eq(messages.siteId, site.id), lte(messages.id, grens)));
+            }
+          }
+        } catch (e) {
+          console.error("Geheugen-onderhoud mislukt:", e);
+        }
       } catch (e) {
         console.error(e);
         stuur({

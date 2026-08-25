@@ -24,6 +24,7 @@ export const sites = pgTable("sites", {
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
   notificatieEmail: text("notificatie_email"),
+  chatGeheugen: text("chat_geheugen"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
