@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, sites } from "@/db/schema";
 import { GITHUB_ORG, gh, installationToken } from "@/lib/github";
+import { isBeheerder } from "@/lib/auth";
 
 const MIME: Record<string, string> = {
   html: "text/html; charset=utf-8",
@@ -65,12 +66,11 @@ export async function GET(
     .select({ change: changes, site: sites })
     .from(changes)
     .innerJoin(sites, eq(changes.siteId, sites.id))
-    .where(
-      userId
-        ? and(eq(changes.id, id), eq(sites.clerkUserId, userId))
-        : eq(changes.id, id)
-    );
+    .where(eq(changes.id, id));
   if (!rij) return new Response("Niet gevonden", { status: 404 });
+  if (userId && rij.site.clerkUserId !== userId && !(await isBeheerder())) {
+    return new Response("Niet gevonden", { status: 404 });
+  }
 
   let data = await haalBestand(rij.site.githubRepo, pad, rij.change.branch);
   if (!data && !pad.includes(".")) {

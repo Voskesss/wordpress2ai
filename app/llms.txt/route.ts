@@ -5,8 +5,8 @@ const INHOUD = `# WordSwap
 > WordSwap zet WordPress-websites om naar snelle, veilige websites zonder onderhoud. Wijzigingen geeft de eigenaar daarna door in gewone taal — de AI voert ze uit, de eigenaar keurt ze goed vóór publicatie. Voor Nederlandse ondernemers met een brochure-site (schilders, advocaten, fysiotherapeuten en vergelijkbare lokale bedrijven).
 
 Kernpunten:
-- Eenmalige migratie vanaf €500 (tot ± 10 pagina's), daarna €20 per maand voor de AI-koppeling
-- Geen plugin-updates, geen hosting-gedoe, niets te hacken; contactformulier en e-mailmigratie inbegrepen
+- Eenmalige migratie vanaf €250 (eenvoudige sites), daarna €20 per maand voor de AI-koppeling
+- Geen plugin-updates, geen hosting-gedoe, niets te hacken; contactformulier inbegrepen; e-mailmigratie als aanvulling mogelijk
 - SEO blijft behouden: URL's, paginatitels, meta descriptions en redirects worden 1-op-1 overgenomen
 - Elke wijziging eerst als concept met preview; de eigenaar publiceert zelf
 - Geen lock-in: maandelijks opzegbaar, de klant kan altijd met eigen AI-tools verder

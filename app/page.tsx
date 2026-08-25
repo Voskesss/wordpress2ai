@@ -249,12 +249,10 @@ export default function Home() {
             Voor altijd rust.
           </h2>
           <p className="mt-5 text-lg text-violet-100 max-w-xl mx-auto">
-            Eenmalig vanaf €500 voor de complete overstap (inclusief
-            e-mailmigratie en SEO-behoud), daarna €20 per maand voor de
-            AI-koppeling. Zit je e-mail nu bij je oude hosting? Dan sluit je een
-            eigen e-mailabonnement af (vanaf zo&apos;n €8 per maand bij een
-            Nederlandse provider) — vaak nog steeds goedkoper dan wat je nu
-            kwijt bent aan hosting en plugins.
+            Eenmalig vanaf €250 voor de overstap (omzetten, SEO-behoud en
+            domeinkoppeling), daarna €20 per maand voor de AI-koppeling.
+            E-mailmigratie kan er als aanvulling bij. Reken maar na: dat is al
+            snel minder dan wat je nu kwijt bent aan hosting en plugins.
           </p>
           <div className="mt-9 flex justify-center flex-wrap gap-4">
             <Link

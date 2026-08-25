@@ -182,6 +182,12 @@ export async function koppelNetlify(formData: FormData) {
     headers: hdr,
     body: JSON.stringify({ sso_login: false }),
   });
+  // Eerste build expliciet starten (gebeurt bij API-koppeling niet vanzelf)
+  await fetch(`https://api.netlify.com/api/v1/sites/${data.id}/builds`, {
+    method: "POST",
+    headers: hdr,
+    body: "{}",
+  }).catch(() => {});
   await db
     .update(sites)
     .set({

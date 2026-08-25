@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, maakPullRequest, schrijfBestand } from "@/lib/github";
+import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
 import {
   gewijzigdeBestanden,
@@ -100,11 +101,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Leeg bericht" }, { status: 400 });
   }
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(and(eq(sites.id, siteId), eq(sites.clerkUserId, userId)));
-  if (!site) return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site || (site.clerkUserId !== userId && !(await isBeheerder()))) {
+    return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
+  }
 
   const maand = new Date().toISOString().slice(0, 7);
   const [verbruik] = await db

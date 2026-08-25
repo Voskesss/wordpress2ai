@@ -5,6 +5,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, migrations, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import Chat from "@/app/portal/Chat";
+import { messages } from "@/db/schema";
 import {
   bewaarRichtlijnen,
   bewaarSite,
@@ -72,6 +74,15 @@ export default async function KlantDetail({
     .from(migrations)
     .where(eq(migrations.siteId, site.id));
   const gebruiker = await clerkGebruiker(site.clerkUserId);
+  const chatHistorie = await db
+    .select()
+    .from(messages)
+    .where(eq(messages.siteId, site.id))
+    .orderBy(messages.id)
+    .then((rows) =>
+      rows.slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
+    );
+  const openConcept = laatsteChanges.find((c) => c.status === "concept");
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -149,6 +160,30 @@ export default async function KlantDetail({
           </button>
         </form>
       )}
+
+      {/* Beheer via chat (admin) */}
+      <div className="mt-6">
+        <h2 className="font-display text-xl font-semibold mb-3">
+          Beheer via chat
+        </h2>
+        <Chat
+          siteId={site.id}
+          historie={chatHistorie}
+          liveUrl={site.domein}
+          openConcept={
+            openConcept
+              ? {
+                  changeId: openConcept.id,
+                  previewUrl: openConcept.previewUrl,
+                  prompt: openConcept.promptTekst,
+                  paginas: Array.isArray(openConcept.bestanden)
+                    ? (openConcept.bestanden as string[])
+                    : [],
+                }
+              : undefined
+          }
+        />
+      </div>
 
       {/* Instellingen */}
       <form

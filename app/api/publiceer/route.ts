@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
+import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
 import { mergePullRequest } from "@/lib/github";
 
@@ -15,9 +16,11 @@ export async function POST(req: Request) {
     .select({ change: changes, site: sites })
     .from(changes)
     .innerJoin(sites, eq(changes.siteId, sites.id))
-    .where(and(eq(changes.id, changeId), eq(sites.clerkUserId, userId)));
+    .where(eq(changes.id, changeId));
 
-  if (!rij) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  if (!rij || (rij.site.clerkUserId !== userId && !(await isBeheerder()))) {
+    return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  }
   if (rij.change.status !== "concept") {
     return NextResponse.json({ error: "Al verwerkt" }, { status: 400 });
   }

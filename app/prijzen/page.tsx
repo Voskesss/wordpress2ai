@@ -4,13 +4,13 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Prijzen",
   description:
-    "Eenmalig vanaf €500 voor de overstap van WordPress, daarna €20 per maand voor de AI-koppeling. Geen lock-in: opzeggen of overstappen kan altijd.",
+    "Eenmalig vanaf €250 voor de overstap van WordPress, daarna €20 per maand voor de AI-koppeling. Geen lock-in: opzeggen of overstappen kan altijd.",
 };
 
 const overstap = [
-  "Complete migratie van je WordPress-site (tot ± 10 pagina's)",
+  "Complete migratie van je WordPress-site: omzetten, SEO-structuur controleren en domein koppelen",
   "Je design blijft zoals je het kent",
-  "E-mailmigratie inbegrepen — het e-mailabonnement zelf (vanaf ± €8 p/m) sluit je af bij een Nederlandse provider",
+  "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €8 p/m, sluit je af bij een Nederlandse provider)",
   "Behoud van je vindbaarheid in Google: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
   "Contactformulier standaard inbegrepen",
   "Oplevering pas als jij tevreden bent",
@@ -49,7 +49,7 @@ export default function Prijzen() {
         <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <h2 className="font-display text-xl font-semibold">De overstap</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            vanaf €500{" "}
+            vanaf €250{" "}
             <span className="text-base font-normal text-stone-500">eenmalig</span>
           </p>
           <ul className="mt-6 space-y-3 text-stone-600">
@@ -127,7 +127,7 @@ export default function Prijzen() {
           {[
             [
               "Grotere sites",
-              "De €500 geldt voor sites tot ± 10 pagina's. Meer pagina's of een complexe opbouw? Dan krijg je vooraf een eerlijke offerte.",
+              "Vanaf €250 voor eenvoudige sites (± 5 pagina's); grotere sites of een complexe opbouw krijgen vooraf een eerlijke offerte.",
             ],
             [
               "Bijzondere functies",

@@ -13,3 +13,9 @@ export async function requireAdmin() {
   if (user?.publicMetadata?.role !== "admin") redirect("/portal");
   return user;
 }
+
+/** Is de huidige gebruiker admin? (zonder redirect) */
+export async function isBeheerder(): Promise<boolean> {
+  const user = await currentUser();
+  return user?.publicMetadata?.role === "admin";
+}
