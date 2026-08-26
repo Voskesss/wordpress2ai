@@ -5,7 +5,11 @@ description: Migreer een WordPress-site naar een statische WordSwap-klantsite, v
 
 # WordPress-klant migreren via Claude Code
 
-Jos geeft een WordPress-export (XML, evt. .gz) en een korte repo-naam (kebab-case, max 40 tekens). Eventuele aanwijzingen ("laat Actueel weg") gaan vóór alles.
+Jos geeft een WordPress-export (XML, evt. .gz) en een korte repo-naam (kebab-case, max 40 tekens). Aanwijzingen van Jos ("laat Actueel weg") gaan vóór alle onderstaande regels.
+
+## Stap 0 — Leerpunten lezen (verplicht)
+
+Lees EERST `.claude/skills/migreer-klant/LEERPUNTEN.md` — de lessen uit eerdere migraties. En andersom: **leer je tijdens deze migratie iets nieuws** (een valkuil, een plugin-patroon, een betere aanpak), dan voeg je dat DIRECT toe aan LEERPUNTEN.md, meld je het aan Jos, en commit je het mee. Zo wordt elke migratie beter dan de vorige.
 
 ## Stap 1 — Mechanisch voorwerk (script, geen AI-kosten)
 
@@ -14,38 +18,69 @@ npx tsx --env-file=.env.local scripts/voorbereiden.mts <xml-pad> <repo-naam>
 ```
 
 Resultaat:
-- `~/wordswap-klanten/<repo>-bron/` — `bronmateriaal/` (content per pagina), `seo-manifest.json`, `oud-ontwerp/` (gerenderde HTML, CSS, screenshots desktop+mobiel, bestek-json met computed styles, afbeeldingen/embeds per pagina), `media-map.json`
+- `~/wordswap-klanten/<repo>-bron/` — `bronmateriaal/` (één bestand per pagina, met pad/titel/samenvatting in commentaar bovenaan), `seo-manifest.json`, `oud-ontwerp/` (gerenderde HTML, CSS, screenshots desktop+mobiel, `bestek-*.json` met computed styles, `afbeeldingen-op-paginas.json`, `embeds-op-paginas.json`), `media-map.json`
 - `~/wordswap-klanten/<repo>/` — de bouwmap, met `afbeeldingen/` al gevuld (gededupliceerd, webp)
 
 Eerste Playwright-run lokaal: zo nodig eenmalig `npx playwright install chromium`.
+Meld aan Jos wat het overzicht toont (aantal pagina's/berichten/media + welke post-types zijn overgeslagen) en vraag zo nodig om aanwijzingen vóór je bouwt.
 
-## Stap 2 — Zelf de site bouwen in `~/wordswap-klanten/<repo>/`
+## Stap 2 — De site bouwen in `~/wordswap-klanten/<repo>/`
 
-Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`, bouw dan platte HTML + één `stijl.css`. Regels (samenvatting van lib/bouw.ts, daar staat de volledige set):
+Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + één `stijl.css`. De volledige regels (zelfde eisen als de API-pijplijn in lib/bouw.ts):
 
-- **Herkenbaar en maatvast**: kleuren, lettertypen (Google Fonts), kolomaantallen, border-radius, schaduwen en blokvolgorde letterlijk uit bestek/screenshots. "Ongeveer" is niet goed genoeg.
-- **URL-paden exact behouden** (SEO): elke bronpagina op z'n eigen pad als `pad/index.html`; titles/descriptions uit het seo-manifest letterlijk overnemen; sitemap.xml, robots.txt, llms.txt, `_headers` genereren.
-- **Centrale onderdelen**: menu/topbalk/footer en andere herhaalde blokken één keer in `delen/<naam>.html`, op pagina's alleen `<!--invoeg:naam-->` (wordt bij deploy uitgevouwen). Actieve menustand via klein pad-scriptje.
-- **Echte beelden, nooit namaken**: alles uit `afbeeldingen/`; kleine beelden (iconen, teamfoto's, partnerlogo's) zijn net zo verplicht als grote. Mist er iets: van de live site halen (sharp → webp, max 2000px, q82). Hero's als CSS-background.
-- **Embeds letterlijk terug** (YouTube/Vimeo/Maps, responsief), sliders statisch of CSS-crossfade met echte beelden, decoratiebeelden als achtergronden.
-- **Geen dode links** (tag/categorie/archief → blogoverzicht of platte tekst), **geen lorem ipsum of Engelse thema-restanten**, **overzichten klikken door** naar detailpagina's.
-- **Formulieren** → `<form method="POST" action="https://wordpress2ai-beta.vercel.app/api/formulier">` met verborgen `_site=<repo>`, `_formulier=<naam>` en honeypot `_extra`; nooit gevoelige velden (BSN/medisch/betaal).
-- **Custom post types** (diensten, team, vacatures) staan vaak NIET in de export — haal ze van de live site.
-- Mobiel-eerst controleren: viewport, geen horizontale scroll op 375px, hamburger.
+**Structuur & SEO**
+- Elke bronpagina op EXACT haar URL-pad: "/over-ons/" → `over-ons/index.html`, "/" → `index.html`. Titel als `<title>`, samenvatting (of eerste zinnen) als meta description; zie ook `seo-manifest.json`. Canonical/og-tags met placeholder-domein `https://VERVANG.nl`.
+- Ontdo de content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \25BE) en wrapper-divs; behoud teksten, koppen (h1/h2-structuur) en opbouw.
+- Berichten (type post): ook een blogoverzicht op `blog/index.html` met links, als er berichten zijn.
+- Genereer `sitemap.xml`, `robots.txt`, `_headers` (X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Strict-Transport-Security: max-age=31536000; includeSubDomains) en `llms.txt` (markdown: "# Bedrijfsnaam", blockquote met feitelijke beschrijving, "## Pagina's"-lijst met per pagina één zin; niets verzinnen).
+- **CUSTOM POST TYPES**: diensten, teamleden, vacatures, projecten zitten vaak NIET in de export (het voorbereid-script meldt ze als overgeslagen). Haal die pagina's van de live site (curl + tekst extraheren) en bouw ze wél — anders missen er pagina's.
 
-Controleer met een lokale server + screenshots naast de originelen vóór je oplevert; loop élke bronpagina na op aanwezigheid.
+**Ontwerp**
+- ONTWERP OVERNEMEN: bestudeer screenshots + CSS in `oud-ontwerp/`. Kleurenpalet, lettertypen (Google Fonts als het origineel die gebruikt), header-opbouw (logo/topbalk/menu), hero met achtergrondbeeld, knopstijlen, fotogrids. De eigenaar moet z'n eigen site direct herkennen — geen generiek sjabloon.
+- MAATVAST: border-radius, schaduwen, exact kolomaantal per sectie, blokvolgorde, hero-hoogtes, sectie-achtergronden letterlijk uit `bestek-*.json` en de screenshots. "Ongeveer" is niet goed genoeg — meet na.
+- DECORATIE HOORT ERBIJ: sfeerbeelden uit het thema (wolken, golven, patronen als CSS-achtergrond) terugplaatsen op de juiste secties.
+- SLIDERS per soort (nooit leeg of nagemaakt): hero-slider → statisch of CSS-crossfade met echte slides; logo-carrousel → statische rij/grid met ÁLLE logo's; testimonialslider → alle quotes statisch; fotogalerij → grid met alle beelden.
+- Mobiel-eerst: viewport-meta, geen vaste breedtes, geen horizontale scroll op 375px, leesbare tekst, aantikbare knoppen (≥44px), hamburger-menu bij veel items.
+
+**Beelden**
+- AFBEELDINGEN VERPLICHT: `afbeeldingen-op-paginas.json` toont per pagina wat er stond; `media-map.json` koppelt URL's aan lokale bestanden. Een pagina die in het origineel beeld had maar bij jou kaal is, is FOUT. Hero's als CSS-background, grids als grid, losse foto's inline — mét alt-tekst.
+- KLEINE BEELDEN HOREN ERBIJ: USP-iconen, partnerlogo's, keurmerken, portretfoto's zijn net zo verplicht als grote foto's. Let op lazy-loading (`data-src`) bij het oogsten.
+- NAMAKEN VERBODEN: nooit zelf logo's/illustraties tekenen of initialen-rondjes als vervanging. Alleen echte bestanden uit `afbeeldingen/`. Ontbreekt iets: van de live site downloaden (sharp → webp, max 2000px, q82); lukt dat niet, noteer de URL in `ontbrekende-media.txt` en meld het.
+
+**Inhoud & links**
+- EMBEDS VERPLICHT: elke YouTube/Vimeo/Maps-iframe en `<video>` uit `embeds-op-paginas.json` letterlijk terug op de juiste pagina, responsief (max-width 100%, aspect-ratio).
+- GEEN PLACEHOLDER-TEKST: lorem ipsum en Engelse thema-restanten ("Principles of our work") nooit overnemen — sectie weglaten of vullen met echte content. Eindcontrole hierop.
+- OVERZICHTEN KLIKKEN DOOR: elk overzichtsblok (diensten, team, blog) linkt per item (titel én beeld) naar de detailpagina, en andersom (terug-link/kruimelpad).
+- GEEN DODE LINKS: tag-/categorie-/archieflinks (/tag/, /category/, /2023/05/) bestaan niet meer → naar blogoverzicht of platte tekst; tagwolken weglaten of ontlinken. Eindcontrole: elke interne link wijst naar een gebouwde pagina.
+
+**Techniek**
+- CENTRALE ONDERDELEN: alles wat op ≥2 pagina's identiek is één keer in `delen/` (menu.html, topbalk.html, footer.html, en ook referenties-/CTA-/actueel-blokken), op pagina's alleen `<!--invoeg:naam-->`. LET OP: `delen/` in de wortel van de klant-map (naast index.html) — wordt bij deploy uitgevouwen. Actieve menustand via klein pad-scriptje, nooit menu kopiëren per pagina.
+- Zet vlak voor `</body>` van elke pagina: `<script>try{parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*")}catch(e){}</script>` (mag ook weggelaten worden: de deploy injecteert hem zelf).
+- FORMULIEREN: elk formulier van de oude site nabouwen met dezelfde velden, `method="POST" action="https://wordpress2ai-beta.vercel.app/api/formulier"`, verborgen `_site=<repo>`, `_formulier=<kebab-naam>` en honeypot `_extra` (leeg, visueel verborgen, tabindex -1). NOOIT velden voor BSN, betaal-/bankgegevens, wachtwoorden of medische informatie — meld dat WordSwap daar een veilige oplossing voor opzet.
+- Analytics/meetscripts van de eigenaar (GA4, Tag Manager, cookiebanner) intact overnemen; verder géén nieuwe externe scripts of trackers.
+- Overige kwaliteitseisen: zie `lib/huisregels.ts` (toegankelijkheid, consistentie, taal).
+
+**Controle vóór oplevering (vergelijk-en-verbeter, zoals de pijplijn)**
+1. Lokale server starten (let op: markers uitvouwen — of tijdelijk `python3 -m http.server` en markers accepteren) en elke pagina naast de oud-ontwerp-screenshots leggen; verschillen wegwerken.
+2. Checklist: alle bronpagina's aanwezig? Alle afbeeldingen terug per pagina? Menu/footer overal? Geen lege markers? Geen dode links? Geen placeholder-tekst? Mobiel oké op 375px?
+3. Screenshots van het resultaat aan Jos laten zien vóór livegang.
 
 ## Stap 3 — Registreren en live zetten
 
 ```bash
 cd ~/wordswap-klanten/<repo> && git init -q 2>/dev/null; git add -A && git commit -q -m "Migratie via Claude Code"
+```
+Repo remote: `git@github.com:wordpress2ai/<repo>.git` (registreer-klant maakt hem aan als hij niet bestaat).
+
+```bash
 npx tsx --env-file=.env.local scripts/registreer-klant.mts <repo> "<Klantnaam>"   # repo + DB-rij + workers + domein (idempotent)
 ```
 
-Draai scripts altijd vanuit `~/wordpress2ai` (vanwege .env.local). Bestond de repo al: gewoon pushen (remote `git@github.com:wordpress2ai/<repo>.git`); herdeploy met `scripts/deploy-klant.mts <repo>`.
+Scripts ALTIJD draaien vanuit `~/wordpress2ai` (vanwege .env.local). Herdeploy later: `scripts/deploy-klant.mts <repo>`; een push naar main deployt ook automatisch via de webhook (mits ingesteld).
 
 ## Stap 4 — Afronden
 
-- Bekijk de live site (`https://<repo>.wordswap.workers.dev`) in de browser, vergelijk met de bron, fix restpunten direct.
-- Admin (wordpress2ai-beta.vercel.app/admin): klant verschijnt automatisch; Jos koppelt daar het klantaccount (e-mail) en vult richtlijnen in. Domein/e-mail: zie /admin/handleiding bovenaan.
-- Meld eerlijk wat niet 1-op-1 kon (bv. externe-plugin-content) — dat is maatwerk of backlog.
+- Live site (`https://<repo>.wordswap.workers.dev`) doorlopen naast de bron; restpunten direct fixen.
+- Admin (wordpress2ai-beta.vercel.app/admin): klant verschijnt automatisch; Jos koppelt het klantaccount en vult richtlijnen in. Domein/e-mail: /admin/handleiding bovenaan (MX-check eerst!).
+- Eerlijk melden wat niet 1-op-1 kon (bv. externe-plugin-content) — maatwerk of backlog.
+- Nieuwe lessen → LEERPUNTEN.md (stap 0).
