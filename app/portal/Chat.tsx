@@ -66,6 +66,7 @@ export default function Chat({
   const [schaal, setSchaal] = useState(1);
   const [aanwijzen, setAanwijzen] = useState(false);
   const [selectie, setSelectie] = useState<Selectie | null>(null);
+  const [suggestiesOpen, setSuggestiesOpen] = useState(false);
 
   function meldAanwijzen(aan: boolean) {
     iframeRef.current?.contentWindow?.postMessage(
@@ -466,24 +467,6 @@ export default function Chat({
             </div>
           )}
 
-          {/* Suggesties voor wie nog niet weet wat te vragen */}
-          {suggesties && suggesties.length > 0 && berichten.length === 0 && !bezig && (
-            <div className="mb-3 flex flex-wrap justify-center gap-2">
-              {suggesties.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    setHintWeg(true);
-                    setInvoer(s);
-                  }}
-                  className="rounded-full border border-violet-300 bg-white/95 px-4 py-2 text-sm font-medium text-violet-800 shadow-lg backdrop-blur hover:bg-violet-50 cursor-pointer"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Aanwijs-modus actief */}
           {aanwijzen && (
             <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border-2 border-violet-500 bg-white/95 px-4 py-2.5 shadow-2xl backdrop-blur">
@@ -577,16 +560,17 @@ export default function Chat({
                 }}
                 disabled={bezig}
                 aria-label="Onderdeel aanwijzen in het voorbeeld"
-                title="Wijs een onderdeel aan in het voorbeeld"
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                title="Klik hierna in het voorbeeld op het onderdeel dat je bedoelt"
+                className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-medium disabled:opacity-50 cursor-pointer ${
                   aanwijzen
                     ? "bg-violet-700 text-white"
                     : "text-stone-500 hover:bg-stone-100"
                 }`}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M4 4l7.5 16 2-6.5L20 11.5 4 4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 </svg>
+                <span className="hidden sm:inline whitespace-nowrap">Wijs aan</span>
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -639,6 +623,48 @@ export default function Chat({
               </button>
             </div>
           </div>
+
+          {/* Suggesties onder de invoerbalk */}
+          {suggesties && suggesties.length > 0 && !bezig && (
+            <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+              {!suggestiesOpen ? (
+                <button
+                  onClick={() => {
+                    setHintWeg(true);
+                    setSuggestiesOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 rounded-full border border-stone-300 bg-white/95 px-4 py-1.5 text-sm font-medium text-stone-600 shadow-lg backdrop-blur hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 3a6 6 0 0 1 3.5 10.9c-.6.5-1 1.2-1 2V17h-5v-1.1c0-.8-.4-1.5-1-2A6 6 0 0 1 12 3zM10 20h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Suggesties — geen idee wat je kunt vragen?
+                </button>
+              ) : (
+                <>
+                  {suggesties.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => {
+                        setInvoer(s);
+                        setSuggestiesOpen(false);
+                      }}
+                      className="rounded-full border border-violet-300 bg-white/95 px-4 py-1.5 text-sm font-medium text-violet-800 shadow-lg backdrop-blur hover:bg-violet-50 cursor-pointer"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setSuggestiesOpen(false)}
+                    aria-label="Suggesties sluiten"
+                    className="rounded-full border border-stone-300 bg-white/95 px-3 py-1.5 text-sm text-stone-500 shadow-lg backdrop-blur hover:text-stone-800 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
