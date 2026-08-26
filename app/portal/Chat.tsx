@@ -48,6 +48,9 @@ export default function Chat({
       : null
   );
   const [chatOpen, setChatOpen] = useState(false);
+  // Aandachttrekker voor nieuwe gebruikers; verdwijnt zodra er getypt wordt.
+  const [hintWeg, setHintWeg] = useState(false);
+  const toonHint = !hintWeg && berichten.length === 0 && !bezig && !chatOpen;
   const [reloadTeller, setReloadTeller] = useState(0);
   const [conceptActie, setConceptActie] = useState<string | null>(null);
   const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
@@ -387,8 +390,39 @@ export default function Chat({
             </div>
           )}
 
+          {/* Aanwijzer voor nieuwe gebruikers */}
+          {toonHint && (
+            <div className="pointer-events-none mb-2 flex flex-col items-center">
+              <div className="rounded-2xl bg-violet-700 px-5 py-3 text-white shadow-2xl">
+                <p className="font-semibold">
+                  Hier praat je met je website
+                </p>
+                <p className="mt-0.5 text-sm text-violet-100">
+                  Typ wat je veranderd wilt hebben — bijvoorbeeld:
+                  &ldquo;zet de openingstijden op zaterdag tot 17:00&rdquo;
+                </p>
+              </div>
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="mt-1 animate-bounce text-violet-700"
+                aria-hidden
+              >
+                <path d="M12 3v15m0 0l-6-6m6 6l6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+
           {/* Invoerbalk */}
-          <div className="rounded-full border border-stone-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur">
+          <div
+            className={`rounded-full border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
+              toonHint
+                ? "border-violet-500 ring-4 ring-violet-300/50"
+                : "border-stone-200"
+            }`}
+          >
             {afbeelding && (
               <div className="mx-2 mt-1 mb-2 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 w-fit">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -447,8 +481,14 @@ export default function Chat({
               </button>
               <input
                 value={invoer}
-                onChange={(e) => setInvoer(e.target.value)}
-                onFocus={() => berichten.length > 0 && setChatOpen(true)}
+                onChange={(e) => {
+                  setInvoer(e.target.value);
+                  if (e.target.value) setHintWeg(true);
+                }}
+                onFocus={() => {
+                  setHintWeg(true);
+                  if (berichten.length > 0) setChatOpen(true);
+                }}
                 onKeyDown={(e) => e.key === "Enter" && verstuur()}
                 placeholder={
                   bezig
