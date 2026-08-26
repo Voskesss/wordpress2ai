@@ -40,6 +40,16 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
     }).catch(() => {});
   }
 
+  async function opnieuw(id: number) {
+    await fetch("/api/admin/bouw-jobs/opnieuw", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobId: id }),
+    }).catch(() => {});
+    const res = await fetch("/api/admin/bouw-jobs");
+    if (res.ok) setJobs((await res.json()).jobs);
+  }
+
   async function annuleer(id: number) {
     await fetch("/api/admin/bouw-jobs/annuleer", {
       method: "POST",
@@ -96,6 +106,15 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
                   >
                     Naar klantpagina →
                   </a>
+                )}
+                {job.status === "fout" && (
+                  <button
+                    onClick={() => opnieuw(job.id)}
+                    title="Hervat vanaf het laatste checkpoint"
+                    className="rounded-full bg-violet-700 px-4 py-1.5 text-white font-semibold hover:bg-violet-600 cursor-pointer"
+                  >
+                    Probeer opnieuw
+                  </button>
                 )}
                 {(job.status === "klaar" || job.status === "fout") && (
                   <button

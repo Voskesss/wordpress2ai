@@ -429,6 +429,29 @@ export type BouwResultaat = {
 };
 
 /** Voert een complete migratie-bouw uit. Roept stuur() aan met voortgangsteksten. */
+/** Checkpoint: de huidige stand van de site naar de klant-repo pushen. */
+async function slaTussenstandOp(
+  repoNaam: string,
+  siteNaam: string,
+  siteDir: string,
+  bericht: string
+) {
+  await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`).catch(() => {});
+  await new Promise((r) => setTimeout(r, 2000));
+  const bestanden = await alleBestanden(siteDir);
+  if (bestanden.length === 0) return;
+  await pushBestanden(
+    repoNaam,
+    await Promise.all(
+      bestanden.map(async (b) => ({
+        pad: b,
+        inhoud: await readFile(path.join(siteDir, b)),
+      }))
+    ),
+    bericht
+  );
+}
+
 export async function voerBouwUit(
   opdracht: { xml: string; siteNaam: string; repoNaam: string; clerkUserId: string },
   stuurStatus: (tekst: string) => void | Promise<void>
@@ -451,8 +474,11 @@ export async function voerBouwUit(
   await mkdir(bronDir, { recursive: true });
   await mkdir(siteDir, { recursive: true });
 
-  // Hervatten: staat er al een eerder gebouwde tussenstand in de repo?
+  // Hervatten: staat er al een eerder checkpoint in de repo?
+  // - index.html aanwezig → hele bouw overslaan
+  // - alleen afbeeldingen aanwezig → die overnemen, downloads overslaan
   let hervatten = false;
+  let mediaHervat = false;
   if (await repoBestaat(repoNaam)) {
     const bestaand = await lijstBestanden(repoNaam).catch(() => [] as string[]);
     if (bestaand.includes("index.html")) {
@@ -461,6 +487,13 @@ export async function voerBouwUit(
       const eerdereMap = await laadWerkmap(repoNaam);
       const { cp } = await import("node:fs/promises");
       await cp(eerdereMap, siteDir, { recursive: true });
+      await ruimWerkmapOp(eerdereMap).catch(() => {});
+    } else if (bestaand.some((b) => b.startsWith("afbeeldingen/"))) {
+      mediaHervat = true;
+      await stuurStatus("Eerder checkpoint gevonden — afbeeldingen overnemen...");
+      const eerdereMap = await laadWerkmap(repoNaam);
+      const { cp } = await import("node:fs/promises");
+      await cp(eerdereMap, siteDir, { recursive: true }).catch(() => {});
       await ruimWerkmapOp(eerdereMap).catch(() => {});
     }
   }
@@ -489,7 +522,7 @@ export async function voerBouwUit(
 
   // Media downloaden en optimaliseren
   // Beelden die daadwerkelijk op pagina's staan krijgen voorrang op de rest
-  const mediaUrls = hervatten
+  const mediaUrls = hervatten || mediaHervat
     ? []
     : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])].slice(0, 120);
   const mediaMap: Record<string, string> = {};
@@ -536,6 +569,15 @@ export async function voerBouwUit(
   await stuurStatus(
     `${Object.keys(mediaMap).length} afbeeldingen gedownload en gekoppeld aan pagina's`
   );
+
+  // Checkpoint 1: afbeeldingen veiligstellen — bij een latere fout hoeven ze
+  // niet opnieuw gedownload te worden
+  if (!hervatten && !mediaHervat && gedownload > 0) {
+    await stuurStatus("Checkpoint: afbeeldingen veiligstellen...");
+    await slaTussenstandOp(repoNaam, siteNaam, siteDir, "Checkpoint: afbeeldingen").catch(
+      (e) => console.error("Checkpoint afbeeldingen mislukt:", e)
+    );
+  }
 
   stuur({
     type: "status",
@@ -622,6 +664,14 @@ ${HUISREGELS}`;
         if (/maximum number of turns/i.test(String(e))) limietBereikt = true;
         else throw e;
       }
+      // Checkpoint 2: na elke bouwronde de stand veiligstellen
+      await stuurStatus(`Checkpoint: bouwronde ${ronde} veiligstellen...`);
+      await slaTussenstandOp(
+        repoNaam,
+        siteNaam,
+        siteDir,
+        `Checkpoint na bouwronde ${ronde}`
+      ).catch((e) => console.error("Checkpoint bouwronde mislukt:", e));
       if (!limietBereikt) break;
       if (ronde < 3)
         await stuurStatus(
@@ -632,25 +682,6 @@ ${HUISREGELS}`;
 
   if (!(await alleBestanden(siteDir)).some((b) => b === "index.html")) {
     throw new Error("De bouw leverde geen homepage op — probeer opnieuw");
-  }
-
-  // Tussenstand veiligstellen: als de verify-lus of push hierna sneuvelt,
-  // hervat een volgende run vanaf dit punt (geen AI-bouwkosten opnieuw)
-  if (!hervatten) {
-    await stuurStatus("Tussenstand veiligstellen...");
-    await maakKlantRepo(repoNaam, `Website van ${siteNaam} (via WordSwap)`).catch(() => {});
-    await new Promise((r) => setTimeout(r, 2000));
-    const tussenstand = await alleBestanden(siteDir);
-    await pushBestanden(
-      repoNaam,
-      await Promise.all(
-        tussenstand.map(async (b) => ({
-          pad: b,
-          inhoud: await readFile(path.join(siteDir, b)),
-        }))
-      ),
-      "Tussenstand na hoofdbouw"
-    ).catch((e) => console.error("Tussenstand pushen mislukt:", e));
   }
 
   // Vergelijk-en-verbeter: nieuwe site naast de oude leggen tot het klopt
@@ -720,6 +751,22 @@ ${HUISREGELS}`;
       afbeeldingen: gedownload,
       verslag,
     };
+  } catch (e) {
+    // Noodcheckpoint: wat er ook misgaat, de huidige stand wordt bewaard
+    // zodat een volgende run (Probeer opnieuw) verder kan zonder AI-kosten.
+    if (werkmap) {
+      const siteDir = path.join(werkmap, "site");
+      try {
+        await stuurStatus("Fout — huidige stand veiligstellen...");
+      } catch {}
+      await slaTussenstandOp(
+        opdracht.repoNaam,
+        opdracht.siteNaam,
+        siteDir,
+        "Noodcheckpoint na fout"
+      ).catch(() => {});
+    }
+    throw e;
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
   }
