@@ -245,6 +245,8 @@ export async function POST(req: Request) {
         ].filter(Boolean);
 
         let reply = "";
+        let limietBereikt = false;
+        try {
         for await (const message of query({
           prompt: contextRegels.join("\n\n"),
           options: {
@@ -281,14 +283,24 @@ export async function POST(req: Request) {
             }
           }
           if (message.type === "result") {
-            reply =
-              message.subtype === "success"
-                ? message.result
-                : "Er ging iets mis, probeer het opnieuw.";
+            if (message.subtype === "success") reply = message.result;
+            else limietBereikt = true;
           }
+        }
+        } catch (e) {
+          // Bij de beurtlimiet gooien we het al gedane werk niet weg:
+          // wat af is wordt hieronder gewoon als concept klaargezet.
+          if (/maximum number of turns/i.test(String(e))) limietBereikt = true;
+          else throw e;
         }
 
         const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+        if (limietBereikt) {
+          reply =
+            gewijzigd.length > 0
+              ? "Dit was een flinke klus — ik ben zover gekomen als in één keer kan. Bekijk het concept; wat er nog mist, kun je gewoon in een volgend bericht vragen (het concept blijft open, ik werk er dan op verder)."
+              : "Dit verzoek is te groot voor één keer. Knip het op in kleinere stappen — bijvoorbeeld per pagina — dan pak ik ze één voor één op.";
+        }
         let previewUrl: string | null = null;
         let changeRowId: number | null = null;
 
