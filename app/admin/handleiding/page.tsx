@@ -9,6 +9,26 @@ export const metadata: Metadata = {
 
 const secties: { kop: string; blokken: { titel: string; tekst: string }[] }[] = [
   {
+    kop: "Handmatige stappen: domein en e-mail",
+    blokken: [
+      {
+        titel: "Domein koppelen (na 'Zet site online')",
+        tekst:
+          "De site draait dan op <naam>.wordswap.workers.dev; het echte domein koppel je zo:\n1. Cloudflare-dashboard → Add a site → domein van de klant invoeren (Free-plan). Cloudflare leest de bestaande DNS-records automatisch in — controleer of ze er allemaal staan, vóóral de MX-records (e-mail!).\n2. Cloudflare toont twee nameservers. De klant (of jij, met inlog van de registrar zoals TransIP/Vimexx) zet die bij de registrar bij 'Nameservers'. Doorlooptijd: minuten tot 24 uur.\n3. Zodra de zone actief is: Workers & Pages → de worker van de klant → Settings → Domains & Routes → Add → Custom Domain → domein (en www) toevoegen. SSL gaat automatisch.\n4. Check: domein opent de nieuwe site, https werkt, www én zonder www. Zet daarna het domein op de admin-klantpagina in het veld Domein, zodat portaal en 'Open live site' kloppen.",
+      },
+      {
+        titel: "E-mail: eerst kijken waar het staat",
+        tekst:
+          "LET OP: e-mail is de plek waar migraties misgaan. Check vóór elke domeinwissel waar de mail draait: MX-records opzoeken (mxtoolbox.com of 'dig MX domein.nl'). Twee situaties:\n1. Mail draait bij een aparte partij (Microsoft 365, Google Workspace, aparte mailhoster): niets aan de hand — zolang de MX-records in Cloudflare exact hetzelfde blijven, blijft de mail gewoon werken. Controleer na de nameserver-wissel of mail nog binnenkomt.\n2. Mail draait bij de oude WordPress-hoster: dan mag die hosting NIET opgezegd worden vóór de mail verhuisd is. Verkoop de e-mailmigratie als aanvulling: nieuw mailabonnement bij een Nederlandse provider (vanaf ± €8 p/m), mailboxen overzetten (IMAP-kopie), MX-records omzetten, en pas dáárna de oude hosting opzeggen.\nVergeet ook SPF/DKIM/DMARC-records niet mee te nemen — anders belandt verzonden mail in spam.",
+      },
+      {
+        titel: "Opzeg-checklist oude hosting",
+        tekst:
+          "Pas opzeggen als: het domein via Cloudflare naar de nieuwe site wijst, de mail aantoonbaar ergens anders draait, en de klant akkoord is met de opgeleverde site. Bewaar de WordPress-export (staat al in onze systemen) — daarna mag het oude pakket weg en stopt de klant met betalen voor hosting en plugins.",
+      },
+    ],
+  },
+  {
     kop: "Hoe het systeem in elkaar zit",
     blokken: [
       {
