@@ -351,9 +351,20 @@ export default function Chat({
                   </div>
                 ))}
                 {bezig && (
-                  <p className="text-violet-600 text-sm animate-pulse font-medium">
-                    {statusTekst ?? "Bezig met je wijziging..."}
-                  </p>
+                  <div className="flex w-fit items-center gap-3 rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-3">
+                    <span className="flex items-center gap-1" aria-hidden>
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="h-2 w-2 animate-bounce rounded-full bg-violet-500"
+                          style={{ animationDelay: `${i * 150}ms` }}
+                        />
+                      ))}
+                    </span>
+                    <span className="text-sm font-medium text-stone-600">
+                      {statusTekst ?? "Bezig met je wijziging..."}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
