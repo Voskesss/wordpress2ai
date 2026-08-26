@@ -80,7 +80,19 @@ export default function Chat({
   const [aanwijzen, setAanwijzen] = useState(false);
   const [selectie, setSelectie] = useState<Selectie | null>(null);
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
+  // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
+  const [oplevering, setOplevering] = useState<{ pad: string } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
+
+  function bekijkOplevering() {
+    if (!oplevering) return;
+    const pad = oplevering.pad === "index.html" ? "" : oplevering.pad;
+    huidigeRef.current = "/" + pad;
+    setHuidigePagina("/" + pad);
+    setIframeSrc(basisVoor(true) + pad);
+    setReloadTeller((t) => t + 1);
+    setOplevering(null);
+  }
 
   function stop() {
     stopRef.current?.abort();
@@ -235,6 +247,10 @@ export default function Chat({
           paginas: (data.bestanden ?? []).map(paginaLabel),
         });
         herlaad(true);
+        const eerstePagina = (data.bestanden ?? []).find((b) =>
+          /\.html?$/i.test(b)
+        );
+        setOplevering({ pad: eerstePagina ?? "index.html" });
       }
     } catch {
       setBerichten((b) => [
@@ -389,6 +405,39 @@ export default function Chat({
             />
           )}
         </div>
+
+        {/* Herlaad-overlay na een oplevering */}
+        {oplevering && !bezig && (
+          <div className="absolute inset-0 z-[9] flex items-center justify-center bg-stone-900/40 backdrop-blur-[2px]">
+            <div className="relative mx-4 max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
+              <button
+                onClick={() => setOplevering(null)}
+                aria-label="Sluiten"
+                className="absolute right-4 top-4 text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                ✕
+              </button>
+              <p className="font-display text-2xl font-semibold">
+                Je wijziging staat klaar
+              </p>
+              <p className="mt-2 text-stone-600">
+                op {paginaLabel(oplevering.pad)}
+              </p>
+              <button
+                onClick={bekijkOplevering}
+                className="lift mt-6 inline-flex items-center gap-2 rounded-full bg-violet-700 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-violet-300 hover:bg-violet-600 cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Herlaad en bekijk →
+              </button>
+              <p className="mt-3 text-xs text-stone-400">
+                Tevreden? Publiceer hem daarna met de knop onderin.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Zwevend chatpaneel over de preview */}
         <div className="absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2">
