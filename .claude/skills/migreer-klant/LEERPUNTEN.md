@@ -9,4 +9,5 @@ Lees dit vóór elke migratie. Leer je iets nieuws: voeg het hier direct toe (da
 - **2026-08-26 (VGK):** Thema-restanten zoals "Principles of our work" met lorem ipsum stonden écht in de bron — altijd wegfilteren, nooit overnemen.
 - **2026-08-26 (VGK):** Teamsecties origineel = ronde portretten op gekleurde cirkels zonder kaderdozen; bekijk de bron-screenshots voordat je een eigen kaartontwerp kiest.
 - **2026-08-26 (VGK):** Sitetitels in WXR bevatten soms dubbel-gecodeerde entiteiten (`&#124;` = |). Decoderen in titels; in pagina-inhoud juist laten staan.
+- **2026-08-26 (BSR Veluwezoom):** Revolution Slider (SR7) laadt slides dynamisch via JS — de hero-afbeeldingen/-teksten staan NIET in de gerenderde HTML van het voorbereid-script. Hero altijd nabouwen vanaf de screenshots en de slider-assets in `afbeeldingen/` (zoek op "slider"/"achtergrond" in de bestandsnamen).
 - **2026-08-26 (algemeen):** De artikelen/"Actueel" van sommige sites komen uit een externe plugin/feed en staan niet (volledig) in de export. Check of de live site meer berichten toont dan de export bevat; overleg met Jos (weglaten, bevriezen of maatwerk-sync).

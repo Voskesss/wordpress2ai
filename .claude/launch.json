@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "bsr-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8735", "--directory", "/private/tmp/claude-501/-Users-josklijnhout-wordpress2ai/e4c4d021-6524-4c74-80bf-f4649a57cabd/scratchpad/preview-bsr"],
+      "port": 8735
     }
   ]
 }
