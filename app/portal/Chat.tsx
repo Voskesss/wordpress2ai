@@ -68,6 +68,11 @@ export default function Chat({
   const [aanwijzen, setAanwijzen] = useState(false);
   const [selectie, setSelectie] = useState<Selectie | null>(null);
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
+  const stopRef = useRef<AbortController | null>(null);
+
+  function stop() {
+    stopRef.current?.abort();
+  }
 
   function meldAanwijzen(aan: boolean) {
     iframeRef.current?.contentWindow?.postMessage(
@@ -148,6 +153,8 @@ export default function Chat({
     ]);
     setBezig(true);
     setStatusTekst(teVersturen ? "Ik verwerk je afbeelding..." : "Even nadenken...");
+    const stopper = new AbortController();
+    stopRef.current = stopper;
     try {
       let res: Response;
       if (teVersturen) {
@@ -157,11 +164,12 @@ export default function Chat({
         form.set("huidigePagina", huidigePagina);
         form.set("afbeelding", teVersturen);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
-        res = await fetch("/api/chat", { method: "POST", body: form });
+        res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
       } else {
         res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: stopper.signal,
           body: JSON.stringify({
             siteId,
             bericht: tekst,
@@ -219,9 +227,15 @@ export default function Chat({
     } catch {
       setBerichten((b) => [
         ...b,
-        { rol: "assistent", tekst: "Er ging iets mis, probeer het opnieuw." },
+        {
+          rol: "assistent",
+          tekst: stopper.signal.aborted
+            ? "Gestopt — er is niets gewijzigd. Geef gerust een nieuwe opdracht."
+            : "Er ging iets mis, probeer het opnieuw.",
+        },
       ]);
     } finally {
+      stopRef.current = null;
       setBezig(false);
       setStatusTekst(null);
     }
@@ -630,15 +644,16 @@ export default function Chat({
                 disabled={bezig}
               />
               <button
-                onClick={verstuur}
-                disabled={bezig}
-                aria-label="Verstuur"
-                className="shrink-0 rounded-full bg-violet-700 h-10 w-10 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                onClick={bezig ? stop : verstuur}
+                aria-label={bezig ? "Stop de wijziging" : "Verstuur"}
+                title={bezig ? "Stop — er wordt dan niets gewijzigd" : "Verstuur"}
+                className={`shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${
+                  bezig ? "bg-red-600 hover:bg-red-500" : "bg-violet-700 hover:bg-violet-600"
+                }`}
               >
                 {bezig ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="animate-spin" aria-hidden>
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
                   </svg>
                 ) : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>

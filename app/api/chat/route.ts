@@ -258,11 +258,15 @@ export async function POST(req: Request) {
 
         let reply = "";
         let limietBereikt = false;
+        // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
+        const stopper = new AbortController();
+        req.signal.addEventListener("abort", () => stopper.abort());
         try {
         for await (const message of query({
           prompt: contextRegels.join("\n\n"),
           options: {
             cwd: werkmap,
+            abortController: stopper,
             // Demo: klein snel model — prospects moeten direct resultaat zien.
             // Klantsites: Sonnet voor de hoogste kwaliteit.
             model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
@@ -300,11 +304,16 @@ export async function POST(req: Request) {
           }
         }
         } catch (e) {
+          if (stopper.signal.aborted) {
+            // Gestopt door de eigenaar: niets opslaan, geen concept maken
+            return;
+          }
           // Bij de beurtlimiet gooien we het al gedane werk niet weg:
           // wat af is wordt hieronder gewoon als concept klaargezet.
           if (/maximum number of turns/i.test(String(e))) limietBereikt = true;
           else throw e;
         }
+        if (stopper.signal.aborted) return;
 
         const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
         if (limietBereikt) {
@@ -466,7 +475,9 @@ export async function POST(req: Request) {
         });
       } finally {
         if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
-        controller.close();
+        try {
+          controller.close();
+        } catch {}
       }
     },
   });
