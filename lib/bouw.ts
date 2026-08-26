@@ -663,7 +663,7 @@ Instructies:
 - OVERZICHTEN MOETEN DOORKLIKKEN: elk overzichtsblok (diensten-overzicht, team-overzicht, blog-/artikellijst) linkt per item naar de bijbehorende detailpagina die je gebouwd hebt — titel én afbeelding klikbaar. Een dienstenkaart zonder link naar de dienstpagina is FOUT. Bouw je een detailpagina, controleer dan dat er vanaf het overzicht naar verwezen wordt en andersom (kruimelpad of terug-link).
 - NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
 - TAGS, CATEGORIEËN EN ARCHIEVEN: WordPress-sites hebben vaak tagwolken, categorielinks en archieflinks (/tag/..., /category/..., /author/..., /2023/05/...). Die archiefpagina's bestaan niet in de nieuwe site. Regel: laat NOOIT een dode link achter. Een tagwolk-widget laat je weg of maak je van gewone tekst zonder links; losse tag-/categorielinks bij berichten verwijzen naar het blogoverzicht (/blog/) of worden platte tekst. Controleer aan het eind dat elke interne link naar een pagina wijst die je ook echt gebouwd hebt.
-- CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map delen/ als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (delen/menu.html), footer (delen/footer.html) en topbalk (delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
+- CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map site/delen/ (dus BINNEN site/ — bv. site/delen/menu.html; delen/ buiten site/ wordt NIET gepubliceerd) als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (site/delen/menu.html), footer (site/delen/footer.html) en topbalk (site/delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
 - DECORATIE HOORT ERBIJ: sfeer-elementen uit het thema (wolken, bladeren, golven, patronen, iconen die als CSS-achtergrond staan) zijn onderdeel van het ontwerp en staan gedownload in site/afbeeldingen/. Plaats ze terug als CSS-achtergronden op de overeenkomstige secties — de screenshots tonen waar ze horen.
 - SLIDERS per soort (de echte beelden staan in de afbeeldingen-kaart; nooit leeg of nagemaakt):
   - Hero-/fotoslider: statische hero met de eerste (of mooiste) slide, of een eenvoudige CSS-crossfade met de echte slides.
@@ -735,6 +735,19 @@ ${HUISREGELS}`;
         if (/maximum number of turns/i.test(String(e))) limietBereikt = true;
         else throw e;
       }
+      // Reddingsactie: delen/ per ongeluk buiten site/ gezet? Verplaatsen.
+      try {
+        const { cp, rm: rmDir, stat } = await import("node:fs/promises");
+        const losDelen = path.join(werkmap, "delen");
+        const goedDelen = path.join(siteDir, "delen");
+        const bestaatLos = await stat(losDelen).then(() => true).catch(() => false);
+        const bestaatGoed = await stat(goedDelen).then(() => true).catch(() => false);
+        if (bestaatLos && !bestaatGoed) {
+          await cp(losDelen, goedDelen, { recursive: true });
+          await rmDir(losDelen, { recursive: true, force: true });
+          await stuurStatus("Centrale onderdelen naar de juiste map verplaatst...");
+        }
+      } catch {}
       // Checkpoint 2: na elke bouwronde de stand veiligstellen
       await stuurStatus(`Checkpoint: bouwronde ${ronde} veiligstellen...`);
       await slaTussenstandOp(
@@ -753,6 +766,68 @@ ${HUISREGELS}`;
 
   if (!(await alleBestanden(siteDir)).some((b) => b === "index.html")) {
     throw new Error("De bouw leverde geen homepage op — probeer opnieuw");
+  }
+
+  // Volledigheidscontrole: welke bronpagina's ontbreken, en welke invoeg-markers
+  // hebben geen bijbehorend delen-bestand? Zo ja: gerichte herstelronde.
+  {
+    const gebouwd = await alleBestanden(siteDir);
+    const heeftPagina = (pad: string) => {
+      const p = pad.replace(/^\/+|\/+$/g, "");
+      if (p === "") return gebouwd.includes("index.html");
+      return gebouwd.includes(`${p}/index.html`) || gebouwd.includes(`${p}.html`);
+    };
+    const ontbrekend = paginas
+      .filter((p) => p.type === "page" && !heeftPagina(p.pad))
+      .map((p) => `${p.pad} ("${p.titel}")`);
+    const delenAanwezig = new Set(
+      gebouwd
+        .filter((b) => b.startsWith("delen/"))
+        .map((b) => b.replace(/^delen\//, "").replace(/\.html?$/i, "").toLowerCase())
+    );
+    const markersZonderDeel = new Set<string>();
+    for (const b of gebouwd.filter((x) => /\.html?$/i.test(x) && !x.startsWith("delen/"))) {
+      const html = await readFile(path.join(siteDir, b), "utf8");
+      for (const m of html.matchAll(/<!--\s*invoeg:([a-z0-9-]+)\s*-->/gi)) {
+        if (!delenAanwezig.has(m[1].toLowerCase())) markersZonderDeel.add(m[1]);
+      }
+    }
+    if (ontbrekend.length > 0 || markersZonderDeel.size > 0) {
+      await stuurStatus(
+        `Herstelronde: ${ontbrekend.length} ontbrekende pagina's, ${markersZonderDeel.size} lege onderdelen...`
+      );
+      const herstelPrompt = `${aanwijzingenBlok}Je hebt een website gebouwd in site/, maar de eindcontrole vond gebreken. Herstel ALLEEN het volgende, verander verder niets:
+${ontbrekend.length > 0 ? `\nONTBREKENDE PAGINA'S — bouw deze alsnog volledig uit bronmateriaal/, in dezelfde stijl als de rest van de site (bekijk een bestaande pagina als voorbeeld). Sla alleen pagina's over die de beheerder-aanwijzingen hierboven expliciet uitsluiten:\n${ontbrekend.map((o) => `- ${o}`).join("\n")}\nZorg dat elke nieuwe pagina bereikbaar is vanuit het menu of het bijbehorende overzicht.` : ""}
+${markersZonderDeel.size > 0 ? `\nLEGE CENTRALE ONDERDELEN — pagina's gebruiken deze markers maar het bestand ontbreekt. Maak voor elk een compleet fragment in site/delen/ op basis van het oude ontwerp (oud-ontwerp/): ${[...markersZonderDeel].map((m) => `site/delen/${m}.html (marker <!--invoeg:${m}-->)`).join(", ")}` : ""}`;
+      try {
+        for await (const message of query({
+          prompt: herstelPrompt,
+          options: {
+            cwd: werkmap,
+            model: "claude-opus-5",
+            systemPrompt:
+              "Je bent de site-bouwer van WordSwap. Je herstelt gericht wat er in de eindcontrole ontbrak.",
+            allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
+            permissionMode: "bypassPermissions",
+            maxTurns: 100,
+            env: {
+              ...process.env,
+              HOME: "/tmp",
+              XDG_CONFIG_HOME: "/tmp/.config",
+              XDG_CACHE_HOME: "/tmp/.cache",
+              CLAUDE_CONFIG_DIR: "/tmp/.claude",
+            },
+          },
+        })) {
+          if (message.type === "result") telResultaatMee(message);
+        }
+      } catch (e) {
+        console.error("Herstelronde mislukt:", e);
+      }
+      await slaTussenstandOp(repoNaam, siteNaam, siteDir, "Checkpoint na herstelronde").catch(
+        (e) => console.error("Checkpoint herstelronde mislukt:", e)
+      );
+    }
   }
 
   // Vergelijk-en-verbeter: nieuwe site naast de oude leggen tot het klopt
