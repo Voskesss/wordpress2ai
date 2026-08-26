@@ -277,6 +277,26 @@ export default function Chat({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ changeId: concept.changeId }),
     });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { melding?: string };
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst:
+            data.melding ??
+            "Dat lukte helaas niet — probeer het zo nog eens.",
+        },
+      ]);
+      setChatOpen(true);
+      if (data.melding) {
+        // Concept bestaat niet meer (bv. demo-reset): opruimen en terug naar live
+        setConcept(null);
+        herlaad(false);
+      }
+      setConceptActie(null);
+      return;
+    }
     if (res.ok) {
       setBerichten((b) => [
         ...b,

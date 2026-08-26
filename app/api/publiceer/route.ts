@@ -19,10 +19,19 @@ export async function POST(req: Request) {
     .innerJoin(sites, eq(changes.siteId, sites.id))
     .where(eq(changes.id, changeId));
 
-  if (
-    !rij ||
-    (!rij.site.isDemo && rij.site.clerkUserId !== userId && !(await isBeheerder()))
-  ) {
+  if (!rij) {
+    // Concept bestaat niet meer — bij de demo betekent dat: de uurlijkse reset
+    // heeft het net gewist. Duidelijk melden i.p.v. een vage fout.
+    return NextResponse.json(
+      {
+        error: "verlopen",
+        melding:
+          "Dit concept bestaat niet meer. De demo-site wordt elk uur automatisch teruggezet en dat is net gebeurd — je wijziging is daarbij gewist. Vraag hem gerust opnieuw!",
+      },
+      { status: 410 }
+    );
+  }
+  if (!rij.site.isDemo && rij.site.clerkUserId !== userId && !(await isBeheerder())) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
   if (rij.change.status !== "concept") {
@@ -32,7 +41,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Geen concept aanwezig" }, { status: 400 });
   }
 
-  await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+  try {
+    await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+  } catch (e) {
+    if (rij.site.isDemo) {
+      // De reset heeft de branch/PR net gesloten
+      try {
+        await db
+          .update(changes)
+          .set({ status: "afgewezen" })
+          .where(eq(changes.id, rij.change.id));
+      } catch {}
+      return NextResponse.json(
+        {
+          error: "verlopen",
+          melding:
+            "Publiceren lukte niet meer: de demo-site is net automatisch teruggezet (dat gebeurt elk uur) en je wijziging is daarbij gewist. Vraag hem gerust opnieuw!",
+        },
+        { status: 410 }
+      );
+    }
+    throw e;
+  }
   await verwijderBranch(rij.site.githubRepo, rij.change.branch);
   if (rij.site.netlifySiteId) {
     // Live zetten: bestanden direct naar Cloudflare (gratis, geen wachtrij)
