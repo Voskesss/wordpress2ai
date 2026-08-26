@@ -254,7 +254,7 @@ export async function POST(req: Request) {
             ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
             : null,
           afbeelding
-            ? `De eigenaar heeft een afbeelding meegestuurd; die staat klaar op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). Plaats hem waar de eigenaar vraagt, met een passende beschrijvende alt-tekst.`
+            ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met Read. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst, of (b) een VOORBEELD van hoe iets eruit moet zien (een schets, screenshot van een andere site, gewenste stijl) — bouw dan na wat er op de afbeelding te zien is en plaats de afbeelding zelf NIET op de site.`
             : null,
           openConcept
             ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`

@@ -264,6 +264,18 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
   vrij; kandidaten: WordSwap (voorkeur), KlaarSite, SiteRust, WisselWeb.
   Bij keuze: site, metadata, Clerk-appnaam en e-mail omzetten.
 
+## Klant-sites rechtstreeks via git/Claude Code aanpassen
+
+Elke push naar `main` van een klant-repo wordt automatisch live gezet (webhook `/api/github-push` → Cloudflare live + werkversie). Werkwijze voor Jos:
+
+1. `gh repo clone wordpress2ai/<repo>` (of open een bestaande kloon)
+2. Aanpassen in Claude Code — met screenshots/voorbeelden als referentie
+3. `git push` → binnen een minuut live. Vangnet zonder webhook: `npx tsx --env-file=.env.local scripts/deploy-klant.mts <repo>`
+
+Let op: `delen/*.html` zijn centrale onderdelen (menu/footer) — bewerk die, niet de kopieën; markers `<!--invoeg:naam-->` worden bij deploy uitgevouwen.
+
+Voor een expert-klant (eigen AI-tools op eigen site): nodig hun GitHub-account uit als collaborator op hun repo (Settings → Collaborators); zelfde push-naar-live-flow. Eenmalige inrichting webhook: GitHub org **wordpress2ai → Settings → Webhooks → Add webhook**, URL `https://wordpress2ai-beta.vercel.app/api/github-push`, content type `application/json`, secret = `GITHUB_WEBHOOK_SECRET` uit .env.local (ook in Vercel zetten), alleen push-events.
+
 ## Roadmap-ideeën (nog niet gepland)
 
 - **Toolset bij de chat:** visuele hulpmiddelen naast vrije tekst — een kleurkiezer ("maak de knoppen deze kleur"), lettertype-kiezer, afbeelding-kiezer uit de mediabank, misschien klik-op-element ("verander dít"). Doel: gebruiksvriendelijker voor niet-typers; de gekozen waarde gaat als gestructureerd gegeven mee met het chatbericht.
