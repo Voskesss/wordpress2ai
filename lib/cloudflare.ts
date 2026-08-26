@@ -4,6 +4,10 @@ import path from "node:path";
 import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
 const API = "https://api.cloudflare.com/client/v4";
+
+// Meldt in het portaal-venster welke pagina open staat; doet niets buiten een iframe.
+const PAGINA_MELDER =
+  '<script>try{if(parent!==window)parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*")}catch(e){}</script>';
 const ACCOUNT = "2a71da7bfe94ae3540d4af02be53d53e";
 export const CF_SUBDOMEIN = "wordswap";
 
@@ -47,7 +51,15 @@ export async function deployMapNaarCloudflare(werkmap: string, naam: string) {
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
     for (const pad of bestanden) {
-      const data = await readFile(path.join(werkmap, pad));
+      let data = await readFile(path.join(werkmap, pad));
+      if (/\.html?$/i.test(pad) && !data.includes("wp2ai-pagina")) {
+        const html = data.toString("utf8");
+        data = Buffer.from(
+          html.includes("</body>")
+            ? html.replace("</body>", `${PAGINA_MELDER}</body>`)
+            : html + PAGINA_MELDER
+        );
+      }
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
       manifest[`/${pad}`] = { hash, size: data.length };
       inhoudPerHash.set(hash, { data, pad });

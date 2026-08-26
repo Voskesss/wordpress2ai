@@ -266,6 +266,8 @@ terug te draaien), maar dat is niet genoeg als enige vangnet:
 
 ## Roadmap-ideeën (nog niet gepland)
 
+- **Toolset bij de chat:** visuele hulpmiddelen naast vrije tekst — een kleurkiezer ("maak de knoppen deze kleur"), lettertype-kiezer, afbeelding-kiezer uit de mediabank, misschien klik-op-element ("verander dít"). Doel: gebruiksvriendelijker voor niet-typers; de gekozen waarde gaat als gestructureerd gegeven mee met het chatbericht.
+
 - **Externe-content-plugins herkennen (backlog, zie VGK Adviseurs):** sommige WordPress-sites laden berichten via een plugin uit een externe bron (feed/API) — die staan dan niet (volledig) in de XML-export. De Migrator moet dit herkennen: als de live site meer/andere berichten toont dan de export bevat, waarschuwen in de intake en de ontbrekende content via scraping van de live site ophalen. Per klant beslissen: statisch bevriezen of maatwerk (periodieke sync).
 - **Mediabank / afbeeldingen-kiezer:** in de chat een keuzelijst tonen van afbeeldingen die al bij de site horen (zoals de WordPress-mediabibliotheek), zodat klanten kunnen wisselen zonder te uploaden. Eerste stap is gedaan: de demo-AI mag alleen bestaande afbeeldingen uit de werkmap gebruiken. Later: visuele picker in het portaal + centrale mediabank per klant.
 

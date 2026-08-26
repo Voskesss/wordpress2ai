@@ -41,11 +41,13 @@ export default function Chat({
   const [afbeelding, setAfbeelding] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
+  const huidigeRef = useRef("/");
   const [concept, setConcept] = useState<Concept | null>(
     openConcept
       ? { ...openConcept, paginas: openConcept.paginas.map(paginaLabel) }
       : null
   );
+  const [chatOpen, setChatOpen] = useState(false);
   const [reloadTeller, setReloadTeller] = useState(0);
   const [conceptActie, setConceptActie] = useState<string | null>(null);
   const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
@@ -54,6 +56,23 @@ export default function Chat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const [schaal, setSchaal] = useState(1);
+
+  function basisVoor(conceptActief: boolean) {
+    return conceptActief && werkversieUrl
+      ? `https://${werkversieUrl}/`
+      : liveUrl
+        ? `https://${liveUrl}/`
+        : `/site-weergave/${siteId}/`;
+  }
+  const [iframeSrc, setIframeSrc] = useState(() => basisVoor(Boolean(openConcept)));
+
+  /** Herlaadt het voorbeeld op de pagina waar de eigenaar nu naar kijkt. */
+  function herlaad(conceptActief: boolean) {
+    const pad =
+      huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+    setIframeSrc(basisVoor(conceptActief) + pad);
+    setReloadTeller((t) => t + 1);
+  }
 
   useEffect(() => {
     const el = viewerRef.current;
@@ -68,7 +87,9 @@ export default function Chat({
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {
-        setHuidigePagina(e.data.pad.replace(/^\/preview\/\d+/, "") || "/");
+        const pad = e.data.pad.replace(/^\/preview\/\d+/, "") || "/";
+        setHuidigePagina(pad);
+        huidigeRef.current = pad;
       }
     }
     window.addEventListener("message", onMessage);
@@ -77,20 +98,13 @@ export default function Chat({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [berichten, bezig]);
-
-  // Concept open → werkversie-adres; anders de live site (identiek aan werkversie)
-  const basisUrl =
-    concept && werkversieUrl
-      ? `https://${werkversieUrl}/`
-      : liveUrl
-        ? `https://${liveUrl}/`
-        : `/site-weergave/${siteId}/`;
+  }, [berichten, bezig, chatOpen]);
 
   async function verstuur() {
     const tekst = invoer.trim();
     if (!tekst || bezig) return;
     setInvoer("");
+    setChatOpen(true);
     const teVersturen = afbeelding;
     setAfbeelding(null);
     setBerichten((b) => [
@@ -158,7 +172,7 @@ export default function Chat({
           prompt: data.prompt ?? "",
           paginas: (data.bestanden ?? []).map(paginaLabel),
         });
-        setReloadTeller((t) => t + 1);
+        herlaad(true);
       }
     } catch {
       setBerichten((b) => [
@@ -190,191 +204,193 @@ export default function Chat({
               : "Het concept is verwijderd. Je website blijft zoals hij was.",
         },
       ]);
+      setChatOpen(true);
       setConcept(null);
-      setReloadTeller((t) => t + 1);
+      herlaad(false);
     }
     setConceptActie(null);
   }
 
   return (
-    <div
-      className={`grid gap-6 items-start ${
-        apparaat === "desktop" ? "" : "xl:grid-cols-[minmax(0,1fr)_400px]"
-      }`}
-    >
-      {/* Linkerkolom: website-viewer */}
-      <div className="space-y-4 min-w-0">
-        {(
-          <div
-            className={`rounded-3xl border-2 bg-white shadow-sm overflow-hidden ${
-              concept ? "border-amber-400" : "border-stone-200"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
-              {concept ? (
-                <span className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  Concept — nog niet zichtbaar voor bezoekers
+    <div className="min-w-0">
+      <div
+        className={`relative rounded-3xl border-2 bg-white shadow-sm overflow-hidden ${
+          concept ? "border-amber-400" : "border-stone-200"
+        }`}
+      >
+        {/* Bovenbalk */}
+        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
+          {concept ? (
+            <span className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              Concept — nog niet zichtbaar voor bezoekers
+            </span>
+          ) : (
+            <span className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Gelijk aan de live site
+            </span>
+          )}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
+              {(
+                [
+                  ["telefoon", "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm4 17.2h.01"],
+                  ["tablet", "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm6 17h.01"],
+                  ["desktop", "M3 4h18v12H3zM9 20h6m-3-4v4"],
+                ] as const
+              ).map(([naam, pad]) => (
+                <button
+                  key={naam}
+                  onClick={() => setApparaat(naam)}
+                  aria-label={`Bekijk op ${naam}`}
+                  title={`Bekijk op ${naam}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full cursor-pointer ${
+                    apparaat === naam
+                      ? "bg-stone-900 text-white"
+                      : "text-stone-400 hover:text-stone-700"
+                  }`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d={pad} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            {liveUrl && (
+              <a
+                href={`https://${liveUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-violet-700 font-medium hover:underline"
+              >
+                Open live site
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Website-viewer */}
+        <div
+          ref={viewerRef}
+          className={`h-[calc(100vh-15rem)] min-h-[32rem] ${
+            apparaat === "desktop"
+              ? "overflow-hidden"
+              : "bg-stone-100 flex justify-center overflow-y-auto py-6"
+          }`}
+        >
+          {apparaat === "desktop" ? (
+            // Echte desktop-breedte (1280px), geschaald naar het venster
+            <iframe
+              key={reloadTeller}
+              src={iframeSrc}
+              title="Je website"
+              style={{
+                width: 1280,
+                height: `${100 / schaal}%`,
+                transform: `scale(${schaal})`,
+                transformOrigin: "top left",
+              }}
+              className="bg-white"
+            />
+          ) : (
+            <iframe
+              key={reloadTeller}
+              src={iframeSrc}
+              title="Je website"
+              className={
+                apparaat === "tablet"
+                  ? "w-[768px] max-w-full h-[1024px] shrink-0 bg-white rounded-2xl border-8 border-stone-800 shadow-xl"
+                  : "w-[375px] h-[812px] shrink-0 bg-white rounded-[2rem] border-8 border-stone-800 shadow-xl"
+              }
+            />
+          )}
+        </div>
+
+        {/* Zwevend chatpaneel over de preview */}
+        <div className="absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2">
+          {/* Gespreksvenster (inklapbaar) */}
+          {chatOpen && (
+            <div className="mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                  Gesprek
                 </span>
-              ) : (
-                <span className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Gelijk aan de live site
-                </span>
-              )}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
-                  {(
-                    [
-                      ["telefoon", "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm4 17.2h.01"],
-                      ["tablet", "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm6 17h.01"],
-                      ["desktop", "M3 4h18v12H3zM9 20h6m-3-4v4"],
-                    ] as const
-                  ).map(([naam, pad]) => (
-                    <button
-                      key={naam}
-                      onClick={() => setApparaat(naam)}
-                      aria-label={`Bekijk op ${naam}`}
-                      title={`Bekijk op ${naam}`}
-                      className={`flex h-8 w-8 items-center justify-center rounded-full cursor-pointer ${
-                        apparaat === naam
-                          ? "bg-stone-900 text-white"
-                          : "text-stone-400 hover:text-stone-700"
-                      }`}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                        <path d={pad} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </button>
-                  ))}
-                </div>
-                {liveUrl && (
-                  <a
-                    href={`https://${liveUrl}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-violet-700 font-medium hover:underline"
+                <button
+                  onClick={() => setChatOpen(false)}
+                  aria-label="Gesprek inklappen"
+                  title="Gesprek inklappen"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" transform="rotate(180 12 12)" />
+                  </svg>
+                </button>
+              </div>
+              <div ref={scrollRef} className="max-h-72 overflow-y-auto p-4 space-y-3">
+                {berichten.length === 0 && !bezig && (
+                  <p className="text-stone-400 text-sm">
+                    Klik door je website en typ hieronder wat je aangepast wilt
+                    hebben — bijvoorbeeld: &ldquo;verander de kop op deze
+                    pagina&rdquo;.
+                  </p>
+                )}
+                {berichten.map((m, i) => (
+                  <div
+                    key={i}
+                    className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
+                      m.rol === "klant"
+                        ? "ml-auto bg-violet-600 text-white rounded-br-sm"
+                        : "bg-stone-100 text-stone-800 rounded-bl-sm"
+                    }`}
                   >
-                    Open live site
-                  </a>
+                    {m.tekst}
+                  </div>
+                ))}
+                {bezig && (
+                  <p className="text-violet-600 text-sm animate-pulse font-medium">
+                    {statusTekst ?? "Bezig met je wijziging..."}
+                  </p>
                 )}
               </div>
             </div>
+          )}
 
-            <div
-              ref={viewerRef}
-              className={`h-[30rem] xl:h-[42rem] ${
-                apparaat === "desktop"
-                  ? "overflow-hidden"
-                  : "bg-stone-100 flex justify-center overflow-y-auto py-6"
-              }`}
-            >
-              {apparaat === "desktop" ? (
-                // Echte desktop-breedte (1280px), geschaald naar het venster
-                <iframe
-                  key={reloadTeller}
-                  src={basisUrl}
-                  title="Je website"
-                  style={{
-                    width: 1280,
-                    height: `${100 / schaal}%`,
-                    transform: `scale(${schaal})`,
-                    transformOrigin: "top left",
-                  }}
-                  className="bg-white"
-                />
-              ) : (
-                <iframe
-                  key={reloadTeller}
-                  src={basisUrl}
-                  title="Je website"
-                  className={
-                    apparaat === "tablet"
-                      ? "w-[768px] max-w-full h-[1024px] shrink-0 bg-white rounded-2xl border-8 border-stone-800 shadow-xl"
-                      : "w-[375px] h-[812px] shrink-0 bg-white rounded-[2rem] border-8 border-stone-800 shadow-xl"
-                  }
-                />
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Rechterkolom: concept-panel + chat */}
-      <div className="space-y-4 min-w-0">
-        {concept && (
-          <div className="rounded-3xl border-2 border-amber-400 bg-amber-50 p-5">
-            <p className="font-semibold text-amber-950">
-              Er staat een concept klaar
-            </p>
-            {concept.prompt && (
-              <p className="mt-2 text-sm text-amber-900">
-                Je vroeg: &ldquo;{concept.prompt}&rdquo;
-              </p>
-            )}
-            {concept.paginas.length > 0 && (
-              <p className="mt-1 text-sm text-amber-800">
-                Aangepast:{" "}
-                {concept.paginas.map((p, i) => (
-                  <span key={p + i} className="font-medium">
-                    {i > 0 && ", "}
-                    {p}
+          {/* Concept-strip */}
+          {concept && (
+            <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <p className="min-w-0 flex-1 text-sm text-amber-950">
+                <span className="font-semibold">Concept klaar.</span>{" "}
+                {concept.paginas.length > 0 && (
+                  <span className="text-amber-800">
+                    Aangepast: {concept.paginas.join(", ")}.
                   </span>
-                ))}
+                )}{" "}
+                Tevreden?
               </p>
-            )}
-            <div className="mt-4 flex flex-wrap gap-2">
-
-              <button
-                onClick={() => conceptVerwerken("publiceer")}
-                disabled={conceptActie !== null}
-                className="rounded-full bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
-              >
-                {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
-              </button>
-              <button
-                onClick={() => conceptVerwerken("verwerp")}
-                disabled={conceptActie !== null}
-                className="rounded-full px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 cursor-pointer"
-              >
-                {conceptActie === "verwerp" ? "Bezig..." : "Verwijder"}
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-amber-700">
-              Niet helemaal goed? Typ gewoon in de chat wat er anders moet.
-            </p>
-          </div>
-        )}
-
-        <div className="rounded-3xl border border-stone-200 bg-white shadow-sm flex flex-col h-[26rem] xl:h-[30rem]">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
-            {berichten.length === 0 && (
-              <p className="text-stone-400 text-sm">
-                Klik links door je website en typ wat je aangepast wilt hebben
-                — bijvoorbeeld: &ldquo;verander de kop op deze pagina&rdquo;.
-              </p>
-            )}
-            {berichten.map((m, i) => (
-              <div
-                key={i}
-                className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
-                  m.rol === "klant"
-                    ? "ml-auto bg-violet-600 text-white rounded-br-sm"
-                    : "bg-stone-100 text-stone-800 rounded-bl-sm"
-                }`}
-              >
-                {m.tekst}
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => conceptVerwerken("publiceer")}
+                  disabled={conceptActie !== null}
+                  className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                >
+                  {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
+                </button>
+                <button
+                  onClick={() => conceptVerwerken("verwerp")}
+                  disabled={conceptActie !== null}
+                  className="rounded-full px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 cursor-pointer"
+                >
+                  {conceptActie === "verwerp" ? "Bezig..." : "Verwijder"}
+                </button>
               </div>
-            ))}
-            {bezig && (
-              <p className="text-violet-600 text-sm animate-pulse font-medium">
-                {statusTekst ?? "Bezig met je wijziging..."}
-              </p>
-            )}
-          </div>
-          <div className="border-t border-stone-200 p-3">
+            </div>
+          )}
+
+          {/* Invoerbalk */}
+          <div className="rounded-full border border-stone-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur">
             {afbeelding && (
-              <div className="mb-3 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 w-fit">
+              <div className="mx-2 mt-1 mb-2 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 w-fit">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={URL.createObjectURL(afbeelding)}
@@ -393,7 +409,22 @@ export default function Chat({
                 </button>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {!chatOpen && berichten.length > 0 && (
+                <button
+                  onClick={() => setChatOpen(true)}
+                  aria-label="Gesprek openen"
+                  title="Gesprek openen"
+                  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 cursor-pointer"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold text-white">
+                    {berichten.length}
+                  </span>
+                </button>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -406,7 +437,7 @@ export default function Chat({
                 disabled={bezig}
                 aria-label="Afbeelding toevoegen"
                 title="Afbeelding toevoegen"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-300 hover:border-violet-400 disabled:opacity-50 cursor-pointer"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" strokeWidth="2" />
@@ -417,20 +448,32 @@ export default function Chat({
               <input
                 value={invoer}
                 onChange={(e) => setInvoer(e.target.value)}
+                onFocus={() => berichten.length > 0 && setChatOpen(true)}
                 onKeyDown={(e) => e.key === "Enter" && verstuur()}
-                placeholder={`Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${huidigePagina}` : ""}?`}
-                className="flex-1 min-w-0 rounded-full border border-stone-300 px-4 py-2.5 text-base sm:text-sm focus:border-violet-600 focus:outline-none"
+                placeholder={
+                  bezig
+                    ? (statusTekst ?? "Bezig met je wijziging...")
+                    : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
+                }
+                className="flex-1 min-w-0 bg-transparent px-2 py-2 text-base sm:text-sm focus:outline-none"
                 disabled={bezig}
               />
               <button
                 onClick={verstuur}
                 disabled={bezig}
                 aria-label="Verstuur"
-                className="shrink-0 rounded-full bg-violet-700 px-3.5 py-2.5 text-white font-semibold text-sm hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                className="shrink-0 rounded-full bg-violet-700 h-10 w-10 flex items-center justify-center text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                {bezig ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="animate-spin" aria-hidden>
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
