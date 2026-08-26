@@ -105,6 +105,7 @@ export const bouwJobs = pgTable("bouw_jobs", {
   repoNaam: text("repo_naam").notNull(),
   clerkUserId: text("clerk_user_id").notNull(),
   wxr: text("wxr").notNull(),
+  aanwijzingen: text("aanwijzingen"),
   resultaat: jsonb("resultaat"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),

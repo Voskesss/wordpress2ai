@@ -484,7 +484,13 @@ async function slaTussenstandOp(
 }
 
 export async function voerBouwUit(
-  opdracht: { xml: string; siteNaam: string; repoNaam: string; clerkUserId: string },
+  opdracht: {
+    xml: string;
+    siteNaam: string;
+    repoNaam: string;
+    clerkUserId: string;
+    aanwijzingen?: string | null;
+  },
   stuurStatus: (tekst: string) => void | Promise<void>
 ): Promise<BouwResultaat> {
   const { xml, siteNaam, repoNaam } = opdracht;
@@ -640,7 +646,10 @@ export async function voerBouwUit(
     tekst: `De AI bouwt de site (${paginas.length} pagina's)...`,
   });
 
-  const prompt = `Bouw in de map site/ een complete statische website voor "${siteNaam}" op basis van de WordPress-content in bronmateriaal/.
+  const aanwijzingenBlok = opdracht.aanwijzingen
+    ? `\n\nAANWIJZINGEN VAN DE BEHEERDER (deze gaan vóór alle andere regels):\n${opdracht.aanwijzingen}\n`
+    : "";
+  const prompt = `${aanwijzingenBlok}Bouw in de map site/ een complete statische website voor "${siteNaam}" op basis van de WordPress-content in bronmateriaal/.
 
 Instructies:
 - Elk bestand in bronmateriaal/ is één pagina; de commentaarregels bovenaan geven het URL-pad, de titel en samenvatting. Bouw elke pagina op EXACT dat pad: "/over-ons/" wordt site/over-ons/index.html, "/" wordt site/index.html.

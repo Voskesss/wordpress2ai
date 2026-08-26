@@ -27,6 +27,7 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const xmlInhoud = await leesWxr(form);
   const siteNaam = String(form.get("siteNaam") ?? "").trim();
+  const aanwijzingen = String(form.get("aanwijzingen") ?? "").trim().slice(0, 4000) || null;
   const repoNaam = String(form.get("repoNaam") ?? "")
     .trim()
     .toLowerCase()
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
     .values({
       siteNaam,
       repoNaam,
+      aanwijzingen,
       clerkUserId: user.id,
       wxr: xmlInhoud,
       voortgang: "In de wachtrij...",

@@ -40,6 +40,7 @@ async function main() {
           siteNaam: job.siteNaam,
           repoNaam: job.repoNaam,
           clerkUserId: job.clerkUserId,
+          aanwijzingen: job.aanwijzingen,
         },
         async (tekst) => {
           console.log(`  ${tekst}`);

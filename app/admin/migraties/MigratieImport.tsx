@@ -37,6 +37,7 @@ export default function MigratieImport() {
   const [wxrFile, setWxrFile] = useState<File | null>(null);
   const [siteNaam, setSiteNaam] = useState("");
   const [repoNaam, setRepoNaam] = useState("");
+  const [aanwijzingen, setAanwijzingen] = useState("");
   const [bouwStatus, setBouwStatus] = useState<string | null>(null);
   const [gestart, setGestart] = useState<string | null>(null);
   const [bouwResultaat, setBouwResultaat] = useState<{
@@ -89,6 +90,7 @@ export default function MigratieImport() {
       form.set("gz", "1");
       form.set("siteNaam", siteNaam);
       form.set("repoNaam", repoNaam);
+      if (aanwijzingen.trim()) form.set("aanwijzingen", aanwijzingen.trim());
       const res = await fetch("/api/admin/migratie-bouw", {
         method: "POST",
         body: form,
@@ -213,6 +215,16 @@ export default function MigratieImport() {
                 />
               </label>
             </div>
+            <label className="mt-4 block text-sm font-semibold">
+              Aanwijzingen voor de bouw (optioneel)
+              <textarea
+                value={aanwijzingen}
+                onChange={(e) => setAanwijzingen(e.target.value)}
+                rows={3}
+                placeholder={"Bijv.:\n- Laat de pagina Actueel weg; die wordt door een externe plugin gevuld\n- De vacaturepagina's niet meenemen"}
+                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 font-normal text-sm focus:border-violet-600 focus:outline-none"
+              />
+            </label>
             <button
               onClick={bouwSite}
               disabled={Boolean(bouwStatus) || !siteNaam || !repoNaam}
