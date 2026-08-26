@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Prijzen",
   description:
-    "Eenmalig vanaf €250 voor de overstap van WordPress, daarna €20 per maand voor de AI-koppeling. Geen lock-in: opzeggen of overstappen kan altijd.",
+    "Eenmalig €250 tot €750 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna vanaf €20 per maand voor de AI-koppeling. Geen lock-in: opzeggen of overstappen kan altijd.",
 };
 
 const overstap = [
@@ -40,8 +40,9 @@ export default function Prijzen() {
           Prijzen
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Eén keer betalen voor de overstap, daarna een vast laag bedrag per
-          maand. Geen verrassingen, geen kleine lettertjes, geen lock-in.
+          Eén keer betalen voor de overstap, daarna een laag maandbedrag dat
+          past bij hoe je de AI gebruikt. Geen verrassingen, geen kleine
+          lettertjes, geen lock-in.
         </p>
       </div>
 
@@ -49,8 +50,13 @@ export default function Prijzen() {
         <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <h2 className="font-display text-xl font-semibold">De overstap</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            vanaf €250{" "}
+            €250 – €750{" "}
             <span className="text-base font-normal text-stone-500">eenmalig</span>
+          </p>
+          <p className="mt-2 text-sm text-stone-500">
+            €250 voor een kleine website, tot ± €750 voor een grote of complexe
+            site (veel pagina&apos;s, blog, bijzondere functies). Je weet het
+            bedrag vooraf — geen verrassingen achteraf.
           </p>
           <ul className="mt-6 space-y-3 text-stone-600">
             {overstap.map((punt) => (
@@ -64,8 +70,12 @@ export default function Prijzen() {
         <div className="reveal rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
           <h2 className="font-display text-xl font-semibold">De AI-koppeling</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            €20{" "}
+            vanaf €20{" "}
             <span className="text-base font-normal text-stone-500">per maand</span>
+          </p>
+          <p className="mt-2 text-sm text-stone-500">
+            Afgestemd op je gebruik: verander je zelden iets, dan spreken we een
+            lager tarief of betalen-per-wijziging af.
           </p>
           <ul className="mt-6 space-y-3 text-stone-600">
             {koppeling.map((punt) => (
@@ -111,9 +121,10 @@ export default function Prijzen() {
             </table>
           </div>
           <p className="mt-4 text-sm text-stone-500">
-            Bedragen zijn indicatief. Bij WordSwap betaal je €20 p/m voor
-            de AI-koppeling; alleen je e-mailabonnement (vanaf ± €8 p/m) loopt
-            apart bij je e-mailprovider.
+            Bedragen zijn indicatief. Bij WordSwap betaal je vanaf €20 p/m voor
+            de AI-koppeling (afgestemd op je gebruik); alleen je
+            e-mailabonnement (vanaf ± €8 p/m) loopt apart bij je
+            e-mailprovider.
           </p>
         </div>
       </div>
@@ -127,7 +138,7 @@ export default function Prijzen() {
           {[
             [
               "Grotere sites",
-              "Vanaf €250 voor eenvoudige sites (± 5 pagina's); grotere sites of een complexe opbouw krijgen vooraf een eerlijke offerte.",
+              "Kleine site ± €250, grote of complexe site tot ± €750. Nóg groter of heel bijzonder? Dan krijg je vooraf een eerlijke offerte.",
             ],
             [
               "Extra functies",

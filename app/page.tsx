@@ -285,7 +285,8 @@ export default function Home() {
           </h2>
           <p className="mt-5 text-lg text-violet-100 max-w-xl mx-auto">
             Eenmalig vanaf €250 voor de overstap (omzetten, SEO-behoud en
-            domeinkoppeling), daarna €20 per maand voor de AI-koppeling.
+            domeinkoppeling), daarna vanaf €20 per maand voor de AI-koppeling —
+            afgestemd op hoe vaak je iets wijzigt.
             E-mailmigratie kan er als aanvulling bij. Reken maar na: dat is al
             snel minder dan wat je nu kwijt bent aan hosting en plugins.
           </p>
