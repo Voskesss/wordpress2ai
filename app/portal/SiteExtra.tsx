@@ -21,7 +21,7 @@ export default async function SiteExtra({
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.siteRepo, siteRepo))
     .orderBy(desc(formulierInzendingen.id))
-    .then((r) => r.slice(0, 10));
+    .then((r) => r.slice(0, 30));
   const documenten = await db
     .select()
     .from(kennisDocumenten)
@@ -33,7 +33,7 @@ export default async function SiteExtra({
       {/* Formulier-inzendingen */}
       <div className="rounded-3xl border border-stone-200 bg-white p-6">
         <h3 className="font-display text-lg font-semibold">
-          Berichten via je contactformulier
+          Berichten via je formulieren
         </h3>
         {inzendingen.length === 0 ? (
           <p className="mt-2 text-sm text-stone-500">
@@ -46,8 +46,11 @@ export default async function SiteExtra({
                 key={inz.id}
                 className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm"
               >
-                <p className="text-xs text-stone-400">
+                <p className="flex items-center justify-between gap-2 text-xs text-stone-400">
                   {inz.aangemaakt.toLocaleString("nl-NL")}
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 font-medium capitalize text-violet-700">
+                    {inz.formulier}
+                  </span>
                 </p>
                 <dl className="mt-1 space-y-0.5">
                   {Object.entries(inz.velden as Record<string, string>).map(

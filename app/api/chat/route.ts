@@ -32,7 +32,12 @@ DIT IS EEN OPENBARE PROBEER-DEMO. Extra regels, zonder uitzondering:
 - Afbeeldingen uploaden kan niet in de demo. Wil de gebruiker een andere afbeelding, gebruik dan uitsluitend afbeeldingen die al in de werkmap staan (kijk in de map met afbeeldingen en bied aan welke er zijn). Verzin of download nooit nieuwe afbeeldingen.
 - Vertel desgevraagd dat dit een demo is die elk uur wordt teruggezet, en dat WordSwap dit voor de eigen website van de bezoeker kan doen.`;
 
-function systeemPrompt(siteNaam: string, richtlijnen?: string | null, isDemo = false) {
+function systeemPrompt(
+  siteNaam: string,
+  richtlijnen?: string | null,
+  isDemo = false,
+  siteCode?: string
+) {
   return `Je bent de AI-websitebeheerder van "${siteNaam}" voor WordSwap. Je praat met de eigenaar van de website — een ondernemer zonder technische kennis. De werkmap bevat de volledige website (statische HTML/CSS).
 
 Werkwijze:
@@ -47,7 +52,7 @@ Werkwijze:
 - Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html"). Ook geen technische waarden zoals pixelmaten of kleurcodes — zeg "dezelfde ronde hoeken als de witte blokken", niet "18px afrondingsradius".
 - Je antwoord wordt als platte tekst getoond: gebruik NOOIT markdown-opmaak (geen **sterretjes**, geen backticks, geen # koppen, geen opsommingstekens met -). Gewone zinnen.
 
-${HUISREGELS}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
+${HUISREGELS}${siteCode ? `\n\nDe site-code voor formulieren (het verborgen veld _site) van deze website is: ${siteCode}` : ""}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
 }
 
 const STATUS_PER_TOOL: Record<string, (input: Record<string, unknown>) => string> = {
@@ -271,7 +276,7 @@ export async function POST(req: Request) {
             // Demo: klein snel model — prospects moeten direct resultaat zien.
             // Klantsites: Sonnet voor de hoogste kwaliteit.
             model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
-            systemPrompt: systeemPrompt(site.naam, site.richtlijnen, site.isDemo),
+            systemPrompt: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
             permissionMode: "bypassPermissions",
             maxTurns: 40,

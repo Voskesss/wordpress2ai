@@ -113,6 +113,7 @@ export const bouwJobs = pgTable("bouw_jobs", {
 export const formulierInzendingen = pgTable("formulier_inzendingen", {
   id: serial("id").primaryKey(),
   siteRepo: text("site_repo").notNull(),
+  formulier: text("formulier").notNull().default("contact"),
   velden: jsonb("velden").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

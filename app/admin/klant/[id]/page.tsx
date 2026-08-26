@@ -369,8 +369,11 @@ export default async function KlantDetail({
                 key={inz.id}
                 className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm"
               >
-                <p className="text-xs text-stone-400">
+                <p className="flex items-center justify-between gap-2 text-xs text-stone-400">
                   {inz.aangemaakt.toLocaleString("nl-NL")}
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 font-medium capitalize text-violet-700">
+                    {inz.formulier}
+                  </span>
                 </p>
                 <dl className="mt-1 space-y-0.5">
                   {Object.entries(inz.velden as Record<string, string>).map(

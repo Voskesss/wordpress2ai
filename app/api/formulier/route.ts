@@ -14,12 +14,22 @@ export async function POST(req: Request) {
 
   const siteRepo = (velden._site ?? "").slice(0, 100);
   const honeypot = velden._extra ?? "";
+  const formulier =
+    (velden._formulier ?? "contact")
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "contact";
   delete velden._site;
   delete velden._extra;
+  delete velden._formulier;
 
   // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan
   if (siteRepo && !honeypot && Object.keys(velden).length > 0) {
-    await db.insert(formulierInzendingen).values({ siteRepo, velden }).catch(() => {});
+    await db
+      .insert(formulierInzendingen)
+      .values({ siteRepo, formulier, velden })
+      .catch(() => {});
   }
 
   return new Response(
