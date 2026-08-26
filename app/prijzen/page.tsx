@@ -130,8 +130,8 @@ export default function Prijzen() {
               "Vanaf €250 voor eenvoudige sites (± 5 pagina's); grotere sites of een complexe opbouw krijgen vooraf een eerlijke offerte.",
             ],
             [
-              "Bijzondere functies",
-              "Boekingssystemen, ledenportalen, specifieke formulieren — we bekijken per geval wat er nodig is en wat het kost.",
+              "Extra functies",
+              "Een prijscalculator, offerte-aanvrager, boekingssysteem of specifiek formulier op je site? Altijd bespreekbaar. Doordat de AI het bouwwerk doet, kost dit een fractie van wat een webbouwer er vroeger voor rekende.",
             ],
             [
               "Nieuw design",

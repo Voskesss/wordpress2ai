@@ -201,6 +201,25 @@ export default function Home() {
             </div>
           ))}
         </div>
+        <div className="reveal mt-8 rounded-3xl border-2 border-violet-200 bg-violet-50/50 p-8 sm:flex items-center justify-between gap-8">
+          <div>
+            <h3 className="font-display text-2xl font-semibold">
+              Wil je méér dan tekst en foto&apos;s?
+            </h3>
+            <p className="mt-2 text-stone-600 leading-relaxed max-w-2xl">
+              Een prijscalculator, een offerte-aanvrager, een boekingsformulier
+              — extra functies op je website zijn altijd bespreekbaar. En
+              doordat de AI het bouwwerk doet, kost dat een fractie van wat
+              maatwerk vroeger kostte.
+            </p>
+          </div>
+          <Link
+            href="/contact"
+            className="lift mt-5 sm:mt-0 inline-block shrink-0 rounded-full border-2 border-violet-600 px-6 py-3 font-semibold text-violet-700 hover:bg-violet-100"
+          >
+            Vraag ernaar
+          </Link>
+        </div>
       </section>
 
       {/* WordPress heeft toch ook AI? */}
