@@ -76,6 +76,8 @@ export default function Chat({
   const [aanwijzen, setAanwijzen] = useState(false);
   const [selectie, setSelectie] = useState<Selectie | null>(null);
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
+  const [kleur, setKleur] = useState<string | null>(null);
+  const kleurInputRef = useRef<HTMLInputElement>(null);
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
@@ -167,6 +169,8 @@ export default function Chat({
     setAfbeelding(null);
     const gekozen = selectie;
     setSelectie(null);
+    const gekozenKleur = kleur;
+    setKleur(null);
     setBerichten((b) => [
       ...b,
       { rol: "klant", tekst: teVersturen ? `\u{1F4CE} ${tekst}` : tekst },
@@ -184,6 +188,7 @@ export default function Chat({
         form.set("huidigePagina", huidigePagina);
         form.set("afbeelding", teVersturen);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
+        if (gekozenKleur) form.set("kleur", gekozenKleur);
         res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
       } else {
         res = await fetch("/api/chat", {
@@ -195,6 +200,7 @@ export default function Chat({
             bericht: tekst,
             huidigePagina,
             selectie: gekozen ?? undefined,
+            kleur: gekozenKleur ?? undefined,
           }),
         });
       }
@@ -631,6 +637,30 @@ export default function Chat({
             </div>
           )}
 
+          {/* Gekozen kleur */}
+          {kleur && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <p className="flex items-center gap-2 text-sm text-violet-900">
+                <span
+                  className="inline-block h-5 w-5 rounded-full border border-stone-300"
+                  style={{ backgroundColor: kleur }}
+                />
+                <span className="font-semibold">Gekozen kleur:</span>{" "}
+                <span className="font-mono">{kleur}</span>
+                <span className="text-violet-600">
+                  — typ erbij wat deze kleur moet krijgen
+                </span>
+              </p>
+              <button
+                onClick={() => setKleur(null)}
+                aria-label="Kleur verwijderen"
+                className="text-violet-400 hover:text-violet-800 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Invoerbalk */}
           <div
             className={`rounded-full border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
@@ -714,6 +744,29 @@ export default function Chat({
                   <circle cx="9" cy="10" r="1.8" fill="currentColor" />
                   <path d="M5 17l4.5-4 3.5 3 2.5-2L19 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
+              </button>
+              </Tip>
+              <Tip tekst="Kies een kleur — handig voor 'maak de knoppen deze kleur'">
+              <button
+                onClick={() => kleurInputRef.current?.click()}
+                disabled={bezig}
+                aria-label="Kleur kiezen"
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 0-4H12a1.5 1.5 0 0 1 0-3h5a4 4 0 0 0 4-4c0-4-4.5-7-9-7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  <circle cx="7.5" cy="11" r="1.3" fill="currentColor" />
+                  <circle cx="10.5" cy="7.5" r="1.3" fill="currentColor" />
+                  <circle cx="15" cy="7.5" r="1.3" fill="currentColor" />
+                </svg>
+                <input
+                  ref={kleurInputRef}
+                  type="color"
+                  defaultValue="#7c3aed"
+                  onChange={(e) => setKleur(e.target.value)}
+                  className="absolute h-0 w-0 opacity-0"
+                  tabIndex={-1}
+                />
               </button>
               </Tip>
               <input

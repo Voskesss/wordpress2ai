@@ -80,6 +80,7 @@ export async function POST(req: Request) {
   let afbeelding: { naam: string; data: Buffer } | null = null;
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
+  let kleur: string | null = null;
 
   const contentType = req.headers.get("content-type") ?? "";
   if (contentType.includes("multipart/form-data")) {
@@ -91,6 +92,10 @@ export async function POST(req: Request) {
       const ruw = form.get("selectie");
       if (typeof ruw === "string" && ruw) selectie = JSON.parse(ruw);
     } catch {}
+    {
+      const k = String(form.get("kleur") ?? "");
+      if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
+    }
     const file = form.get("afbeelding");
     if (file instanceof File && file.size > 0) {
       if (file.size > 8 * 1024 * 1024) {
@@ -118,11 +123,13 @@ export async function POST(req: Request) {
       bericht: string;
       huidigePagina?: string;
       selectie?: Selectie;
+      kleur?: string;
     };
     siteId = body.siteId;
     bericht = body.bericht;
     huidigePagina = body.huidigePagina;
     selectie = body.selectie ?? null;
+    if (typeof body.kleur === "string" && /^#[0-9a-fA-F]{6}$/.test(body.kleur)) kleur = body.kleur;
   }
   if (!bericht?.trim()) {
     return NextResponse.json({ error: "Leeg bericht" }, { status: 400 });
@@ -249,6 +256,9 @@ export async function POST(req: Request) {
             : null,
           huidigePagina && huidigePagina !== "/"
             ? `De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.`
+            : null,
+          kleur
+            ? `De eigenaar heeft met de kleurkiezer een kleur gekozen: ${kleur}. Gebruik EXACT deze kleurcode voor wat hij in het bericht vraagt (en pas waar logisch ook hover-/accentvarianten aan zodat het consistent blijft).`
             : null,
           selectie
             ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
