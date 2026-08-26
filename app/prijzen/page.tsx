@@ -159,7 +159,7 @@ export default function Prijzen() {
             ],
             [
               "Nieuw design",
-              "Wil je de overstap aangrijpen voor een frisse uitstraling? Een nieuw design kan vanaf €1000, inclusief overleg en revisierondes.",
+              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €750, ontwerp door een designer vanaf €1750 — zie de pagina Nieuwe website.",
             ],
           ].map(([kop, tekst]) => (
             <div

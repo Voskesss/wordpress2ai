@@ -101,6 +101,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <nav className="flex flex-col gap-2 text-sm">
           <Link href="/hoe-het-werkt" className="hover:text-violet-600">Hoe het werkt</Link>
           <Link href="/prijzen" className="hover:text-violet-600">Prijzen</Link>
+          <Link href="/nieuwe-website" className="hover:text-violet-600">Nieuwe website</Link>
           <Link href="/contact" className="hover:text-violet-600">Contact</Link>
           </nav>
           </div>

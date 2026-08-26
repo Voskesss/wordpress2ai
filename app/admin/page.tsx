@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { aiKosten, changes, messages, sites, usage } from "@/db/schema";
+import { aiKosten, changes, formulierInzendingen, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -68,6 +68,13 @@ async function demoLeads() {
 export default async function Admin() {
   await requireAdmin();
   const leads = await demoLeads();
+  const { desc } = await import("drizzle-orm");
+  const aanvragen = await db
+    .select()
+    .from(formulierInzendingen)
+    .where(eq(formulierInzendingen.siteRepo, "wordswap"))
+    .orderBy(desc(formulierInzendingen.id))
+    .then((r) => r.slice(0, 20));
   const alleSites = await db.select().from(sites).orderBy(sites.id);
   const maand = new Date().toISOString().slice(0, 7);
 
@@ -189,6 +196,43 @@ export default async function Admin() {
           </Link>
         ))}
       </div>
+
+      {aanvragen.length > 0 && (
+        <div className="mt-10">
+          <h2 className="font-display text-2xl font-semibold">
+            Aanvragen nieuwe website
+          </h2>
+          <div className="mt-4 space-y-3">
+            {aanvragen.map((a) => (
+              <div
+                key={a.id}
+                className="rounded-2xl border border-stone-200 bg-white p-5 text-sm"
+              >
+                <p className="flex items-center justify-between gap-2 text-xs text-stone-400">
+                  {a.aangemaakt.toLocaleString("nl-NL")}
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 font-medium capitalize text-violet-700">
+                    {a.formulier}
+                  </span>
+                </p>
+                <dl className="mt-2 space-y-1">
+                  {Object.entries(a.velden as Record<string, string>).map(
+                    ([k, v]) => (
+                      <div key={k} className="flex gap-2">
+                        <dt className="font-semibold text-stone-700 shrink-0 capitalize">
+                          {k}:
+                        </dt>
+                        <dd className="text-stone-600 break-words min-w-0">
+                          {v}
+                        </dd>
+                      </div>
+                    )
+                  )}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {leads.length > 0 && (
         <div className="mt-10">

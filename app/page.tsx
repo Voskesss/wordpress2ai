@@ -253,6 +253,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Nieuwe website (extra dienst) */}
+      <section className="mx-auto max-w-3xl px-6 pb-24">
+        <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm sm:flex items-center justify-between gap-6">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">
+              Liever een héle nieuwe website?
+            </h2>
+            <p className="mt-2 text-stone-600 leading-relaxed">
+              Kan ook. AI-ontwerp vanaf €750, of een uniek ontwerp door een
+              designer — altijd met de AI-beheerder erbij.
+            </p>
+          </div>
+          <Link
+            href="/nieuwe-website"
+            className="lift mt-4 sm:mt-0 inline-block shrink-0 rounded-full border-2 border-stone-300 px-6 py-3 font-semibold hover:border-violet-400 hover:text-violet-700"
+          >
+            Lees meer →
+          </Link>
+        </div>
+      </section>
+
       {/* Persoonlijke noot */}
       <section className="mx-auto max-w-3xl px-6 pb-24">
         <div className="reveal rounded-3xl border border-violet-100 bg-violet-50/60 p-10">

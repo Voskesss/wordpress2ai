@@ -278,6 +278,8 @@ Voor een expert-klant (eigen AI-tools op eigen site): nodig hun GitHub-account u
 
 ## Roadmap-ideeën (nog niet gepland)
 
+- **Chat-intake voor nieuwe websites:** de intake op /nieuwe-website als AI-gesprek in plaats van formulier — de chat vraagt door (doelgroep, stijl, voorbeelden), vat samen en zet het resultaat als aanvraag in de admin. Kan de bestaande demo-chatinfrastructuur hergebruiken. Nieuwe-websitebouw blijft extra dienst; WordSwap (de overstap) is de focus.
+
 - **Toolset bij de chat:** visuele hulpmiddelen naast vrije tekst — een kleurkiezer ("maak de knoppen deze kleur"), lettertype-kiezer, afbeelding-kiezer uit de mediabank, misschien klik-op-element ("verander dít"). Doel: gebruiksvriendelijker voor niet-typers; de gekozen waarde gaat als gestructureerd gegeven mee met het chatbericht.
 
 - **Externe-content-plugins herkennen (backlog, zie VGK Adviseurs):** sommige WordPress-sites laden berichten via een plugin uit een externe bron (feed/API) — die staan dan niet (volledig) in de XML-export. De Migrator moet dit herkennen: als de live site meer/andere berichten toont dan de export bevat, waarschuwen in de intake en de ontbrekende content via scraping van de live site ophalen. Per klant beslissen: statisch bevriezen of maatwerk (periodieke sync).
