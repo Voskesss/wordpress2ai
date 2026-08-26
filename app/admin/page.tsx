@@ -200,7 +200,7 @@ export default async function Admin() {
       {aanvragen.length > 0 && (
         <div className="mt-10">
           <h2 className="font-display text-2xl font-semibold">
-            Aanvragen nieuwe website
+            Aanvragen via de site
           </h2>
           <div className="mt-4 space-y-3">
             {aanvragen.map((a) => (

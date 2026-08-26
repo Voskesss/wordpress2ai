@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { currentUser } from "@clerk/nextjs/server";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
 const inputStijl =
   "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-100";
 
-export default function Contact() {
+export default async function Contact() {
+  // Ingelogde bezoekers (bv. vanuit de demo): naam en e-mail alvast invullen
+  const gebruiker = await currentUser().catch(() => null);
+  const vulNaam = [gebruiker?.firstName, gebruiker?.lastName].filter(Boolean).join(" ");
+  const vulEmail = gebruiker?.emailAddresses?.[0]?.emailAddress ?? "";
   return (
     <div className="mx-auto max-w-5xl px-6 py-20 grid gap-14 lg:grid-cols-5">
       <div className="lg:col-span-2">
@@ -37,21 +42,31 @@ export default function Contact() {
 
       <form
         className="lg:col-span-3 reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm space-y-5"
-        action="https://formspree.io/f/VERVANG_MET_JOUW_ID"
+        action="/api/formulier"
         method="POST"
       >
+        <input type="hidden" name="_site" value="wordswap" />
+        <input type="hidden" name="_formulier" value="kennismaken" />
+        <input
+          type="text"
+          name="_extra"
+          defaultValue=""
+          style={{ display: "none" }}
+          tabIndex={-1}
+          autoComplete="off"
+        />
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="naam" className="block text-sm font-semibold">
               Naam
             </label>
-            <input id="naam" name="naam" type="text" required className={inputStijl} />
+            <input id="naam" name="naam" type="text" required defaultValue={vulNaam} className={inputStijl} />
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-semibold">
               E-mailadres
             </label>
-            <input id="email" name="email" type="email" required className={inputStijl} />
+            <input id="email" name="email" type="email" required defaultValue={vulEmail} className={inputStijl} />
           </div>
         </div>
         <div>
