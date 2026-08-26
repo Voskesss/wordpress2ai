@@ -208,8 +208,8 @@ export async function POST(req: Request) {
         stuur({
           type: "status",
           tekst: openConcept
-            ? "Ik pak het openstaande concept erbij..."
-            : "Ik pak je website erbij...",
+            ? "Ik werk verder op het openstaande concept..."
+            : "Ik ga voor je aan de slag...",
         });
         werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
         const snapshot = await maakSnapshot(werkmap);
