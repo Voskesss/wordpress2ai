@@ -51,7 +51,8 @@ Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + 
 - EMBEDS VERPLICHT: elke YouTube/Vimeo/Maps-iframe en `<video>` uit `embeds-op-paginas.json` letterlijk terug op de juiste pagina, responsief (max-width 100%, aspect-ratio).
 - GEEN PLACEHOLDER-TEKST: lorem ipsum en Engelse thema-restanten ("Principles of our work") nooit overnemen — sectie weglaten of vullen met echte content. Eindcontrole hierop.
 - OVERZICHTEN KLIKKEN DOOR: elk overzichtsblok (diensten, team, blog) linkt per item (titel én beeld) naar de detailpagina, en andersom (terug-link/kruimelpad).
-- GEEN DODE LINKS: tag-/categorie-/archieflinks (/tag/, /category/, /2023/05/) bestaan niet meer → naar blogoverzicht of platte tekst; tagwolken weglaten of ontlinken. Eindcontrole: elke interne link wijst naar een gebouwde pagina.
+- TAGS & CATEGORIEËN: gebruikt de site tags/categorieën zichtbaar (tagwolk, taglinks bij berichten, categorienavigatie)? Bouw dan statische VERZAMELPAGINA'S op de originele paden (`tag/<slug>/index.html`, `category/<slug>/index.html`): kop met tagnaam + lijst van bijbehorende berichten (titel, datum, samenvatting, link), in de stijl van het blogoverzicht, met terug-link. De koppeling bericht↔tags staat in de bronmateriaal-koppen en in `<repo>-bron/tags-overzicht.json`. Tagwolk blijft dus gewoon klikbaar. Alleen bij verwaarloosbaar gebruik (1-2 losse links) ontlinken. Auteur-/datumarchieven (/author/, /2023/05/) niet bouwen → die links naar het blogoverzicht.
+- GEEN DODE LINKS: eindcontrole — elke interne link wijst naar een gebouwde pagina.
 
 **Techniek**
 - CENTRALE ONDERDELEN: alles wat op ≥2 pagina's identiek is één keer in `delen/` (menu.html, topbalk.html, footer.html, en ook referenties-/CTA-/actueel-blokken), op pagina's alleen `<!--invoeg:naam-->`. LET OP: `delen/` in de wortel van de klant-map (naast index.html) — wordt bij deploy uitgevouwen. Actieve menustand via klein pad-scriptje, nooit menu kopiëren per pagina.

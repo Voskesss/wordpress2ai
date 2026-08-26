@@ -30,13 +30,27 @@ const siteDir = path.join(homedir(), 'wordswap-klanten', repo);
 await mkdir(path.join(bronDir, 'bronmateriaal'), { recursive: true });
 await mkdir(path.join(siteDir, 'afbeeldingen'), { recursive: true });
 
+const tagIndex: Record<string, { naam: string; paden: string[] }> = {};
+const catIndex: Record<string, { naam: string; paden: string[] }> = {};
 for (const p of paginas) {
   const naam = (p.slug || p.titel).replace(/[^a-zA-Z0-9-]+/g, '-');
-  await writeFile(
-    path.join(bronDir, 'bronmateriaal', `${p.type}-${naam}.html`),
-    `<!-- pad: ${p.pad} -->\n<!-- titel: ${p.titel} -->\n<!-- samenvatting: ${p.excerpt.replace(/-->/g, '')} -->\n${p.content}`
-  );
+  const meta = [
+    `<!-- pad: ${p.pad} -->`,
+    `<!-- titel: ${p.titel} -->`,
+    `<!-- samenvatting: ${p.excerpt.replace(/-->/g, '')} -->`,
+    p.tags.length ? `<!-- tags: ${p.tags.map((t) => t.naam).join(', ')} -->` : '',
+    p.categorieen.length ? `<!-- categorieen: ${p.categorieen.map((c) => c.naam).join(', ')} -->` : '',
+  ].filter(Boolean).join('\n');
+  await writeFile(path.join(bronDir, 'bronmateriaal', `${p.type}-${naam}.html`), `${meta}\n${p.content}`);
+  for (const t of p.tags) {
+    (tagIndex[t.slug] ??= { naam: t.naam, paden: [] }).paden.push(p.pad);
+  }
+  for (const c of p.categorieen) {
+    (catIndex[c.slug] ??= { naam: c.naam, paden: [] }).paden.push(p.pad);
+  }
 }
+await writeFile(path.join(bronDir, 'tags-overzicht.json'), JSON.stringify({ tags: tagIndex, categorieen: catIndex }, null, 2));
+console.log(`tags: ${Object.keys(tagIndex).length}, categorieën: ${Object.keys(catIndex).length} → tags-overzicht.json`);
 await writeFile(path.join(bronDir, 'seo-manifest.json'), JSON.stringify(manifest, null, 2));
 console.log('bronmateriaal geschreven');
 

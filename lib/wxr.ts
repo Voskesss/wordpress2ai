@@ -9,6 +9,8 @@ export type WxrItem = {
   content: string;
   excerpt: string;
   attachmentUrl?: string;
+  tags: { naam: string; slug: string }[];
+  categorieen: { naam: string; slug: string }[];
 };
 
 export type WxrResultaat = {
@@ -49,7 +51,8 @@ function ontEntiteer(s: string): string {
 
 export function parseWxr(xml: string): WxrResultaat {
   const parser = new XMLParser({
-    ignoreAttributes: true,
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
     cdataPropName: "#text",
     processEntities: true,
   });
@@ -81,6 +84,20 @@ export function parseWxr(xml: string): WxrResultaat {
     } catch {
       pad = "/";
     }
+    // Tags en categorieën (WXR: <category domain="post_tag|category" nicename="...">)
+    const tags: { naam: string; slug: string }[] = [];
+    const categorieen: { naam: string; slug: string }[] = [];
+    for (const c of alsArray(item.category as unknown)) {
+      const obj = c as { "@_domain"?: string; "@_nicename"?: string } | string;
+      const naam = ontEntiteer(tekst(c));
+      if (!naam) continue;
+      const domein = typeof obj === "object" ? obj["@_domain"] : undefined;
+      const slug =
+        (typeof obj === "object" && obj["@_nicename"]) ||
+        naam.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      if (domein === "post_tag") tags.push({ naam, slug });
+      else if (domein === "category") categorieen.push({ naam, slug });
+    }
     const wxrItem: WxrItem = {
       titel: ontEntiteer(tekst(item.title)) || "(zonder titel)",
       type,
@@ -90,6 +107,8 @@ export function parseWxr(xml: string): WxrResultaat {
       content: tekst(item["content:encoded"]),
       excerpt: tekst(item["excerpt:encoded"]),
       attachmentUrl: tekst(item["wp:attachment_url"]) || undefined,
+      tags,
+      categorieen,
     };
 
     if (type === "page") resultaat.paginas.push(wxrItem);

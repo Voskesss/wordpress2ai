@@ -541,10 +541,14 @@ export async function voerBouwUit(
   // Bronmateriaal per pagina wegschrijven
   for (const p of paginas) {
     const naam = (p.slug || p.titel).replace(/[^a-zA-Z0-9-]+/g, "-");
-    await writeFile(
-      path.join(bronDir, `${p.type}-${naam}.html`),
-      `<!-- pad: ${p.pad} -->\n<!-- titel: ${p.titel} -->\n<!-- samenvatting: ${p.excerpt.replace(/-->/g, "")} -->\n${p.content}`
-    );
+    const metaKop = [
+      `<!-- pad: ${p.pad} -->`,
+      `<!-- titel: ${p.titel} -->`,
+      `<!-- samenvatting: ${p.excerpt.replace(/-->/g, "")} -->`,
+      p.tags.length ? `<!-- tags: ${p.tags.map((t) => t.naam).join(", ")} -->` : "",
+      p.categorieen.length ? `<!-- categorieen: ${p.categorieen.map((c) => c.naam).join(", ")} -->` : "",
+    ].filter(Boolean).join("\n");
+    await writeFile(path.join(bronDir, `${p.type}-${naam}.html`), `${metaKop}\n${p.content}`);
   }
   await writeFile(
     path.join(werkmap, "seo-manifest.json"),
@@ -662,7 +666,7 @@ Instructies:
 - GEEN PLACEHOLDER-TEKST: WordPress-thema's bevatten vaak achtergebleven vulteksten ("Lorem ipsum", "Nullam arcu felis", Engelse thema-koppen als "Principles of our work" op een verder Nederlandse site). Neem die NOOIT over. Staat er zichtbaar vultekst of een thema-restant in de bron, laat die sectie dan weg — of vul hem alleen met echte inhoud die elders op de site staat. Controleer aan het eind: nergens lorem ipsum of thema-Engels.
 - OVERZICHTEN MOETEN DOORKLIKKEN: elk overzichtsblok (diensten-overzicht, team-overzicht, blog-/artikellijst) linkt per item naar de bijbehorende detailpagina die je gebouwd hebt — titel én afbeelding klikbaar. Een dienstenkaart zonder link naar de dienstpagina is FOUT. Bouw je een detailpagina, controleer dan dat er vanaf het overzicht naar verwezen wordt en andersom (kruimelpad of terug-link).
 - NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
-- TAGS, CATEGORIEËN EN ARCHIEVEN: WordPress-sites hebben vaak tagwolken, categorielinks en archieflinks (/tag/..., /category/..., /author/..., /2023/05/...). Die archiefpagina's bestaan niet in de nieuwe site. Regel: laat NOOIT een dode link achter. Een tagwolk-widget laat je weg of maak je van gewone tekst zonder links; losse tag-/categorielinks bij berichten verwijzen naar het blogoverzicht (/blog/) of worden platte tekst. Controleer aan het eind dat elke interne link naar een pagina wijst die je ook echt gebouwd hebt.
+- TAGS, CATEGORIEËN EN ARCHIEVEN: laat NOOIT een dode link achter. Gebruikt de site tags/categorieën zichtbaar (tagwolk, taglinks bij berichten, categorienavigatie)? Bouw dan statische verzamelpagina's op de originele paden (/tag/<slug>/index.html, /category/<slug>/index.html): kop met de tagnaam + lijst van de bijbehorende berichten (titel, datum, samenvatting, link), in de stijl van het blogoverzicht, met een terug-link. De tag-informatie per bericht staat in de bronmateriaal-koppen. Alleen bij verwaarloosbaar gebruik (1-2 losse links) mag je ontlinken naar platte tekst. Auteur- en datumarchieven (/author/..., /2023/05/...) bouw je niet — die links verwijzen naar het blogoverzicht. Controleer aan het eind dat elke interne link naar een bestaande pagina wijst.
 - CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map site/delen/ (dus BINNEN site/ — bv. site/delen/menu.html; delen/ buiten site/ wordt NIET gepubliceerd) als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (site/delen/menu.html), footer (site/delen/footer.html) en topbalk (site/delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
 - DECORATIE HOORT ERBIJ: sfeer-elementen uit het thema (wolken, bladeren, golven, patronen, iconen die als CSS-achtergrond staan) zijn onderdeel van het ontwerp en staan gedownload in site/afbeeldingen/. Plaats ze terug als CSS-achtergronden op de overeenkomstige secties — de screenshots tonen waar ze horen.
 - SLIDERS per soort (de echte beelden staan in de afbeeldingen-kaart; nooit leeg of nagemaakt):
