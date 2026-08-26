@@ -98,7 +98,7 @@ export async function nieuweSite(formData: FormData) {
   redirect(`/admin/klant/${rij.id}`);
 }
 
-/** Verwijdert een klant volledig: databasegegevens, en optioneel repo en Netlify-site. */
+/** Verwijdert een klant volledig: databasegegevens, en optioneel repo en Cloudflare-site. */
 export async function verwijderKlant(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -113,14 +113,26 @@ export async function verwijderKlant(formData: FormData) {
   const getypt = String(formData.get("bevestigNaam") ?? "").trim();
   if (getypt !== site.naam) return;
 
-  const { changes, messages, usage, apiKeys, migrations } = await import(
-    "@/db/schema"
-  );
+  const {
+    changes,
+    messages,
+    usage,
+    apiKeys,
+    migrations,
+    aiKosten,
+    kennisDocumenten,
+    formulierInzendingen,
+  } = await import("@/db/schema");
   await db.delete(changes).where(eq(changes.siteId, siteId));
   await db.delete(messages).where(eq(messages.siteId, siteId));
   await db.delete(usage).where(eq(usage.siteId, siteId));
   await db.delete(apiKeys).where(eq(apiKeys.siteId, siteId));
   await db.delete(migrations).where(eq(migrations.siteId, siteId));
+  await db.delete(aiKosten).where(eq(aiKosten.siteId, siteId));
+  await db.delete(kennisDocumenten).where(eq(kennisDocumenten.siteId, siteId));
+  await db
+    .delete(formulierInzendingen)
+    .where(eq(formulierInzendingen.siteRepo, site.githubRepo));
   await db.delete(sites).where(eq(sites.id, siteId));
 
   if (ookRepo) {
@@ -133,6 +145,7 @@ export async function verwijderKlant(formData: FormData) {
   if (ookNetlify && site.netlifySiteId) {
     const { verwijderCloudflareSite } = await import("@/lib/cloudflare");
     await verwijderCloudflareSite(site.netlifySiteId);
+    await verwijderCloudflareSite(`wv-${site.netlifySiteId}`);
   }
 
   revalidatePath("/admin");

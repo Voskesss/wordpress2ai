@@ -170,7 +170,7 @@ export default async function KlantDetail({
         </div>
       </div>
 
-      {/* Netlify koppelen */}
+      {/* Site online zetten (Cloudflare) */}
       {!site.netlifySiteId && (
         <form
           action={koppelNetlify}
@@ -234,7 +234,7 @@ export default async function KlantDetail({
             <input
               name="domein"
               defaultValue={site.domein ?? ""}
-              placeholder="klant.nl of klant.netlify.app"
+              placeholder="klant.nl of naam.wordswap.workers.dev"
               className={invoerStijl}
             />
           </label>
