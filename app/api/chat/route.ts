@@ -71,6 +71,8 @@ export async function POST(req: Request) {
   let bericht: string;
   let huidigePagina: string | undefined;
   let afbeelding: { naam: string; data: Buffer } | null = null;
+  type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
+  let selectie: Selectie | null = null;
 
   const contentType = req.headers.get("content-type") ?? "";
   if (contentType.includes("multipart/form-data")) {
@@ -78,6 +80,10 @@ export async function POST(req: Request) {
     siteId = Number(form.get("siteId"));
     bericht = String(form.get("bericht") ?? "");
     huidigePagina = String(form.get("huidigePagina") ?? "") || undefined;
+    try {
+      const ruw = form.get("selectie");
+      if (typeof ruw === "string" && ruw) selectie = JSON.parse(ruw);
+    } catch {}
     const file = form.get("afbeelding");
     if (file instanceof File && file.size > 0) {
       if (file.size > 8 * 1024 * 1024) {
@@ -104,10 +110,12 @@ export async function POST(req: Request) {
       siteId: number;
       bericht: string;
       huidigePagina?: string;
+      selectie?: Selectie;
     };
     siteId = body.siteId;
     bericht = body.bericht;
     huidigePagina = body.huidigePagina;
+    selectie = body.selectie ?? null;
   }
   if (!bericht?.trim()) {
     return NextResponse.json({ error: "Leeg bericht" }, { status: 400 });
@@ -234,6 +242,9 @@ export async function POST(req: Request) {
             : null,
           huidigePagina && huidigePagina !== "/"
             ? `De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.`
+            : null,
+          selectie
+            ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
             : null,
           afbeelding
             ? `De eigenaar heeft een afbeelding meegestuurd; die staat klaar op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). Plaats hem waar de eigenaar vraagt, met een passende beschrijvende alt-tekst.`

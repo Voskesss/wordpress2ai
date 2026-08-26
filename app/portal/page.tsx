@@ -109,6 +109,16 @@ export default async function Portal() {
                   liveUrl={site.domein}
                   werkversieUrl={site.netlifySiteId ? `wv-${site.netlifySiteId}.wordswap.workers.dev` : null}
                   openConcept={openConceptMap[site.id]}
+                  suggesties={
+                    site.isDemo
+                      ? [
+                          "Maak een blogpagina met een eerste blog over ons desembrood",
+                          "Zet de croissants bovenaan de homepage",
+                          "Verander de openingstijden: zaterdag tot 17:00",
+                          "Voeg een kortingsactie toe: 10% op alle taarten",
+                        ]
+                      : undefined
+                  }
                 />
               </div>
               {site.isDemo ? (

@@ -21,18 +21,22 @@ function paginaLabel(pad: string) {
   return naam.replace(/\.html?$/, "");
 }
 
+type Selectie = { pad: string; tag: string; tekst: string; html: string };
+
 export default function Chat({
   siteId,
   historie,
   liveUrl,
   werkversieUrl,
   openConcept,
+  suggesties,
 }: {
   siteId: number;
   historie: Bericht[];
   liveUrl?: string | null;
   werkversieUrl?: string | null;
   openConcept?: Concept;
+  suggesties?: string[];
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
@@ -58,7 +62,22 @@ export default function Chat({
   );
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [schaal, setSchaal] = useState(1);
+  const [aanwijzen, setAanwijzen] = useState(false);
+  const [selectie, setSelectie] = useState<Selectie | null>(null);
+
+  function meldAanwijzen(aan: boolean) {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "wp2ai-aanwijzen", aan },
+      "*"
+    );
+  }
+
+  function zetAanwijzen(aan: boolean) {
+    setAanwijzen(aan);
+    meldAanwijzen(aan);
+  }
 
   function basisVoor(conceptActief: boolean) {
     return conceptActief && werkversieUrl
@@ -94,6 +113,15 @@ export default function Chat({
         setHuidigePagina(pad);
         huidigeRef.current = pad;
       }
+      if (e.data?.type === "wp2ai-selectie") {
+        setSelectie({
+          pad: String(e.data.pad ?? "/"),
+          tag: String(e.data.tag ?? ""),
+          tekst: String(e.data.tekst ?? ""),
+          html: String(e.data.html ?? ""),
+        });
+        setAanwijzen(false);
+      }
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -110,6 +138,8 @@ export default function Chat({
     setChatOpen(true);
     const teVersturen = afbeelding;
     setAfbeelding(null);
+    const gekozen = selectie;
+    setSelectie(null);
     setBerichten((b) => [
       ...b,
       { rol: "klant", tekst: teVersturen ? `\u{1F4CE} ${tekst}` : tekst },
@@ -124,12 +154,18 @@ export default function Chat({
         form.set("bericht", tekst);
         form.set("huidigePagina", huidigePagina);
         form.set("afbeelding", teVersturen);
+        if (gekozen) form.set("selectie", JSON.stringify(gekozen));
         res = await fetch("/api/chat", { method: "POST", body: form });
       } else {
         res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ siteId, bericht: tekst, huidigePagina }),
+          body: JSON.stringify({
+            siteId,
+            bericht: tekst,
+            huidigePagina,
+            selectie: gekozen ?? undefined,
+          }),
         });
       }
       if (!res.body) throw new Error("geen stream");
@@ -286,8 +322,10 @@ export default function Chat({
             // Echte desktop-breedte (1280px), geschaald naar het venster
             <iframe
               key={reloadTeller}
+              ref={iframeRef}
               src={iframeSrc}
               title="Je website"
+              onLoad={() => aanwijzen && meldAanwijzen(true)}
               style={{
                 width: 1280,
                 height: `${100 / schaal}%`,
@@ -299,8 +337,10 @@ export default function Chat({
           ) : (
             <iframe
               key={reloadTeller}
+              ref={iframeRef}
               src={iframeSrc}
               title="Je website"
+              onLoad={() => aanwijzen && meldAanwijzen(true)}
               className={
                 apparaat === "tablet"
                   ? "w-[768px] max-w-full h-[1024px] shrink-0 bg-white rounded-2xl border-8 border-stone-800 shadow-xl"
@@ -426,6 +466,59 @@ export default function Chat({
             </div>
           )}
 
+          {/* Suggesties voor wie nog niet weet wat te vragen */}
+          {suggesties && suggesties.length > 0 && berichten.length === 0 && !bezig && (
+            <div className="mb-3 flex flex-wrap justify-center gap-2">
+              {suggesties.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setHintWeg(true);
+                    setInvoer(s);
+                  }}
+                  className="rounded-full border border-violet-300 bg-white/95 px-4 py-2 text-sm font-medium text-violet-800 shadow-lg backdrop-blur hover:bg-violet-50 cursor-pointer"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Aanwijs-modus actief */}
+          {aanwijzen && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border-2 border-violet-500 bg-white/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <p className="text-sm font-medium text-violet-900">
+                Klik in het voorbeeld hierboven op het onderdeel dat je bedoelt.
+              </p>
+              <button
+                onClick={() => zetAanwijzen(false)}
+                className="text-sm text-stone-500 hover:text-stone-800 cursor-pointer"
+              >
+                Annuleer
+              </button>
+            </div>
+          )}
+
+          {/* Aangewezen onderdeel */}
+          {selectie && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
+                <span className="font-semibold">Aangewezen:</span>{" "}
+                {selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
+                <span className="text-violet-600">
+                  ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
+                </span>
+              </p>
+              <button
+                onClick={() => setSelectie(null)}
+                aria-label="Selectie verwijderen"
+                className="text-violet-400 hover:text-violet-800 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Invoerbalk */}
           <div
             className={`rounded-full border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
@@ -477,6 +570,24 @@ export default function Chat({
                 className="hidden"
                 onChange={(e) => setAfbeelding(e.target.files?.[0] ?? null)}
               />
+              <button
+                onClick={() => {
+                  setHintWeg(true);
+                  zetAanwijzen(!aanwijzen);
+                }}
+                disabled={bezig}
+                aria-label="Onderdeel aanwijzen in het voorbeeld"
+                title="Wijs een onderdeel aan in het voorbeeld"
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                  aanwijzen
+                    ? "bg-violet-700 text-white"
+                    : "text-stone-500 hover:bg-stone-100"
+                }`}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M4 4l7.5 16 2-6.5L20 11.5 4 4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                </svg>
+              </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={bezig}

@@ -5,9 +5,10 @@ import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
 const API = "https://api.cloudflare.com/client/v4";
 
-// Meldt in het portaal-venster welke pagina open staat; doet niets buiten een iframe.
+// Meldt in het portaal-venster welke pagina open staat en ondersteunt de
+// aanwijs-modus (element aanklikken in de preview). Doet niets buiten een iframe.
 const PAGINA_MELDER =
-  '<script>try{if(parent!==window)parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*")}catch(e){}</script>';
+  '<script>(function(){try{if(parent===window)return;parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*");var aan=false,vorig=null;function reset(){if(vorig){vorig.style.outline="";vorig=null}document.body.style.cursor=""}addEventListener("message",function(e){if(e.data&&e.data.type==="wp2ai-aanwijzen"){aan=!!e.data.aan;document.body.style.cursor=aan?"crosshair":"";if(!aan)reset()}});addEventListener("mouseover",function(e){if(!aan)return;if(vorig)vorig.style.outline="";vorig=e.target;vorig.style.outline="3px solid #7c3aed"},true);addEventListener("click",function(e){if(!aan)return;e.preventDefault();e.stopPropagation();var el=e.target;parent.postMessage({type:"wp2ai-selectie",pad:location.pathname,tag:el.tagName.toLowerCase(),tekst:(el.innerText||el.getAttribute("alt")||"").trim().slice(0,200),html:el.outerHTML.slice(0,1500)},"*");aan=false;reset()},true)}catch(e){}})();</script>';
 const ACCOUNT = "2a71da7bfe94ae3540d4af02be53d53e";
 export const CF_SUBDOMEIN = "wordswap";
 
