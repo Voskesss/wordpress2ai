@@ -63,6 +63,7 @@ Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + 
 **Controle vóór oplevering (vergelijk-en-verbeter, zoals de pijplijn)**
 1. Lokale server starten (let op: markers uitvouwen — of tijdelijk `python3 -m http.server` en markers accepteren) en elke pagina naast de oud-ontwerp-screenshots leggen; verschillen wegwerken.
 2. Checklist: alle bronpagina's aanwezig? Alle afbeeldingen terug per pagina? Menu/footer overal? Geen lege markers? Geen dode links? Geen placeholder-tekst? Mobiel oké op 375px?
+3. SEO-VALIDATIE tegen `<repo>-bron/seo-manifest.json` (dit is het contract met Google): elke URL uit het manifest bestaat als pagina op exact dat pad (of staat bewust in de aanwijzingen als weggelaten — noteer die dan als 301-kandidaat in `_redirects`); `<title>` en meta description letterlijk gelijk aan het manifest; h1-koppen behouden; noindex-pagina's ook in de nieuwe site noindex. Rapporteer aan Jos per pagina groen/afwijkend.
 3. Screenshots van het resultaat aan Jos laten zien vóór livegang.
 
 ## Stap 3 — Registreren en live zetten
