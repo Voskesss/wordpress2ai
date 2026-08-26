@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 type Bericht = {
   rol: "klant" | "assistent";
@@ -23,6 +23,18 @@ function paginaLabel(pad: string) {
 }
 
 type Selectie = { pad: string; tag: string; tekst: string; html: string };
+
+/** Direct zichtbare tooltip bij hover (de native title-tooltip is te traag). */
+function Tip({ tekst, children }: { tekst: string; children: ReactNode }) {
+  return (
+    <span className="group relative inline-flex">
+      {children}
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-[15rem] -translate-x-1/2 rounded-xl bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+        {tekst}
+      </span>
+    </span>
+  );
+}
 
 export default function Chat({
   siteId,
@@ -417,7 +429,9 @@ export default function Chat({
                     >
                       {m.tekst}
                     </div>
-                    {m.metVerversTip && i === berichten.length - 1 && (
+                    {i === berichten.length - 1 &&
+                      m.rol === "assistent" &&
+                      (m.metVerversTip || concept != null) && (
                       <button
                         onClick={() => herlaad(Boolean(concept))}
                         className="mt-1.5 flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
@@ -592,6 +606,7 @@ export default function Chat({
                 className="hidden"
                 onChange={(e) => setAfbeelding(e.target.files?.[0] ?? null)}
               />
+              <Tip tekst="Klik hierna in het voorbeeld op het onderdeel dat je bedoelt — dan weet ik precies waar je het over hebt">
               <button
                 onClick={() => {
                   setHintWeg(true);
@@ -599,7 +614,6 @@ export default function Chat({
                 }}
                 disabled={bezig}
                 aria-label="Onderdeel aanwijzen in het voorbeeld"
-                title="Klik hierna in het voorbeeld op het onderdeel dat je bedoelt"
                 className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-medium disabled:opacity-50 cursor-pointer ${
                   aanwijzen
                     ? "bg-violet-700 text-white"
@@ -611,11 +625,12 @@ export default function Chat({
                 </svg>
                 <span className="hidden sm:inline whitespace-nowrap">Wijs aan</span>
               </button>
+              </Tip>
+              <Tip tekst="Stuur een eigen foto mee om op de site te zetten">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={bezig}
                 aria-label="Afbeelding toevoegen"
-                title="Afbeelding toevoegen"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -624,6 +639,7 @@ export default function Chat({
                   <path d="M5 17l4.5-4 3.5 3 2.5-2L19 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
+              </Tip>
               <input
                 value={invoer}
                 onChange={(e) => {
@@ -661,16 +677,17 @@ export default function Chat({
                   </svg>
                 )}
               </button>
+              <Tip tekst="Voorbeeld verversen — als je een wijziging nog niet ziet">
               <button
                 onClick={() => herlaad(Boolean(concept))}
                 aria-label="Voorbeeld verversen"
-                title="Voorbeeld verversen"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 cursor-pointer"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
+              </Tip>
             </div>
           </div>
 
