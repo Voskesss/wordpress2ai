@@ -59,11 +59,7 @@ export default function Chat({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const huidigeRef = useRef("/");
-  const [concept, setConcept] = useState<Concept | null>(
-    openConcept
-      ? { ...openConcept, paginas: openConcept.paginas.map(paginaLabel) }
-      : null
-  );
+  const [concept, setConcept] = useState<Concept | null>(openConcept ?? null);
   const [chatOpen, setChatOpen] = useState(false);
   // Aandachttrekker voor nieuwe gebruikers; verdwijnt zodra er getypt wordt.
   const [hintWeg, setHintWeg] = useState(false);
@@ -81,15 +77,15 @@ export default function Chat({
   const [selectie, setSelectie] = useState<Selectie | null>(null);
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
-  const [oplevering, setOplevering] = useState<{ pad: string } | null>(null);
+  const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
 
-  function bekijkOplevering() {
-    if (!oplevering) return;
-    const pad = oplevering.pad === "index.html" ? "" : oplevering.pad;
-    huidigeRef.current = "/" + pad;
-    setHuidigePagina("/" + pad);
-    setIframeSrc(basisVoor(true) + pad);
+  /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
+  function gaNaar(pad: string) {
+    const p = pad === "index.html" ? "" : pad;
+    huidigeRef.current = "/" + p;
+    setHuidigePagina("/" + p);
+    setIframeSrc(basisVoor(true) + p);
     setReloadTeller((t) => t + 1);
     setOplevering(null);
   }
@@ -244,13 +240,11 @@ export default function Chat({
           changeId: data.changeId,
           previewUrl: data.previewUrl,
           prompt: data.prompt ?? "",
-          paginas: (data.bestanden ?? []).map(paginaLabel),
+          paginas: data.bestanden ?? [],
         });
         herlaad(true);
-        const eerstePagina = (data.bestanden ?? []).find((b) =>
-          /\.html?$/i.test(b)
-        );
-        setOplevering({ pad: eerstePagina ?? "index.html" });
+        const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
+        setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
       }
     } catch {
       setBerichten((b) => [
@@ -421,17 +415,34 @@ export default function Chat({
                 Je wijziging staat klaar
               </p>
               <p className="mt-2 text-stone-600">
-                op {paginaLabel(oplevering.pad)}
+                {oplevering.paden.length === 1
+                  ? `op ${paginaLabel(oplevering.paden[0])}`
+                  : `op ${oplevering.paden.length} pagina's — bekijk ze een voor een:`}
               </p>
               <button
-                onClick={bekijkOplevering}
+                onClick={() => gaNaar(oplevering.paden[0])}
                 className="lift mt-6 inline-flex items-center gap-2 rounded-full bg-violet-700 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-violet-300 hover:bg-violet-600 cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Herlaad en bekijk →
+                {oplevering.paden.length === 1
+                  ? "Herlaad en bekijk →"
+                  : `Bekijk ${paginaLabel(oplevering.paden[0])} →`}
               </button>
+              {oplevering.paden.length > 1 && (
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  {oplevering.paden.slice(1, 6).map((pad) => (
+                    <button
+                      key={pad}
+                      onClick={() => gaNaar(pad)}
+                      className="rounded-full border border-violet-300 px-4 py-2 text-sm font-medium text-violet-800 hover:bg-violet-50 cursor-pointer"
+                    >
+                      {paginaLabel(pad)} →
+                    </button>
+                  ))}
+                </div>
+              )}
               <p className="mt-3 text-xs text-stone-400">
                 Tevreden? Publiceer hem daarna met de knop onderin.
               </p>
@@ -520,7 +531,23 @@ export default function Chat({
                 <span className="font-semibold">Concept klaar.</span>{" "}
                 {concept.paginas.length > 0 && (
                   <span className="text-amber-800">
-                    Aangepast: {concept.paginas.join(", ")}.
+                    Aangepast:{" "}
+                    {concept.paginas.map((pad, i) => (
+                      <span key={pad + i}>
+                        {i > 0 && ", "}
+                        {/\.html?$/i.test(pad) ? (
+                          <button
+                            onClick={() => gaNaar(pad)}
+                            className="font-semibold underline decoration-amber-400 hover:text-amber-950 cursor-pointer"
+                          >
+                            {paginaLabel(pad)}
+                          </button>
+                        ) : (
+                          paginaLabel(pad)
+                        )}
+                      </span>
+                    ))}
+                    .
                   </span>
                 )}{" "}
                 Tevreden?
