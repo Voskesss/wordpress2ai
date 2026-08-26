@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { laadDelen, vouwUit } from "./delen";
 import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
 const API = "https://api.cloudflare.com/client/v4";
@@ -54,17 +55,19 @@ export async function deployMapNaarCloudflare(
   const { subdomeinAanzetten = true } = opties;
   {
     const bestanden = await alleBestanden(werkmap);
+    const delen = await laadDelen(werkmap);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
     for (const pad of bestanden) {
       let data = await readFile(path.join(werkmap, pad));
-      if (/\.html?$/i.test(pad) && !data.includes("wp2ai-pagina")) {
-        const html = data.toString("utf8");
-        data = Buffer.from(
-          html.includes("</body>")
+      if (/\.html?$/i.test(pad) && !pad.startsWith("delen/")) {
+        let html = vouwUit(data.toString("utf8"), delen);
+        if (!html.includes("wp2ai-pagina")) {
+          html = html.includes("</body>")
             ? html.replace("</body>", `${PAGINA_MELDER}</body>`)
-            : html + PAGINA_MELDER
-        );
+            : html + PAGINA_MELDER;
+        }
+        data = Buffer.from(html);
       }
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
       manifest[`/${pad}`] = { hash, size: data.length };

@@ -46,11 +46,21 @@ export async function GET(
   const mime = SITE_MIME[ext] ?? "application/octet-stream";
 
   if (ext === "html" || ext === "htm") {
-    const html = herschrijfHtml(
-      new TextDecoder().decode(gevonden.data),
-      `/site-weergave/${id}`,
-      gevonden.pad
-    );
+    let ruw = new TextDecoder().decode(gevonden.data);
+    // Centrale onderdelen (delen/*.html) invoegen op de markers
+    const markers = [...new Set([...ruw.matchAll(/<!--\s*invoeg:([a-z0-9-]+)\s*-->/gi)].map((m) => m[1].toLowerCase()))];
+    if (markers.length > 0) {
+      const { vouwUit } = await import("@/lib/delen");
+      const delen = new Map<string, string>();
+      await Promise.all(
+        markers.map(async (naam) => {
+          const deel = await vindSiteBestand(site.githubRepo, `delen/${naam}.html`, openConcept?.branch);
+          if (deel) delen.set(naam, new TextDecoder().decode(deel.data));
+        })
+      );
+      ruw = vouwUit(ruw, delen);
+    }
+    const html = herschrijfHtml(ruw, `/site-weergave/${id}`, gevonden.pad);
     return new Response(html, {
       headers: {
         "Content-Type": mime,

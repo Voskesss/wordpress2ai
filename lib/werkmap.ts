@@ -119,7 +119,10 @@ export async function maakSiteOverzicht(dir: string): Promise<string> {
         .map((m) => `h${m[1]} ${kaal(m[2])}`)
         .filter((k) => k.length > 3)
         .slice(0, 12);
-      regels.push(`- ${pad}${titel ? ` — "${titel}"` : ""}${koppen.length ? `\n  ${koppen.join(" | ")}` : ""}`);
+      const centraal = pad.startsWith("delen/")
+        ? " — CENTRAAL ONDERDEEL, wordt via <!--invoeg:...--> op meerdere pagina's ingevoegd; wijzig gedeelde blokken hier"
+        : "";
+      regels.push(`- ${pad}${titel ? ` — "${titel}"` : ""}${centraal}${koppen.length ? `\n  ${koppen.join(" | ")}` : ""}`);
     } else if (/\.(png|jpe?g|webp|gif|svg|avif)$/i.test(pad)) {
       afbeeldingen.push(pad);
     } else if (/\.(css|js|json|xml|txt)$/i.test(pad)) {

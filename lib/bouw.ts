@@ -309,7 +309,11 @@ async function vergelijkEnVerbeter(
       let p = decodeURIComponent((req.url ?? "/").split("?")[0]);
       if (p.endsWith("/")) p += "index.html";
       if (!p.includes(".")) p += "/index.html";
-      const data = await readFile(path.join(siteDir, p));
+      let data: Buffer | string = await readFile(path.join(siteDir, p));
+      if (/\.html?$/i.test(p)) {
+        const { laadDelen, vouwUit } = await import("./delen");
+        data = vouwUit(data.toString("utf8"), await laadDelen(siteDir));
+      }
       res.writeHead(200, {
         "Content-Type": MIME[p.split(".").pop() ?? ""] ?? "application/octet-stream",
       });
@@ -594,6 +598,7 @@ Instructies:
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
 - NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
 - TAGS, CATEGORIEËN EN ARCHIEVEN: WordPress-sites hebben vaak tagwolken, categorielinks en archieflinks (/tag/..., /category/..., /author/..., /2023/05/...). Die archiefpagina's bestaan niet in de nieuwe site. Regel: laat NOOIT een dode link achter. Een tagwolk-widget laat je weg of maak je van gewone tekst zonder links; losse tag-/categorielinks bij berichten verwijzen naar het blogoverzicht (/blog/) of worden platte tekst. Controleer aan het eind dat elke interne link naar een pagina wijst die je ook echt gebouwd hebt.
+- CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map delen/ als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (delen/menu.html), footer (delen/footer.html) en topbalk (delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
 - DECORATIE HOORT ERBIJ: sfeer-elementen uit het thema (wolken, bladeren, golven, patronen, iconen die als CSS-achtergrond staan) zijn onderdeel van het ontwerp en staan gedownload in site/afbeeldingen/. Plaats ze terug als CSS-achtergronden op de overeenkomstige secties — de screenshots tonen waar ze horen.
 - SLIDERS per soort (de echte beelden staan in de afbeeldingen-kaart; nooit leeg of nagemaakt):
   - Hero-/fotoslider: statische hero met de eerste (of mooiste) slide, of een eenvoudige CSS-crossfade met de echte slides.
