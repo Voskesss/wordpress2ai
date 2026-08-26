@@ -5,17 +5,48 @@ import path from "node:path";
 import * as tar from "tar";
 import { GITHUB_ORG, installationToken } from "./github";
 
+// Tarball-cache over warme serverless-invocaties heen: dezelfde commit hoeft
+// maar één keer gedownload te worden. Uitpakken gebeurt altijd in een verse map.
+const MAX_CACHE_TARBALL = 20 * 1024 * 1024;
+const tarballCache = new Map<string, Buffer>();
+
 /** Downloadt de repo als tarball en pakt hem uit in een tijdelijke werkmap. */
 export async function laadWerkmap(repo: string, ref?: string): Promise<string> {
   const token = await installationToken();
-  const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_ORG}/${repo}/tarball${ref ? `/${encodeURIComponent(ref)}` : ""}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (!res.ok) throw new Error(`Tarball ophalen mislukt: ${res.status}`);
+  const kop = { Authorization: `Bearer ${token}` };
+
+  let buffer: Buffer | undefined;
+  let cacheSleutel: string | null = null;
+  try {
+    const commit = (await fetch(
+      `https://api.github.com/repos/${GITHUB_ORG}/${repo}/commits/${ref ? encodeURIComponent(ref) : "HEAD"}`,
+      { headers: kop }
+    ).then((r) => (r.ok ? r.json() : null))) as { sha?: string } | null;
+    if (commit?.sha) {
+      cacheSleutel = `${repo}@${commit.sha}`;
+      buffer = tarballCache.get(cacheSleutel);
+    }
+  } catch {
+    // cache is een optimalisatie; bij twijfel gewoon downloaden
+  }
+
+  if (!buffer) {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_ORG}/${repo}/tarball${ref ? `/${encodeURIComponent(ref)}` : ""}`,
+      { headers: kop }
+    );
+    if (!res.ok) throw new Error(`Tarball ophalen mislukt: ${res.status}`);
+    buffer = Buffer.from(await res.arrayBuffer());
+    if (cacheSleutel && buffer.length <= MAX_CACHE_TARBALL) {
+      if (tarballCache.size >= 5) {
+        const oudste = tarballCache.keys().next().value;
+        if (oudste) tarballCache.delete(oudste);
+      }
+      tarballCache.set(cacheSleutel, buffer);
+    }
+  }
 
   const dir = await mkdtemp(path.join(tmpdir(), "wp2ai-"));
-  const buffer = Buffer.from(await res.arrayBuffer());
   await new Promise<void>((resolve, reject) => {
     const extract = tar.x({ cwd: dir, strip: 1 });
     extract.on("finish", () => resolve());

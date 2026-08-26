@@ -45,7 +45,12 @@ export async function deployRepoNaarCloudflare(repo: string, naam: string) {
 }
 
 /** Deployt een lokale map als statische site op Cloudflare Workers. */
-export async function deployMapNaarCloudflare(werkmap: string, naam: string) {
+export async function deployMapNaarCloudflare(
+  werkmap: string,
+  naam: string,
+  opties: { subdomeinAanzetten?: boolean } = {}
+) {
+  const { subdomeinAanzetten = true } = opties;
   {
     const bestanden = await alleBestanden(werkmap);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
@@ -153,12 +158,14 @@ export async function deployMapNaarCloudflare(werkmap: string, naam: string) {
       throw new Error(`Publiceren mislukt: ${JSON.stringify(publiceer.errors)}`);
     }
 
-    // 4. workers.dev-URL aanzetten
-    await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/subdomain`, {
-      method: "POST",
-      headers: hdr(),
-      body: JSON.stringify({ enabled: true, previews_enabled: false }),
-    });
+    // 4. workers.dev-URL aanzetten (overslaan bij her-deploys: staat dan al aan)
+    if (subdomeinAanzetten) {
+      await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/subdomain`, {
+        method: "POST",
+        headers: hdr(),
+        body: JSON.stringify({ enabled: true, previews_enabled: false }),
+      });
+    }
 
     return { url: `https://${naam}.${CF_SUBDOMEIN}.workers.dev` };
   }

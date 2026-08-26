@@ -37,7 +37,8 @@ function systeemPrompt(siteNaam: string, richtlijnen?: string | null, isDemo = f
 
 Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
-- Controleer na je wijziging of het resultaat consistent is (bv. menu's die op elke pagina staan, dubbele vermeldingen van hetzelfde gegeven elders op de site) en meld het als je iets tegenstrijdigs ziet.
+- WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
+- Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
 - Wijzigingen komen in een concept-versie; de eigenaar keurt ze daarna goed. Sluit af met een korte samenvatting in gewone taal van wat je hebt aangepast.
@@ -248,7 +249,9 @@ export async function POST(req: Request) {
           prompt: contextRegels.join("\n\n"),
           options: {
             cwd: werkmap,
-            model: "claude-sonnet-5",
+            // Demo: klein snel model — prospects moeten direct resultaat zien.
+            // Klantsites: Sonnet voor de hoogste kwaliteit.
+            model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
             systemPrompt: systeemPrompt(site.naam, site.richtlijnen, site.isDemo),
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
             permissionMode: "bypassPermissions",
@@ -297,6 +300,12 @@ export async function POST(req: Request) {
               inhoud: await readFile(path.join(werkmap!, pad)),
             }))
           );
+          // Werkversie-deploy is onafhankelijk van GitHub — laat hem parallel meelopen
+          const deployKlaar = site.netlifySiteId
+            ? deployMapNaarCloudflare(werkmap!, `wv-${site.netlifySiteId}`, {
+                subdomeinAanzetten: false,
+              }).catch((e) => console.error("Werkversie-deploy mislukt:", e))
+            : Promise.resolve();
           if (openConcept) {
             // Verder op het bestaande concept: zelfde branch en PR
             const { pushBestanden } = await import("@/lib/github");
@@ -366,13 +375,9 @@ export async function POST(req: Request) {
           } else {
             await db.insert(usage).values({ siteId: site.id, maand, wijzigingen: 1 });
           }
-        }
 
-        if (gewijzigd.length > 0 && site.netlifySiteId) {
           stuur({ type: "status", tekst: "Werkversie bijwerken..." });
-          await deployMapNaarCloudflare(werkmap!, `wv-${site.netlifySiteId}`).catch(
-            (e) => console.error("Werkversie-deploy mislukt:", e)
-          );
+          await deployKlaar;
         }
 
         await db
@@ -393,7 +398,8 @@ export async function POST(req: Request) {
             const Anthropic = (await import("@anthropic-ai/sdk")).default;
             const client = new Anthropic();
             const resp = await client.messages.create({
-              model: "claude-sonnet-5",
+              // Samenvatten is eenvoudig werk — het snelle model volstaat
+              model: "claude-haiku-4-5-20251001",
               max_tokens: 1500,
               system:
                 "Je onderhoudt het langetermijngeheugen van een website-beheerchat. Vat samen wat blijvend relevant is: voorkeuren van de eigenaar (toon, stijl, werkwijze), afspraken, terugkerende onderwerpen, en tijdelijke wijzigingen die later teruggedraaid moeten worden (zoals feestdagen-openingstijden — noteer wat de oorspronkelijke situatie was). Laat koetjes-en-kalfjes weg. Schrijf compact in het Nederlands, als opsomming.",
