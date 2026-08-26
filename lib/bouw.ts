@@ -524,25 +524,46 @@ export async function voerBouwUit(
     stuurStatus
   );
 
-  // Media downloaden en optimaliseren
-  // Beelden die daadwerkelijk op pagina's staan krijgen voorrang op de rest
-  const mediaUrls = hervatten || mediaHervat
+  // Media downloaden en optimaliseren.
+  // WordPress bewaart elke foto in meerdere formaten (-300x200, -768x512, ...):
+  // die groeperen we en we downloaden alleen het beste formaat per foto —
+  // anders gaat het budget op aan duplicaten en vallen echte foto's buiten de boot.
+  const basisVan = (u: string) => u.replace(/-\d+x\d+(?=\.\w+(?:[?#]|$))/, "");
+  const alleUrls = hervatten || mediaHervat
     ? []
-    : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])].slice(0, 120);
+    : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])];
+  const groepen = new Map<string, { beste: string; besteOpp: number; varianten: string[] }>();
+  for (const u of alleUrls) {
+    const b = basisVan(u);
+    const m = u.match(/-(\d+)x(\d+)\.\w+(?:[?#]|$)/);
+    const opp = m ? Number(m[1]) * Number(m[2]) : Number.MAX_SAFE_INTEGER; // origineel wint
+    const g = groepen.get(b) ?? { beste: u, besteOpp: -1, varianten: [] };
+    g.varianten.push(u);
+    if (opp > g.besteOpp) {
+      g.beste = u;
+      g.besteOpp = opp;
+    }
+    groepen.set(b, g);
+  }
+  const teDownloaden = [...groepen.values()].slice(0, 250);
   const mediaMap: Record<string, string> = {};
   let gedownload = 0;
   await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
-  stuur({ type: "status", tekst: `Afbeeldingen ophalen (${mediaUrls.length})...` });
-  for (let i = 0; i < mediaUrls.length; i += 5) {
+  stuur({
+    type: "status",
+    tekst: `Afbeeldingen ophalen (${teDownloaden.length} uniek van ${alleUrls.length})...`,
+  });
+  for (let i = 0; i < teDownloaden.length; i += 5) {
     await Promise.all(
-      mediaUrls.slice(i, i + 5).map(async (url) => {
+      teDownloaden.slice(i, i + 5).map(async (groep) => {
         try {
+          const url = groep.beste;
           const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
           if (!res.ok) return;
           const buf = Buffer.from(await res.arrayBuffer());
           if (buf.length > 10 * 1024 * 1024) return;
           const basis = path
-            .basename(new URL(url).pathname)
+            .basename(new URL(basisVan(url)).pathname)
             .replace(/\.[^.]+$/, "")
             .toLowerCase()
             .replace(/[^a-z0-9-]+/g, "-")
@@ -554,7 +575,8 @@ export async function voerBouwUit(
             .webp({ quality: 82 })
             .toBuffer();
           await writeFile(path.join(siteDir, doel), data);
-          mediaMap[url] = `/${doel}`;
+          // Alle formaat-varianten van deze foto wijzen naar hetzelfde bestand
+          for (const variant of groep.varianten) mediaMap[variant] = `/${doel}`;
           gedownload++;
         } catch {
           // overslaan
@@ -563,7 +585,7 @@ export async function voerBouwUit(
     );
     stuur({
       type: "status",
-      tekst: `Afbeeldingen ophalen (${Math.min(i + 5, mediaUrls.length)}/${mediaUrls.length})...`,
+      tekst: `Afbeeldingen ophalen (${Math.min(i + 5, teDownloaden.length)}/${teDownloaden.length})...`,
     });
   }
   await writeFile(
@@ -571,7 +593,7 @@ export async function voerBouwUit(
     JSON.stringify(mediaMap, null, 2)
   );
   await stuurStatus(
-    `${Object.keys(mediaMap).length} afbeeldingen gedownload en gekoppeld aan pagina's`
+    `${gedownload} unieke afbeeldingen gedownload en gekoppeld aan pagina's`
   );
 
   // Checkpoint 1: afbeeldingen veiligstellen — bij een latere fout hoeven ze
@@ -596,6 +618,8 @@ Instructies:
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
 - EMBEDS ZIJN VERPLICHT: oud-ontwerp/embeds-op-paginas.json toont per pagina exact welke video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) er op de oude site stonden; oud-ontwerp/bestek-*.json geeft ook afmetingen. Plaats élke embed letterlijk terug op de overeenkomstige pagina, responsief (max-width: 100%, behoud beeldverhouding via aspect-ratio). Een pagina die in het origineel een video of kaart had maar in jouw versie niet, is FOUT.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
+- MAATVAST NABOUWEN: neem details letterlijk over uit het bestek (oud-ontwerp/bestek-*.json bevat de computed styles van de echte site) — border-radius van kaarten en knoppen, schaduwen, het exacte aantal kolommen per sectie (staan de diensten in 4 kolommen naast elkaar, dan bouw jij 4 kolommen — niet 2), de volgorde en uitlijning van blokken, hoogtes van hero's, en of een sectie een achtergrondkleur of foto heeft. "Ongeveer hetzelfde" is niet goed genoeg; bij twijfel meet je na in het bestek of de screenshots.
+- KLEINE BEELDEN HOREN ERBIJ: iconen bij USP-blokjes, logo-iconen, partnerlogo's (boekhoudpakketten e.d.) en portretfoto's van teamleden zijn net zo verplicht als grote foto's. Staat zo'n beeld in site/afbeeldingen/, gebruik het; ontbreekt het, zet de URL in ontbrekende-media.txt — maar vervang het NOOIT door een gekleurd rondje, initialen of een leeg blok zonder dit te melden.
 - NAMAKEN VERBODEN: teken of fabriceer NOOIT zelf afbeeldingen, logo's of illustraties (geen zelfgemaakte SVG-boompjes, placeholder-blokken of emoji als vervanging van echte foto's/logo's). Gebruik uitsluitend de echte bestanden uit site/afbeeldingen/. Het logo van de site is een van die bestanden — gebruik dat, nooit een nagemaakte versie.
 - TAGS, CATEGORIEËN EN ARCHIEVEN: WordPress-sites hebben vaak tagwolken, categorielinks en archieflinks (/tag/..., /category/..., /author/..., /2023/05/...). Die archiefpagina's bestaan niet in de nieuwe site. Regel: laat NOOIT een dode link achter. Een tagwolk-widget laat je weg of maak je van gewone tekst zonder links; losse tag-/categorielinks bij berichten verwijzen naar het blogoverzicht (/blog/) of worden platte tekst. Controleer aan het eind dat elke interne link naar een pagina wijst die je ook echt gebouwd hebt.
 - CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map delen/ als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (delen/menu.html), footer (delen/footer.html) en topbalk (delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
