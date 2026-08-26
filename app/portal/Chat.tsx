@@ -272,6 +272,17 @@ export default function Chat({
             </span>
           )}
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => herlaad(Boolean(concept))}
+              aria-label="Voorbeeld verversen"
+              title="Voorbeeld verversen"
+              className="flex h-8 items-center gap-1.5 rounded-full border border-stone-200 px-3 text-sm font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Ververs
+            </button>
             <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
               {(
                 [
