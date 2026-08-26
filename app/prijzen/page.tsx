@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Prijzen",
   description:
-    "Eenmalig €250 tot €750 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna vanaf €20 per maand voor de AI-koppeling. Geen lock-in: opzeggen of overstappen kan altijd.",
+    "Eenmalig €250 tot €750 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op je gebruik. Geen lock-in: opzeggen of overstappen kan altijd.",
 };
 
 const overstap = [
@@ -66,16 +66,23 @@ export default function Prijzen() {
               </li>
             ))}
           </ul>
+          <Link
+            href="/contact"
+            className="lift mt-7 inline-block rounded-full bg-violet-700 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+          >
+            Vraag een vrijblijvende offerte aan →
+          </Link>
         </div>
         <div className="reveal rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
           <h2 className="font-display text-xl font-semibold">De AI-koppeling</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            vanaf €20{" "}
+            vanaf €5{" "}
             <span className="text-base font-normal text-stone-500">per maand</span>
           </p>
           <p className="mt-2 text-sm text-stone-500">
-            Afgestemd op je gebruik: verander je zelden iets, dan spreken we een
-            lager tarief of betalen-per-wijziging af.
+            Afgestemd op je gebruik: vanaf €5 per maand als je zelden iets
+            verandert, tot €20 als de AI veel voor je werkt. We kijken er
+            samen naar — nooit betalen voor wat je niet gebruikt.
           </p>
           <ul className="mt-6 space-y-3 text-stone-600">
             {koppeling.map((punt) => (
@@ -85,6 +92,12 @@ export default function Prijzen() {
               </li>
             ))}
           </ul>
+          <Link
+            href="/demo"
+            className="lift mt-7 inline-block rounded-full border-2 border-violet-600 px-6 py-3 font-semibold text-violet-700 hover:bg-violet-100"
+          >
+            Probeer de demo gratis →
+          </Link>
         </div>
       </div>
 
@@ -121,7 +134,7 @@ export default function Prijzen() {
             </table>
           </div>
           <p className="mt-4 text-sm text-stone-500">
-            Bedragen zijn indicatief. Bij WordSwap betaal je vanaf €20 p/m voor
+            Bedragen zijn indicatief. Bij WordSwap betaal je €5 – €20 p/m voor
             de AI-koppeling (afgestemd op je gebruik); alleen je
             e-mailabonnement (vanaf ± €8 p/m) loopt apart bij je
             e-mailprovider.
