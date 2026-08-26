@@ -572,39 +572,61 @@ Instructies:
 ${HUISREGELS}`;
 
   let verslag = "";
-  if (!hervatten)
-  for await (const message of query({
-    prompt,
-    options: {
-      cwd: werkmap,
-      model: "claude-sonnet-5",
-      systemPrompt:
-        "Je bent de site-bouwer van WordSwap. Je bouwt nette, snelle, mobielvriendelijke statische websites in het Nederlands.",
-      allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
-      permissionMode: "bypassPermissions",
-      maxTurns: 100,
-      env: {
-        ...process.env,
-        HOME: "/tmp",
-        XDG_CONFIG_HOME: "/tmp/.config",
-        XDG_CACHE_HOME: "/tmp/.cache",
-        CLAUDE_CONFIG_DIR: "/tmp/.claude",
-      },
-    },
-  })) {
-    if (message.type === "assistant") {
-      for (const block of message.message.content) {
-        if (block.type === "tool_use" && (block.name === "Write" || block.name === "Edit")) {
-          const pad = String(
-            (block.input as Record<string, unknown>).file_path ?? ""
-          );
-          const rel = pad.split("/site/").pop();
-          if (rel) stuur({ type: "status", tekst: `Bouwt ${rel}...` });
+  // De hoofdbouw mag meerdere rondes duren: loopt de agent tegen de
+  // beurtlimiet aan, dan gaat de volgende ronde verder in dezelfde werkmap
+  // (al gebouwde pagina's blijven staan) in plaats van de hele job te laten falen.
+  if (!hervatten) {
+    for (let ronde = 1; ronde <= 3; ronde++) {
+      const rondePrompt =
+        ronde === 1
+          ? prompt
+          : `Je was deze website aan het bouwen maar bent afgebroken op de beurtlimiet. De werkmap bevat wat al af is — bekijk welke pagina's er al staan en maak ALLEEN het resterende af (ontbrekende pagina's, kapotte verwijzingen). Bouw niets opnieuw dat er al goed staat.\n\nDe oorspronkelijke opdracht was:\n\n${prompt}`;
+      let limietBereikt = false;
+      try {
+        for await (const message of query({
+          prompt: rondePrompt,
+          options: {
+            cwd: werkmap,
+            model: "claude-sonnet-5",
+            systemPrompt:
+              "Je bent de site-bouwer van WordSwap. Je bouwt nette, snelle, mobielvriendelijke statische websites in het Nederlands.",
+            allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
+            permissionMode: "bypassPermissions",
+            maxTurns: 100,
+            env: {
+              ...process.env,
+              HOME: "/tmp",
+              XDG_CONFIG_HOME: "/tmp/.config",
+              XDG_CACHE_HOME: "/tmp/.cache",
+              CLAUDE_CONFIG_DIR: "/tmp/.claude",
+            },
+          },
+        })) {
+          if (message.type === "assistant") {
+            for (const block of message.message.content) {
+              if (block.type === "tool_use" && (block.name === "Write" || block.name === "Edit")) {
+                const pad = String(
+                  (block.input as Record<string, unknown>).file_path ?? ""
+                );
+                const rel = pad.split("/site/").pop();
+                if (rel) stuur({ type: "status", tekst: `Bouwt ${rel}...` });
+              }
+            }
+          }
+          if (message.type === "result") {
+            if (message.subtype === "success") verslag = message.result;
+            else limietBereikt = true;
+          }
         }
+      } catch (e) {
+        if (/maximum number of turns/i.test(String(e))) limietBereikt = true;
+        else throw e;
       }
-    }
-    if (message.type === "result") {
-      verslag = message.subtype === "success" ? message.result : "";
+      if (!limietBereikt) break;
+      if (ronde < 3)
+        await stuurStatus(
+          `Grote site — de bouw gaat verder waar hij gebleven was (ronde ${ronde + 1})...`
+        );
     }
   }
 
