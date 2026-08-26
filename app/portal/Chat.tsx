@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type Bericht = {
   rol: "klant" | "assistent";
   tekst: string;
+  metVerversTip?: boolean;
 };
 
 type Concept = {
@@ -203,6 +204,7 @@ export default function Chat({
         {
           rol: "assistent",
           tekst: data.reply ?? "Er ging iets mis, probeer het opnieuw.",
+          metVerversTip: Boolean(data.previewUrl && data.changeId),
         },
       ]);
       if (data.previewUrl && data.changeId) {
@@ -391,15 +393,27 @@ export default function Chat({
                   </p>
                 )}
                 {berichten.map((m, i) => (
-                  <div
-                    key={i}
-                    className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
-                      m.rol === "klant"
-                        ? "ml-auto bg-violet-600 text-white rounded-br-sm"
-                        : "bg-stone-100 text-stone-800 rounded-bl-sm"
-                    }`}
-                  >
-                    {m.tekst}
+                  <div key={i}>
+                    <div
+                      className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
+                        m.rol === "klant"
+                          ? "ml-auto bg-violet-600 text-white rounded-br-sm"
+                          : "bg-stone-100 text-stone-800 rounded-bl-sm"
+                      }`}
+                    >
+                      {m.tekst}
+                    </div>
+                    {m.metVerversTip && i === berichten.length - 1 && (
+                      <button
+                        onClick={() => herlaad(Boolean(concept))}
+                        className="mt-1.5 flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+                          <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Zie je de wijziging niet? Ververs het voorbeeld
+                      </button>
+                    )}
                   </div>
                 ))}
                 {bezig && (
