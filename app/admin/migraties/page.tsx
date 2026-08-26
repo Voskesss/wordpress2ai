@@ -73,9 +73,15 @@ export default async function Migraties() {
               ~/Downloads/bakkerij.xml, repo bakkerij-pietersen — laat de
               blogpagina weg&rdquo;
             </em>
-            . Claude doet de rest: voorwerk-script, bouwen met alle regels,
-            screenshots ter controle, en registreren zodat de klant hier in de
-            admin verschijnt.
+            . Claude doet de rest in drie fases: (a){" "}
+            <strong>voorwerk-script</strong> — export parsen, ontwerp en
+            afbeeldingen ophalen naar lokale mappen (er bestaat dan nog niets
+            in GitHub of hier); (b) <strong>bouwen</strong> met alle
+            kwaliteitsregels, met screenshots ter controle aan jou; (c){" "}
+            <strong>registreren</strong> — pas hier maakt Claude automatisch de
+            repo aan in de GitHub-org wordpress2ai, de klant in deze admin, en
+            de hosting (live + werkversie) op Cloudflare. Daarna zie je de
+            klant gewoon in de klantenlijst staan.
           </li>
           <li>
             <strong>Afronden doe je hier:</strong> klantaccount koppelen op de
