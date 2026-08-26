@@ -52,9 +52,9 @@ const secties: { kop: string; blokken: { titel: string; tekst: string }[] }[] = 
     kop: "Migratie van een WordPress-site",
     blokken: [
       {
-        titel: "Stappen",
+        titel: "Stappen (actuele flow: via Claude Code)",
         tekst:
-          "1) Klant maakt een export (WordPress → Extra → Exporteren → Alle inhoud). 2) Admin → Migraties: XML uploaden (grote bestanden worden automatisch gecomprimeerd). 3) Controleer de naam en klik Bouw site. De bouw draait op GitHub Actions en is live te volgen in de bouwwachtrij. 4) Klaar? Via 'Naar klantpagina' de site controleren en met 'Zet site online' op Cloudflare zetten. 5) Klantaccount koppelen via e-mailadres.",
+          "1) Klant maakt een export (WordPress → Extra → Exporteren → Alle inhoud); zet de XML bijv. in ~/Downloads. 2) Terminal: cd ~/wordpress2ai, check 'gh auth status' (ingelogd als Voskesss), start 'claude'. 3) Typ: \"migreer klant <naam>, xml staat in <pad>, repo <kebab-naam>\" — plus eventuele aanwijzingen ('laat Actueel weg'). Claude draait het voorwerk-script (geen AI-kosten), bouwt de site met alle kwaliteitsregels, toont screenshots ter controle en registreert de klant automatisch in deze admin. 4) Hier afronden: klantaccount koppelen, richtlijnen invullen, domein + e-mail (zie bovenaan). Het exacte stappenplan staat ook op de Migraties-pagina. De oude uploadknop daar is de API-pijplijn — alleen als terugvaloptie (duurder).",
       },
       {
         titel: "Wat de bouw-AI doet",
