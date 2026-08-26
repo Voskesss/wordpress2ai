@@ -221,11 +221,38 @@ export async function pushBestanden(
     `/repos/${GITHUB_ORG}/${repo}/git/commits/${ref.object.sha}`
   )) as { tree: { sha: string } };
 
+  // Ongewijzigde bestanden overslaan: hun blob staat al in git (zelfde sha),
+  // dus alleen echt gewijzigde/nieuwe bestanden hoeven geüpload te worden.
+  // Scheelt bij checkpoints van grote sites honderden API-aanroepen (rate limits).
+  const bestaandeSha = new Map<string, string>();
+  try {
+    const boom = (await gh(
+      `/repos/${GITHUB_ORG}/${repo}/git/trees/${basisCommit.tree.sha}?recursive=1`
+    )) as { tree?: { path: string; sha: string; type: string }[]; truncated?: boolean };
+    if (!boom.truncated) {
+      for (const t of boom.tree ?? []) {
+        if (t.type === "blob") bestaandeSha.set(t.path, t.sha);
+      }
+    }
+  } catch {
+    // optimalisatie; bij twijfel gewoon alles uploaden
+  }
+  const { createHash } = await import("node:crypto");
+  const gitBlobSha = (inhoud: Buffer) =>
+    createHash("sha1")
+      .update(`blob ${inhoud.length}\0`)
+      .update(inhoud)
+      .digest("hex");
+  const teUploaden = bestanden.filter(
+    (b) => bestaandeSha.get(b.pad) !== gitBlobSha(b.inhoud)
+  );
+  if (teUploaden.length === 0) return; // niets veranderd
+
   // Blobs in kleine groepjes aanmaken — meer parallel triggert GitHub's
   // secondary rate limit bij sites met veel media
   const blobs: { path: string; mode: string; type: string; sha: string }[] = [];
-  for (let i = 0; i < bestanden.length; i += 3) {
-    const groep = bestanden.slice(i, i + 3);
+  for (let i = 0; i < teUploaden.length; i += 3) {
+    const groep = teUploaden.slice(i, i + 3);
     const resultaten = await Promise.all(
       groep.map(async (b) => {
         const blob = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/blobs`, {
