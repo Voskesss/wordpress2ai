@@ -31,6 +31,15 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
     return () => clearInterval(timer);
   }, [jobs]);
 
+  async function verwijder(id: number) {
+    setJobs((j) => j.filter((job) => job.id !== id));
+    await fetch("/api/admin/bouw-jobs", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobId: id }),
+    }).catch(() => {});
+  }
+
   async function annuleer(id: number) {
     await fetch("/api/admin/bouw-jobs/annuleer", {
       method: "POST",
@@ -80,6 +89,15 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
                   >
                     Naar klantpagina →
                   </a>
+                )}
+                {(job.status === "klaar" || job.status === "fout") && (
+                  <button
+                    onClick={() => verwijder(job.id)}
+                    title="Uit de wachtrij verwijderen"
+                    className="ml-4 text-stone-400 hover:text-red-600 cursor-pointer"
+                  >
+                    Verwijder
+                  </button>
                 )}
               </td>
             </tr>
