@@ -91,6 +91,21 @@ export default async function KlantDetail({
     );
   const openConcept = laatsteChanges.find((c) => c.status === "concept");
 
+  const { aiKosten } = await import("@/db/schema");
+  const kostenRijen = await db
+    .select()
+    .from(aiKosten)
+    .where(eq(aiKosten.siteId, site.id));
+  const maandNu = new Date().toISOString().slice(0, 7);
+  const usd = (micro: number) => `$${(micro / 1_000_000).toFixed(2)}`;
+  const kostenDezeMaand = kostenRijen
+    .filter((r) => r.maand === maandNu)
+    .reduce((s, r) => s + r.kostenMicroUsd, 0);
+  const kostenTotaal = kostenRijen.reduce((s, r) => s + r.kostenMicroUsd, 0);
+  const chatBeurtenMaand = kostenRijen
+    .filter((r) => r.maand === maandNu && r.bron === "chat")
+    .reduce((s, r) => s + r.beurten, 0);
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
@@ -123,7 +138,17 @@ export default async function KlantDetail({
       </div>
 
       {/* Verbruik */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-3xl border border-stone-200 bg-white p-5">
+          <p className="text-sm text-stone-500">AI-kosten deze maand</p>
+          <p className="font-display mt-1 text-3xl font-semibold">
+            {usd(kostenDezeMaand)}
+          </p>
+          <p className="mt-1 text-xs text-stone-400">
+            {chatBeurtenMaand} chat-opdracht{chatBeurtenMaand === 1 ? "" : "en"} ·
+            totaal ooit {usd(kostenTotaal)} (incl. bouw)
+          </p>
+        </div>
         <div className="rounded-3xl border border-stone-200 bg-white p-5">
           <p className="text-sm text-stone-500">Wijzigingen deze maand</p>
           <p className="font-display mt-1 text-3xl font-semibold">

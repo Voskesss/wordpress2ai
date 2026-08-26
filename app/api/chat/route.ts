@@ -307,6 +307,17 @@ export async function POST(req: Request) {
           if (message.type === "result") {
             if (message.subtype === "success") reply = message.result;
             else limietBereikt = true;
+            const u = (message as { usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number } }).usage;
+            const kosten = (message as { total_cost_usd?: number }).total_cost_usd;
+            const { registreerAiKosten } = await import("@/lib/kosten");
+            registreerAiKosten(site.id, "chat", {
+              tokensIn:
+                (u?.input_tokens ?? 0) +
+                (u?.cache_creation_input_tokens ?? 0) +
+                (u?.cache_read_input_tokens ?? 0),
+              tokensUit: u?.output_tokens ?? 0,
+              kostenUsd: kosten ?? 0,
+            }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           }
         }
         } catch (e) {

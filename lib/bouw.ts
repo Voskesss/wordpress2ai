@@ -13,6 +13,30 @@ import { maakSeoManifest, parseWxr } from "@/lib/wxr";
 
 const MAX_MEDIA = 30;
 
+// Opgeteld AI-verbruik van de lopende bouw (hoofdbouw + verbeterrondes);
+// wordt per job gereset in voerBouwUit en daarna per site geregistreerd.
+export const bouwVerbruik = { tokensIn: 0, tokensUit: 0, kostenUsd: 0 };
+
+export function telResultaatMee(message: unknown) {
+  const m = message as {
+    type?: string;
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_creation_input_tokens?: number;
+      cache_read_input_tokens?: number;
+    };
+    total_cost_usd?: number;
+  };
+  if (m.type !== "result") return;
+  bouwVerbruik.tokensIn +=
+    (m.usage?.input_tokens ?? 0) +
+    (m.usage?.cache_creation_input_tokens ?? 0) +
+    (m.usage?.cache_read_input_tokens ?? 0);
+  bouwVerbruik.tokensUit += m.usage?.output_tokens ?? 0;
+  bouwVerbruik.kostenUsd += m.total_cost_usd ?? 0;
+}
+
 const PORTAL_SNIPPET =
   '<script>try{parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*")}catch(e){}</script>';
 
@@ -415,7 +439,10 @@ async function vergelijkEnVerbeter(
           },
         },
       })) {
-        if (message.type === "result") break;
+        if (message.type === "result") {
+          telResultaatMee(message);
+          break;
+        }
       }
     }
   } finally {
@@ -472,6 +499,9 @@ export async function voerBouwUit(
   );
   if (paginas.length === 0) throw new Error("Geen gepubliceerde pagina's gevonden");
 
+  bouwVerbruik.tokensIn = 0;
+  bouwVerbruik.tokensUit = 0;
+  bouwVerbruik.kostenUsd = 0;
   werkmap = await mkdtemp(path.join(tmpdir(), "wp2ai-bouw-"));
   const bronDir = path.join(werkmap, "bronmateriaal");
   const siteDir = path.join(werkmap, "site");
@@ -685,6 +715,7 @@ ${HUISREGELS}`;
             }
           }
           if (message.type === "result") {
+            telResultaatMee(message);
             if (message.subtype === "success") verslag = message.result;
             else limietBereikt = true;
           }
@@ -772,6 +803,10 @@ ${HUISREGELS}`;
     },
     notities: verslag.slice(0, 2000),
   });
+  const { registreerAiKosten } = await import("@/lib/kosten");
+  await registreerAiKosten(siteRow.id, "bouw", { ...bouwVerbruik }).catch((e) =>
+    console.error("Kostenregistratie bouw mislukt:", e)
+  );
     return {
       repo: repoNaam,
       repoUrl: `https://github.com/wordpress2ai/${repoNaam}`,

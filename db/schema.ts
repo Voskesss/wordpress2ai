@@ -110,6 +110,21 @@ export const bouwJobs = pgTable("bouw_jobs", {
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
 
+// Werkelijke AI-kosten per site per maand, gesplitst naar bron (chat/bouw).
+// Basis voor toekomstige prijsmodellen (pay-per-use i.p.v. vast maandbedrag).
+export const aiKosten = pgTable("ai_kosten", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id")
+    .notNull()
+    .references(() => sites.id),
+  maand: text("maand").notNull(), // "2026-08"
+  bron: text("bron", { enum: ["chat", "bouw"] }).notNull(),
+  beurten: integer("beurten").notNull().default(0), // aantal AI-opdrachten
+  tokensIn: integer("tokens_in").notNull().default(0),
+  tokensUit: integer("tokens_uit").notNull().default(0),
+  kostenMicroUsd: integer("kosten_micro_usd").notNull().default(0), // $ x 1.000.000
+});
+
 export const formulierInzendingen = pgTable("formulier_inzendingen", {
   id: serial("id").primaryKey(),
   siteRepo: text("site_repo").notNull(),

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, messages, sites, usage } from "@/db/schema";
+import { aiKosten, changes, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -81,10 +81,15 @@ export default async function Admin() {
         .select()
         .from(changes)
         .where(eq(changes.siteId, site.id));
+      const kosten = await db
+        .select()
+        .from(aiKosten)
+        .where(and(eq(aiKosten.siteId, site.id), eq(aiKosten.maand, maand)));
       return {
         site,
         wijzigingen: verbruik?.wijzigingen ?? 0,
         openConcepten: alleChanges.filter((c) => c.status === "concept").length,
+        aiMicroUsd: kosten.reduce((s, r) => s + r.kostenMicroUsd, 0),
       };
     })
   );
@@ -137,7 +142,7 @@ export default async function Admin() {
             Nog geen klanten. Start een migratie of maak een klant aan.
           </p>
         )}
-        {rijen.map(({ site, wijzigingen, openConcepten }) => (
+        {rijen.map(({ site, wijzigingen, openConcepten, aiMicroUsd }) => (
           <Link
             key={site.id}
             href={`/admin/klant/${site.id}`}
@@ -160,6 +165,14 @@ export default async function Admin() {
               <span className="hidden sm:inline rounded-full bg-violet-50 border border-violet-200 px-3 py-1 font-medium text-violet-700">
                 {wijzigingen}/30 deze maand
               </span>
+              {aiMicroUsd > 0 && (
+                <span
+                  className="hidden md:inline rounded-full bg-stone-100 border border-stone-200 px-3 py-1 font-medium text-stone-600"
+                  title="Werkelijke AI-kosten deze maand"
+                >
+                  {`$${(aiMicroUsd / 1_000_000).toFixed(2)} AI`}
+                </span>
+              )}
               <span
                 className={`rounded-full border px-3 py-1 font-medium capitalize ${STATUS_KLEUR[site.status] ?? ""}`}
               >
