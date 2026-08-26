@@ -61,23 +61,36 @@ export async function gh(
   path: string,
   init: RequestInit & { raw?: boolean } = {}
 ) {
-  const token = await installationToken();
-  const res = await fetch(`${API}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: init.raw
-        ? "application/vnd.github.raw+json"
-        : "application/vnd.github+json",
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`GitHub ${init.method ?? "GET"} ${path}: ${res.status} ${body.slice(0, 300)}`);
+  // GitHub's secondary rate limit (403/429 bij veel schrijfacties) is tijdelijk:
+  // wachten en opnieuw proberen in plaats van de hele bouw laten falen.
+  for (let poging = 1; ; poging++) {
+    const token = await installationToken();
+    const res = await fetch(`${API}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: init.raw
+          ? "application/vnd.github.raw+json"
+          : "application/vnd.github+json",
+        "Content-Type": "application/json",
+        ...init.headers,
+      },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      const rateLimit =
+        (res.status === 403 || res.status === 429) &&
+        /rate limit/i.test(body);
+      if (rateLimit && poging <= 4) {
+        const retryAfter = Number(res.headers.get("retry-after"));
+        const wacht = (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 30 * poging) * 1000;
+        await new Promise((r) => setTimeout(r, Math.min(wacht, 120_000)));
+        continue;
+      }
+      throw new Error(`GitHub ${init.method ?? "GET"} ${path}: ${res.status} ${body.slice(0, 300)}`);
+    }
+    return init.raw ? res.text() : res.json();
   }
-  return init.raw ? res.text() : res.json();
 }
 
 /** Leest een bestand uit een repo (branch optioneel). */
@@ -208,10 +221,11 @@ export async function pushBestanden(
     `/repos/${GITHUB_ORG}/${repo}/git/commits/${ref.object.sha}`
   )) as { tree: { sha: string } };
 
-  // Blobs parallel aanmaken (in groepjes van 10)
+  // Blobs in kleine groepjes aanmaken — meer parallel triggert GitHub's
+  // secondary rate limit bij sites met veel media
   const blobs: { path: string; mode: string; type: string; sha: string }[] = [];
-  for (let i = 0; i < bestanden.length; i += 10) {
-    const groep = bestanden.slice(i, i + 10);
+  for (let i = 0; i < bestanden.length; i += 3) {
+    const groep = bestanden.slice(i, i + 3);
     const resultaten = await Promise.all(
       groep.map(async (b) => {
         const blob = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/blobs`, {

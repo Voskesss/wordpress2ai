@@ -69,7 +69,14 @@ export default function BouwWachtrij({ start }: { start: Job[] }) {
                 </span>
               </td>
               <td className="px-3 py-3 text-stone-500">
-                <span className={`line-clamp-1 ${job.status === "bezig" ? "animate-pulse" : ""}`}>
+                <span
+                  title={job.voortgang ?? undefined}
+                  className={
+                    job.status === "fout"
+                      ? "block max-w-xl whitespace-pre-wrap break-words text-red-700"
+                      : `line-clamp-1 ${job.status === "bezig" ? "animate-pulse" : ""}`
+                  }
+                >
                   {job.voortgang}
                 </span>
               </td>
