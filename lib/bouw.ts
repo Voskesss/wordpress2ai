@@ -424,7 +424,7 @@ async function vergelijkEnVerbeter(
 - De site is "${siteNaam}". Werk grondig maar breek niets.`,
         options: {
           cwd: werkmap,
-          model: "claude-sonnet-5",
+          model: "claude-opus-5",
           systemPrompt:
             "Je bent de ontwerp-controleur van WordSwap. Je maakt de nieuwe statische site visueel gelijk aan de oude.",
           allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
@@ -690,7 +690,7 @@ ${HUISREGELS}`;
           prompt: rondePrompt,
           options: {
             cwd: werkmap,
-            model: "claude-sonnet-5",
+            model: "claude-opus-5",
             systemPrompt:
               "Je bent de site-bouwer van WordSwap. Je bouwt nette, snelle, mobielvriendelijke statische websites in het Nederlands.",
             allowedTools: ["Read", "Write", "Edit", "Glob", "Grep"],
