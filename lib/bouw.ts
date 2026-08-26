@@ -53,7 +53,7 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
 
 
 /** Haalt het echte ontwerp van de live site op: gerenderde HTML, CSS en screenshots. */
-async function haalLiveOntwerp(
+export async function haalLiveOntwerp(
   bronUrl: string,
   paden: string[],
   doelDir: string,
