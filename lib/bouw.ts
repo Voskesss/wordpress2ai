@@ -178,6 +178,32 @@ export async function haalLiveOntwerp(
             waitUntil: "networkidle",
             timeout: 20000,
           });
+          // Lazy content wakker maken: hele pagina doorscrollen en de
+          // daadwerkelijk geladen achtergronden oogsten (computed styles)
+          try {
+            const lazyBgs = (await page.evaluate(async () => {
+              const stap = window.innerHeight;
+              for (let y = 0; y < document.body.scrollHeight; y += stap) {
+                window.scrollTo(0, y);
+                await new Promise((r) => setTimeout(r, 250));
+              }
+              window.scrollTo(0, 0);
+              await new Promise((r) => setTimeout(r, 400));
+              const urls = new Set();
+              for (const el of document.querySelectorAll("*")) {
+                const bg = getComputedStyle(el).backgroundImage;
+                for (const m of bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)) urls.add(m[1]);
+                if (el instanceof HTMLImageElement && el.currentSrc) urls.add(el.currentSrc);
+              }
+              return [...urls];
+            })) as string[];
+            for (const u of lazyBgs) {
+              try {
+                const vol = new URL(u, bronUrl).href;
+                if (/\.(png|jpe?g|webp|gif|svg)([?#]|$)/i.test(vol)) afbeeldingUrls.add(vol);
+              } catch {}
+            }
+          } catch {}
           const naam = (pad.replace(/\//g, "-").replace(/^-|-$/g, "") || "home");
           await page.screenshot({
             path: path.join(doelDir, `screenshot-${label}-${naam}.png`),
