@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { bouwJobs } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import MigratieImport from "./MigratieImport";
+import MailCheck from "./MailCheck";
 import BouwWachtrij from "./BouwWachtrij";
 
 export const metadata: Metadata = {
@@ -98,6 +99,8 @@ export default async function Migraties() {
           vastgelegd in LEERPUNTEN.md zodat de volgende migratie beter gaat.
         </p>
       </div>
+
+      <MailCheck />
 
       <BouwWachtrij
         start={jobs.map((j) => ({
