@@ -30,7 +30,7 @@ export default async function Contact() {
           {[
             "Gratis check van je huidige site",
             "Duidelijke prijs vooraf, geen verrassingen",
-            "Geen verplichtingen, geen opdringerige opvolging",
+            "No cure, no pay: niet tevreden met de kopie, dan betaal je niets",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
               <span className="mt-1 text-violet-600 shrink-0">✓</span>

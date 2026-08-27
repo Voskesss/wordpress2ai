@@ -89,7 +89,11 @@ export default function Home() {
               wijziging voor je klaar, jij bekijkt het resultaat — en als je
               tevreden bent zeg je &ldquo;ja&rdquo;. Meer is het niet.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
+            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              No cure, no pay — niet tevreden met de kopie? Dan betaal je niets.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
               <Link
                 href="/contact"
                 className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"

@@ -13,7 +13,7 @@ const overstap = [
   "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €8 p/m, sluit je af bij een Nederlandse provider)",
   "Behoud van je vindbaarheid in Google: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
   "Contactformulier standaard inbegrepen",
-  "Oplevering pas als jij tevreden bent",
+  "No cure, no pay: eerst zie je de complete kopie van je site — niet tevreden, dan zie je er kosteloos vanaf en betaal je niets",
 ];
 
 const koppeling = [
