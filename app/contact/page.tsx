@@ -55,6 +55,11 @@ export default async function Contact() {
           tabIndex={-1}
           autoComplete="off"
         />
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+          Goed om te weten: webshops (zoals WooCommerce) kunnen we niet
+          overzetten. Alle andere WordPress-sites — ook met blog of
+          formulieren — juist wél.
+        </p>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="naam" className="block text-sm font-semibold">

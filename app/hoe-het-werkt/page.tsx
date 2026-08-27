@@ -31,7 +31,7 @@ const stappen = [
   {
     titel: "We bouwen je site opnieuw — sneller en veiliger",
     tekst:
-      "Je site wordt opnieuw opgebouwd als moderne, razendsnelle website — een 95%-kopie van wat je nu hebt. In 2 van de 3 gevallen kunnen we alles exact overzetten; soms zijn speciale plugins, hero-video's of sliders wat lastiger, maar wij doen er alles aan om zelfs die identiek over te zetten. Het grote verschil zit onder de motorkap: geen plugins, geen database, niets dat gehackt of geüpdatet moet worden.",
+      "Je site wordt opnieuw opgebouwd als moderne, razendsnelle website — een 95%-kopie van wat je nu hebt. In 2 van de 3 gevallen kunnen we alles exact overzetten; soms zijn speciale plugins, hero-video's of sliders wat lastiger, maar wij doen er alles aan om zelfs die identiek over te zetten. Het grote verschil zit onder de motorkap: geen plugins, geen database, niets dat gehackt of geüpdatet moet worden. Eén uitzondering: webshops (zoals WooCommerce) kunnen we niet overzetten — die hebben een kassa en voorraad nodig en passen niet in deze aanpak.",
   },
   {
     titel: "Live zetten en nauwkeurig controleren",
