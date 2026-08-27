@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     ? { status: "extern", tekst: "Soverin — mail draait extern. Geen migratie nodig; alleen DNS-records exact meenemen." }
     : /transip/.test(mxTekst)
     ? { status: "check", tekst: "TransIP — check of dit mail-only is of bij de webhosting hoort." }
-    : /vimexx|antagonist|siteground|hostnet|mijndomein|byte|savvii|cloud86|neostrada|versio|strato|one\.com|hostinger/.test(mxTekst)
+    : /vimexx|antagonist|siteground|mailspamprotection|hostnet|mijndomein|byte|savvii|cloud86|neostrada|versio|strato|one\.com|hostinger/.test(mxTekst)
     ? { status: "migratie", tekst: "LET OP: mail draait bij een webhoster — waarschijnlijk gekoppeld aan de WordPress-hosting. E-mailmigratie nodig vóór opzegging! Zie docs/email-migratie.md." }
     : mx.length
     ? { status: "check", tekst: "Onbekende provider — handmatig checken of dit de webhoster is." }

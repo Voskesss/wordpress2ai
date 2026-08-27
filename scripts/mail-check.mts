@@ -23,7 +23,7 @@ const herkend =
   /google|gmail/.test(mxTekst) ? 'Google Workspace — mail draait EXTERN, alleen DNS-records meenemen' :
   /soverin/.test(mxTekst) ? 'Soverin — mail draait EXTERN, alleen DNS-records meenemen' :
   /transip/.test(mxTekst) ? 'TransIP — check of dit mail-only is of bij de webhosting hoort' :
-  /vimexx|antagonist|siteground|hostnet|mijndomein|byte|savvii|cloud86|neostrada|versio|strato|one\.com|hostinger/.test(mxTekst) ?
+  /vimexx|antagonist|siteground|mailspamprotection|hostnet|mijndomein|byte|savvii|cloud86|neostrada|versio|strato|one\.com|hostinger/.test(mxTekst) ?
     'LET OP: mail draait bij een WEBHOSTER — waarschijnlijk gekoppeld aan de WordPress-hosting. E-MAILMIGRATIE NODIG vóór opzegging!' :
   mx.length ? 'Onbekende provider — handmatig checken of dit de webhoster is' : 'Geen MX gevonden';
 console.log('\nDiagnose:', herkend);
