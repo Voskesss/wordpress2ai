@@ -143,6 +143,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
   }
 
+  // Gepauzeerde of opgezegde sites: geen wijzigingen meer (behalve door de beheerder)
+  if ((site.status === "gepauzeerd" || site.status === "opgezegd") && !(await isBeheerder())) {
+    return NextResponse.json(
+      {
+        error:
+          site.status === "gepauzeerd"
+            ? "Je AI-koppeling staat op dit moment gepauzeerd. Neem contact met ons op om hem weer te activeren."
+            : "Je AI-koppeling is beëindigd. Je website blijft gewoon online; neem contact met ons op als je weer wijzigingen wilt kunnen doen.",
+      },
+      { status: 403 }
+    );
+  }
+
   // Demo: geen foto-uploads en een daglimiet per gebruiker
   if (site.isDemo) {
     afbeelding = null;
