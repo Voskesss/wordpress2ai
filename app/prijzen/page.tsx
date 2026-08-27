@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const overstap = [
   "Complete migratie van je WordPress-site: omzetten, SEO-structuur controleren en domein koppelen",
   "Een 95%-kopie van je huidige site: in 2 van de 3 gevallen zetten we álles exact over. Speciale plugins, hero-video's of sliders zijn soms lastiger — maar ook die zetten we zo identiek mogelijk over",
-  "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €8 p/m, sluit je af bij een Nederlandse provider)",
+  "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €4 p/m per mailbox, sluit je af bij een Nederlandse provider — daarna is die provider ook je aanspreekpunt voor mailvragen)",
   "Behoud van je vindbaarheid in Google: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
   "Contactformulier standaard inbegrepen",
   "No cure, no pay: eerst zie je de complete kopie van je site — niet tevreden, dan zie je er kosteloos vanaf en betaal je niets",
@@ -138,8 +138,11 @@ export default function Prijzen() {
           <p className="mt-4 text-sm text-stone-500">
             Bedragen zijn indicatief. Bij WordSwap betaal je €5 – €20 p/m voor
             de AI-koppeling (afgestemd op je gebruik); alleen je
-            e-mailabonnement (vanaf ± €8 p/m) loopt apart bij je
-            e-mailprovider.
+            e-mailabonnement (vanaf ± €4 p/m per mailbox; aliassen zoals
+            info@ en naam@ op één mailbox zijn meestal gratis) loopt apart
+            bij je e-mailprovider. Wij helpen eenmalig bij de
+            e-mailoverstap, maar zijn geen e-mailprovider: voor
+            mailproblemen daarna is je e-mailprovider het aanspreekpunt.
           </p>
         </div>
       </div>

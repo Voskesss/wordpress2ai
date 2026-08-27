@@ -60,6 +60,11 @@ Het abonnement sluit de KLANT af (eigen naam, eigen betaling — geen lock-in bi
 
 - Richtprijs: **€49 per mailbox** (verhuizing + inrichting + apparaathulp op afstand), minimum €99 per traject. Het mailabonnement zelf betaalt de klant rechtstreeks aan de provider (vanaf ± €3-6 p/box p/m) — zo staat het ook op de prijzenpagina.
 - Niet inbegrepen (apart offreren): agenda-/contactenmigratie, gedeelde mailboxen, meer dan 10 GB per box, ter plaatse langskomen.
+- **Aliassen zijn gratis** bij o.a. Soverin: één betaalde mailbox met aliassen (info@, administratie@, naam@) is voor veel kleine bedrijven genoeg. Alleen een aparte inbox met eigen wachtwoord kost een extra box. Adviseer dit standaard — scheelt de klant fors.
+
+## Afbakening support — helder communiceren
+
+**WordSwap is geen e-mailprovider en geeft geen doorlopende e-mailsupport.** We helpen eenmalig bij de overstap (records, verhuizing, apparaten instellen). Daarna is de e-mailprovider het loket voor alle mailproblemen (mail komt niet aan, wachtwoord kwijt, opslag vol, spam). Zet deze zin letterlijk in elke offerte waar e-mail in zit.
 
 ## Valkuilen
 

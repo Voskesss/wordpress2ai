@@ -67,7 +67,7 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <h1 className="font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
               Een website die{" "}
               <span className="text-violet-700">doet wat je zegt</span>
@@ -114,11 +114,11 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="float-card">
+          <div className="float-card min-w-0">
             <div className="rounded-3xl bg-[#fdf6ea] p-8 text-center shadow-sm border border-stone-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/hero-test.jpg" alt="De WordSwap-beheerder steekt twee duimen op" className="mx-auto max-h-[26rem] w-auto" />
-              <div className="mt-5 flex justify-center scale-125">
+              <img src="/hero-test.jpg" alt="De WordSwap-beheerder steekt twee duimen op" className="mx-auto max-h-[26rem] w-auto max-w-full" />
+              <div className="mt-5 flex justify-center sm:scale-125">
                 <Logo />
               </div>
             </div>
