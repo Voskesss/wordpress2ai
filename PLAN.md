@@ -278,6 +278,8 @@ Voor een expert-klant (eigen AI-tools op eigen site): nodig hun GitHub-account u
 
 ## Roadmap-ideeën (nog niet gepland)
 
+- **Meertalige marketingsite (next-intl):** alle marketingpagina's onder app/[locale]/ met next-intl; teksten naar messages/nl.json (bron) en per taal een vertaalbestand dat Claude genereert en Jos laat nakijken. Portaal/admin blijven Nederlands. Volgorde: nl (bron) → en → de. Grote refactor: in een eigen sessie doen, niet tussendoor.
+
 - **Chat-intake voor nieuwe websites:** de intake op /nieuwe-website als AI-gesprek in plaats van formulier — de chat vraagt door (doelgroep, stijl, voorbeelden), vat samen en zet het resultaat als aanvraag in de admin. Kan de bestaande demo-chatinfrastructuur hergebruiken. Nieuwe-websitebouw blijft extra dienst; WordSwap (de overstap) is de focus.
 
 - **Toolset bij de chat:** visuele hulpmiddelen naast vrije tekst — een kleurkiezer ("maak de knoppen deze kleur"), lettertype-kiezer, afbeelding-kiezer uit de mediabank, misschien klik-op-element ("verander dít"). Doel: gebruiksvriendelijker voor niet-typers; de gekozen waarde gaat als gestructureerd gegeven mee met het chatbericht.
