@@ -102,6 +102,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/hoe-het-werkt" className="hover:text-violet-600">Hoe het werkt</Link>
           <Link href="/prijzen" className="hover:text-violet-600">Prijzen</Link>
           <Link href="/nieuwe-website" className="hover:text-violet-600">Nieuwe website</Link>
+          <Link href="/wordpress-overzetten" className="hover:text-violet-600">WordPress overzetten</Link>
+          <Link href="/wordpress-alternatief" className="hover:text-violet-600">WordPress-alternatief</Link>
+          <Link href="/website-zonder-onderhoud" className="hover:text-violet-600">Website zonder onderhoud</Link>
+          <Link href="/wordpress-website-traag" className="hover:text-violet-600">Trage WordPress-site</Link>
           <Link href="/contact" className="hover:text-violet-600">Contact</Link>
           </nav>
           </div>
