@@ -56,9 +56,10 @@ export default async function Contact() {
           autoComplete="off"
         />
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
-          Goed om te weten: webshops (zoals WooCommerce) kunnen we niet
-          overzetten. Alle andere WordPress-sites — ook met blog of
-          formulieren — juist wél.
+          Goed om te weten: webshops, ledenportalen met inlog en
+          boekingssystemen met live agenda kunnen we niet overzetten. Gewone
+          bedrijfssites — ook met blog en formulieren — juist wél. Twijfel je?
+          Stuur je site gewoon in, dan kijken we gratis mee.
         </p>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
