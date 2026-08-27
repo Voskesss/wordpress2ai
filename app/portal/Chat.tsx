@@ -278,6 +278,7 @@ export default function Chat({
             const event = JSON.parse(regel);
             if (event.type === "status") setStatusTekst(event.tekst);
             if (event.type === "klaar") klaar = event;
+            if (!event.type && typeof event.error === "string") klaar = { reply: event.error };
           } catch {
             // halve regel
           }
