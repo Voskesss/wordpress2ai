@@ -227,7 +227,7 @@ export default function Chat({
       { rol: "klant", tekst: teVersturen ? `\u{1F4CE} ${tekst}` : tekst },
     ]);
     setBezig(true);
-    setStatusTekst(teVersturen ? "Ik verwerk je afbeelding..." : "Even nadenken...");
+    setStatusTekst(teVersturen ? "Ik verwerk je afbeelding..." : null);
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
@@ -594,7 +594,7 @@ export default function Chat({
                       ))}
                     </span>
                     <span className="text-sm font-medium text-stone-600">
-                      {statusTekst ?? "Bezig met je wijziging..."}
+                      {statusTekst ?? "..."}
                     </span>
                   </div>
                 )}
@@ -871,7 +871,7 @@ export default function Chat({
                 onKeyDown={(e) => e.key === "Enter" && verstuur()}
                 placeholder={
                   bezig
-                    ? (statusTekst ?? "Bezig met je wijziging...")
+                    ? (statusTekst ?? "Momentje...")
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
                 className="flex-1 min-w-0 bg-transparent px-2 py-2 text-base sm:text-sm focus:outline-none"

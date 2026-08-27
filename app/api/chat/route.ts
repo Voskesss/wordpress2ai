@@ -48,6 +48,7 @@ Werkwijze:
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
 - Wijzigingen komen in een concept-versie; de eigenaar keurt ze daarna goed. Sluit af met een korte samenvatting in gewone taal van wat je hebt aangepast.
+- Is het bericht gewoon een groet of een vraag zonder wijzigingsverzoek ("hoi", "hoor je mij?", "wat kun je allemaal?")? Antwoord dan direct kort en vriendelijk, zonder bestanden te lezen of iets aan te passen — gewoon een normaal gesprek.
 - Kun je iets niet, zeg dat eerlijk en stel een vervolgvraag.
 - Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html"). Ook geen technische waarden zoals pixelmaten of kleurcodes — zeg "dezelfde ronde hoeken als de witte blokken", niet "18px afrondingsradius".
 - Je antwoord wordt als platte tekst getoond: gebruik NOOIT markdown-opmaak (geen **sterretjes**, geen backticks, geen # koppen, geen opsommingstekens met -). Gewone zinnen.
@@ -236,7 +237,7 @@ export async function POST(req: Request) {
           type: "status",
           tekst: openConcept
             ? "Ik werk verder op het openstaande concept..."
-            : "Ik ga voor je aan de slag...",
+            : "Momentje...",
         });
         werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
         const snapshot = await maakSnapshot(werkmap);
