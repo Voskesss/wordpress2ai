@@ -1,9 +1,29 @@
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { formulierInzendingen } from "@/db/schema";
+import { formulierInzendingen, sites } from "@/db/schema";
+
+/** Verstuurt e-mail via Resend; doet niets als er geen sleutel is ingesteld. */
+async function stuurMail(naar: string, onderwerp: string, html: string) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || !naar) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>",
+      to: [naar],
+      subject: onderwerp,
+      html,
+    }),
+  }).catch((e) => console.error("Mail versturen mislukt:", e));
+}
+
+const ontsnap = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export async function POST(req: Request) {
-  let velden: Record<string, string> = {};
+  const velden: Record<string, string> = {};
   const ct = req.headers.get("content-type") ?? "";
   if (ct.includes("form")) {
     const form = await req.formData();
@@ -20,16 +40,57 @@ export async function POST(req: Request) {
       .replace(/[^a-z0-9-]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 60) || "contact";
+  // Eigen bedankt-pagina: alleen een pad op de eigen site (nooit een andere host)
+  const bedanktPad = /^\/[a-z0-9\-\/]{0,100}$/i.test(velden._bedankt ?? "")
+    ? (velden._bedankt as string)
+    : null;
   delete velden._site;
   delete velden._extra;
   delete velden._formulier;
+  delete velden._bedankt;
 
-  // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan
-  if (siteRepo && !honeypot && Object.keys(velden).length > 0) {
+  const [site] = siteRepo
+    ? await db.select().from(sites).where(eq(sites.githubRepo, siteRepo))
+    : [];
+
+  // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan of mailen
+  const echt = siteRepo && !honeypot && Object.keys(velden).length > 0;
+  if (echt) {
     await db
       .insert(formulierInzendingen)
       .values({ siteRepo, formulier, velden })
       .catch(() => {});
+
+    const siteNaam = site?.naam ?? "de website";
+    const veldenHtml = Object.entries(velden)
+      .map(([k, v]) => `<p><strong>${ontsnap(k)}:</strong> ${ontsnap(v)}</p>`)
+      .join("");
+
+    // Bevestiging naar de invuller (als er een e-mailveld is ingevuld)
+    const invullerEmail = Object.entries(velden).find(
+      ([k, v]) => /mail/i.test(k) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)
+    )?.[1];
+    if (invullerEmail) {
+      await stuurMail(
+        invullerEmail,
+        `Bedankt voor uw bericht aan ${siteNaam}`,
+        `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`
+      );
+    }
+
+    // Melding naar de site-eigenaar
+    if (site?.notificatieEmail) {
+      await stuurMail(
+        site.notificatieEmail,
+        `Nieuwe ${formulier}-inzending via ${siteNaam}`,
+        `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`
+      );
+    }
+  }
+
+  // Eigen bedankt-pagina van de site? Daarheen doorsturen.
+  if (bedanktPad && site?.domein) {
+    return NextResponse.redirect(`https://${site.domein}${bedanktPad}`, 303);
   }
 
   return new Response(
