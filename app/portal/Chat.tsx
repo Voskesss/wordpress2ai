@@ -24,6 +24,17 @@ function paginaLabel(pad: string) {
 
 type Selectie = { pad: string; tag: string; tekst: string; html: string };
 
+type SpeechRecognitionachtig = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: (e: { results: { [i: number]: { [j: number]: { transcript: string } }; length: number } }) => void;
+  onend: () => void;
+  onerror: (e: unknown) => void;
+  start: () => void;
+  stop: () => void;
+};
+
 /** Direct zichtbare tooltip bij hover (de native title-tooltip is te traag). */
 function Tip({ tekst, children }: { tekst: string; children: ReactNode }) {
   return (
@@ -78,6 +89,46 @@ export default function Chat({
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
   const [kleur, setKleur] = useState<string | null>(null);
   const kleurInputRef = useRef<HTMLInputElement>(null);
+  const [luistert, setLuistert] = useState(false);
+  const [spraakKan, setSpraakKan] = useState(false);
+  const herkenningRef = useRef<{ stop: () => void } | null>(null);
+
+  useEffect(() => {
+    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+    setSpraakKan(Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition));
+  }, []);
+
+  function wisselSpraak() {
+    if (luistert) {
+      herkenningRef.current?.stop();
+      return;
+    }
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionachtig;
+      webkitSpeechRecognition?: new () => SpeechRecognitionachtig;
+    };
+    const Herkenning = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Herkenning) return;
+    const rec = new Herkenning();
+    rec.lang = "nl-NL";
+    rec.continuous = true;
+    rec.interimResults = true;
+    const basis = invoer ? invoer.replace(/\s+$/, "") + " " : "";
+    rec.onresult = (e) => {
+      let tekst = "";
+      for (let i = 0; i < e.results.length; i++) tekst += e.results[i][0].transcript;
+      setInvoer(basis + tekst.trim());
+    };
+    rec.onend = () => {
+      setLuistert(false);
+      herkenningRef.current = null;
+    };
+    rec.onerror = () => setLuistert(false);
+    herkenningRef.current = rec;
+    setHintWeg(true);
+    setLuistert(true);
+    rec.start();
+  }
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
@@ -766,6 +817,23 @@ export default function Chat({
                 </svg>
               </button>
               </Tip>
+              {spraakKan && (
+                <Tip tekst={luistert ? "Klik om te stoppen met luisteren" : "Spreek je wijziging in"}>
+                <button
+                  onClick={wisselSpraak}
+                  disabled={bezig}
+                  aria-label={luistert ? "Stop met inspreken" : "Spreek je wijziging in"}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                    luistert ? "bg-red-600 text-white animate-pulse" : "text-stone-500 hover:bg-stone-100"
+                  }`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+                    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+                </Tip>
+              )}
               <Tip tekst="Kies een kleur — handig voor 'maak de knoppen deze kleur'">
               <button
                 onClick={() => kleurInputRef.current?.click()}
