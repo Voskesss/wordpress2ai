@@ -2,16 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "wordpress2ai",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000
-    },
-    {
-      "name": "bsr-preview",
+      "name": "klant-preview",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8735", "--directory", "/private/tmp/claude-501/-Users-josklijnhout-wordpress2ai/e4c4d021-6524-4c74-80bf-f4649a57cabd/scratchpad/preview-bsr"],
-      "port": 8735
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8791",
+        "-d",
+        "/private/tmp/claude-501/-Users-josklijnhout-wordpress2ai/fad50855-4d86-422b-b4d0-8c9d7d8766fd/scratchpad/preview"
+      ],
+      "port": 8791
     }
   ]
 }
