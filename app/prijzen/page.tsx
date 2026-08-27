@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const overstap = [
   "Complete migratie van je WordPress-site: omzetten, SEO-structuur controleren en domein koppelen",
-  "Je design blijft zoals je het kent",
+  "Een 95%-kopie van je huidige site: in 2 van de 3 gevallen zetten we álles exact over. Speciale plugins, hero-video's of sliders zijn soms lastiger — maar ook die zetten we zo identiek mogelijk over",
   "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €8 p/m, sluit je af bij een Nederlandse provider)",
   "Behoud van je vindbaarheid in Google: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
   "Contactformulier standaard inbegrepen",

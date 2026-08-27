@@ -145,7 +145,8 @@ export default function Home() {
               Een website met een eigen AI-beheerder
             </h2>
             <p className="mt-3 text-stone-600 leading-relaxed">
-              Dezelfde site, maar zonder onderhoud. Wil je iets veranderd
+              Dezelfde site — wij zetten hem als 95%-kopie over, meestal
+              exact. Maar dan zonder onderhoud. Wil je iets veranderd
               hebben? Je geeft het gewoon door, in gewone taal. De AI zoekt
               zelf uit waar het staat en past het aan. Jij bekijkt het
               resultaat en zegt &ldquo;ja&rdquo; — dan staat het live.
