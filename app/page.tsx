@@ -1,5 +1,5 @@
 import Link from "next/link";
-import HeroIllustration from "./HeroIllustration";
+import Logo from "./Logo";
 
 const herkenbaar = [
   {
@@ -111,7 +111,13 @@ export default function Home() {
             </div>
           </div>
           <div className="float-card">
-            <HeroIllustration />
+            <div className="rounded-3xl bg-[#fdf6ea] p-8 text-center shadow-sm border border-stone-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/hero-test.jpg" alt="De WordSwap-beheerder steekt twee duimen op" className="mx-auto max-h-[26rem] w-auto" />
+              <div className="mt-5 flex justify-center scale-125">
+                <Logo />
+              </div>
+            </div>
           </div>
         </div>
       </section>

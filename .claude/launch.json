@@ -12,6 +12,15 @@
         "/private/tmp/claude-501/-Users-josklijnhout-wordpress2ai/fad50855-4d86-422b-b4d0-8c9d7d8766fd/scratchpad/preview"
       ],
       "port": 8791
+    },
+    {
+      "name": "wordpress2ai",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
     }
   ]
 }
