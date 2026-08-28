@@ -83,8 +83,9 @@ export default async function Contact() {
           <input
             id="website"
             name="website"
-            type="url"
-            placeholder="https://"
+            type="text"
+            inputMode="url"
+            placeholder="bijv. www.mijnbedrijf.nl"
             className={inputStijl}
           />
         </div>
