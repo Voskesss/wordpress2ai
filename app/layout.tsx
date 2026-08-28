@@ -114,6 +114,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <p className="mt-10 pt-6 border-t border-zinc-200 text-xs">
           © {new Date().getFullYear()} WordSwap · van WordPress naar een website die doet wat je zegt
           </p>
+          <p className="mt-2 text-xs text-zinc-400">
+          WordSwap is een dienst van AI Backoffice (J.K. Klijnhout Holding B.V.) · KvK 09190650 · Lebretweg 72, 6861 ZZ Oosterbeek · info@aibackoffice.nl
+          </p>
           </div>
           </footer>
         </ClerkProvider>
