@@ -47,6 +47,7 @@ export default async function Contact() {
       >
         <input type="hidden" name="_site" value="wordswap" />
         <input type="hidden" name="_formulier" value="kennismaken" />
+        <input type="hidden" name="_bedankt" value="/bedankt" />
         <input
           type="text"
           name="_extra"

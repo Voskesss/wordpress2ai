@@ -152,6 +152,7 @@ export default function NieuweWebsite() {
           >
             <input type="hidden" name="_site" value="wordswap" />
             <input type="hidden" name="_formulier" value="nieuwe-website" />
+            <input type="hidden" name="_bedankt" value="/bedankt" />
             <input
               type="text"
               name="_extra"
