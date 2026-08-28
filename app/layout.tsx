@@ -68,6 +68,8 @@ const jsonLd = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
   const isAdmin = user?.publicMetadata?.role === "admin";
+  // Alles wat niet de echte productie-omgeving is, krijgt een duidelijke DEV-balk
+  const isDev = process.env.VERCEL_ENV !== "production";
   return (
     <html
       lang="nl"
@@ -79,7 +81,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
-          <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-lg">
+          {isDev && (
+            <div className="sticky top-0 z-[60] bg-amber-400 text-amber-950 text-center text-xs font-bold uppercase tracking-widest py-1.5">
+              ⚠ Dev-omgeving — testversie, niet de echte site
+            </div>
+          )}
+          <header className={`sticky ${isDev ? "top-7" : "top-0"} z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-lg`}>
           <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
           <Link href="/" aria-label="WordSwap home">
           <Logo klein />
