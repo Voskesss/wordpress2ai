@@ -492,7 +492,7 @@ export default function Chat({
 
         {/* Herlaad-overlay na een oplevering */}
         {oplevering && !bezig && (
-          <div className="absolute inset-0 z-[9] flex items-center justify-center bg-stone-900/40 backdrop-blur-[2px]">
+          <div className="absolute inset-0 z-[30] flex items-center justify-center bg-stone-900/40 backdrop-blur-[2px]">
             <div className="relative mx-4 max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
               <button
                 onClick={() => setOplevering(null)}
