@@ -187,17 +187,27 @@ export default function Prijzen() {
             ],
             [
               "Nieuw design",
-              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €750, ontwerp door een designer vanaf €1750 — zie de pagina Nieuwe website.",
+              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €750, ontwerp door een designer vanaf €1750.",
+              "/nieuwe-website",
+              "Bekijk nieuwe website →",
             ],
-          ].map(([kop, tekst]) => (
+          ].map(([kop, tekst, href, linkTekst]) => (
             <div
               key={kop}
-              className="reveal rounded-3xl border border-stone-200 bg-white p-7 shadow-sm"
+              className="reveal rounded-3xl border border-stone-200 bg-white p-7 shadow-sm flex flex-col"
             >
               <h3 className="font-display text-lg font-semibold">{kop}</h3>
               <p className="mt-2 text-stone-600 leading-relaxed text-sm">
                 {tekst}
               </p>
+              {href && (
+                <Link
+                  href={href}
+                  className="mt-auto pt-4 inline-block text-sm font-semibold text-violet-700 hover:text-violet-900"
+                >
+                  {linkTekst}
+                </Link>
+              )}
             </div>
           ))}
         </div>
