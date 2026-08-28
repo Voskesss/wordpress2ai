@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/wordpress-alternatief",
     "/website-zonder-onderhoud",
     "/wordpress-website-traag",
+    "/privacy",
+    "/voorwaarden",
   ];
   return paden.map((path) => ({
     url: `${base}${path}`,
