@@ -103,6 +103,29 @@ export default function Prijzen() {
         </div>
       </div>
 
+      {/* Liever een nieuwe website */}
+      <div className="mx-auto max-w-4xl px-6 pb-12">
+        <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-8">
+          <div>
+            <h2 className="font-display text-xl font-semibold">
+              Toch liever een heel nieuwe website? Dat kan ook.
+            </h2>
+            <p className="mt-2 text-stone-600 leading-relaxed">
+              Geen zin om je oude site mee te nemen? We ontwerpen een frisse
+              nieuwe website — mét dezelfde AI-koppeling erachter. Vanaf{" "}
+              <strong>€750</strong> voor een AI-ontwerp op basis van je wensen,
+              of <strong>€1.750</strong> met een designer erbij.
+            </p>
+          </div>
+          <Link
+            href="/nieuwe-website"
+            className="lift mt-5 sm:mt-0 inline-block shrink-0 rounded-full border-2 border-violet-300 bg-white px-6 py-3 font-semibold text-violet-700 hover:bg-violet-50"
+          >
+            Bekijk nieuwe website →
+          </Link>
+        </div>
+      </div>
+
       {/* Vergelijking */}
       <div className="bg-[#f6f1e7] border-y border-stone-200">
         <div className="mx-auto max-w-4xl px-6 py-16">
