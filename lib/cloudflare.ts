@@ -146,18 +146,36 @@ export async function deployMapNaarCloudflare(
         config: {
           html_handling: "auto-trailing-slash",
           not_found_handling: "404-page",
+          run_worker_first: true,
         },
-        binding: "ASSETS",
       },
+      bindings: [{ name: "ASSETS", type: "assets" }],
     };
     const workerScript = `export default {
   async fetch(request, env) {
-    const res = await env.ASSETS.fetch(request);
-    if (new URL(request.url).hostname.endsWith(".workers.dev")) {
-      const r = new Response(res.body, res);
-      r.headers.set("X-Robots-Tag", "noindex, nofollow");
-      return r;
+    let res;
+    try {
+      res = await env.ASSETS.fetch(request);
+    } catch (e) {
+      return new Response("Pagina niet gevonden", {
+        status: 404,
+        headers: { "content-type": "text/plain; charset=utf-8" },
+      });
     }
+    try {
+      if (
+        new URL(request.url).hostname.endsWith(".workers.dev") &&
+        res.status === 200
+      ) {
+        const r = new Response(res.body, {
+          status: res.status,
+          statusText: res.statusText,
+          headers: new Headers(res.headers),
+        });
+        r.headers.set("X-Robots-Tag", "noindex, nofollow");
+        return r;
+      }
+    } catch (e) {}
     return res;
   },
 };
