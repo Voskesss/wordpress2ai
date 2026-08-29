@@ -236,10 +236,14 @@ export default function Chat({
     setTimeout(controleer, 4000);
   }
 
+  const [viewerBreedte, setViewerBreedte] = useState(0);
   useEffect(() => {
     const el = viewerRef.current;
     if (!el) return;
-    const meet = () => setSchaal(Math.min(1, el.clientWidth / 1280));
+    const meet = () => {
+      setSchaal(Math.min(1, el.clientWidth / 1280));
+      setViewerBreedte(el.clientWidth);
+    };
     meet();
     const ro = new ResizeObserver(meet);
     ro.observe(el);
@@ -820,14 +824,17 @@ export default function Chat({
           }`}
         >
           {isMobiel ? (
-            // Telefoon: gewoon schermvullend, de site toont vanzelf z'n mobiele versie
+            // Telefoon: op exacte pixelbreedte (iOS negeert width:100% bij iframes
+            // en rekt hem anders op tot de inhoudsbreedte)
             <iframe
-              key={reloadTeller}
+              key={`${reloadTeller}-${viewerBreedte}`}
               ref={iframeRef}
               src={iframeSrc}
               title="Je website"
               onLoad={() => aanwijzen && meldAanwijzen(true)}
-              className="h-full w-full bg-white"
+              width={viewerBreedte || undefined}
+              style={{ width: viewerBreedte ? `${viewerBreedte}px` : "100%", height: "100%" }}
+              className="bg-white"
             />
           ) : apparaat === "desktop" ? (
             // Echte desktop-breedte (1280px), geschaald naar het venster
