@@ -125,6 +125,9 @@ gtag('config', 'G-S0169SZ52B');`}
           <Link href="/wordpress-alternatief" className="hover:text-violet-600">WordPress-alternatief</Link>
           <Link href="/website-zonder-onderhoud" className="hover:text-violet-600">Website zonder onderhoud</Link>
           <Link href="/wordpress-website-traag" className="hover:text-violet-600">Trage WordPress-site</Link>
+          <Link href="/wordpress-website-maken-met-ai" className="hover:text-violet-600">Website maken met AI</Link>
+          <Link href="/wordpress-omzetten-naar-gewone-website" className="hover:text-violet-600">WordPress omzetten</Link>
+          <Link href="/wordpress-aansturen-met-ai" className="hover:text-violet-600">Website aansturen met AI</Link>
           <Link href="/contact" className="hover:text-violet-600">Contact</Link>
           <Link href="/privacy" className="hover:text-violet-600">Privacy</Link>
           <Link href="/voorwaarden" className="hover:text-violet-600">Algemene voorwaarden</Link>

@@ -23,6 +23,9 @@ Kernpunten:
 - [WordPress-alternatief](https://wordswap.nl/wordpress-alternatief): waarom een site zonder plugins en updates beter past bij ondernemers
 - [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt
 - [Trage WordPress-site](https://wordswap.nl/wordpress-website-traag): de blijvende oplossing voor een langzame site
+- [Website maken met AI](https://wordswap.nl/wordpress-website-maken-met-ai): een nieuwe website laten maken én beheren door AI, zonder WordPress
+- [WordPress omzetten naar een gewone website](https://wordswap.nl/wordpress-omzetten-naar-gewone-website): wat een statische site is en waarom die sneller, veiliger en onderhoudsvrij is
+- [Website aansturen met AI](https://wordswap.nl/wordpress-aansturen-met-ai): de complete site beheren via AI-chat, met goedkeuring en versiebeheer
 
 Uitzonderingen: webshops (WooCommerce), ledenportalen met inlog, boekingssystemen met live agenda en cursusplatforms kunnen niet worden overgezet.
 `;

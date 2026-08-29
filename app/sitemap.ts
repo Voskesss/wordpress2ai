@@ -14,6 +14,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/wordpress-alternatief",
     "/website-zonder-onderhoud",
     "/wordpress-website-traag",
+    "/wordpress-website-maken-met-ai",
+    "/wordpress-omzetten-naar-gewone-website",
+    "/wordpress-aansturen-met-ai",
     "/privacy",
     "/voorwaarden",
   ];
