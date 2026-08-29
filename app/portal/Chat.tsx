@@ -246,6 +246,17 @@ export default function Chat({
     return () => ro.disconnect();
   }, []);
 
+  // Op een telefoon: site op ware grootte tonen (die is zelf al responsive)
+  // in plaats van een gekrompen desktop-weergave
+  const [isMobiel, setIsMobiel] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const zet = () => setIsMobiel(mq.matches);
+    zet();
+    mq.addEventListener("change", zet);
+    return () => mq.removeEventListener("change", zet);
+  }, []);
+
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {
@@ -799,13 +810,23 @@ export default function Chat({
         {/* Website-viewer */}
         <div
           ref={viewerRef}
-          className={`h-[calc(100vh-15rem)] min-h-[32rem] ${
-            apparaat === "desktop"
+          className={`h-[calc(100dvh-15rem)] min-h-[28rem] ${
+            isMobiel || apparaat === "desktop"
               ? "overflow-hidden"
               : "bg-stone-100 flex justify-center overflow-y-auto py-6"
           }`}
         >
-          {apparaat === "desktop" ? (
+          {isMobiel ? (
+            // Telefoon: gewoon schermvullend, de site toont vanzelf z'n mobiele versie
+            <iframe
+              key={reloadTeller}
+              ref={iframeRef}
+              src={iframeSrc}
+              title="Je website"
+              onLoad={() => aanwijzen && meldAanwijzen(true)}
+              className="h-full w-full bg-white"
+            />
+          ) : apparaat === "desktop" ? (
             // Echte desktop-breedte (1280px), geschaald naar het venster
             <iframe
               key={reloadTeller}
@@ -920,7 +941,7 @@ export default function Chat({
                   </svg>
                 </button>
               </div>
-              <div ref={scrollRef} className="max-h-72 overflow-y-auto p-4 space-y-3">
+              <div ref={scrollRef} className="max-h-[40dvh] sm:max-h-72 overflow-y-auto p-4 space-y-3">
                 {berichten.length === 0 && !bezig && (
                   <p className="text-stone-400 text-sm">
                     Klik door je website en typ hieronder wat je aangepast wilt
