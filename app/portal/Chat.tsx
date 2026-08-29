@@ -105,6 +105,8 @@ export default function Chat({
   const [ongedaanKans, setOngedaanKans] = useState<number | null>(null);
   const [ongedaanBezig, setOngedaanBezig] = useState(false);
   const [stapTerugBezig, setStapTerugBezig] = useState(false);
+  // Vriendelijke lader over het voorbeeld bij directe acties en het verversen
+  const [laderTekst, setLaderTekst] = useState<string | null>(null);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
   const fotoVervangRef = useRef(false);
   const [kleur, setKleur] = useState<string | null>(null);
@@ -218,11 +220,13 @@ export default function Chat({
    * (doorzetten duurt soms 15-30 seconden — dit vangt dat onzichtbaar op). */
   function wachtOpVerseVersie(conceptActief = true) {
     wachtOpVerseRef.current = { oudeStempel: stempelRef.current, pogingen: 0 };
+    setLaderTekst("Je wijziging wordt in het voorbeeld gezet...");
     const controleer = () => {
       const wacht = wachtOpVerseRef.current;
       if (!wacht) return;
       if (stempelRef.current !== wacht.oudeStempel || wacht.pogingen >= 10) {
         wachtOpVerseRef.current = null;
+        setLaderTekst(null);
         return;
       }
       wacht.pogingen += 1;
@@ -251,6 +255,11 @@ export default function Chat({
       }
       if (e.data?.type === "wp2ai-stempel" && typeof e.data.stempel === "number") {
         stempelRef.current = e.data.stempel;
+        // Verse versie binnen? Dan is het wachten meteen voorbij.
+        if (wachtOpVerseRef.current && e.data.stempel !== wachtOpVerseRef.current.oudeStempel) {
+          wachtOpVerseRef.current = null;
+          setLaderTekst(null);
+        }
       }
       if (e.data?.type === "wp2ai-selectie") {
         setSelectie({
@@ -391,6 +400,7 @@ export default function Chat({
     const nieuw = zelfTekst.trim();
     if (!oud || !nieuw || oud === nieuw) return;
     setZelfBezig(true);
+    setLaderTekst("Even geduld — je tekst wordt aangepast...");
     try {
       const res = await fetch("/api/tekst-wijzig", {
         method: "POST",
@@ -427,6 +437,7 @@ export default function Chat({
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
       } else if (data.fallback) {
+        setLaderTekst(null);
         // Tekst niet eenduidig terug te vinden — de AI lost het veilig op
         setZelfTekst(null);
         setInvoer(`Vervang de tekst "${oud}" door "${nieuw}"`);
@@ -440,6 +451,7 @@ export default function Chat({
           },
         ]);
       } else {
+        setLaderTekst(null);
         setChatOpen(true);
         setBerichten((b) => [
           ...b,
@@ -447,6 +459,7 @@ export default function Chat({
         ]);
       }
     } catch {
+      setLaderTekst(null);
       setChatOpen(true);
       setBerichten((b) => [
         ...b,
@@ -468,6 +481,7 @@ export default function Chat({
       return;
     }
     setZelfBezig(true);
+    setLaderTekst("Even geduld — je nieuwe foto wordt geplaatst...");
     setChatOpen(true);
     setBerichten((b) => [...b, { rol: "klant", tekst: "📷 Foto vervangen (zelf gekozen bestand)" }]);
     try {
@@ -503,6 +517,7 @@ export default function Chat({
         setOplevering({ paden: [huidigeRef.current === "/" ? "index.html" : huidigeRef.current] });
         setChatOpen(false);
       } else if (data.fallback) {
+        setLaderTekst(null);
         setBerichten((b) => [
           ...b,
           { rol: "assistent", tekst: "Dit fotobestand kon ik niet rechtstreeks vinden — ik geef hem aan de AI, momentje..." },
@@ -530,6 +545,7 @@ export default function Chat({
   async function kleurDirect(oudeKleur: string) {
     if (!kleur || zelfBezig) return;
     setZelfBezig(true);
+    setLaderTekst("Even geduld — de kleur wordt overal doorgevoerd...");
     try {
       const res = await fetch("/api/tekst-wijzig", {
         method: "POST",
@@ -567,6 +583,7 @@ export default function Chat({
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
       } else if (data.fallback) {
+        setLaderTekst(null);
         setInvoer("Geef het aangewezen onderdeel de gekozen kleur");
         setChatOpen(true);
         setBerichten((b) => [
@@ -578,6 +595,7 @@ export default function Chat({
           },
         ]);
       } else {
+        setLaderTekst(null);
         setChatOpen(true);
         setBerichten((b) => [
           ...b,
@@ -585,6 +603,7 @@ export default function Chat({
         ]);
       }
     } catch {
+      setLaderTekst(null);
       setChatOpen(true);
       setBerichten((b) => [
         ...b,
@@ -817,6 +836,19 @@ export default function Chat({
             />
           )}
         </div>
+
+        {/* Vriendelijke lader tijdens klaarzetten/verversen */}
+        {laderTekst && !oplevering && (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-[25] -translate-x-1/2">
+            <div className="flex items-center gap-2.5 rounded-full bg-stone-900/85 px-5 py-2.5 text-sm font-medium text-white shadow-2xl backdrop-blur">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              {laderTekst}
+            </div>
+          </div>
+        )}
 
         {/* Herlaad-overlay na een oplevering */}
         {oplevering && !bezig && (
