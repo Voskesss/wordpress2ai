@@ -249,10 +249,13 @@ export default function Chat({
   // Op een telefoon: site op ware grootte tonen (die is zelf al responsive)
   // in plaats van een gekrompen desktop-weergave
   const [isMobiel, setIsMobiel] = useState(false);
+  // Op mobiel start de chatbalk ingeklapt, zodat je eerst lekker de site ziet
+  const [balkOpen, setBalkOpen] = useState(true);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 640px)");
     const zet = () => setIsMobiel(mq.matches);
     zet();
+    if (mq.matches) setBalkOpen(false);
     mq.addEventListener("change", zet);
     return () => mq.removeEventListener("change", zet);
   }, []);
@@ -810,7 +813,7 @@ export default function Chat({
         {/* Website-viewer */}
         <div
           ref={viewerRef}
-          className={`h-[calc(100dvh-15rem)] min-h-[28rem] ${
+          className={`h-[calc(100dvh-11rem)] sm:h-[calc(100dvh-15rem)] min-h-[28rem] ${
             isMobiel || apparaat === "desktop"
               ? "overflow-hidden"
               : "bg-stone-100 flex justify-center overflow-y-auto py-6"
@@ -921,8 +924,37 @@ export default function Chat({
           </div>
         )}
 
+        {/* Mobiel: ingeklapte chat — eerst lekker de site bekijken */}
+        {isMobiel && !balkOpen && (
+          <button
+            onClick={() => setBalkOpen(true)}
+            className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-violet-700 px-6 py-3.5 font-semibold text-white shadow-2xl shadow-violet-400/50 cursor-pointer"
+          >
+            💬 Site aanpassen
+            {berichten.length > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-bold">
+                {berichten.length}
+              </span>
+            )}
+          </button>
+        )}
+
         {/* Zwevend chatpaneel over de preview */}
-        <div className="absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2">
+        <div
+          className={`absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
+            isMobiel && !balkOpen ? "hidden" : ""
+          }`}
+        >
+          {isMobiel && balkOpen && (
+            <div className="mb-2 flex justify-center">
+              <button
+                onClick={() => setBalkOpen(false)}
+                className="rounded-full bg-stone-900/70 px-4 py-1.5 text-xs font-medium text-white backdrop-blur cursor-pointer"
+              >
+                ▾ Verberg chat — bekijk de site
+              </button>
+            </div>
+          )}
           {/* Gespreksvenster (inklapbaar) */}
           {chatOpen && (
             <div className="mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur">

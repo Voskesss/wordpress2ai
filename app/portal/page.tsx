@@ -88,7 +88,7 @@ export default async function Portal() {
   }
 
   return (
-    <div className="mx-auto max-w-[1500px] px-4 sm:px-6 py-10">
+    <div className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
       {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && <DemoWelkom />}
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         Mijn website
@@ -106,7 +106,7 @@ export default async function Portal() {
           {mijnSites.map((site) => (
             <div
               key={site.id}
-              className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm"
+              className="rounded-3xl border border-stone-200 bg-white p-2.5 sm:p-8 shadow-sm"
             >
               <div className="flex items-center justify-between gap-4">
                 <div>
