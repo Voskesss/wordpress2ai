@@ -81,6 +81,7 @@ export default function Chat({
     "desktop"
   );
   const scrollRef = useRef<HTMLDivElement>(null);
+  const invoerRef = useRef<HTMLInputElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [schaal, setSchaal] = useState(1);
@@ -97,6 +98,15 @@ export default function Chat({
     const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
     setSpraakKan(Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition));
   }, []);
+
+  // Zodra de AI klaar is: de invoerbalk weer focus geven, zodat je meteen door kunt typen
+  const wasBezig = useRef(false);
+  useEffect(() => {
+    if (wasBezig.current && !bezig) {
+      setTimeout(() => invoerRef.current?.focus(), 50);
+    }
+    wasBezig.current = bezig;
+  }, [bezig]);
 
   function wisselSpraak() {
     if (luistert) {
@@ -303,6 +313,8 @@ export default function Chat({
         herlaad(true);
         const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
+        // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
+        setChatOpen(false);
       }
     } catch {
       setBerichten((b) => [
@@ -480,7 +492,7 @@ export default function Chat({
 
         {/* Herlaad-overlay na een oplevering */}
         {oplevering && !bezig && (
-          <div className="absolute inset-0 z-[9] flex items-center justify-center bg-stone-900/40 backdrop-blur-[2px]">
+          <div className="absolute inset-0 z-[30] flex items-center justify-center bg-stone-900/40 backdrop-blur-[2px]">
             <div className="relative mx-4 max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
               <button
                 onClick={() => setOplevering(null)}
@@ -859,6 +871,7 @@ export default function Chat({
               </button>
               </Tip>
               <input
+                ref={invoerRef}
                 value={invoer}
                 onChange={(e) => {
                   setInvoer(e.target.value);

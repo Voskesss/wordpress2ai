@@ -103,7 +103,8 @@ export default function DemoPagina() {
               </p>
               <div className="flex justify-center">
                 <SignUp
-                  routing="hash"
+                  routing="path"
+                  path="/demo"
                   forceRedirectUrl="/portal"
                   signInForceRedirectUrl="/portal"
                   appearance={{

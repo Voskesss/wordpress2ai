@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
+import DemoWelkom from "./DemoWelkom";
 import SiteExtra from "./SiteExtra";
 
 export const metadata: Metadata = {
@@ -71,6 +72,7 @@ export default async function Portal() {
 
   return (
     <div className="mx-auto max-w-[1500px] px-4 sm:px-6 py-10">
+      {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && <DemoWelkom />}
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         Mijn website
       </h1>

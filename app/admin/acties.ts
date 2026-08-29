@@ -174,3 +174,22 @@ export async function koppelNetlify(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");
 }
+
+/** Zet de live site terug naar een eerdere versie (commit) — geschiedenis blijft intact. */
+export async function herstelVersie(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const sha = String(formData.get("sha") ?? "");
+  if (!Number.isInteger(siteId) || !/^[0-9a-f]{7,40}$/i.test(sha)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { zetTerugNaarVersie } = await import("@/lib/github");
+  await zetTerugNaarVersie(site.githubRepo, sha);
+  if (site.netlifySiteId) {
+    const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
+    await deployRepoNaarCloudflare(site.githubRepo, site.netlifySiteId).catch((e) =>
+      console.error("Deploy na terugzetten mislukt:", e)
+    );
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+}
