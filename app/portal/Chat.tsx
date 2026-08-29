@@ -22,7 +22,13 @@ function paginaLabel(pad: string) {
   return naam.replace(/\.html?$/, "");
 }
 
-type Selectie = { pad: string; tag: string; tekst: string; html: string };
+type Selectie = {
+  pad: string;
+  tag: string;
+  tekst: string;
+  html: string;
+  kleuren?: { achtergrond?: string; tekst?: string };
+};
 
 type SpeechRecognitionachtig = {
   lang: string;
@@ -252,6 +258,7 @@ export default function Chat({
           tag: String(e.data.tag ?? ""),
           tekst: String(e.data.tekst ?? ""),
           html: String(e.data.html ?? ""),
+          kleuren: e.data.kleuren as Selectie["kleuren"],
         });
         setAanwijzen(false);
       }
@@ -430,6 +437,74 @@ export default function Chat({
             rol: "assistent",
             tekst:
               "Deze tekst staat op meerdere plekken of kon ik niet 1-op-1 terugvinden. Ik heb je wijziging klaargezet in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan.",
+          },
+        ]);
+      } else {
+        setChatOpen(true);
+        setBerichten((b) => [
+          ...b,
+          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+        ]);
+      }
+    } catch {
+      setChatOpen(true);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: "Er ging iets mis, probeer het opnieuw." },
+      ]);
+    } finally {
+      setZelfBezig(false);
+    }
+  }
+
+  async function kleurDirect(oudeKleur: string) {
+    if (!kleur || zelfBezig) return;
+    setZelfBezig(true);
+    try {
+      const res = await fetch("/api/tekst-wijzig", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, oud: oudeKleur, nieuw: kleur, kleur: true }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        fallback?: boolean;
+        reply?: string;
+        previewUrl?: string;
+        changeId?: number;
+        bestanden?: string[];
+        error?: string;
+      };
+      if (data.ok && data.previewUrl && data.changeId) {
+        const nieuweKleur = kleur;
+        setSelectie(null);
+        setKleur(null);
+        setBerichten((b) => [
+          ...b,
+          { rol: "klant", tekst: `🎨 Kleur direct aangepast naar ${nieuweKleur}` },
+          { rol: "assistent", tekst: data.reply ?? "Kleur aangepast!", metVerversTip: true },
+        ]);
+        setConcept({
+          changeId: data.changeId,
+          previewUrl: data.previewUrl,
+          prompt: "Kleur direct aangepast",
+          paginas: data.bestanden ?? [],
+        });
+        herlaad(true);
+        wachtOpVerseVersie();
+        setOngedaanKans(null);
+        const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
+        setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
+        setChatOpen(false);
+      } else if (data.fallback) {
+        setInvoer("Geef het aangewezen onderdeel de gekozen kleur");
+        setChatOpen(true);
+        setBerichten((b) => [
+          ...b,
+          {
+            rol: "assistent",
+            tekst:
+              "Deze kleur kon ik niet rechtstreeks in de bestanden terugvinden (hij komt waarschijnlijk uit een berekening of afbeelding). Ik heb de opdracht klaargezet in de invoerbalk — verstuur hem, dan doet de AI het.",
           },
         ]);
       } else {
@@ -998,25 +1073,65 @@ export default function Chat({
 
           {/* Gekozen kleur */}
           {kleur && (
-            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              <p className="flex items-center gap-2 text-sm text-violet-900">
-                <span
-                  className="inline-block h-5 w-5 rounded-full border border-stone-300"
-                  style={{ backgroundColor: kleur }}
-                />
-                <span className="font-semibold">Gekozen kleur:</span>{" "}
-                <span className="font-mono">{kleur}</span>
-                <span className="text-violet-600">
-                  — typ erbij wat deze kleur moet krijgen
-                </span>
-              </p>
-              <button
-                onClick={() => setKleur(null)}
-                aria-label="Kleur verwijderen"
-                className="text-violet-400 hover:text-violet-800 cursor-pointer"
-              >
-                ✕
-              </button>
+            <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <p className="flex items-center gap-2 text-sm text-violet-900">
+                  <span
+                    className="inline-block h-5 w-5 rounded-full border border-stone-300"
+                    style={{ backgroundColor: kleur }}
+                  />
+                  <span className="font-semibold">Gekozen kleur:</span>{" "}
+                  <span className="font-mono">{kleur}</span>
+                  {!selectie && (
+                    <span className="text-violet-600">
+                      — typ erbij wat deze kleur moet krijgen, of wijs eerst
+                      een onderdeel aan voor direct toepassen
+                    </span>
+                  )}
+                </p>
+                <button
+                  onClick={() => setKleur(null)}
+                  aria-label="Kleur verwijderen"
+                  className="text-violet-400 hover:text-violet-800 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+              {selectie?.kleuren && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-violet-200 pt-2">
+                  <span className="text-xs font-semibold text-violet-800">
+                    ⚡ Direct toepassen (zonder AI, vervangt deze kleur overal):
+                  </span>
+                  {selectie.kleuren.achtergrond &&
+                    !/rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(selectie.kleuren.achtergrond) && (
+                      <button
+                        onClick={() => kleurDirect(selectie.kleuren!.achtergrond!)}
+                        disabled={zelfBezig}
+                        className="flex items-center gap-1.5 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                      >
+                        <span
+                          className="inline-block h-3.5 w-3.5 rounded-full border border-stone-300"
+                          style={{ backgroundColor: selectie.kleuren.achtergrond }}
+                        />
+                        achtergrondkleur → nieuw
+                      </button>
+                    )}
+                  {selectie.kleuren.tekst && (
+                    <button
+                      onClick={() => kleurDirect(selectie.kleuren!.tekst!)}
+                      disabled={zelfBezig}
+                      className="flex items-center gap-1.5 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                    >
+                      <span
+                        className="inline-block h-3.5 w-3.5 rounded-full border border-stone-300"
+                        style={{ backgroundColor: selectie.kleuren.tekst }}
+                      />
+                      tekstkleur → nieuw
+                    </button>
+                  )}
+                  {zelfBezig && <span className="text-xs text-violet-600">Bezig...</span>}
+                </div>
+              )}
             </div>
           )}
 

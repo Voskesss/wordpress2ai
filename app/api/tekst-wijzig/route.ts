@@ -8,9 +8,32 @@ import { changes, messages, sites, usage } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
-import { alleHtmlBestanden, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { alleCssBestanden, alleHtmlBestanden, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 
 export const maxDuration = 120;
+
+/** "rgb(124, 58, 237)" of "#7c3aed" → [124, 58, 237]. */
+function kleurNaarRgb(kleur: string): [number, number, number] | null {
+  const rgbMatch = kleur.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (rgbMatch) return [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])];
+  const hexMatch = kleur.match(/^#?([0-9a-f]{6})$/i);
+  if (hexMatch) {
+    const h = hexMatch[1];
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  const kortMatch = kleur.match(/^#?([0-9a-f]{3})$/i);
+  if (kortMatch) {
+    const h = kortMatch[1];
+    return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)];
+  }
+  return null;
+}
+
+/** "#7c3aed" → "124, 58, 237" (voor rgba-vervangingen). */
+function hexNaarRgbTriplet(hex: string): string {
+  const rgb = kleurNaarRgb(hex);
+  return rgb ? rgb.join(", ") : hex;
+}
 
 /** Zelf tekst aanpassen via de aanwijs-tool: letterlijke vervanging zonder AI.
  * Lukt het niet eenduidig (tekst niet of vaker gevonden), dan meldt de route
@@ -23,6 +46,8 @@ export async function POST(req: Request) {
     siteId: number;
     oud: string;
     nieuw: string;
+    // Kleur-modus: vervang de kleur OVERAL (zoals een colorpicker in een thema)
+    kleur?: boolean;
   };
   const oud = (body.oud ?? "").trim();
   const nieuw = (body.nieuw ?? "").trim();
@@ -74,12 +99,38 @@ export async function POST(req: Request) {
       werkmap = await laadWerkmap(site.githubRepo);
     }
 
-    // Tolerant zoeken: witruimte in de bron mag afwijken van wat de browser toont
-    const patroon = new RegExp(
-      oud.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"),
-      "g"
+    let patroon: RegExp;
+    let vervanging = nieuw;
+    if (body.kleur) {
+      // Alle schrijfwijzen van dezelfde kleur herkennen: #hex, rgb() en rgba()
+      const rgb = kleurNaarRgb(oud);
+      if (!rgb) return NextResponse.json({ fallback: true, gevonden: 0 });
+      const [r, g, b] = rgb;
+      const hex = `#${[r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+      const kort =
+        hex[1] === hex[2] && hex[3] === hex[4] && hex[5] === hex[6]
+          ? `#${hex[1]}${hex[3]}${hex[5]}`
+          : null;
+      const varianten = [
+        hex.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        ...(kort ? [kort.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![0-9a-fA-F])"] : []),
+        `rgb\\(\\s*${r}\\s*,\\s*${g}\\s*,\\s*${b}\\s*\\)`,
+        `rgba\\(\\s*${r}\\s*,\\s*${g}\\s*,\\s*${b}\\s*,`,
+      ];
+      patroon = new RegExp(varianten.join("|"), "gi");
+      // rgba(r,g,b, → nieuwe kleur als rgba met behoud van de rest lukt niet in
+      // één vervanging; vervang rgba-varianten door de nieuwe hex + komma-loze vorm
+      vervanging = nieuw;
+    } else {
+      // Tolerant zoeken: witruimte in de bron mag afwijken van wat de browser toont
+      patroon = new RegExp(
+        oud.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"),
+        "g"
+      );
+    }
+    const htmlPaden = (await alleHtmlBestanden(werkmap)).concat(
+      body.kleur ? await alleCssBestanden(werkmap) : []
     );
-    const htmlPaden = await alleHtmlBestanden(werkmap);
     const treffers: { pad: string; inhoud: string; aantal: number }[] = [];
     for (const pad of htmlPaden) {
       const inhoud = await readFile(path.join(werkmap, pad), "utf8");
@@ -87,14 +138,22 @@ export async function POST(req: Request) {
       if (aantal > 0) treffers.push({ pad, inhoud, aantal });
     }
     const totaal = treffers.reduce((som, t) => som + t.aantal, 0);
-    if (totaal !== 1) {
-      // Niet (eenduidig) gevonden → laat de AI het veilig oplossen
+    // Tekst: alleen bij precies één vindplaats (anders AI). Kleur: overal vervangen.
+    if (body.kleur ? totaal === 0 : totaal !== 1) {
       return NextResponse.json({ fallback: true, gevonden: totaal });
     }
 
-    const [treffer] = treffers;
-    const nieuweInhoud = treffer.inhoud.replace(patroon, nieuw);
-    await writeFile(path.join(werkmap, treffer.pad), nieuweInhoud);
+    const gewijzigdePaden: { pad: string; inhoud: string }[] = [];
+    for (const treffer of body.kleur ? treffers : [treffers[0]]) {
+      const nieuweInhoud = treffer.inhoud.replace(patroon, (m) =>
+        m.startsWith("rgba") || m.startsWith("RGBA") ? `rgba(${hexNaarRgbTriplet(vervanging)},` : vervanging
+      );
+      await writeFile(path.join(werkmap, treffer.pad), nieuweInhoud);
+      gewijzigdePaden.push({ pad: treffer.pad, inhoud: nieuweInhoud });
+    }
+    const treffer = gewijzigdePaden[0]
+      ? { pad: gewijzigdePaden[0].pad, inhoud: gewijzigdePaden[0].inhoud }
+      : treffers[0];
 
     // Zelfde trechter als AI-wijzigingen: werkversie + branch + concept
     const wvDeploy = wvNaam
@@ -103,10 +162,13 @@ export async function POST(req: Request) {
         }).catch((e) => console.error("Werkversie-deploy mislukt:", e))
       : Promise.resolve();
 
-    const bestanden = [
-      { pad: treffer.pad, inhoud: Buffer.from(nieuweInhoud) },
-    ];
-    const omschrijving = `Tekst aangepast: "${oud.slice(0, 40)}" → "${nieuw.slice(0, 40)}"`;
+    const bestanden = gewijzigdePaden.map((g) => ({
+      pad: g.pad,
+      inhoud: Buffer.from(g.inhoud),
+    }));
+    const omschrijving = body.kleur
+      ? `Kleur aangepast: ${oud.slice(0, 30)} → ${nieuw.slice(0, 30)} (${totaal}x op ${gewijzigdePaden.length} bestand(en))`
+      : `Tekst aangepast: "${oud.slice(0, 40)}" → "${nieuw.slice(0, 40)}"`;
 
     let changeId: number;
     let previewUrl: string;
@@ -115,7 +177,7 @@ export async function POST(req: Request) {
       const samengevoegd = [
         ...new Set([
           ...(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []),
-          treffer.pad,
+          ...gewijzigdePaden.map((g) => g.pad),
         ]),
       ];
       await db
@@ -150,7 +212,7 @@ export async function POST(req: Request) {
           siteId: site.id,
           branch,
           promptTekst: omschrijving,
-          bestanden: [treffer.pad],
+          bestanden: gewijzigdePaden.map((g) => g.pad),
           clerkUserId: userId,
           baseSha,
         })
@@ -176,7 +238,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const reply = `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${treffer.pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+    const reply = body.kleur
+      ? `Kleur aangepast! ${oud.slice(0, 40)} is overal vervangen door ${nieuw.slice(0, 40)} (${totaal} plekken). Bekijk het voorbeeld en publiceer als je tevreden bent.`
+      : `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${treffer.pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
     await db.insert(messages).values([
       { siteId: site.id, rol: "klant" as const, tekst: `[Zelf aangepast] ${omschrijving}`, clerkUserId: userId },
       { siteId: site.id, rol: "assistent" as const, tekst: reply, clerkUserId: userId },
@@ -188,7 +252,7 @@ export async function POST(req: Request) {
       reply,
       previewUrl,
       changeId,
-      bestanden: [treffer.pad],
+      bestanden: gewijzigdePaden.map((g) => g.pad),
     });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});

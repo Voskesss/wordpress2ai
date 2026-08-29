@@ -151,3 +151,8 @@ export async function ruimWerkmapOp(dir: string) {
 export async function alleHtmlBestanden(dir: string): Promise<string[]> {
   return (await alleBestanden(dir)).filter((p) => /\.html?$/i.test(p));
 }
+
+/** Alle CSS-bestanden in de werkmap. */
+export async function alleCssBestanden(dir: string): Promise<string[]> {
+  return (await alleBestanden(dir)).filter((p) => /\.css$/i.test(p));
+}
