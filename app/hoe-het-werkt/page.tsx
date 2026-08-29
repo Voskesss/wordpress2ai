@@ -21,7 +21,7 @@ const stappen = [
   {
     titel: "We nemen al je content over",
     tekst:
-      "Alle teksten, pagina's en afbeeldingen halen we uit je WordPress-site. Jij hoeft niets aan te leveren — het staat er immers al. Ook je contactformulier bouwen we mee, dat zit gewoon in de prijs.",
+      "Alle teksten, pagina's en afbeeldingen halen we uit je WordPress-site. Het enige dat we van jou nodig hebben is even toegang: je maakt in WordPress een export (twee klikken — we sturen je een korte uitleg, of je geeft ons tijdelijk een inlog en wij doen het). Verder hoef je niets aan te leveren. Ook je contactformulier bouwen we mee, dat zit gewoon in de prijs.",
   },
   {
     titel: "Je vindbaarheid in Google blijft behouden",
