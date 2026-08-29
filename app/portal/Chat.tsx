@@ -95,6 +95,12 @@ export default function Chat({
   // Zelf tekst aanpassen (aanwijzen → letterlijk vervangen, zonder AI)
   const [zelfTekst, setZelfTekst] = useState<string | null>(null);
   const [zelfBezig, setZelfBezig] = useState(false);
+  // Na publiceren: even de kans geven om hem met één klik terug te draaien
+  const [ongedaanKans, setOngedaanKans] = useState<number | null>(null);
+  const [ongedaanBezig, setOngedaanBezig] = useState(false);
+  const [stapTerugBezig, setStapTerugBezig] = useState(false);
+  // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
+  const fotoVervangRef = useRef(false);
   const [kleur, setKleur] = useState<string | null>(null);
   const kleurInputRef = useRef<HTMLInputElement>(null);
   const [luistert, setLuistert] = useState(false);
@@ -204,7 +210,7 @@ export default function Chat({
 
   /** Na een wijziging: blijven verversen tot Cloudflare de nieuwe versie toont
    * (doorzetten duurt soms 15-30 seconden — dit vangt dat onzichtbaar op). */
-  function wachtOpVerseVersie() {
+  function wachtOpVerseVersie(conceptActief = true) {
     wachtOpVerseRef.current = { oudeStempel: stempelRef.current, pogingen: 0 };
     const controleer = () => {
       const wacht = wachtOpVerseRef.current;
@@ -214,7 +220,7 @@ export default function Chat({
         return;
       }
       wacht.pogingen += 1;
-      herlaad(true);
+      herlaad(conceptActief);
       setTimeout(controleer, 4000);
     };
     setTimeout(controleer, 4000);
@@ -258,12 +264,12 @@ export default function Chat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [berichten, bezig, chatOpen]);
 
-  async function verstuur() {
-    const tekst = invoer.trim();
+  async function verstuur(overrideTekst?: unknown, overrideAfbeelding?: File) {
+    const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
     if (!tekst || bezig) return;
     setInvoer("");
     setChatOpen(true);
-    const teVersturen = afbeelding;
+    const teVersturen = overrideAfbeelding ?? afbeelding;
     setAfbeelding(null);
     const gekozen = selectie;
     setSelectie(null);
@@ -349,6 +355,7 @@ export default function Chat({
         });
         herlaad(true);
         wachtOpVerseVersie();
+        setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
@@ -408,6 +415,7 @@ export default function Chat({
         });
         herlaad(true);
         wachtOpVerseVersie();
+        setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
@@ -439,6 +447,71 @@ export default function Chat({
       ]);
     } finally {
       setZelfBezig(false);
+    }
+  }
+
+  async function ongedaanMaken() {
+    if (ongedaanKans === null || ongedaanBezig) return;
+    setOngedaanBezig(true);
+    try {
+      const res = await fetch("/api/ongedaan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ changeId: ongedaanKans }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { melding?: string };
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: res.ok
+            ? "Teruggedraaid! Je site staat weer zoals vóór deze wijziging."
+            : (data.melding ?? "Terugdraaien lukte niet — vraag het gerust in de chat, dan doe ik het."),
+        },
+      ]);
+      setChatOpen(true);
+      if (res.ok) {
+        setOngedaanKans(null);
+        herlaad(false);
+        wachtOpVerseVersie(false);
+      }
+    } finally {
+      setOngedaanBezig(false);
+    }
+  }
+
+  async function stapTerug() {
+    if (!concept || stapTerugBezig || conceptActie) return;
+    setStapTerugBezig(true);
+    try {
+      const res = await fetch("/api/stap-terug", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ changeId: concept.changeId }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        overgebleven?: number;
+        melding?: string;
+      };
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: res.ok
+            ? data.overgebleven === 0
+              ? "Laatste stap teruggedraaid — het concept is nu weer leeg. Wil je helemaal stoppen, klik dan op Verwijder."
+              : "Laatste stap teruggedraaid. De eerdere stappen van dit concept staan er nog."
+            : (data.melding ?? "Terugdraaien lukte niet — probeer het zo nog eens."),
+        },
+      ]);
+      setChatOpen(true);
+      if (res.ok) {
+        herlaad(true);
+        wachtOpVerseVersie();
+      }
+    } finally {
+      setStapTerugBezig(false);
     }
   }
 
@@ -482,6 +555,7 @@ export default function Chat({
         },
       ]);
       setChatOpen(true);
+      if (actie === "publiceer" && concept) setOngedaanKans(concept.changeId);
       setConcept(null);
       herlaad(false);
     }
@@ -759,12 +833,47 @@ export default function Chat({
                 >
                   {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
                 </button>
+                <Tip tekst="Draait alleen je laatste stap terug — eerdere stappen van dit concept blijven staan">
+                  <button
+                    onClick={stapTerug}
+                    disabled={conceptActie !== null || stapTerugBezig || bezig}
+                    className="rounded-full px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    {stapTerugBezig ? "Bezig..." : "↩ Stap terug"}
+                  </button>
+                </Tip>
                 <button
                   onClick={() => conceptVerwerken("verwerp")}
                   disabled={conceptActie !== null}
                   className="rounded-full px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 cursor-pointer"
                 >
                   {conceptActie === "verwerp" ? "Bezig..." : "Verwijder"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Na publiceren: één klik om toch terug te draaien */}
+          {ongedaanKans !== null && !concept && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <p className="min-w-0 flex-1 text-sm text-emerald-900">
+                <span className="font-semibold">Gepubliceerd.</span> Toch niet
+                goed? Je kunt hem nog terugdraaien.
+              </p>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  onClick={ongedaanMaken}
+                  disabled={ongedaanBezig}
+                  className="rounded-full border border-emerald-400 px-3 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50 cursor-pointer"
+                >
+                  {ongedaanBezig ? "Bezig..." : "↩ Draai terug"}
+                </button>
+                <button
+                  onClick={() => setOngedaanKans(null)}
+                  aria-label="Sluiten"
+                  className="text-emerald-400 hover:text-emerald-800 cursor-pointer"
+                >
+                  ✕
                 </button>
               </div>
             </div>
@@ -817,12 +926,24 @@ export default function Chat({
                 <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
                   <span className="font-semibold">Aangewezen:</span>{" "}
                   {selectie.tag === "img"
-                    ? `foto: ${selectie.tekst || "zonder omschrijving"} — typ hieronder wat ermee moet gebeuren`
+                    ? `foto: ${selectie.tekst || "zonder omschrijving"}`
                     : selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
                   <span className="text-violet-600">
                     ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
                   </span>
                 </p>
+                {selectie.tag === "img" && (
+                  <button
+                    onClick={() => {
+                      fotoVervangRef.current = true;
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={bezig}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    📷 Vervang deze foto
+                  </button>
+                )}
                 {selectie.tekst && selectie.tag !== "img" && zelfTekst === null && (
                   <button
                     onClick={() => setZelfTekst(selectie.tekst ?? "")}
@@ -948,7 +1069,20 @@ export default function Chat({
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => setAfbeelding(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const bestand = e.target.files?.[0] ?? null;
+                  if (bestand && fotoVervangRef.current) {
+                    // Foto-vervangen-flow: gekozen bestand direct doorsturen
+                    fotoVervangRef.current = false;
+                    verstuur(
+                      "Vervang de aangewezen foto door de meegestuurde nieuwe afbeelding — zelfde plek, zelfde formaat/uitsnede, en pas de alt-tekst logisch aan.",
+                      bestand
+                    );
+                  } else {
+                    setAfbeelding(bestand);
+                  }
+                  e.target.value = "";
+                }}
               />
               <Tip tekst="Klik hierna in het voorbeeld op het onderdeel dat je bedoelt — dan weet ik precies waar je het over hebt">
               <button
