@@ -42,8 +42,8 @@ export default function DemoWelkom() {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-stone-900/60 p-4 backdrop-blur-sm">
+      <div className="my-auto max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
         <p className="text-3xl">👋</p>
         <h2 className="font-display mt-3 text-2xl font-semibold tracking-tight">
           Welkom bij de WordSwap-demo!
