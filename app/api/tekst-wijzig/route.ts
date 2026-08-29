@@ -41,13 +41,38 @@ export async function POST(req: Request) {
   const [openConcept] = await db
     .select()
     .from(changes)
-    .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
+    .where(
+      site.isDemo
+        ? and(
+            eq(changes.siteId, site.id),
+            eq(changes.status, "concept"),
+            eq(changes.clerkUserId, userId)
+          )
+        : and(eq(changes.siteId, site.id), eq(changes.status, "concept"))
+    )
     .orderBy(desc(changes.id))
     .limit(1);
 
+  // Demo: persoonlijke branch + persoonlijke voorbeeld-site
+  const { demoBranch, demoWorker } = await import("@/lib/demo");
+  const eigenBranch = site.isDemo ? demoBranch(userId) : null;
+  const wvNaam = site.isDemo
+    ? demoWorker(site.githubRepo, userId)
+    : site.netlifySiteId
+      ? `wv-${site.netlifySiteId}`
+      : null;
+
   let werkmap: string | null = null;
   try {
-    werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
+    if (openConcept?.branch) {
+      werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
+    } else if (eigenBranch) {
+      werkmap = await laadWerkmap(site.githubRepo, eigenBranch).catch(() =>
+        laadWerkmap(site.githubRepo)
+      );
+    } else {
+      werkmap = await laadWerkmap(site.githubRepo);
+    }
 
     // Tolerant zoeken: witruimte in de bron mag afwijken van wat de browser toont
     const patroon = new RegExp(
@@ -72,9 +97,9 @@ export async function POST(req: Request) {
     await writeFile(path.join(werkmap, treffer.pad), nieuweInhoud);
 
     // Zelfde trechter als AI-wijzigingen: werkversie + branch + concept
-    const wvDeploy = site.netlifySiteId
-      ? deployMapNaarCloudflare(werkmap, `wv-${site.netlifySiteId}`, {
-          subdomeinAanzetten: false,
+    const wvDeploy = wvNaam
+      ? deployMapNaarCloudflare(werkmap, wvNaam, {
+          subdomeinAanzetten: site.isDemo,
         }).catch((e) => console.error("Werkversie-deploy mislukt:", e))
       : Promise.resolve();
 
@@ -103,8 +128,21 @@ export async function POST(req: Request) {
       changeId = openConcept.id;
       previewUrl = openConcept.previewUrl ?? `/preview/${openConcept.id}/`;
     } else {
-      const branch = `wijziging-${Date.now()}`;
-      await maakBranch(site.githubRepo, branch);
+      const branch = eigenBranch ?? `wijziging-${Date.now()}`;
+      let baseSha: string | null = null;
+      if (eigenBranch) {
+        const { gh, GITHUB_ORG } = await import("@/lib/github");
+        try {
+          const ref = (await gh(
+            `/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/${branch}`
+          )) as { object: { sha: string } };
+          baseSha = ref.object.sha;
+        } catch {
+          await maakBranch(site.githubRepo, branch);
+        }
+      } else {
+        await maakBranch(site.githubRepo, branch);
+      }
       await pushBestanden(site.githubRepo, bestanden, omschrijving, branch);
       const [row] = await db
         .insert(changes)
@@ -113,6 +151,8 @@ export async function POST(req: Request) {
           branch,
           promptTekst: omschrijving,
           bestanden: [treffer.pad],
+          clerkUserId: userId,
+          baseSha,
         })
         .returning({ id: changes.id });
       changeId = row.id;

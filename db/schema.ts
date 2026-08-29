@@ -57,6 +57,10 @@ export const changes = pgTable("changes", {
   promptTekst: text("prompt_tekst").notNull(),
   bestanden: jsonb("bestanden").notNull().default([]),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  // Demo: wiens wijziging dit is (iedere demo-gebruiker een eigen sandbox)
+  clerkUserId: text("clerk_user_id"),
+  // Demo: stand van de branch vóór dit concept, zodat Verwijder netjes terugdraait
+  baseSha: text("base_sha"),
 });
 
 export const usage = pgTable("usage", {

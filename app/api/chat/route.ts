@@ -220,13 +220,31 @@ export async function POST(req: Request) {
     .orderBy(changes.id)
     .then((rows) => rows.slice(-15));
 
-  // Openstaand concept? Dan werken we daarin verder i.p.v. een nieuw te maken
+  // Openstaand concept? Dan werken we daarin verder i.p.v. een nieuw te maken.
+  // Demo: alleen het eigen concept van deze gebruiker (ieder een eigen sandbox).
   const openConcept = await db
     .select()
     .from(changes)
-    .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
+    .where(
+      site.isDemo
+        ? and(
+            eq(changes.siteId, site.id),
+            eq(changes.status, "concept"),
+            eq(changes.clerkUserId, userId)
+          )
+        : and(eq(changes.siteId, site.id), eq(changes.status, "concept"))
+    )
     .orderBy(changes.id)
     .then((rows) => rows.at(-1) ?? null);
+
+  // Demo: persoonlijke branch + persoonlijke voorbeeld-site
+  const { demoBranch, demoWorker } = await import("@/lib/demo");
+  const eigenBranch = site.isDemo ? demoBranch(userId) : null;
+  const wvNaam = site.isDemo
+    ? demoWorker(site.githubRepo, userId)
+    : site.netlifySiteId
+      ? `wv-${site.netlifySiteId}`
+      : null;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -248,7 +266,16 @@ export async function POST(req: Request) {
             ? "Ik werk verder op het openstaande concept..."
             : "Momentje...",
         });
-        werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
+        if (openConcept?.branch) {
+          werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
+        } else if (eigenBranch) {
+          // Demo: verder werken op de eigen sandbox-branch als die al bestaat
+          werkmap = await laadWerkmap(site.githubRepo, eigenBranch).catch(() =>
+            laadWerkmap(site.githubRepo)
+          );
+        } else {
+          werkmap = await laadWerkmap(site.githubRepo);
+        }
         const snapshot = await maakSnapshot(werkmap);
         const siteOverzicht = await maakSiteOverzicht(werkmap);
         tik("voorbereid");
@@ -386,9 +413,9 @@ export async function POST(req: Request) {
             }))
           );
           // Werkversie-deploy is onafhankelijk van GitHub — laat hem parallel meelopen
-          const deployKlaar = site.netlifySiteId
-            ? deployMapNaarCloudflare(werkmap!, `wv-${site.netlifySiteId}`, {
-                subdomeinAanzetten: false,
+          const deployKlaar = wvNaam
+            ? deployMapNaarCloudflare(werkmap!, wvNaam, {
+                subdomeinAanzetten: site.isDemo,
               }).catch((e) => console.error("Werkversie-deploy mislukt:", e))
             : Promise.resolve();
           if (openConcept) {
@@ -418,8 +445,22 @@ export async function POST(req: Request) {
             changeRowId = openConcept.id;
             previewUrl = openConcept.previewUrl ?? `/preview/${openConcept.id}/`;
           } else {
-            const branch = `wijziging-${Date.now()}`;
-            await maakBranch(site.githubRepo, branch);
+            const branch = eigenBranch ?? `wijziging-${Date.now()}`;
+            let baseSha: string | null = null;
+            if (eigenBranch) {
+              // Demo: persistente sandbox-branch; stand vooraf onthouden voor Verwijder
+              const { gh, GITHUB_ORG } = await import("@/lib/github");
+              try {
+                const ref = (await gh(
+                  `/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/${branch}`
+                )) as { object: { sha: string } };
+                baseSha = ref.object.sha;
+              } catch {
+                await maakBranch(site.githubRepo, branch);
+              }
+            } else {
+              await maakBranch(site.githubRepo, branch);
+            }
             const { pushBestanden } = await import("@/lib/github");
             await pushBestanden(
               site.githubRepo,
@@ -436,6 +477,8 @@ export async function POST(req: Request) {
                 branch,
                 promptTekst: bericht,
                 bestanden: gewijzigd,
+                clerkUserId: userId,
+                baseSha,
               })
               .returning({ id: changes.id });
             changeRowId = row.id;

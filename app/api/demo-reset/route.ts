@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { gh, GITHUB_ORG, pushBestanden } from "@/lib/github";
-import { deployMapNaarCloudflare } from "@/lib/cloudflare";
+import { deployMapNaarCloudflare, verwijderDemoWorkers } from "@/lib/cloudflare";
 import { laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
@@ -53,6 +53,24 @@ async function reset() {
           { method: "DELETE" }
         ).catch(() => {});
       }
+
+      // 2b. Persoonlijke sandbox-branches (demo-…) en wijzigings-branches wissen
+      const refs = (await gh(
+        `/repos/${GITHUB_ORG}/${site.githubRepo}/git/matching-refs/heads/`
+      ).catch(() => [])) as { ref: string }[];
+      for (const r of refs) {
+        const naam = r.ref.replace("refs/heads/", "");
+        if (naam.startsWith("demo-") || naam.startsWith("wijziging-")) {
+          await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/${naam}`, {
+            method: "DELETE",
+          }).catch(() => {});
+        }
+      }
+
+      // 2c. Persoonlijke voorbeeld-workers (wvd-…) van demo-gebruikers verwijderen
+      await verwijderDemoWorkers(site.githubRepo).catch((e) =>
+        console.error("Demo-workers opruimen mislukt:", e)
+      );
 
       // 3. Chatgeschiedenis en wijzigingen wissen (leads blijven in Clerk)
       const siteChanges = await db

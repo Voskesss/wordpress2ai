@@ -38,7 +38,16 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
 
 /** Deployt de inhoud van een klant-repo als statische site op Cloudflare Workers. */
 export async function deployRepoNaarCloudflare(repo: string, naam: string) {
-  const werkmap = await laadWerkmap(repo);
+  return deployRepoNaarCloudflareRef(repo, naam);
+}
+
+/** Als deployRepoNaarCloudflare, maar vanaf een specifieke branch/commit. */
+export async function deployRepoNaarCloudflareRef(
+  repo: string,
+  naam: string,
+  ref?: string
+) {
+  const werkmap = await laadWerkmap(repo, ref);
   try {
     return await deployMapNaarCloudflare(werkmap, naam);
   } finally {
@@ -218,4 +227,19 @@ export async function verwijderCloudflareSite(naam: string) {
     method: "DELETE",
     headers: hdr(false),
   }).catch(() => {});
+}
+
+/** Verwijdert alle persoonlijke demo-voorbeeld-workers (wvd-<repo>-…) van een demo-site. */
+export async function verwijderDemoWorkers(repo: string) {
+  const lijst = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts`, {
+    headers: hdr(),
+  }).then((r) => r.json())) as { result?: { id: string }[] };
+  const prefix = `wvd-${repo}-`;
+  for (const script of lijst.result ?? []) {
+    if (!script.id.startsWith(prefix)) continue;
+    await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${script.id}`, {
+      method: "DELETE",
+      headers: hdr(),
+    }).catch(() => {});
+  }
 }

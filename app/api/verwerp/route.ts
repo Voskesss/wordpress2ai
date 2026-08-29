@@ -35,13 +35,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Al verwerkt" }, { status: 400 });
   }
 
-  if (rij.change.prNumber) {
-    await gh(`/repos/${GITHUB_ORG}/${rij.site.githubRepo}/pulls/${rij.change.prNumber}`, {
-      method: "PATCH",
-      body: JSON.stringify({ state: "closed" }),
-    });
+  if (rij.site.isDemo && rij.change.branch.startsWith("demo-")) {
+    // Demo-sandbox: branch terugzetten naar de stand vóór dit concept
+    // (of helemaal weg als dit het eerste concept was) en de eigen
+    // voorbeeld-site weer bijwerken.
+    if (rij.change.baseSha) {
+      await gh(
+        `/repos/${GITHUB_ORG}/${rij.site.githubRepo}/git/refs/heads/${rij.change.branch}`,
+        { method: "PATCH", body: JSON.stringify({ sha: rij.change.baseSha, force: true }) }
+      ).catch(() => {});
+    } else {
+      await verwijderBranch(rij.site.githubRepo, rij.change.branch);
+    }
+    try {
+      const { demoWorker } = await import("@/lib/demo");
+      const { deployRepoNaarCloudflareRef } = await import("@/lib/cloudflare");
+      await deployRepoNaarCloudflareRef(
+        rij.site.githubRepo,
+        demoWorker(rij.site.githubRepo, rij.change.clerkUserId ?? userId),
+        rij.change.baseSha ?? undefined
+      );
+    } catch (e) {
+      console.error("Demo-terugdraai-deploy mislukt:", e);
+    }
+  } else {
+    if (rij.change.prNumber) {
+      await gh(`/repos/${GITHUB_ORG}/${rij.site.githubRepo}/pulls/${rij.change.prNumber}`, {
+        method: "PATCH",
+        body: JSON.stringify({ state: "closed" }),
+      });
+    }
+    await verwijderBranch(rij.site.githubRepo, rij.change.branch);
   }
-  await verwijderBranch(rij.site.githubRepo, rij.change.branch);
   await db
     .update(changes)
     .set({ status: "afgewezen" })

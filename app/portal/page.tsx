@@ -5,6 +5,7 @@ import { changes, messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
+import { demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default async function Portal() {
       .map((m) => ({ rol: m.rol, tekst: m.tekst }));
   }
 
+  const demoHeeftWijzigingen: Record<number, boolean> = {};
   const openConceptMap: Record<
     number,
     | {
@@ -55,9 +57,14 @@ export default async function Portal() {
     const rows = await db
       .select()
       .from(changes)
-      .where(eq(changes.siteId, site.id))
+      .where(
+        site.isDemo
+          ? and(eq(changes.siteId, site.id), eq(changes.clerkUserId, userId))
+          : eq(changes.siteId, site.id)
+      )
       .orderBy(changes.id);
     const laatsteConcept = rows.filter((c) => c.status === "concept").at(-1);
+    if (site.isDemo) demoHeeftWijzigingen[site.id] = rows.length > 0;
     if (laatsteConcept) {
       openConceptMap[site.id] = {
         previewUrl: laatsteConcept.previewUrl,
@@ -108,8 +115,18 @@ export default async function Portal() {
                 <Chat
                   siteId={site.id}
                   historie={historieMap[site.id] ?? []}
-                  liveUrl={site.domein}
-                  werkversieUrl={site.netlifySiteId ? `wv-${site.netlifySiteId}.wordswap.workers.dev` : null}
+                  liveUrl={
+                    site.isDemo && demoHeeftWijzigingen[site.id]
+                      ? `${demoWorker(site.githubRepo, userId)}.wordswap.workers.dev`
+                      : site.domein
+                  }
+                  werkversieUrl={
+                    site.isDemo
+                      ? `${demoWorker(site.githubRepo, userId)}.wordswap.workers.dev`
+                      : site.netlifySiteId
+                        ? `wv-${site.netlifySiteId}.wordswap.workers.dev`
+                        : null
+                  }
                   openConcept={openConceptMap[site.id]}
                   suggesties={
                     site.isDemo

@@ -41,6 +41,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Geen concept aanwezig" }, { status: 400 });
   }
 
+  if (rij.site.isDemo) {
+    // Demo: ieders sandbox is al "live" op de eigen voorbeeld-site — niets
+    // mergen of delen; alleen de status bijwerken. De uurlijkse reset ruimt op.
+    await db
+      .update(changes)
+      .set({ status: "gepubliceerd" })
+      .where(eq(changes.id, rij.change.id));
+    return NextResponse.json({ ok: true });
+  }
+
   try {
     if (rij.change.prNumber) {
       // Oudere concepten hebben nog een pull request
