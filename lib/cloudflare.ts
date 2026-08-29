@@ -136,8 +136,10 @@ export async function deployMapNaarCloudflare(
       if (res.result?.jwt) completionJwt = res.result.jwt;
     }
 
-    // 3. Worker (assets-only) publiceren
+    // 3. Worker publiceren — met een klein script dat workers.dev-adressen
+    // op noindex zet (voorkomt duplicate content naast het echte klantdomein)
     const metadata = {
+      main_module: "worker.js",
       compatibility_date: "2025-01-01",
       assets: {
         jwt: completionJwt,
@@ -145,14 +147,31 @@ export async function deployMapNaarCloudflare(
           html_handling: "auto-trailing-slash",
           not_found_handling: "404-page",
         },
+        binding: "ASSETS",
       },
     };
+    const workerScript = `export default {
+  async fetch(request, env) {
+    const res = await env.ASSETS.fetch(request);
+    if (new URL(request.url).hostname.endsWith(".workers.dev")) {
+      const r = new Response(res.body, res);
+      r.headers.set("X-Robots-Tag", "noindex, nofollow");
+      return r;
+    }
+    return res;
+  },
+};
+`;
     const publiceerForm = new FormData();
     publiceerForm.append(
       "metadata",
       new File([JSON.stringify(metadata)], "metadata.json", {
         type: "application/json",
       })
+    );
+    publiceerForm.append(
+      "worker.js",
+      new File([workerScript], "worker.js", { type: "application/javascript+module" })
     );
     const publiceer = (await fetch(
       `${API}/accounts/${ACCOUNT}/workers/scripts/${naam}`,
