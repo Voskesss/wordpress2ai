@@ -457,6 +457,76 @@ export default function Chat({
     }
   }
 
+  async function fotoDirect(bestand: File) {
+    const src = selectie?.html.match(/src=["']([^"']+)["']/)?.[1];
+    if (!src) {
+      // Geen bronpad te vinden → veilig via de AI
+      verstuur(
+        "Vervang de aangewezen foto door de meegestuurde nieuwe afbeelding — zelfde plek, zelfde formaat/uitsnede, en pas de alt-tekst logisch aan.",
+        bestand
+      );
+      return;
+    }
+    setZelfBezig(true);
+    setChatOpen(true);
+    setBerichten((b) => [...b, { rol: "klant", tekst: "📷 Foto vervangen (zelf gekozen bestand)" }]);
+    try {
+      const form = new FormData();
+      form.set("siteId", String(siteId));
+      form.set("pad", src);
+      form.set("afbeelding", bestand);
+      const res = await fetch("/api/foto-wijzig", { method: "POST", body: form });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        fallback?: boolean;
+        reply?: string;
+        previewUrl?: string;
+        changeId?: number;
+        bestanden?: string[];
+        error?: string;
+      };
+      if (data.ok && data.previewUrl && data.changeId) {
+        setSelectie(null);
+        setBerichten((b) => [
+          ...b,
+          { rol: "assistent", tekst: data.reply ?? "Foto vervangen!", metVerversTip: true },
+        ]);
+        setConcept({
+          changeId: data.changeId,
+          previewUrl: data.previewUrl,
+          prompt: "Foto vervangen",
+          paginas: data.bestanden ?? [],
+        });
+        herlaad(true);
+        wachtOpVerseVersie();
+        setOngedaanKans(null);
+        setOplevering({ paden: [huidigeRef.current === "/" ? "index.html" : huidigeRef.current] });
+        setChatOpen(false);
+      } else if (data.fallback) {
+        setBerichten((b) => [
+          ...b,
+          { rol: "assistent", tekst: "Dit fotobestand kon ik niet rechtstreeks vinden — ik geef hem aan de AI, momentje..." },
+        ]);
+        verstuur(
+          "Vervang de aangewezen foto door de meegestuurde nieuwe afbeelding — zelfde plek, zelfde formaat/uitsnede, en pas de alt-tekst logisch aan.",
+          bestand
+        );
+      } else {
+        setBerichten((b) => [
+          ...b,
+          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+        ]);
+      }
+    } catch {
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: "Er ging iets mis, probeer het opnieuw." },
+      ]);
+    } finally {
+      setZelfBezig(false);
+    }
+  }
+
   async function kleurDirect(oudeKleur: string) {
     if (!kleur || zelfBezig) return;
     setZelfBezig(true);
@@ -1187,12 +1257,9 @@ export default function Chat({
                 onChange={(e) => {
                   const bestand = e.target.files?.[0] ?? null;
                   if (bestand && fotoVervangRef.current) {
-                    // Foto-vervangen-flow: gekozen bestand direct doorsturen
+                    // Foto-vervangen-flow: bestand direct verwerken (zonder AI)
                     fotoVervangRef.current = false;
-                    verstuur(
-                      "Vervang de aangewezen foto door de meegestuurde nieuwe afbeelding — zelfde plek, zelfde formaat/uitsnede, en pas de alt-tekst logisch aan.",
-                      bestand
-                    );
+                    fotoDirect(bestand);
                   } else {
                     setAfbeelding(bestand);
                   }
