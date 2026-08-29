@@ -67,15 +67,24 @@ export async function deployMapNaarCloudflare(
     const delen = await laadDelen(werkmap);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
+    // Deploy-stempel: het portaal herkent hieraan of de nieuwe versie al
+    // doorgedrongen is bij Cloudflare (en ververst anders zelf nog een keer)
+    const stempel = `<script>try{parent!==window&&parent.postMessage({type:"wp2ai-stempel",stempel:${Date.now()}},"*")}catch(e){}</script>`;
     for (const pad of bestanden) {
       let data = await readFile(path.join(werkmap, pad));
       if (/\.html?$/i.test(pad) && !pad.startsWith("delen/")) {
-        let html = vouwUit(data.toString("utf8"), delen);
+        let html = vouwUit(data.toString("utf8"), delen).replace(
+          /<script>try\{parent!==window&&parent\.postMessage\(\{type:"wp2ai-stempel"[^<]*<\/script>/,
+          ""
+        );
         if (!html.includes("wp2ai-pagina")) {
           html = html.includes("</body>")
             ? html.replace("</body>", `${PAGINA_MELDER}</body>`)
             : html + PAGINA_MELDER;
         }
+        html = html.includes("</body>")
+          ? html.replace("</body>", `${stempel}</body>`)
+          : html + stempel;
         data = Buffer.from(html);
       }
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);

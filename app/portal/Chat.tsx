@@ -82,6 +82,10 @@ export default function Chat({
   );
   const scrollRef = useRef<HTMLDivElement>(null);
   const invoerRef = useRef<HTMLTextAreaElement>(null);
+  // Deploy-stempel van de pagina in het voorbeeld; gebruikt om na een wijziging
+  // automatisch te blijven verversen tot Cloudflare de nieuwe versie echt toont
+  const stempelRef = useRef<number>(0);
+  const wachtOpVerseRef = useRef<{ oudeStempel: number; pogingen: number } | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [schaal, setSchaal] = useState(1);
@@ -198,6 +202,24 @@ export default function Chat({
     setReloadTeller((t) => t + 1);
   }
 
+  /** Na een wijziging: blijven verversen tot Cloudflare de nieuwe versie toont
+   * (doorzetten duurt soms 15-30 seconden — dit vangt dat onzichtbaar op). */
+  function wachtOpVerseVersie() {
+    wachtOpVerseRef.current = { oudeStempel: stempelRef.current, pogingen: 0 };
+    const controleer = () => {
+      const wacht = wachtOpVerseRef.current;
+      if (!wacht) return;
+      if (stempelRef.current !== wacht.oudeStempel || wacht.pogingen >= 10) {
+        wachtOpVerseRef.current = null;
+        return;
+      }
+      wacht.pogingen += 1;
+      herlaad(true);
+      setTimeout(controleer, 4000);
+    };
+    setTimeout(controleer, 4000);
+  }
+
   useEffect(() => {
     const el = viewerRef.current;
     if (!el) return;
@@ -214,6 +236,9 @@ export default function Chat({
         const pad = e.data.pad.replace(/^\/preview\/\d+/, "") || "/";
         setHuidigePagina(pad);
         huidigeRef.current = pad;
+      }
+      if (e.data?.type === "wp2ai-stempel" && typeof e.data.stempel === "number") {
+        stempelRef.current = e.data.stempel;
       }
       if (e.data?.type === "wp2ai-selectie") {
         setSelectie({
@@ -323,6 +348,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
+        wachtOpVerseVersie();
         const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
@@ -381,6 +407,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
+        wachtOpVerseVersie();
         const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
