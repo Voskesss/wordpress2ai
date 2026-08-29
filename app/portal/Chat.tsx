@@ -88,6 +88,9 @@ export default function Chat({
   const [aanwijzen, setAanwijzen] = useState(false);
   const [selectie, setSelectie] = useState<Selectie | null>(null);
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
+  // Zelf tekst aanpassen (aanwijzen → letterlijk vervangen, zonder AI)
+  const [zelfTekst, setZelfTekst] = useState<string | null>(null);
+  const [zelfBezig, setZelfBezig] = useState(false);
   const [kleur, setKleur] = useState<string | null>(null);
   const kleurInputRef = useRef<HTMLInputElement>(null);
   const [luistert, setLuistert] = useState(false);
@@ -339,6 +342,76 @@ export default function Chat({
       stopRef.current = null;
       setBezig(false);
       setStatusTekst(null);
+    }
+  }
+
+  async function zelfToepassen() {
+    if (!selectie || zelfTekst === null || zelfBezig) return;
+    const oud = (selectie.tekst ?? "").trim();
+    const nieuw = zelfTekst.trim();
+    if (!oud || !nieuw || oud === nieuw) return;
+    setZelfBezig(true);
+    try {
+      const res = await fetch("/api/tekst-wijzig", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, oud, nieuw }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        fallback?: boolean;
+        reply?: string;
+        previewUrl?: string;
+        changeId?: number;
+        bestanden?: string[];
+        error?: string;
+      };
+      if (data.ok && data.previewUrl && data.changeId) {
+        setSelectie(null);
+        setZelfTekst(null);
+        setBerichten((b) => [
+          ...b,
+          { rol: "klant", tekst: `✏️ Zelf aangepast: "${oud.slice(0, 60)}" → "${nieuw.slice(0, 60)}"` },
+          { rol: "assistent", tekst: data.reply ?? "Aangepast!", metVerversTip: true },
+        ]);
+        setConcept({
+          changeId: data.changeId,
+          previewUrl: data.previewUrl,
+          prompt: "Tekst zelf aangepast",
+          paginas: data.bestanden ?? [],
+        });
+        herlaad(true);
+        const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
+        setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
+        setChatOpen(false);
+      } else if (data.fallback) {
+        // Tekst niet eenduidig terug te vinden — de AI lost het veilig op
+        setZelfTekst(null);
+        setInvoer(`Vervang de tekst "${oud}" door "${nieuw}"`);
+        setChatOpen(true);
+        setBerichten((b) => [
+          ...b,
+          {
+            rol: "assistent",
+            tekst:
+              "Deze tekst staat op meerdere plekken of kon ik niet 1-op-1 terugvinden. Ik heb je wijziging klaargezet in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan.",
+          },
+        ]);
+      } else {
+        setChatOpen(true);
+        setBerichten((b) => [
+          ...b,
+          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+        ]);
+      }
+    } catch {
+      setChatOpen(true);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: "Er ging iets mis, probeer het opnieuw." },
+      ]);
+    } finally {
+      setZelfBezig(false);
     }
   }
 
@@ -712,21 +785,64 @@ export default function Chat({
 
           {/* Aangewezen onderdeel */}
           {selectie && (
-            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
-                <span className="font-semibold">Aangewezen:</span>{" "}
-                {selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
-                <span className="text-violet-600">
-                  ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
-                </span>
-              </p>
-              <button
-                onClick={() => setSelectie(null)}
-                aria-label="Selectie verwijderen"
-                className="text-violet-400 hover:text-violet-800 cursor-pointer"
-              >
-                ✕
-              </button>
+            <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
+                  <span className="font-semibold">Aangewezen:</span>{" "}
+                  {selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
+                  <span className="text-violet-600">
+                    ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
+                  </span>
+                </p>
+                {selectie.tekst && zelfTekst === null && (
+                  <button
+                    onClick={() => setZelfTekst(selectie.tekst ?? "")}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
+                  >
+                    ✏️ Zelf aanpassen
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setSelectie(null);
+                    setZelfTekst(null);
+                  }}
+                  aria-label="Selectie verwijderen"
+                  className="text-violet-400 hover:text-violet-800 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+              {zelfTekst !== null && (
+                <div className="mt-2.5 border-t border-violet-200 pt-2.5">
+                  <p className="text-xs font-semibold text-violet-800">
+                    Pas de tekst aan en klik op Toepassen — zonder AI, in een paar
+                    seconden. Je ziet hem eerst als voorbeeld; er gaat niets live
+                    zonder Publiceer.
+                  </p>
+                  <textarea
+                    value={zelfTekst}
+                    onChange={(e) => setZelfTekst(e.target.value)}
+                    rows={2}
+                    className="mt-2 w-full rounded-xl border border-violet-300 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={zelfToepassen}
+                      disabled={zelfBezig || !zelfTekst.trim() || zelfTekst.trim() === (selectie.tekst ?? "").trim()}
+                      className="rounded-full bg-violet-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                    >
+                      {zelfBezig ? "Bezig..." : "Toepassen →"}
+                    </button>
+                    <button
+                      onClick={() => setZelfTekst(null)}
+                      className="rounded-full px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 cursor-pointer"
+                    >
+                      Annuleer
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

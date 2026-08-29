@@ -146,3 +146,8 @@ Afbeeldingen (${afbeeldingen.length}): ${afbeeldingen.slice(0, 60).join(", ")}${
 export async function ruimWerkmapOp(dir: string) {
   await rm(dir, { recursive: true, force: true });
 }
+
+/** Alle HTML-bestanden in de werkmap (inclusief delen/ — daar staat gedeelde tekst). */
+export async function alleHtmlBestanden(dir: string): Promise<string[]> {
+  return (await alleBestanden(dir)).filter((p) => /\.html?$/i.test(p));
+}
