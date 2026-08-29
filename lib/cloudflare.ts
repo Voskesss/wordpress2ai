@@ -234,9 +234,9 @@ export async function verwijderDemoWorkers(repo: string) {
   const lijst = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts`, {
     headers: hdr(),
   }).then((r) => r.json())) as { result?: { id: string }[] };
-  const prefix = `wvd-${repo}-`;
+  const prefixen = [`wvd-${repo}-`, `wvl-${repo}-`];
   for (const script of lijst.result ?? []) {
-    if (!script.id.startsWith(prefix)) continue;
+    if (!prefixen.some((p) => script.id.startsWith(p))) continue;
     await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${script.id}`, {
       method: "DELETE",
       headers: hdr(),

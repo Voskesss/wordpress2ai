@@ -10,7 +10,12 @@ export function demoBranch(userId: string): string {
   return `demo-${demoCode(userId)}`;
 }
 
-/** Persoonlijke voorbeeld-worker van een demo-gebruiker (werkversie én "live"). */
+/** Persoonlijke werkversie-worker van een demo-gebruiker (toont concepten). */
 export function demoWorker(repo: string, userId: string): string {
   return `wvd-${repo}-${demoCode(userId)}`.slice(0, 54);
+}
+
+/** Persoonlijke "live" site van een demo-gebruiker — wordt alleen bij Publiceer bijgewerkt. */
+export function demoLiveWorker(repo: string, userId: string): string {
+  return `wvl-${repo}-${demoCode(userId)}`.slice(0, 54);
 }

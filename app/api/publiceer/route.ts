@@ -42,8 +42,16 @@ export async function POST(req: Request) {
   }
 
   if (rij.site.isDemo) {
-    // Demo: ieders sandbox is al "live" op de eigen voorbeeld-site — niets
-    // mergen of delen; alleen de status bijwerken. De uurlijkse reset ruimt op.
+    // Demo: publiceren zet de sandbox-branch op de PERSOONLIJKE live-site van
+    // deze gebruiker — de gedeelde demo blijft onaangeroerd en niemand anders
+    // ziet het. De uurlijkse reset ruimt alles op.
+    const { demoLiveWorker } = await import("@/lib/demo");
+    const { deployRepoNaarCloudflareRef } = await import("@/lib/cloudflare");
+    await deployRepoNaarCloudflareRef(
+      rij.site.githubRepo,
+      demoLiveWorker(rij.site.githubRepo, rij.change.clerkUserId ?? userId),
+      rij.change.branch
+    ).catch((e) => console.error("Demo-live-deploy mislukt:", e));
     await db
       .update(changes)
       .set({ status: "gepubliceerd" })

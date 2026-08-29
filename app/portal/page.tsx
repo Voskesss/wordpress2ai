@@ -5,7 +5,7 @@ import { changes, messages, sites } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
-import { demoWorker } from "@/lib/demo";
+import { demoLiveWorker, demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 
 export const metadata: Metadata = {
@@ -72,7 +72,9 @@ export default async function Portal() {
       )
       .at(-1);
     if (site.isDemo)
-      demoHeeftWijzigingen[site.id] = rows.some((c) => c.branch.startsWith("demo-"));
+      demoHeeftWijzigingen[site.id] = rows.some(
+        (c) => c.branch.startsWith("demo-") && c.status === "gepubliceerd"
+      );
     if (laatsteConcept) {
       openConceptMap[site.id] = {
         previewUrl: laatsteConcept.previewUrl,
@@ -125,7 +127,7 @@ export default async function Portal() {
                   historie={historieMap[site.id] ?? []}
                   liveUrl={
                     site.isDemo && demoHeeftWijzigingen[site.id]
-                      ? `${demoWorker(site.githubRepo, userId)}.wordswap.workers.dev`
+                      ? `${demoLiveWorker(site.githubRepo, userId)}.wordswap.workers.dev`
                       : site.domein
                   }
                   werkversieUrl={
