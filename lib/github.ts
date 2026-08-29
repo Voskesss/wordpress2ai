@@ -304,3 +304,54 @@ export async function verwijderBranch(repo: string, branch: string) {
     method: "DELETE",
   }).catch(() => {});
 }
+
+/** Laatste commits op main — de versiegeschiedenis van een klantsite. */
+export async function lijstVersies(repo: string, aantal = 30) {
+  const rows = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/commits?per_page=${aantal}`
+  )) as { sha: string; commit: { message: string; author: { date: string } } }[];
+  return rows.map((r) => ({
+    sha: r.sha,
+    bericht: r.commit.message.split("\n")[0],
+    datum: r.commit.author.date,
+  }));
+}
+
+/** Zet main terug naar de staat van een eerdere commit — als nieuwe commit,
+ * zodat de geschiedenis intact blijft en het terugzetten zelf ook terug te zien is. */
+export async function zetTerugNaarVersie(repo: string, sha: string) {
+  const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as { default_branch: string };
+  const tak = repoInfo.default_branch;
+  const oud = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits/${sha}`)) as {
+    tree: { sha: string };
+  };
+  const kop = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/ref/heads/${tak}`)) as {
+    object: { sha: string };
+  };
+  const nieuw = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits`, {
+    method: "POST",
+    body: JSON.stringify({
+      message: `Teruggezet naar versie ${sha.slice(0, 7)}`,
+      tree: oud.tree.sha,
+      parents: [kop.object.sha],
+    }),
+  })) as { sha: string };
+  await gh(`/repos/${GITHUB_ORG}/${repo}/git/refs/heads/${tak}`, {
+    method: "PATCH",
+    body: JSON.stringify({ sha: nieuw.sha }),
+  });
+  return nieuw.sha;
+}
+
+/** Merget een wijzigings-branch rechtstreeks in main (zonder pull request). */
+export async function mergeBranchInMain(repo: string, branch: string) {
+  const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as { default_branch: string };
+  return gh(`/repos/${GITHUB_ORG}/${repo}/merges`, {
+    method: "POST",
+    body: JSON.stringify({
+      base: repoInfo.default_branch,
+      head: branch,
+      commit_message: "Wijziging gepubliceerd via chat",
+    }),
+  });
+}

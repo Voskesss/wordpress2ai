@@ -7,7 +7,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
-import { maakBranch, maakPullRequest, schrijfBestand } from "@/lib/github";
+import { maakBranch, schrijfBestand } from "@/lib/github";
 import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
 import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
@@ -43,6 +43,8 @@ function systeemPrompt(
 Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
+- KLEINE INGREPEN: wijzig bestanden met gerichte Edit-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met Write — dat is traag en foutgevoelig. Write gebruik je alleen voor gloednieuwe bestanden.
+- KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
 - Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast.
 - Heeft de site een map delen/ (menu.html, footer.html, ...)? Dat zijn centrale onderdelen die via <!--invoeg:naam--> op pagina's worden ingevoegd. Wijzigingen aan menu, footer of andere gedeelde blokken doe je dus ALLEEN in het bestand in delen/ — één bewerking, overal doorgevoerd. Kopieer nooit de inhoud van een deel naar losse pagina's.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
@@ -233,6 +235,12 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(data) + "\n"));
 
       let werkmap: string | null = null;
+      // Stopwatch per fase, zodat we op feiten kunnen versnellen (zichtbaar in Vercel-logs)
+      const klok = Date.now();
+      const tijden: Record<string, number> = {};
+      const tik = (fase: string) => {
+        tijden[fase] = Math.round((Date.now() - klok) / 100) / 10;
+      };
       try {
         stuur({
           type: "status",
@@ -243,6 +251,7 @@ export async function POST(req: Request) {
         werkmap = await laadWerkmap(site.githubRepo, openConcept?.branch);
         const snapshot = await maakSnapshot(werkmap);
         const siteOverzicht = await maakSiteOverzicht(werkmap);
+        tik("voorbereid");
 
         if (afbeelding) {
           const doel = path.join(werkmap, afbeelding.naam);
@@ -356,6 +365,7 @@ export async function POST(req: Request) {
           else throw e;
         }
         if (stopper.signal.aborted) return;
+        tik("ai");
 
         const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
         if (limietBereikt) {
@@ -417,20 +427,13 @@ export async function POST(req: Request) {
               `Wijziging via chat: ${bericht.slice(0, 60)}`,
               branch
             );
-            const pr = (await maakPullRequest(
-              site.githubRepo,
-              branch,
-              "Wijziging via chat",
-              `Gevraagd: ${bericht}\n\nGewijzigde bestanden:\n${gewijzigd
-                .map((p) => `- ${p}`)
-                .join("\n")}`
-            )) as { number: number };
+            // Geen pull request meer per concept — dat gebeurt pas bij Publiceer
+            // (branch wordt dan rechtstreeks gemerged). Scheelt seconden per wijziging.
             const [row] = await db
               .insert(changes)
               .values({
                 siteId: site.id,
                 branch,
-                prNumber: pr.number,
                 promptTekst: bericht,
                 bestanden: gewijzigd,
               })
@@ -454,6 +457,12 @@ export async function POST(req: Request) {
           stuur({ type: "status", tekst: "Werkversie bijwerken..." });
           await deployKlaar;
         }
+        tik("afgerond");
+        console.log(
+          `[chat-tijd] site=${site.id} voorbereid=${tijden.voorbereid ?? "?"}s ai=${
+            tijden.ai ?? "?"
+          }s totaal=${tijden.afgerond ?? "?"}s bestanden=${gewijzigd.length}`
+        );
 
         await db
           .insert(messages)

@@ -11,10 +11,12 @@ import { messages } from "@/db/schema";
 import {
   bewaarRichtlijnen,
   bewaarSite,
+  herstelVersie,
   koppelKlant,
   koppelNetlify,
   verwijderKlant,
 } from "../../acties";
+import { lijstVersies } from "@/lib/github";
 
 export const metadata: Metadata = {
   title: "Klant",
@@ -75,6 +77,7 @@ export default async function KlantDetail({
     .from(migrations)
     .where(eq(migrations.siteId, site.id));
   const gebruiker = await clerkGebruiker(site.clerkUserId);
+  const versies = await lijstVersies(site.githubRepo).catch(() => []);
   const inzendingen = await db
     .select()
     .from(formulierInzendingen)
@@ -371,6 +374,62 @@ export default async function KlantDetail({
                   >
                     {c.status}
                   </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Versiegeschiedenis */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white overflow-hidden">
+        <h2 className="font-display text-xl font-semibold p-6 pb-0">Versies</h2>
+        <p className="px-6 pt-1 text-sm text-stone-500">
+          Elke gepubliceerde wijziging is een versie. Terugzetten maakt een
+          nieuwe versie aan (er gaat dus nooit iets verloren) en zet de live
+          site meteen bij.
+        </p>
+        <table className="mt-4 w-full text-left text-sm">
+          <tbody>
+            {versies.length === 0 && (
+              <tr>
+                <td className="px-6 py-4 text-stone-500">
+                  Geen versies gevonden (bestaat de repo al?).
+                </td>
+              </tr>
+            )}
+            {versies.map((v, i) => (
+              <tr key={v.sha} className="border-t border-stone-100">
+                <td className="px-6 py-3 text-stone-800 max-w-[26rem]">
+                  <span className="line-clamp-1">{v.bericht}</span>
+                </td>
+                <td className="px-3 py-3 text-stone-500 whitespace-nowrap">
+                  {new Date(v.datum).toLocaleString("nl-NL", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+                <td className="px-3 py-3 text-stone-400 font-mono text-xs">
+                  {v.sha.slice(0, 7)}
+                </td>
+                <td className="px-6 py-3 text-right">
+                  {i === 0 ? (
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                      huidig
+                    </span>
+                  ) : (
+                    <form action={herstelVersie}>
+                      <input type="hidden" name="siteId" value={site.id} />
+                      <input type="hidden" name="sha" value={v.sha} />
+                      <ActieKnop
+                        label="Zet terug"
+                        bezigLabel="Terugzetten..."
+                        className="rounded-full border border-violet-300 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+                      />
+                    </form>
+                  )}
                 </td>
               </tr>
             ))}

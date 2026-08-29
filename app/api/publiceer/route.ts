@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
-import { mergePullRequest, verwijderBranch } from "@/lib/github";
+import { mergeBranchInMain, mergePullRequest, verwijderBranch } from "@/lib/github";
 import { deployRepoNaarCloudflare } from "@/lib/cloudflare";
 
 export async function POST(req: Request) {
@@ -37,12 +37,17 @@ export async function POST(req: Request) {
   if (rij.change.status !== "concept") {
     return NextResponse.json({ error: "Al verwerkt" }, { status: 400 });
   }
-  if (!rij.change.prNumber) {
+  if (!rij.change.prNumber && !rij.change.branch) {
     return NextResponse.json({ error: "Geen concept aanwezig" }, { status: 400 });
   }
 
   try {
-    await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+    if (rij.change.prNumber) {
+      // Oudere concepten hebben nog een pull request
+      await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+    } else {
+      await mergeBranchInMain(rij.site.githubRepo, rij.change.branch);
+    }
   } catch (e) {
     if (rij.site.isDemo) {
       // De reset heeft de branch/PR net gesloten
