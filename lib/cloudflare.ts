@@ -73,18 +73,16 @@ export async function deployMapNaarCloudflare(
     for (const pad of bestanden) {
       let data = await readFile(path.join(werkmap, pad));
       if (/\.html?$/i.test(pad) && !pad.startsWith("delen/")) {
+        // Eerder ingebakken wp2ai-hulpscripts (oude versies) altijd eerst
+        // verwijderen, zodat elke deploy de nieuwste versie meekrijgt
         let html = vouwUit(data.toString("utf8"), delen).replace(
-          /<script>try\{parent!==window&&parent\.postMessage\(\{type:"wp2ai-stempel"[^<]*<\/script>/,
+          /<script>[^<]*wp2ai[^<]*<\/script>/g,
           ""
         );
-        if (!html.includes("wp2ai-pagina")) {
-          html = html.includes("</body>")
-            ? html.replace("</body>", `${PAGINA_MELDER}</body>`)
-            : html + PAGINA_MELDER;
-        }
+        const injectie = PAGINA_MELDER + stempel;
         html = html.includes("</body>")
-          ? html.replace("</body>", `${stempel}</body>`)
-          : html + stempel;
+          ? html.replace("</body>", `${injectie}</body>`)
+          : html + injectie;
         data = Buffer.from(html);
       }
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
