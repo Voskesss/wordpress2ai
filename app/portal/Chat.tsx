@@ -81,7 +81,7 @@ export default function Chat({
     "desktop"
   );
   const scrollRef = useRef<HTMLDivElement>(null);
-  const invoerRef = useRef<HTMLInputElement>(null);
+  const invoerRef = useRef<HTMLTextAreaElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [schaal, setSchaal] = useState(1);
@@ -98,6 +98,15 @@ export default function Chat({
     const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
     setSpraakKan(Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition));
   }, []);
+
+  // Invoerveld laten meegroeien met de tekst (tot ~5 regels) — ook bij spraakinvoer,
+  // zodat je altijd de volledige tekst ziet die je gaat opsturen
+  useEffect(() => {
+    const el = invoerRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [invoer]);
 
   // Zodra de AI klaar is: de invoerbalk weer focus geven, zodat je meteen door kunt typen
   const wasBezig = useRef(false);
@@ -870,9 +879,10 @@ export default function Chat({
                 />
               </button>
               </Tip>
-              <input
+              <textarea
                 ref={invoerRef}
                 value={invoer}
+                rows={1}
                 onChange={(e) => {
                   setInvoer(e.target.value);
                   if (e.target.value) setHintWeg(true);
@@ -881,13 +891,19 @@ export default function Chat({
                   setHintWeg(true);
                   if (berichten.length > 0) setChatOpen(true);
                 }}
-                onKeyDown={(e) => e.key === "Enter" && verstuur()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    verstuur();
+                    if (invoerRef.current) invoerRef.current.style.height = "auto";
+                  }
+                }}
                 placeholder={
                   bezig
                     ? (statusTekst ?? "Momentje...")
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
-                className="flex-1 min-w-0 bg-transparent px-2 py-2 text-base sm:text-sm focus:outline-none"
+                className="flex-1 min-w-0 resize-none bg-transparent px-2 py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]"
                 disabled={bezig}
               />
               <button
