@@ -63,8 +63,16 @@ export default async function Portal() {
           : eq(changes.siteId, site.id)
       )
       .orderBy(changes.id);
-    const laatsteConcept = rows.filter((c) => c.status === "concept").at(-1);
-    if (site.isDemo) demoHeeftWijzigingen[site.id] = rows.length > 0;
+    const laatsteConcept = rows
+      .filter(
+        (c) =>
+          c.status === "concept" &&
+          // Demo: concepten van vóór de sandbox-ombouw negeren
+          (!site.isDemo || c.branch.startsWith("demo-"))
+      )
+      .at(-1);
+    if (site.isDemo)
+      demoHeeftWijzigingen[site.id] = rows.some((c) => c.branch.startsWith("demo-"));
     if (laatsteConcept) {
       openConceptMap[site.id] = {
         previewUrl: laatsteConcept.previewUrl,
