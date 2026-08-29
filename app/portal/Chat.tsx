@@ -789,12 +789,14 @@ export default function Chat({
               <div className="flex items-center justify-between gap-3">
                 <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
                   <span className="font-semibold">Aangewezen:</span>{" "}
-                  {selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
+                  {selectie.tag === "img"
+                    ? `foto: ${selectie.tekst || "zonder omschrijving"} — typ hieronder wat ermee moet gebeuren`
+                    : selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
                   <span className="text-violet-600">
                     ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
                   </span>
                 </p>
-                {selectie.tekst && zelfTekst === null && (
+                {selectie.tekst && selectie.tag !== "img" && zelfTekst === null && (
                   <button
                     onClick={() => setZelfTekst(selectie.tekst ?? "")}
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
