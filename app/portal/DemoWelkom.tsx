@@ -69,6 +69,10 @@ export default function DemoWelkom() {
         <p className="mt-5 text-xs text-stone-400">
           De demo-site wordt elk uur teruggezet, dus je kunt niets kapotmaken.
         </p>
+        <p className="mt-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 sm:hidden">
+          💻 Tip: op een computer werkt de demo nóg prettiger — daar zie je de
+          site groot naast de chat.
+        </p>
         <button
           onClick={sluit}
           className="lift mt-5 w-full rounded-full bg-violet-700 px-6 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
