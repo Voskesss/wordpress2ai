@@ -102,6 +102,8 @@ export default function Veiligheid() {
           het versiebeheer, dus je site is altijd met één klik terug te zetten
           naar een eerdere versie.
         </p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/mascotte/saluut.webp" alt="" aria-hidden className="mx-auto mt-8 w-40 rounded-3xl" />
       </div>
 
       <div className="bg-[#f6f1e7] border-y border-stone-200">

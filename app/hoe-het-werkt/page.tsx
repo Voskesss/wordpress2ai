@@ -78,15 +78,19 @@ const previewStappen = [
 export default function HoeHetWerkt() {
   return (
     <>
-      <div className="mx-auto max-w-3xl px-6 pt-20 pb-4">
-        <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-          Hoe het werkt
-        </h1>
-        <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-          Eén zorgvuldige overstap, daarna nooit meer onderhoud. We nemen je
-          hele site over — inclusief e-mail en je vindbaarheid in Google — en
-          jij houdt de regie. Zo pakken we het aan:
-        </p>
+      <div className="mx-auto max-w-3xl px-6 pt-20 pb-4 sm:flex sm:items-center sm:gap-8">
+        <div className="min-w-0">
+          <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
+            Hoe het werkt
+          </h1>
+          <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+            Eén zorgvuldige overstap, daarna nooit meer onderhoud. We nemen je
+            hele site over — inclusief e-mail en je vindbaarheid in Google — en
+            jij houdt de regie. Zo pakken we het aan:
+          </p>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/mascotte/uitleggend.webp" alt="" aria-hidden className="mt-6 sm:mt-0 w-36 sm:w-44 shrink-0 rounded-3xl" />
       </div>
 
       <div className="mx-auto max-w-3xl px-6 py-12">

@@ -38,6 +38,8 @@ export default async function Contact() {
             </li>
           ))}
         </ul>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/mascotte/zwaaiend.webp" alt="" aria-hidden className="mt-8 hidden w-44 rounded-3xl lg:block" />
       </div>
 
       <form

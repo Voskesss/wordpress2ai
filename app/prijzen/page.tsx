@@ -173,9 +173,13 @@ export default function Prijzen() {
 
       {/* Maatwerk */}
       <div className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="font-display text-3xl font-semibold tracking-tight">
-          Maatwerk
-        </h2>
+        <div className="flex items-center justify-between gap-6">
+          <h2 className="font-display text-3xl font-semibold tracking-tight">
+            Maatwerk
+          </h2>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/mascotte/denkend.webp" alt="" aria-hidden className="hidden w-28 rounded-3xl sm:block" />
+        </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-3">
           {[
             [
