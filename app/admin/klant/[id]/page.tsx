@@ -12,6 +12,7 @@ import { messages } from "@/db/schema";
 import {
   bewaarRichtlijnen,
   bewaarSite,
+  bewaarSmtp,
   herstelVersie,
   koppelKlant,
   koppelNetlify,
@@ -481,6 +482,59 @@ export default async function KlantDetail({
             </table>
           </details>
         )}
+      </div>
+
+      {/* Witlabel-mail (SMTP van de klant) */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="font-display text-xl font-semibold">E-mail uit eigen naam</h2>
+          {site.smtpHost ? (
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+              actief via {site.smtpHost}
+            </span>
+          ) : (
+            <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-500">
+              standaard (Resend, uit naam van het bedrijf)
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-sm text-stone-600">
+          Witlabel-optie (eenmalig €49): formulier-mails versturen via de eigen
+          mailserver van de klant, écht vanaf zijn domein. Vul de
+          SMTP-gegevens van zijn mailbox in (bij Soverin: host smtp.soverin.net,
+          poort 465, gebruiker = volledige e-mailadres, app-wachtwoord).
+          Host leegmaken + opslaan = terug naar de standaard.
+        </p>
+        <form action={bewaarSmtp} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            SMTP-host
+            <input name="host" defaultValue={site.smtpHost ?? ""} placeholder="smtp.soverin.net" className={invoerStijl} />
+          </label>
+          <label className="block text-sm font-semibold">
+            Poort
+            <input name="poort" type="number" defaultValue={site.smtpPoort ?? 465} className={invoerStijl} />
+          </label>
+          <label className="block text-sm font-semibold">
+            Gebruiker (e-mailadres)
+            <input name="gebruiker" defaultValue={site.smtpGebruiker ?? ""} placeholder="info@klantdomein.nl" className={invoerStijl} />
+          </label>
+          <label className="block text-sm font-semibold">
+            Wachtwoord {site.smtpWachtwoord && <span className="font-normal text-stone-400">(ingesteld — alleen invullen om te wijzigen)</span>}
+            <input name="wachtwoord" type="password" autoComplete="new-password" className={invoerStijl} />
+          </label>
+          <label className="block text-sm font-semibold sm:col-span-2">
+            Afzenderadres (optioneel, anders = gebruiker)
+            <input name="afzender" defaultValue={site.smtpAfzender ?? ""} placeholder="noreply@klantdomein.nl" className={invoerStijl} />
+          </label>
+          <div className="sm:col-span-2">
+            <ActieKnop
+              label="Opslaan"
+              bezigLabel="Opslaan..."
+              className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+            />
+          </div>
+        </form>
       </div>
 
       {/* Alles wat de klant ook ziet: inzendingen, notificatie-e-mail, documenten */}

@@ -198,3 +198,37 @@ export async function herstelVersie(formData: FormData) {
   }
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+/** Witlabel-mail: SMTP-instellingen van de klant opslaan (wachtwoord versleuteld). */
+export async function bewaarSmtp(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const host = String(formData.get("host") ?? "").trim();
+  const poort = Number(formData.get("poort") || 465);
+  const gebruiker = String(formData.get("gebruiker") ?? "").trim();
+  const wachtwoord = String(formData.get("wachtwoord") ?? "");
+  const afzender = String(formData.get("afzender") ?? "").trim();
+
+  if (!host) {
+    // Leegmaken = terug naar de standaard (Resend)
+    await db
+      .update(sites)
+      .set({ smtpHost: null, smtpPoort: null, smtpGebruiker: null, smtpWachtwoord: null, smtpAfzender: null })
+      .where(eq(sites.id, siteId));
+  } else {
+    const { versleutel } = await import("@/lib/mail");
+    await db
+      .update(sites)
+      .set({
+        smtpHost: host,
+        smtpPoort: Number.isInteger(poort) ? poort : 465,
+        smtpGebruiker: gebruiker || null,
+        smtpAfzender: afzender || null,
+        // Wachtwoord alleen overschrijven als er een nieuw is ingevuld
+        ...(wachtwoord ? { smtpWachtwoord: versleutel(wachtwoord) } : {}),
+      })
+      .where(eq(sites.id, siteId));
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+}

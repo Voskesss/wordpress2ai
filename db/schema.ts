@@ -27,6 +27,13 @@ export const sites = pgTable("sites", {
   notificatieEmail: text("notificatie_email"),
   // Uitgenodigde klant die nog geen account heeft; gekoppeld zodra hij inlogt
   uitnodigingEmail: text("uitnodiging_email"),
+  // Witlabel-mail: formulier-mails via de eigen mailserver van de klant (SMTP).
+  // Wachtwoord versleuteld opgeslagen (AES, sleutel afgeleid van CRON_SECRET).
+  smtpHost: text("smtp_host"),
+  smtpPoort: integer("smtp_poort"),
+  smtpGebruiker: text("smtp_gebruiker"),
+  smtpWachtwoord: text("smtp_wachtwoord"),
+  smtpAfzender: text("smtp_afzender"),
   chatGeheugen: text("chat_geheugen"),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),

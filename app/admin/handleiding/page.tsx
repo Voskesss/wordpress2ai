@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import Inhoud from "./Inhoud";
 
 export const metadata: Metadata = {
   title: "Handleiding",
@@ -20,6 +21,11 @@ const secties: { kop: string; blokken: { titel: string; tekst: string }[] }[] = 
         titel: "E-mail: eerst kijken waar het staat",
         tekst:
           "LET OP: e-mail is de plek waar migraties misgaan. Check bij ELKE intake waar de mail draait met: npx tsx scripts/mail-check.mts klantdomein.nl — die zegt direct of migratie nodig is. Het complete draaiboek (intakevragen, providerkeuze, imapsync-stappenplan, prijzen, valkuilen) staat in docs/email-migratie.md in de projectmap. Twee situaties:\n1. Mail draait bij een aparte partij (Microsoft 365, Google Workspace, aparte mailhoster): niets aan de hand — zolang de MX-records in Cloudflare exact hetzelfde blijven, blijft de mail gewoon werken. Controleer na de nameserver-wissel of mail nog binnenkomt.\n2. Mail draait bij de oude WordPress-hoster: dan mag die hosting NIET opgezegd worden vóór de mail verhuisd is. Verkoop de e-mailmigratie als aanvulling: nieuw mailabonnement bij een Nederlandse provider (vanaf ± €8 p/m), mailboxen overzetten (IMAP-kopie), MX-records omzetten, en pas dáárna de oude hosting opzeggen.\nVergeet ook SPF/DKIM/DMARC-records niet mee te nemen — anders belandt verzonden mail in spam.",
+      },
+      {
+        titel: "Formulier-mails: afzender en witlabel (€49)",
+        tekst:
+          "Bevestigingsmails aan formulier-invullers gaan standaard via Resend, uit naam van het bedrijf ('Bakkerij Jansen <formulier@wordswap.nl>') met reply-to naar het notificatie-adres van de klant; de eigenaar-melding heeft reply-to naar de invuller. WordSwap is voor de ontvanger onzichtbaar (alleen het technische adres verraadt ons bij inspectie).\nWitlabel (eenmalig €49, mail écht vanaf het klantdomein) kan op twee manieren:\n1. SMTP van de klant (aanrader als wij zijn mail bij Soverin beheren): op de admin-klantpagina bij 'E-mail uit eigen naam' de SMTP-gegevens invullen (Soverin: host smtp.soverin.net, poort 465, gebruiker = e-mailadres, app-wachtwoord). Wachtwoord wordt versleuteld opgeslagen; bij een SMTP-storing valt het systeem automatisch terug op Resend. Host leegmaken = terug naar standaard.\n2. Domein toevoegen in Resend + DKIM/SPF-records bij de registrar van de klant (let op: gratis Resend = 3 domeinen waarvan 1 wordswap.nl; daarboven Pro $20/mnd voor 10).\nBeleid mailhosting: eigen account per klant op klantnaam (wij richten in, provider = support-loket) — zie docs/email-migratie.md.",
       },
       {
         titel: "Opzeg-checklist oude hosting",
@@ -165,40 +171,7 @@ export default async function Handleiding() {
         onszelf en voor wie er later bij komt.
       </p>
 
-      <nav className="mt-6 flex flex-wrap gap-2">
-        {secties.map((s) => (
-          <a
-            key={s.kop}
-            href={`#${s.kop.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
-            className="rounded-full border border-stone-300 px-3.5 py-1.5 text-sm text-stone-600 hover:border-violet-400 hover:text-violet-700"
-          >
-            {s.kop}
-          </a>
-        ))}
-      </nav>
-
-      <div className="mt-10 space-y-12">
-        {secties.map((s) => (
-          <section key={s.kop} id={s.kop.toLowerCase().replace(/[^a-z0-9]+/g, "-")}>
-            <h2 className="font-display text-2xl font-semibold tracking-tight">
-              {s.kop}
-            </h2>
-            <div className="mt-4 space-y-4">
-              {s.blokken.map((b) => (
-                <div
-                  key={b.titel}
-                  className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm"
-                >
-                  <h3 className="font-semibold">{b.titel}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-stone-600 whitespace-pre-line">
-                    {b.tekst}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      <Inhoud secties={secties} />
     </div>
   );
 }
