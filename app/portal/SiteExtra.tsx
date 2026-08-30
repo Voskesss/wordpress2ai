@@ -70,6 +70,21 @@ export default async function SiteExtra({
         )}
         <form action={bewaarNotificatieEmail} className="mt-5 border-t border-stone-100 pt-4">
           <input type="hidden" name="siteId" value={siteId} />
+          <p className="mb-3 rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-700">
+            {notificatieEmail ? (
+              <>
+                📬 Inzendingen van <strong>alle formulieren</strong> op je site
+                worden gemaild naar <strong>{notificatieEmail}</strong> — en de
+                invuller krijgt automatisch een nette bevestiging.
+              </>
+            ) : (
+              <>
+                ⚠️ Er is nog <strong>geen e-mailadres</strong> ingesteld:
+                inzendingen zie je dan alleen hier in het overzicht. Vul
+                hieronder je adres in om ze ook per mail te ontvangen.
+              </>
+            )}
+          </p>
           <label className="block text-sm font-semibold">
             Stuur nieuwe berichten door naar
             <div className="mt-1.5 flex gap-2">
