@@ -279,6 +279,8 @@ export default function Chat({
   const [isMobiel, setIsMobiel] = useState(false);
   // Op mobiel start de chatbalk ingeklapt, zodat je eerst lekker de site ziet
   const [balkOpen, setBalkOpen] = useState(true);
+  // Schermvullend op desktop: chat als vast paneel naast het voorbeeld
+  const splitModus = volledigScherm && !isMobiel;
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 640px)");
     const zet = () => setIsMobiel(mq.matches);
@@ -855,6 +857,7 @@ export default function Chat({
           </div>
         </div>
 
+        <div className={splitModus ? "flex flex-1 min-h-0" : "contents"}>
         {/* Website-viewer */}
         <div
           ref={viewerRef}
@@ -894,6 +897,7 @@ export default function Chat({
                 height: `${100 / schaal}%`,
                 transform: `scale(${schaal})`,
                 transformOrigin: "top left",
+                marginInline: schaal >= 1 ? "auto" : undefined,
               }}
               className="bg-white"
             />
@@ -995,11 +999,15 @@ export default function Chat({
           </button>
         )}
 
-        {/* Zwevend chatpaneel over de preview */}
+        {/* Zwevend chatpaneel over de preview — of vast zijpaneel bij schermvullend */}
         <div
-          className={`absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
-            isMobiel && !balkOpen ? "hidden" : ""
-          }`}
+          className={
+            splitModus
+              ? "flex w-[26rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
+              : `absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
+                  isMobiel && !balkOpen ? "hidden" : ""
+                }`
+          }
         >
           {isMobiel && balkOpen && (
             <div className="mb-2 flex justify-center">
@@ -1011,9 +1019,9 @@ export default function Chat({
               </button>
             </div>
           )}
-          {/* Gespreksvenster (inklapbaar) */}
-          {chatOpen && (
-            <div className="mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur">
+          {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
+          {(chatOpen || splitModus) && (
+            <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
               <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
                   Gesprek
@@ -1031,7 +1039,11 @@ export default function Chat({
               </div>
               <div
                 ref={scrollRef}
-                className={`${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`}
+                className={
+                  splitModus
+                    ? "flex-1 min-h-0 overflow-y-auto p-4 space-y-3"
+                    : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
+                }
               >
                 {berichten.length === 0 && !bezig && (
                   <p className="text-stone-400 text-sm">
@@ -1623,6 +1635,7 @@ export default function Chat({
               )}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
