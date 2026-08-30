@@ -90,7 +90,35 @@ export async function POST(req: Request) {
         : ext === "jpg" || ext === "jpeg"
           ? await bewerking.jpeg({ quality: 84 }).toBuffer()
           : await bewerking.webp({ quality: 84 }).toBuffer();
-    await writeFile(doel, nieuw);
+
+    // Nieuwe bestandsnaam (cache-busting): browsers en Cloudflare cachen
+    // afbeeldingen op naam — zelfde naam = oude foto blijven zien. Met een
+    // verse naam + bijgewerkte verwijzingen is hij overal per direct zichtbaar.
+    const zonderExt = pad.replace(/\.[^.]+$/, "").replace(/-v\d+$/, "");
+    const nieuwPad = `${zonderExt}-v${Date.now().toString(36)}.${ext}`;
+    await writeFile(path.join(werkmap, nieuwPad), nieuw);
+
+    // Alle verwijzingen naar het oude pad bijwerken (html + css)
+    const { alleHtmlBestanden, alleCssBestanden } = await import("@/lib/werkmap");
+    const teDoorzoeken = [
+      ...(await alleHtmlBestanden(werkmap)),
+      ...(await alleCssBestanden(werkmap)),
+    ];
+    const gewijzigdeBronnen: { pad: string; inhoud: Buffer }[] = [];
+    const padEsc = pad.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const verwijzing = new RegExp(`(/?)${padEsc}`, "g");
+    for (const bron of teDoorzoeken) {
+      const inhoud = await readFile(path.join(werkmap, bron), "utf8");
+      if (!verwijzing.test(inhoud)) continue;
+      verwijzing.lastIndex = 0;
+      const nieuweInhoud = inhoud.replace(verwijzing, `$1${nieuwPad}`);
+      await writeFile(path.join(werkmap, bron), nieuweInhoud);
+      gewijzigdeBronnen.push({ pad: bron, inhoud: Buffer.from(nieuweInhoud) });
+    }
+    if (gewijzigdeBronnen.length === 0) {
+      // Geen verwijzingen gevonden — dan toch in-place overschrijven als vangnet
+      await writeFile(doel, nieuw);
+    }
 
     const wvDeploy = wvNaam
       ? deployMapNaarCloudflare(werkmap, wvNaam, { subdomeinAanzetten: site.isDemo }).catch(
@@ -98,7 +126,11 @@ export async function POST(req: Request) {
         )
       : Promise.resolve();
 
-    const bestanden = [{ pad, inhoud: nieuw }];
+    const bestanden =
+      gewijzigdeBronnen.length > 0
+        ? [{ pad: nieuwPad, inhoud: nieuw }, ...gewijzigdeBronnen]
+        : [{ pad, inhoud: nieuw }];
+    const paden = bestanden.map((b) => b.pad);
     const omschrijving = `Foto vervangen: ${pad}`;
 
     let changeId: number;
@@ -108,7 +140,7 @@ export async function POST(req: Request) {
       const samengevoegd = [
         ...new Set([
           ...(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []),
-          pad,
+          ...paden,
         ]),
       ];
       await db
@@ -143,7 +175,7 @@ export async function POST(req: Request) {
           siteId: site.id,
           branch,
           promptTekst: omschrijving,
-          bestanden: [pad],
+          bestanden: paden,
           clerkUserId: userId,
           baseSha,
         })
@@ -176,7 +208,7 @@ export async function POST(req: Request) {
     ]);
 
     await wvDeploy;
-    return NextResponse.json({ ok: true, reply, previewUrl, changeId, bestanden: [pad] });
+    return NextResponse.json({ ok: true, reply, previewUrl, changeId, bestanden: paden });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
   }
