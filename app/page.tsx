@@ -117,7 +117,7 @@ export default function Home() {
           <div className="float-card min-w-0">
             <div className="rounded-3xl bg-[#fdf6ea] p-8 text-center shadow-sm border border-stone-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/hero-test.jpg" alt="De WordSwap-beheerder steekt twee duimen op" className="mx-auto max-h-[26rem] w-auto max-w-full" />
+              <img src="/mascotte/duimen.webp" alt="De WordSwap-beheerder steekt twee duimen op" className="mx-auto max-h-[26rem] w-auto max-w-full" />
               <div className="mt-5 flex justify-center sm:scale-125">
                 <Logo />
               </div>
