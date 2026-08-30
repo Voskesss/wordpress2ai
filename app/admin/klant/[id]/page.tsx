@@ -303,26 +303,56 @@ export default async function KlantDetail({
             eerst inlogt, wordt de site automatisch gekoppeld.
           </p>
         )}
-        <form action={koppelKlant} className="mt-4 flex gap-3 flex-wrap">
-          <input type="hidden" name="siteId" value={site.id} />
-          <input
-            name="email"
-            type="email"
-            required
-            placeholder="klant@bedrijf.nl"
-            className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
-          />
-          <ActieKnop
-            label="Koppel / nodig uit"
-            bezigLabel="Bezig..."
-            className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-          />
-        </form>
-        <p className="mt-2 text-xs text-stone-500">
-          Bestaat het account al, dan wordt het direct gekoppeld. Anders krijgt
-          de klant een uitnodigingsmail en wordt de site automatisch gekoppeld
-          zodra hij voor het eerst inlogt.
-        </p>
+        {gebruiker ? (
+          // Al netjes gekoppeld: koppel-formulier uit het zicht, alleen nog
+          // bereikbaar voor het uitzonderingsgeval (overdracht naar ander account)
+          <details className="mt-4">
+            <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
+              Site overdragen aan een ander account…
+            </summary>
+            <form action={koppelKlant} className="mt-3 flex gap-3 flex-wrap">
+              <input type="hidden" name="siteId" value={site.id} />
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="nieuw@bedrijf.nl"
+                className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+              />
+              <ActieKnop
+                label="Draag over"
+                bezigLabel="Bezig..."
+                className="rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+              />
+            </form>
+            <p className="mt-2 text-xs text-stone-500">
+              Let op: de huidige koppeling wordt hiermee vervangen.
+            </p>
+          </details>
+        ) : (
+          <>
+            <form action={koppelKlant} className="mt-4 flex gap-3 flex-wrap">
+              <input type="hidden" name="siteId" value={site.id} />
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="klant@bedrijf.nl"
+                className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+              />
+              <ActieKnop
+                label="Koppel / nodig uit"
+                bezigLabel="Bezig..."
+                className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+              />
+            </form>
+            <p className="mt-2 text-xs text-stone-500">
+              Bestaat het account al, dan wordt het direct gekoppeld. Anders
+              krijgt de klant een uitnodigingsmail en wordt de site automatisch
+              gekoppeld zodra hij voor het eerst inlogt.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Richtlijnen */}
