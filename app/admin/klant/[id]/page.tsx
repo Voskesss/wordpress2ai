@@ -104,6 +104,43 @@ export default async function KlantDetail({
     .filter((r) => r.maand === maandNu && r.bron === "chat")
     .reduce((s, r) => s + r.beurten, 0);
 
+  const versieRij = (
+    v: { sha: string; bericht: string; datum: string },
+    isHuidig: boolean
+  ) => (
+    <tr key={v.sha} className="border-t border-stone-100">
+      <td className="px-6 py-3 text-stone-800 max-w-[26rem]">
+        <span className="line-clamp-1">{v.bericht}</span>
+      </td>
+      <td className="px-3 py-3 text-stone-500 whitespace-nowrap">
+        {new Date(v.datum).toLocaleString("nl-NL", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </td>
+      <td className="px-3 py-3 text-stone-400 font-mono text-xs">{v.sha.slice(0, 7)}</td>
+      <td className="px-6 py-3 text-right">
+        {isHuidig ? (
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+            huidig
+          </span>
+        ) : (
+          <form action={herstelVersie}>
+            <input type="hidden" name="siteId" value={site.id} />
+            <input type="hidden" name="sha" value={v.sha} />
+            <ActieKnop
+              label="Zet terug"
+              bezigLabel="Terugzetten..."
+              className="rounded-full border border-violet-300 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+            />
+          </form>
+        )}
+      </td>
+    </tr>
+  );
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
@@ -431,43 +468,19 @@ export default async function KlantDetail({
                 </td>
               </tr>
             )}
-            {versies.map((v, i) => (
-              <tr key={v.sha} className="border-t border-stone-100">
-                <td className="px-6 py-3 text-stone-800 max-w-[26rem]">
-                  <span className="line-clamp-1">{v.bericht}</span>
-                </td>
-                <td className="px-3 py-3 text-stone-500 whitespace-nowrap">
-                  {new Date(v.datum).toLocaleString("nl-NL", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </td>
-                <td className="px-3 py-3 text-stone-400 font-mono text-xs">
-                  {v.sha.slice(0, 7)}
-                </td>
-                <td className="px-6 py-3 text-right">
-                  {i === 0 ? (
-                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                      huidig
-                    </span>
-                  ) : (
-                    <form action={herstelVersie}>
-                      <input type="hidden" name="siteId" value={site.id} />
-                      <input type="hidden" name="sha" value={v.sha} />
-                      <ActieKnop
-                        label="Zet terug"
-                        bezigLabel="Terugzetten..."
-                        className="rounded-full border border-violet-300 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
-                      />
-                    </form>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {versies.slice(0, 8).map((v, i) => versieRij(v, i === 0))}
           </tbody>
         </table>
+        {versies.length > 8 && (
+          <details className="border-t border-stone-100 px-6 py-3">
+            <summary className="cursor-pointer text-sm text-stone-400 hover:text-stone-600">
+              Oudere versies tonen ({versies.length - 8})
+            </summary>
+            <table className="mt-2 w-full text-left text-sm">
+              <tbody>{versies.slice(8).map((v) => versieRij(v, false))}</tbody>
+            </table>
+          </details>
+        )}
       </div>
 
       {/* Alles wat de klant ook ziet: inzendingen, notificatie-e-mail, documenten */}
