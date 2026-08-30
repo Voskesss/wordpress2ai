@@ -53,8 +53,27 @@ export async function POST(req: Request) {
     ? await db.select().from(sites).where(eq(sites.githubRepo, siteRepo))
     : [];
 
+  // Rem tegen spam/mail-bombing: max 30 inzendingen per site per uur.
+  // Daarboven doen we alsof alles goed ging (bots niets wijzer maken),
+  // maar slaan we niets op en mailen we niet.
+  let binnenLimiet = true;
+  if (siteRepo) {
+    const { and, gte, sql } = await import("drizzle-orm");
+    const uurGeleden = new Date(Date.now() - 60 * 60 * 1000);
+    const [telling] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(formulierInzendingen)
+      .where(
+        and(
+          eq(formulierInzendingen.siteRepo, siteRepo),
+          gte(formulierInzendingen.aangemaakt, uurGeleden)
+        )
+      );
+    binnenLimiet = Number(telling?.n ?? 0) < 30;
+  }
+
   // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan of mailen
-  const echt = siteRepo && !honeypot && Object.keys(velden).length > 0;
+  const echt = siteRepo && !honeypot && binnenLimiet && Object.keys(velden).length > 0;
   if (echt) {
     await db
       .insert(formulierInzendingen)
