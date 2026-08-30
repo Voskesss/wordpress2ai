@@ -27,6 +27,7 @@ Kernpunten:
 - [WordPress omzetten naar een gewone website](https://wordswap.nl/wordpress-omzetten-naar-gewone-website): wat een statische site is en waarom die sneller, veiliger en onderhoudsvrij is
 - [Website aansturen met AI](https://wordswap.nl/wordpress-aansturen-met-ai): de complete site beheren via AI-chat, met goedkeuring en versiebeheer
 - [Snel & AI-vriendelijk](https://wordswap.nl/wordpress-omzetten-snel-en-ai-vriendelijk): WordPress omzetten naar een snelle site die ook door AI-zoekmachines goed gelezen wordt (SSR-HTML, structured data, llms.txt, AI-crawlers welkom)
+- [Veiligheid](https://wordswap.nl/veiligheid): waarom statische WordSwap-sites vrijwel niet te hacken zijn — vergelijking met WordPress, SSL, versiebeheer
 
 Uitzonderingen: webshops (WooCommerce), ledenportalen met inlog, boekingssystemen met live agenda en cursusplatforms kunnen niet worden overgezet.
 `;

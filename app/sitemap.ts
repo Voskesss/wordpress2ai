@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/wordpress-omzetten-naar-gewone-website",
     "/wordpress-aansturen-met-ai",
     "/wordpress-omzetten-snel-en-ai-vriendelijk",
+    "/veiligheid",
     "/privacy",
     "/voorwaarden",
   ];
