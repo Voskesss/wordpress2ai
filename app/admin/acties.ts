@@ -62,11 +62,12 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   if (Array.isArray(users) && users.length > 0) {
     await db
       .update(sites)
-      .set({ clerkUserId: users[0].id })
+      .set({ clerkUserId: users[0].id, uitnodigingEmail: null })
       .where(eq(sites.id, siteId));
   } else {
-    // Account bestaat nog niet: uitnodiging sturen; koppeling volgt zodra
-    // de klant zich registreert (dan handmatig of via webhook later).
+    // Account bestaat nog niet: uitnodiging sturen en het adres onthouden —
+    // het portaal koppelt de site automatisch zodra dit adres voor het eerst
+    // inlogt.
     await fetch("https://api.clerk.com/v1/invitations", {
       method: "POST",
       headers: {
@@ -75,6 +76,10 @@ export async function koppelKlant(formData: FormData): Promise<void> {
       },
       body: JSON.stringify({ email_address: email }),
     });
+    await db
+      .update(sites)
+      .set({ uitnodigingEmail: email })
+      .where(eq(sites.id, siteId));
   }
   revalidatePath(`/admin/klant/${siteId}`);
 }

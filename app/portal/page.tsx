@@ -18,10 +18,29 @@ export const dynamic = "force-dynamic";
 export default async function Portal() {
   const userId = await requireUser();
   const { and, or } = await import("drizzle-orm");
-  const mijnSites = await db
+
+  // Uitgenodigde klant die voor het eerst inlogt? Site automatisch koppelen.
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const gebruiker = await currentUser();
+  const emails = (gebruiker?.emailAddresses ?? []).map((e) =>
+    e.emailAddress.toLowerCase()
+  );
+  if (emails.length > 0) {
+    const { inArray, isNull } = await import("drizzle-orm");
+    await db
+      .update(sites)
+      .set({ clerkUserId: userId, uitnodigingEmail: null })
+      .where(inArray(sites.uitnodigingEmail, emails))
+      .catch(() => {});
+  }
+
+  let mijnSites = await db
     .select()
     .from(sites)
     .where(or(eq(sites.clerkUserId, userId), eq(sites.isDemo, true)));
+  // Echte klanten zien hun eigen site(s), niet ook nog de probeer-demo
+  const heeftEigenSite = mijnSites.some((s) => !s.isDemo && s.clerkUserId === userId);
+  if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
 
   const historieMap: Record<
     number,

@@ -25,6 +25,8 @@ export const sites = pgTable("sites", {
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
   notificatieEmail: text("notificatie_email"),
+  // Uitgenodigde klant die nog geen account heeft; gekoppeld zodra hij inlogt
+  uitnodigingEmail: text("uitnodiging_email"),
   chatGeheugen: text("chat_geheugen"),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),

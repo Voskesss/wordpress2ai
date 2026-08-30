@@ -296,6 +296,13 @@ export default async function KlantDetail({
             <span className="text-stone-400">onbekend account</span>
           )}
         </p>
+        {site.uitnodigingEmail && (
+          <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
+            ✉️ Uitnodiging verstuurd naar{" "}
+            <strong>{site.uitnodigingEmail}</strong> — zodra dit adres voor het
+            eerst inlogt, wordt de site automatisch gekoppeld.
+          </p>
+        )}
         <form action={koppelKlant} className="mt-4 flex gap-3 flex-wrap">
           <input type="hidden" name="siteId" value={site.id} />
           <input
@@ -313,7 +320,8 @@ export default async function KlantDetail({
         </form>
         <p className="mt-2 text-xs text-stone-500">
           Bestaat het account al, dan wordt het direct gekoppeld. Anders krijgt
-          de klant een uitnodigingsmail; koppel daarna opnieuw.
+          de klant een uitnodigingsmail en wordt de site automatisch gekoppeld
+          zodra hij voor het eerst inlogt.
         </p>
       </div>
 
