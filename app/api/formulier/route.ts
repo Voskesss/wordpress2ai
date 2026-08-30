@@ -3,18 +3,32 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { formulierInzendingen, sites } from "@/db/schema";
 
-/** Verstuurt e-mail via Resend; doet niets als er geen sleutel is ingesteld. */
-async function stuurMail(naar: string, onderwerp: string, html: string) {
+/** Verstuurt e-mail via Resend; doet niets als er geen sleutel is ingesteld.
+ * afzenderNaam maakt de mail "van het bedrijf" (het adres blijft ons
+ * geverifieerde domein — nodig voor de bezorgbaarheid); antwoordNaar zorgt
+ * dat een reply rechtstreeks bij het bedrijf (of de invuller) belandt. */
+async function stuurMail(
+  naar: string,
+  onderwerp: string,
+  html: string,
+  opties: { afzenderNaam?: string; antwoordNaar?: string } = {}
+) {
   const key = process.env.RESEND_API_KEY;
   if (!key || !naar) return;
+  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
+  const from = opties.afzenderNaam
+    ? `${opties.afzenderNaam.replace(/["<>]/g, "")} (via WordSwap) <${adres}>`
+    : basisFrom;
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>",
+      from,
       to: [naar],
       subject: onderwerp,
       html,
+      ...(opties.antwoordNaar ? { reply_to: [opties.antwoordNaar] } : {}),
     }),
   }).catch((e) => console.error("Mail versturen mislukt:", e));
 }
@@ -90,19 +104,25 @@ export async function POST(req: Request) {
       ([k, v]) => /mail/i.test(k) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)
     )?.[1];
     if (invullerEmail) {
+      // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf
       await stuurMail(
         invullerEmail,
         `Bedankt voor uw bericht aan ${siteNaam}`,
-        `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`
+        `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`,
+        {
+          afzenderNaam: site?.naam,
+          antwoordNaar: site?.notificatieEmail ?? undefined,
+        }
       );
     }
 
-    // Melding naar de site-eigenaar
+    // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de invuller
     if (site?.notificatieEmail) {
       await stuurMail(
         site.notificatieEmail,
         `Nieuwe ${formulier}-inzending via ${siteNaam}`,
-        `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`
+        `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`,
+        { antwoordNaar: invullerEmail }
       );
     }
   }
