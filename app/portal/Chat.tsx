@@ -15,6 +15,18 @@ type Concept = {
   paginas: string[];
 };
 
+/** Haalt de KEUZES-regel (snelkeuze-knoppen) uit een assistent-bericht. */
+function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
+  const m = tekst.match(/\n?\s*KEUZES:\s*(.+)\s*$/);
+  if (!m) return { schoon: tekst, keuzes: [] };
+  const keuzes = m[1]
+    .split("|")
+    .map((k) => k.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  return { schoon: tekst.slice(0, m.index).trimEnd(), keuzes };
+}
+
 function paginaLabel(pad: string) {
   const naam = pad.split("/").pop() ?? pad;
   if (naam === "index.html") return "homepage";
@@ -988,7 +1000,12 @@ export default function Chat({
                     pagina&rdquo;.
                   </p>
                 )}
-                {berichten.map((m, i) => (
+                {berichten.map((m, i) => {
+                  const { schoon, keuzes } =
+                    m.rol === "assistent"
+                      ? parseKeuzes(m.tekst)
+                      : { schoon: m.tekst, keuzes: [] as string[] };
+                  return (
                   <div key={i}>
                     <div
                       className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
@@ -997,8 +1014,28 @@ export default function Chat({
                           : "bg-stone-100 text-stone-800 rounded-bl-sm"
                       }`}
                     >
-                      {m.tekst}
+                      {schoon}
                     </div>
+                    {i === berichten.length - 1 &&
+                      m.rol === "assistent" &&
+                      keuzes.length > 0 &&
+                      !bezig && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {keuzes.map((keuze, ki) => (
+                            <button
+                              key={keuze}
+                              onClick={() => verstuur(keuze)}
+                              className={`rounded-full px-4 py-2 text-sm font-semibold cursor-pointer ${
+                                ki === 0
+                                  ? "bg-violet-700 text-white shadow-md shadow-violet-200 hover:bg-violet-600"
+                                  : "border border-violet-300 bg-white text-violet-700 hover:bg-violet-50"
+                              }`}
+                            >
+                              {ki === 0 ? `✨ ${keuze}` : keuze}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     {i === berichten.length - 1 &&
                       m.rol === "assistent" &&
                       (m.metVerversTip || concept != null) && (
@@ -1013,7 +1050,8 @@ export default function Chat({
                       </button>
                     )}
                   </div>
-                ))}
+                  );
+                })}
                 {bezig && (
                   <div className="flex w-fit items-center gap-3 rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-3">
                     <span className="flex items-center gap-1" aria-hidden>
