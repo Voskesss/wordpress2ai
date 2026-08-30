@@ -119,6 +119,8 @@ export default function Chat({
   const [stapTerugBezig, setStapTerugBezig] = useState(false);
   // Vriendelijke lader over het voorbeeld bij directe acties en het verversen
   const [laderTekst, setLaderTekst] = useState<string | null>(null);
+  // Schermvullende weergave (handig in de admin en op kleinere schermen)
+  const [volledigScherm, setVolledigScherm] = useState(false);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
   const fotoVervangRef = useRef(false);
   const [kleur, setKleur] = useState<string | null>(null);
@@ -140,6 +142,16 @@ export default function Chat({
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [invoer]);
+
+  // Escape sluit de schermvullende weergave
+  useEffect(() => {
+    if (!volledigScherm) return;
+    const opToets = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setVolledigScherm(false);
+    };
+    window.addEventListener("keydown", opToets);
+    return () => window.removeEventListener("keydown", opToets);
+  }, [volledigScherm]);
 
   // Zodra de AI klaar is: de invoerbalk weer focus geven, zodat je meteen door kunt typen
   const wasBezig = useRef(false);
@@ -759,9 +771,11 @@ export default function Chat({
   return (
     <div className="min-w-0">
       <div
-        className={`relative rounded-3xl border-2 bg-white shadow-sm overflow-hidden ${
-          concept ? "border-amber-400" : "border-stone-200"
-        }`}
+        className={`bg-white overflow-hidden ${
+          volledigScherm
+            ? "fixed inset-0 z-[80] flex flex-col"
+            : "relative rounded-3xl border-2 shadow-sm"
+        } ${concept ? "border-amber-400" : "border-stone-200"}`}
       >
         {/* Bovenbalk */}
         <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
@@ -823,13 +837,32 @@ export default function Chat({
                 Open live site
               </a>
             )}
+            <Tip tekst={volledigScherm ? "Terug naar normale weergave" : "Voorbeeld schermvullend maken"}>
+              <button
+                onClick={() => setVolledigScherm(!volledigScherm)}
+                aria-label={volledigScherm ? "Volledig scherm sluiten" : "Volledig scherm"}
+                className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  {volledigScherm ? (
+                    <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  ) : (
+                    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  )}
+                </svg>
+              </button>
+            </Tip>
           </div>
         </div>
 
         {/* Website-viewer */}
         <div
           ref={viewerRef}
-          className={`h-[calc(100dvh-11rem)] sm:h-[calc(100dvh-15rem)] min-h-[28rem] ${
+          className={`${
+            volledigScherm
+              ? "flex-1 min-h-0"
+              : "h-[calc(100dvh-11rem)] sm:h-[calc(100dvh-15rem)] min-h-[28rem]"
+          } ${
             isMobiel || apparaat === "desktop"
               ? "overflow-hidden"
               : "bg-stone-100 flex justify-center overflow-y-auto py-6"
