@@ -947,10 +947,14 @@ export default function Chat({
         {isMobiel && !balkOpen && (
           <button
             onClick={() => setBalkOpen(true)}
-            className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-violet-700 px-6 py-3.5 font-semibold text-white shadow-2xl shadow-violet-400/50 cursor-pointer"
+            className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-white shadow-2xl cursor-pointer ${
+              concept
+                ? "bg-amber-500 shadow-amber-400/50"
+                : "bg-violet-700 shadow-violet-400/50"
+            }`}
           >
-            💬 Site aanpassen
-            {berichten.length > 0 && (
+            {concept ? "📋 Concept klaar — bekijk & publiceer" : "💬 Site aanpassen"}
+            {!concept && berichten.length > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-bold">
                 {berichten.length}
               </span>
@@ -992,7 +996,10 @@ export default function Chat({
                   </svg>
                 </button>
               </div>
-              <div ref={scrollRef} className="max-h-[40dvh] sm:max-h-72 overflow-y-auto p-4 space-y-3">
+              <div
+                ref={scrollRef}
+                className={`${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`}
+              >
                 {berichten.length === 0 && !bezig && (
                   <p className="text-stone-400 text-sm">
                     Klik door je website en typ hieronder wat je aangepast wilt
@@ -1078,7 +1085,7 @@ export default function Chat({
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar.</span>{" "}
                 {concept.paginas.length > 0 && (
-                  <span className="text-amber-800">
+                  <span className="text-amber-800 hidden sm:inline">
                     Aangepast:{" "}
                     {concept.paginas.map((pad, i) => (
                       <span key={pad + i}>
@@ -1108,6 +1115,19 @@ export default function Chat({
                 >
                   {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
                 </button>
+                <Tip tekst="Bekijk het complete voorbeeld in een nieuw tabblad">
+                  <a
+                    href={basisVoor(true)}
+                    target="_blank"
+                    rel="noopener"
+                    className="flex items-center gap-1 rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M14 4h6v6M20 4L10 14M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Bekijk
+                  </a>
+                </Tip>
                 <Tip tekst="Draait alleen je laatste stap terug — eerdere stappen van dit concept blijven staan">
                   <button
                     onClick={stapTerug}
