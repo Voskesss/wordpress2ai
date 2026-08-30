@@ -72,3 +72,21 @@ Het abonnement sluit de KLANT af (eigen naam, eigen betaling — geen lock-in bi
 - **Formulier-mail**: WordPress-formulieren verstuurden vaak via de hoster (wp_mail). Ons formulier-systeem lost dat al op (Resend), maar check of de klant nog ergens anders vanaf het domein mailt.
 - **Autodiscover/autoconfig-records** vergeten → Outlook kan de account niet automatisch instellen.
 - **Te vroeg opzeggen**: nooit, echt nooit, de oude hosting opzeggen vóór stap 9.
+
+## Optie: formulier-mail vanaf het eigen domein (€49 eenmalig)
+
+Standaard versturen we formulier-bevestigingen uit naam van het bedrijf, maar
+technisch vanaf ons domein. Voor klanten die het 100% wit-gelabeld willen:
+domein toevoegen in Resend, DKIM/SPF/retourpad-records bij de registrar van de
+klant zetten, verifiëren, en het afzenderadres bij de site instellen.
+±15-20 min werk. Let op: zodra we meerdere klantdomeinen in Resend voeren is
+het betaalde Resend-plan (± $20/mnd, voor alle klanten samen) nodig.
+
+## Beleid e-mailhosting: eigen account per klant
+
+Mailboxen hosten we NIET centraal onder ons eigen account. Per klant een eigen
+account bij de provider (Soverin/TransIP), op naam van de klant, met zijn
+eigen e-mailadres als herstel-adres. Wij richten in en bewaren de toegang
+(wachtwoordmanager), de provider blijft het support-loket — conform onze
+voorwaarden (artikel 5). Redenen: support-afbakening, eigendom bij de klant,
+en geen gedeeld blokkade-risico.
