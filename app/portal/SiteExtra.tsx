@@ -31,7 +31,7 @@ export default async function SiteExtra({
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
       {/* Formulier-inzendingen */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6">
+      <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
         <h3 className="font-display text-lg font-semibold">
           Berichten via je formulieren
         </h3>
@@ -70,11 +70,11 @@ export default async function SiteExtra({
         )}
         <form action={bewaarNotificatieEmail} className="mt-5 border-t border-stone-100 pt-4">
           <input type="hidden" name="siteId" value={siteId} />
-          <p className="mb-3 rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-700">
+          <p className="mb-3 break-words rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm text-stone-700">
             {notificatieEmail ? (
               <>
                 📬 Inzendingen van <strong>alle formulieren</strong> op je site
-                worden gemaild naar <strong>{notificatieEmail}</strong> — en de
+                worden gemaild naar <strong className="break-all">{notificatieEmail}</strong> — en de
                 invuller krijgt automatisch een nette bevestiging.
               </>
             ) : (
@@ -107,7 +107,7 @@ export default async function SiteExtra({
       </div>
 
       {/* Kennisdocumenten (voor de toekomstige chatbot) */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6">
+      <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-display text-lg font-semibold">
             Documenten over je bedrijf
