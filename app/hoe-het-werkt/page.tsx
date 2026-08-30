@@ -56,7 +56,7 @@ const faq = [
   ],
   [
     "Ik heb een formulier / boekingssysteem / webshop op mijn site",
-    "Een contactformulier zit standaard in de overstap. Voor bijzondere functies zoals boekingssystemen of ledenportalen maken we een aparte offerte. Webshops zetten we op dit moment nog niet over.",
+    "Een contactformulier zit standaard in de overstap, en een bestaand boekings- of afsprakensysteem nemen we gewoon mee. Voor ander maatwerk maken we een aparte offerte. Webshops en ledenportalen met inlog zetten we niet over.",
   ],
   [
     "Kan ik nog zelf bij mijn site?",

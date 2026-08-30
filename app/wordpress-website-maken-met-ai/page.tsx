@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Wat als ik een webshop wil?",
             antwoord:
-              "Webshops, ledenportalen en boekingssystemen met live agenda bouwen we niet — daarvoor ben je bij gespecialiseerde platforms beter af. Gewone bedrijfssites, ook met blog en formulieren, zijn onze specialiteit.",
+              "Webshops en ledenportalen met inlog bouwen we niet — daarvoor ben je bij gespecialiseerde platforms beter af. Een boekings- of afsprakensysteem van een externe dienst nemen we wél gewoon op in je site, en maatwerk is altijd bespreekbaar. Gewone bedrijfssites, ook met blog en formulieren, zijn onze specialiteit.",
           },
         ],
       }}

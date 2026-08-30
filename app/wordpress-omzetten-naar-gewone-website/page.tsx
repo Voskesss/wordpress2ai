@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Wat kan er níet omgezet worden?",
             antwoord:
-              "Webshops, ledenportalen met inlog en boekingssystemen met live agenda — die hebben een draaiend systeem nodig. Gewone bedrijfssites, ook met blog en formulieren, juist wél. Twijfel je? De check is gratis.",
+              "Webshops en ledenportalen met inlog — die hebben een draaiend systeem nodig. Gewone bedrijfssites, ook met blog en formulieren, juist wél. Een bestaand boekings- of afsprakensysteem (agenda-widget) nemen we gewoon mee, en maatwerk is bespreekbaar. Twijfel je? De check is gratis.",
           },
         ],
       }}

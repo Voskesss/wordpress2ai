@@ -56,9 +56,10 @@ export default function Prijzen() {
           <p className="mt-2 text-sm text-stone-500">
             €250 voor een kleine website, tot ± €750 voor een grote of complexe
             site (veel pagina&apos;s, blog, bijzondere functies). Je weet het
-            bedrag vooraf — geen verrassingen achteraf. Let op: webshops, ledenportalen
-            en boekingssystemen kunnen we niet overzetten — gewone
-            bedrijfssites, ook met blog, juist wél.
+            bedrag vooraf — geen verrassingen achteraf. Let op: webshops en ledenportalen
+            met inlog kunnen we niet overzetten — gewone bedrijfssites, ook
+            met blog, juist wél; een bestaand boekings- of afsprakensysteem
+            nemen we gewoon mee en maatwerk is bespreekbaar.
           </p>
           <ul className="mt-6 space-y-3 text-stone-600">
             {overstap.map((punt) => (

@@ -45,9 +45,10 @@ export default function Voorwaarden() {
           bieden daarna een AI-koppeling waarmee je wijzigingen in gewone taal
           doorgeeft. De omzetting is gericht op een zo getrouw mogelijke kopie
           van de zichtbare inhoud en vormgeving; kleine afwijkingen kunnen
-          voorkomen. Webshops, ledenportalen met inlog, boekingssystemen met
-          live agenda en vergelijkbare dynamische systemen vallen buiten de
-          dienst — dat melden we vooraf bij de gratis check.
+          voorkomen. Webshops, ledenportalen met inlog en vergelijkbare
+          dynamische systemen vallen buiten de dienst — dat melden we vooraf
+          bij de gratis check. Inbedding van externe diensten (zoals een
+          boekingssysteem) en ander maatwerk kan in overleg.
         </p>
       </Artikel>
 
