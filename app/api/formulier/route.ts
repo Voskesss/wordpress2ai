@@ -18,7 +18,7 @@ async function stuurMail(
   const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
   const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
   const from = opties.afzenderNaam
-    ? `${opties.afzenderNaam.replace(/["<>]/g, "")} (via WordSwap) <${adres}>`
+    ? `${opties.afzenderNaam.replace(/["<>]/g, "")} <${adres}>`
     : basisFrom;
   await fetch("https://api.resend.com/emails", {
     method: "POST",
