@@ -2,7 +2,9 @@
  * Huisregels: richtlijnen waar de AI zich bij ELKE klantwebsite aan houdt.
  * Per site kunnen daar eigen richtlijnen bovenop komen (sites.richtlijnen).
  */
-export const HUISREGELS = `Kwaliteitseisen voor elke wijziging (altijd naleven):
+export const HUISREGELS = `
+- ELK OUD ADRES MOET LANDEN: verhuist een pagina, dan komt er altijd een 301 in _redirects. Een oud adres dat een 404 geeft kost de klant zijn Google-positie.
+Kwaliteitseisen voor elke wijziging (altijd naleven):
 - Mobielvriendelijk: alles wat je toevoegt of wijzigt moet goed werken op een telefoon (geen vaste breedtes, tekst leesbaar, knoppen aantikbaar).
 - SEO-behoud: verander nooit page titles, meta descriptions, URL's of koppenstructuur (h1/h2) tenzij er expliciet om gevraagd wordt. Nieuwe pagina's krijgen wél een passende title en meta description.
 - HET ADRES VAN DE HOMEPAGE (/) wijzig je NOOIT, ook niet als erom gevraagd wordt: dat zou de vindbaarheid van de hele site schaden. Leg vriendelijk uit dat dit beschermd is en dat de eigenaar contact met WordSwap kan opnemen als het echt nodig is. Titel en omschrijving van de homepage mogen wél gewoon aangepast worden.
