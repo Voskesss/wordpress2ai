@@ -777,9 +777,9 @@ export default function Chat({
   return (
     <div className="min-w-0">
       <div
-        className={`bg-white overflow-hidden ${
+        className={`bg-white overflow-hidden flex flex-col ${
           volledigScherm
-            ? "fixed inset-0 z-[80] flex flex-col"
+            ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
       >
@@ -865,10 +865,10 @@ export default function Chat({
         {/* Website-viewer */}
         <div
           ref={viewerRef}
-          className={`${
+          className={`relative ${
             volledigScherm
               ? "flex-1 min-h-0"
-              : "h-[calc(100dvh-11rem)] sm:h-[calc(100dvh-15rem)] min-h-[28rem]"
+              : "h-[calc(100dvh-17rem)] sm:h-[calc(100dvh-20rem)] min-h-[24rem]"
           } ${
             isMobiel || apparaat === "desktop"
               ? "overflow-hidden"
@@ -1008,9 +1008,13 @@ export default function Chat({
           className={
             splitModus
               ? "flex w-[26rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
-              : `absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
-                  isMobiel && !balkOpen ? "hidden" : ""
-                }`
+              : isMobiel
+                ? `absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
+                    !balkOpen ? "hidden" : ""
+                  }`
+                : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
+                  // gesprek en de panelen zweven eroverheen (absolute, bottom-full)
+                  "relative z-10 mx-auto w-[min(96%,44rem)] pb-3"
           }
         >
           {isMobiel && balkOpen && (
@@ -1023,6 +1027,7 @@ export default function Chat({
               </button>
             </div>
           )}
+          <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
           {(chatOpen || splitModus) && (
             <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
@@ -1433,6 +1438,8 @@ export default function Chat({
             </div>
           )}
 
+          </div>
+
           {/* Invoerbalk */}
           <div
             className={`${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
@@ -1582,14 +1589,11 @@ export default function Chat({
                 onClick={() => setSeoOpen((v) => !v)}
                 disabled={bezig}
                 aria-label="Vindbaarheid van deze pagina"
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                className={`flex h-10 shrink-0 items-center justify-center rounded-full px-3 disabled:opacity-50 cursor-pointer ${
                   seoOpen ? "bg-violet-700 text-white" : "text-stone-500 hover:bg-stone-100"
                 }`}
               >
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-                  <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                <span className="text-xs font-bold tracking-tight">SEO</span>
               </button>
               </Tip>
               <textarea
