@@ -18,7 +18,7 @@ Kernpunten:
 - [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
 - [Contact](https://wordswap.nl/contact): gratis site-check aanvragen, antwoord binnen één werkdag
 - [Demo](https://wordswap.nl/demo): gratis proberen hoe je een website aanpast door het te typen
-- [Nieuwe website](https://wordswap.nl/nieuwe-website): compleet nieuwe site laten maken — AI-ontwerp vanaf €250 of ontwerp door een designer
+- [Nieuwe website](https://wordswap.nl/nieuwe-website): compleet nieuwe site laten maken — AI-ontwerp vanaf €350 of ontwerp door een designer
 - [WordPress overzetten](https://wordswap.nl/wordpress-overzetten): hoe de migratie werkt, wat er meegaat en wat het kost
 - [WordPress-alternatief](https://wordswap.nl/wordpress-alternatief): waarom een site zonder plugins en updates beter past bij ondernemers
 - [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt

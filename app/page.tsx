@@ -269,7 +269,7 @@ export default function Home() {
             Liever een héle nieuwe website?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-stone-600 leading-relaxed">
-            Kan ook. AI-ontwerp vanaf €250, of een uniek ontwerp door een
+            Kan ook. AI-ontwerp vanaf €350, of een uniek ontwerp door een
             designer — altijd met de AI-beheerder erbij.
           </p>
           <Link

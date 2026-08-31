@@ -115,7 +115,7 @@ export default function Prijzen() {
             <p className="mt-2 text-stone-600 leading-relaxed">
               Geen zin om je oude site mee te nemen? We ontwerpen een frisse
               nieuwe website — mét dezelfde AI-koppeling erachter. Vanaf{" "}
-              <strong>€250</strong> voor een AI-ontwerp (tot 8 pagina&apos;s;
+              <strong>€350</strong> voor een AI-ontwerp (tot 8 pagina&apos;s;
               grotere sites €500 – €750), of <strong>€1.750</strong> met een
               designer erbij.
             </p>
