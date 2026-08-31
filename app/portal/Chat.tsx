@@ -281,6 +281,8 @@ export default function Chat({
   const [balkOpen, setBalkOpen] = useState(true);
   // Schermvullend op desktop: chat als vast paneel naast het voorbeeld
   const splitModus = volledigScherm && !isMobiel;
+  // Smalle invoerbalk-indeling: op mobiel én in het smalle zijpaneel
+  const smalleBalk = isMobiel || splitModus;
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 640px)");
     const zet = () => setIsMobiel(mq.matches);
@@ -1402,7 +1404,7 @@ export default function Chat({
 
           {/* Invoerbalk */}
           <div
-            className={`rounded-3xl sm:rounded-full border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
+            className={`${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
               toonHint
                 ? "border-violet-500 ring-4 ring-violet-300/50"
                 : "border-stone-200"
@@ -1436,7 +1438,7 @@ export default function Chat({
                 </span>
               </div>
             )}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1">
+            <div className={`flex items-center gap-x-2 gap-y-1 ${smalleBalk ? "flex-wrap" : "flex-nowrap"}`}>
               {!chatOpen && berichten.length > 0 && (
                 <button
                   onClick={() => setChatOpen(true)}
@@ -1568,14 +1570,14 @@ export default function Chat({
                     ? (statusTekst ?? "Momentje...")
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
-                className="order-first basis-full sm:order-none sm:basis-auto flex-1 min-w-0 resize-none bg-transparent px-3 sm:px-2 py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]"
+                className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]`}
                 disabled={bezig}
               />
               <button
                 onClick={bezig ? stop : verstuur}
                 aria-label={bezig ? "Stop de wijziging" : "Verstuur"}
                 title={bezig ? "Stop — er wordt dan niets gewijzigd" : "Verstuur"}
-                className={`ml-auto sm:ml-0 shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${
+                className={`${smalleBalk ? "ml-auto" : ""} shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${
                   bezig ? "bg-red-600 hover:bg-red-500" : "bg-violet-700 hover:bg-violet-600"
                 }`}
               >
