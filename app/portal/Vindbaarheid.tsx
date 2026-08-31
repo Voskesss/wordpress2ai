@@ -156,7 +156,7 @@ export default function Vindbaarheid({
             />
             <span className="text-[11px] text-stone-400">
               {isHome
-                ? "De homepage houdt altijd het adres /"
+                ? "Het adres van je homepage staat vast op / — dat beschermen we, want wijzigen zou je vindbaarheid schaden. Toch nodig? Neem even contact met ons op."
                 : "Wijzig je dit, dan blijft het oude adres automatisch doorverwijzen (301) en werken we alle links op je site bij."}
             </span>
           </label>

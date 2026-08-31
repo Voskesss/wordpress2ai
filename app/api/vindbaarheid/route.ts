@@ -123,6 +123,18 @@ export async function POST(req: Request) {
   if (!body.bestand || body.bestand.includes("..")) {
     return NextResponse.json({ error: "Ongeldig" }, { status: 400 });
   }
+  // Homepage-adres is beschermd: wijzigen zou de vindbaarheid van de hele site
+  // schaden. Alleen na overleg (handmatig) aan te passen.
+  const gevraagd = (body.adres ?? "").trim().toLowerCase();
+  if (body.bestand === "index.html" && gevraagd && gevraagd !== "/") {
+    return NextResponse.json(
+      {
+        error:
+          "Het adres van de homepage kan niet gewijzigd worden — dat beschermt je vindbaarheid. Neem contact met ons op als dit echt nodig is.",
+      },
+      { status: 400 }
+    );
+  }
 
   const [openConcept] = await db
     .select()
