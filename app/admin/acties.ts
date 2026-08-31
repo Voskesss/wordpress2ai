@@ -360,3 +360,79 @@ export async function aanvraagVerwerken(formData: FormData) {
   }
   revalidatePath("/admin");
 }
+
+/** Mail alle inschrijvers van een webinar: link, herinnering of follow-up. */
+export async function webinarMailen(formData: FormData) {
+  await requireAdmin();
+  const { webinars, formulierInzendingen } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  const soort = String(formData.get("soort") ?? "link");
+  if (!Number.isInteger(id)) return;
+
+  const [w] = await db.select().from(webinars).where(eq(webinars.id, id));
+  if (!w) return;
+
+  const inzendingen = await db
+    .select()
+    .from(formulierInzendingen)
+    .where(eq(formulierInzendingen.formulier, "webinar"));
+  const ontvangers = inzendingen
+    .filter((i) => (i.velden as Record<string, string>).webinar === w.titel)
+    .map((i) => ({
+      email: (i.velden as Record<string, string>).email,
+      naam: (i.velden as Record<string, string>).naam ?? "",
+    }))
+    .filter((o) => o.email?.includes("@"));
+  if (ontvangers.length === 0) return;
+
+  const wanneer = w.wanneer.toLocaleString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const linkBlok = w.meetLink
+    ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="background:#6d28d9;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Deelnemen aan het webinar</a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
+    : "";
+
+  const teksten: Record<string, { onderwerp: string; html: string }> = {
+    link: {
+      onderwerp: `De deelnamelink voor het webinar (${wanneer})`,
+      html: `<p>Hallo{{naam}},</p><p>Hierbij de link voor het webinar <strong>${w.titel}</strong> op <strong>${wanneer}</strong>. Bewaar deze mail — je hebt hem straks nodig om deel te nemen.</p>${linkBlok}<p>Tot dan!</p>`,
+    },
+    herinnering: {
+      onderwerp: `Vandaag: het webinar begint om ${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`,
+      html: `<p>Hallo{{naam}},</p><p>Kleine herinnering: vandaag om <strong>${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}</strong> begint het webinar <strong>${w.titel}</strong>. Het duurt ongeveer een half uur en je mag gerust alleen luisteren.</p>${linkBlok}<p>Tot zo!</p>`,
+    },
+    followup: {
+      onderwerp: `Bedankt voor je interesse in het webinar`,
+      html: `<p>Hallo{{naam}},</p><p>Bedankt voor je aanmelding voor <strong>${w.titel}</strong>.${
+        w.opnameLink
+          ? ` Kon je er niet bij zijn of wil je iets terugkijken? <a href="${w.opnameLink}">Hier staat de opname</a>.`
+          : ""
+      }</p><p>Wil je weten wat de overstap voor jóuw website betekent? Vraag vrijblijvend de gratis site-check aan op <a href="https://wordswap.nl/contact">wordswap.nl/contact</a> — je krijgt binnen één werkdag een eerlijk antwoord en een vaste prijs. En het is no cure, no pay: pas als je tevreden bent met de kopie van je site betaal je iets.</p><p>Groet,<br>Jos — WordSwap</p>`,
+    },
+  };
+  const sjabloon = teksten[soort] ?? teksten.link;
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
+
+  for (const o of ontvangers) {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: `WordSwap <${adres}>`,
+        to: [o.email],
+        subject: sjabloon.onderwerp,
+        html: sjabloon.html.replace("{{naam}}", o.naam ? ` ${o.naam}` : ""),
+        reply_to: ["info@aibackoffice.nl"],
+      }),
+    }).catch((e) => console.error("Webinar-mail mislukt:", e));
+  }
+  revalidatePath("/admin/webinars");
+}

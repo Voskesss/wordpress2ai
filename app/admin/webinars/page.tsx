@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { formulierInzendingen, webinars } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { webinarBijwerken, webinarToevoegen } from "../acties";
+import { webinarBijwerken, webinarMailen, webinarToevoegen } from "../acties";
 
 export const metadata: Metadata = {
   title: "Webinars",
@@ -112,6 +112,48 @@ export default async function Webinars() {
                   {isVerleden ? "geweest" : w.actief ? "open voor inschrijving" : "verborgen"}
                 </span>
               </div>
+
+              {inschr.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <form action={webinarMailen}>
+                    <input type="hidden" name="id" value={w.id} />
+                    <input type="hidden" name="soort" value="link" />
+                    <ActieKnop
+                      label={`📧 Stuur deelnamelink (${inschr.length})`}
+                      bezigLabel="Versturen..."
+                      className={`rounded-full px-4 py-1.5 text-sm font-semibold cursor-pointer ${
+                        w.meetLink
+                          ? "bg-violet-700 text-white hover:bg-violet-600"
+                          : "border border-amber-300 text-amber-700 hover:bg-amber-50"
+                      }`}
+                    />
+                  </form>
+                  <form action={webinarMailen}>
+                    <input type="hidden" name="id" value={w.id} />
+                    <input type="hidden" name="soort" value="herinnering" />
+                    <ActieKnop
+                      label="⏰ Herinnering (vandaag)"
+                      bezigLabel="Versturen..."
+                      className="rounded-full border border-stone-300 px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                    />
+                  </form>
+                  <form action={webinarMailen}>
+                    <input type="hidden" name="id" value={w.id} />
+                    <input type="hidden" name="soort" value="followup" />
+                    <ActieKnop
+                      label="🎬 Follow-up na afloop"
+                      bezigLabel="Versturen..."
+                      className="rounded-full border border-stone-300 px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                    />
+                  </form>
+                  {!w.meetLink && (
+                    <p className="w-full text-xs text-amber-700">
+                      ⚠️ Er staat nog geen deelnamelink bij dit webinar — vul hem eerst in
+                      (bewerken hieronder), anders gaat de mail zonder link de deur uit.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {inschr.length > 0 && (
                 <details className="mt-2">
