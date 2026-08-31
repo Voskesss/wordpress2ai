@@ -148,6 +148,13 @@ export async function zoekProspects(
     }
   }
 
+  // Zoekmachine geblokkeerd (gebeurt vanaf datacenter-servers)? Dan via Claude.
+  if (domeinen.length < 2) {
+    for (const d of await zoekDomeinenViaClaude(branche, plaats)) {
+      if (!domeinen.includes(d)) domeinen.push(d);
+    }
+  }
+
   const kandidaten = domeinen.slice(0, 12);
   const resultaten: ScanResultaat[] = [];
   // Vier tegelijk scannen (sneller, zonder de boel te overvragen)
@@ -158,4 +165,37 @@ export async function zoekProspects(
   return resultaten
     .filter((r) => r.bereikbaar)
     .sort((a, b) => Number(b.isWordpress) - Number(a.isWordpress) || b.score - a.score);
+}
+
+/** Terugval: laat Claude (met websearch) bedrijfssites vinden — werkt ook
+ * vanaf servers waar zoekmachines datacenter-verkeer blokkeren. */
+async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<string[]> {
+  try {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const client = new Anthropic();
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 600,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 } as never],
+      messages: [
+        {
+          role: "user",
+          content: `Zoek websites van echte lokale bedrijven in Nederland: branche "${branche}"${plaats ? `, plaats/regio "${plaats}"` : ""}. Alleen eigen bedrijfswebsites — GEEN gidsen, vergelijkers, offerteplatforms of landelijke ketens. Antwoord UITSLUITEND met een JSON-array van kale domeinnamen, bv. ["bedrijf1.nl","bedrijf2.nl"], maximaal 12 stuks, niets eromheen.`,
+        },
+      ],
+    });
+    const tekst = resp.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { text: string }).text)
+      .join("");
+    const json = tekst.match(/\[[\s\S]*?\]/)?.[0];
+    if (!json) return [];
+    const lijst = JSON.parse(json) as string[];
+    return lijst
+      .map((d) => String(d).trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, ""))
+      .filter((d) => d.includes(".") && !NIET_INTERESSANT.test(d));
+  } catch (e) {
+    console.error("Claude-zoekterugval mislukt:", e);
+    return [];
+  }
 }
