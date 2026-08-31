@@ -6,6 +6,7 @@ import { prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import { prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
+import ObservatieVeld from "./ObservatieVeld";
 
 export const metadata: Metadata = {
   title: "Outreach",
@@ -70,12 +71,7 @@ export default async function Outreach() {
         </label>
         <label className="block text-sm font-semibold sm:col-span-2">
           Wat zie je aan hun site? (komt letterlijk in mail 1)
-          <textarea
-            name="observatie"
-            rows={2}
-            placeholder='Bijv.: "Wat me opviel: de site laadt op mobiel vrij traag en het menu valt buiten beeld — zonde, want jullie werk ziet er goed uit."'
-            className={invoerStijl}
-          />
+          <ObservatieVeld naam="observatie" className={invoerStijl} />
         </label>
         <div className="sm:col-span-2">
           <ActieKnop
@@ -168,7 +164,7 @@ export default async function Outreach() {
                   </label>
                   <label className="block text-sm font-semibold sm:col-span-2">
                     Observatie (voor mail 1)
-                    <textarea name="observatie" rows={2} defaultValue={p.observatie ?? ""} className={invoerStijl} />
+                    <ObservatieVeld naam="observatie" beginwaarde={p.observatie ?? ""} className={invoerStijl} />
                   </label>
                   <div className="sm:col-span-2">
                     <ActieKnop
