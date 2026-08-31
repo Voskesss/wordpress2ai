@@ -29,8 +29,12 @@ function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
 }
 
 function paginaLabel(pad: string) {
-  const naam = pad.split("/").pop() ?? pad;
-  if (naam === "index.html") return "homepage";
+  const delen = pad.split("/");
+  const naam = delen.pop() ?? pad;
+  if (naam === "index.html") {
+    // /index.html = homepage; map/index.html = die map
+    return delen.length === 0 ? "homepage" : delen[delen.length - 1];
+  }
   if (naam.endsWith(".css")) return "vormgeving";
   return naam.replace(/\.html?$/, "");
 }
