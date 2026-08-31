@@ -117,3 +117,45 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
       .join(", "),
   };
 }
+
+const NIET_INTERESSANT =
+  /duckduckgo\.|bing\.|google\.|facebook\.|instagram\.|linkedin\.|youtube\.|marktplaats|werkspot|trustoo|slimster|gouden(gids)?|detelefoongids|telefoonboek|opendi|cylex|indeed|werkzoeken|homedeal|offerte|vergelijk|wikipedia|tripadvisor|yelp|thuisbezorgd|treatwell|kvk\.nl|funda|schildernet|zoofy|qassa|startpagina|infobel|drimble|openingstijden|oozo\.|allebedrijvenin|bedrijvenpagina|onderneming\.net/i;
+
+/** Zoekt bedrijfssites voor een branche (+plaats) en scant ze op WordPress
+ * en verwaarlozing. Resultaat gesorteerd: kansrijkste bovenaan. */
+export async function zoekProspects(
+  branche: string,
+  plaats: string
+): Promise<ScanResultaat[]> {
+  const vraag = encodeURIComponent(`${branche} ${plaats}`.trim());
+  const zoek = await fetch(`https://html.duckduckgo.com/html/?q=${vraag}`, {
+    headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" },
+    signal: AbortSignal.timeout(15000),
+  })
+    .then((r) => r.text())
+    .catch(() => "");
+
+  const domeinen: string[] = [];
+  for (const m of zoek.matchAll(/uddg=([^&"]+)/g)) {
+    try {
+      const url = decodeURIComponent(m[1]);
+      if (/duckduckgo\.com\/y\.js/.test(url)) continue; // advertenties
+      const host = new URL(url).hostname.replace(/^www\./, "");
+      if (NIET_INTERESSANT.test(host)) continue;
+      if (!domeinen.includes(host)) domeinen.push(host);
+    } catch {
+      // onbruikbare link overslaan
+    }
+  }
+
+  const kandidaten = domeinen.slice(0, 12);
+  const resultaten: ScanResultaat[] = [];
+  // Vier tegelijk scannen (sneller, zonder de boel te overvragen)
+  for (let i = 0; i < kandidaten.length; i += 4) {
+    const stuk = await Promise.all(kandidaten.slice(i, i + 4).map((d) => scanProspect(d)));
+    resultaten.push(...stuk);
+  }
+  return resultaten
+    .filter((r) => r.bereikbaar)
+    .sort((a, b) => Number(b.isWordpress) - Number(a.isWordpress) || b.score - a.score);
+}
