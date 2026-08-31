@@ -237,13 +237,16 @@ export async function verwijderCloudflareSite(naam: string) {
 }
 
 /** Verwijdert alle persoonlijke demo-voorbeeld-workers (wvd-<repo>-…) van een demo-site. */
-export async function verwijderDemoWorkers(repo: string) {
+export async function verwijderDemoWorkers(repo: string, spaarHashes?: Set<string>) {
   const lijst = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts`, {
     headers: hdr(),
   }).then((r) => r.json())) as { result?: { id: string }[] };
   const prefixen = [`wvd-${repo}-`, `wvl-${repo}-`];
   for (const script of lijst.result ?? []) {
-    if (!prefixen.some((p) => script.id.startsWith(p))) continue;
+    const prefix = prefixen.find((p) => script.id.startsWith(p));
+    if (!prefix) continue;
+    const hash = script.id.slice(prefix.length);
+    if (spaarHashes?.has(hash)) continue; // sandbox is net nog gebruikt
     await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${script.id}`, {
       method: "DELETE",
       headers: hdr(),

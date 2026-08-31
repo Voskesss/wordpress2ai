@@ -54,21 +54,38 @@ async function reset() {
         ).catch(() => {});
       }
 
-      // 2b. Persoonlijke sandbox-branches (demo-…) en wijzigings-branches wissen
+      // 2b. Persoonlijke sandbox-branches (demo-…) en wijzigings-branches wissen —
+      // maar een sandbox waar het afgelopen uur nog aan gewerkt is laten we met
+      // rust, anders verdwijnt iemands werk midden in een sessie.
       const refs = (await gh(
         `/repos/${GITHUB_ORG}/${site.githubRepo}/git/matching-refs/heads/`
       ).catch(() => [])) as { ref: string }[];
+      const actieveHashes = new Set<string>();
       for (const r of refs) {
         const naam = r.ref.replace("refs/heads/", "");
-        if (naam.startsWith("demo-") || naam.startsWith("wijziging-")) {
-          await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/${naam}`, {
-            method: "DELETE",
-          }).catch(() => {});
+        if (!naam.startsWith("demo-") && !naam.startsWith("wijziging-")) continue;
+        let versGebruikt = false;
+        if (naam.startsWith("demo-")) {
+          try {
+            const kop = (await gh(
+              `/repos/${GITHUB_ORG}/${site.githubRepo}/commits/${naam}`
+            )) as { commit: { author: { date: string } } };
+            versGebruikt =
+              Date.now() - new Date(kop.commit.author.date).getTime() < 65 * 60 * 1000;
+          } catch {}
         }
+        if (versGebruikt) {
+          actieveHashes.add(naam.replace("demo-", ""));
+          continue;
+        }
+        await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/${naam}`, {
+          method: "DELETE",
+        }).catch(() => {});
       }
 
-      // 2c. Persoonlijke voorbeeld-workers (wvd-…) van demo-gebruikers verwijderen
-      await verwijderDemoWorkers(site.githubRepo).catch((e) =>
+      // 2c. Persoonlijke voorbeeld-workers (wvd-/wvl-…) verwijderen, behalve van
+      // sandboxes die net nog gebruikt zijn
+      await verwijderDemoWorkers(site.githubRepo, actieveHashes).catch((e) =>
         console.error("Demo-workers opruimen mislukt:", e)
       );
 

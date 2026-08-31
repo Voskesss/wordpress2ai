@@ -19,6 +19,7 @@ import {
   verwijderKlant,
 } from "../../acties";
 import { lijstVersies } from "@/lib/github";
+import { demoWorker } from "@/lib/demo";
 
 export const metadata: Metadata = {
   title: "Klant",
@@ -55,7 +56,7 @@ export default async function KlantDetail({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const { id } = await params;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
@@ -237,7 +238,13 @@ export default async function KlantDetail({
           siteId={site.id}
           historie={chatHistorie}
           liveUrl={site.domein}
-          werkversieUrl={site.netlifySiteId ? `wv-${site.netlifySiteId}.wordswap.workers.dev` : null}
+          werkversieUrl={
+            site.isDemo
+              ? `${demoWorker(site.githubRepo, admin.id)}.wordswap.workers.dev`
+              : site.netlifySiteId
+                ? `wv-${site.netlifySiteId}.wordswap.workers.dev`
+                : null
+          }
           openConcept={
             openConcept
               ? {
