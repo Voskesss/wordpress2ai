@@ -178,7 +178,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
 }
 
 const NIET_INTERESSANT =
-  /duckduckgo\.|bing\.|google\.|facebook\.|instagram\.|linkedin\.|youtube\.|marktplaats|werkspot|trustoo|slimster|gouden(gids)?|detelefoongids|telefoonboek|opendi|cylex|indeed|werkzoeken|homedeal|offerte|vergelijk|wikipedia|tripadvisor|yelp|thuisbezorgd|treatwell|kvk\.nl|funda|schildernet|zoofy|qassa|startpagina|infobel|drimble|openingstijden|oozo\.|allebedrijvenin|bedrijvenpagina|onderneming\.net/i;
+  /duckduckgo\.|bing\.|google\.|facebook\.|instagram\.|linkedin\.|youtube\.|marktplaats|werkspot|trustoo|slimster|gouden(gids)?|detelefoongids|telefoonboek|opendi|cylex|indeed|werkzoeken|homedeal|offerte|vergelijk|wikipedia|tripadvisor|yelp|thuisbezorgd|treatwell|kvk\.nl|funda|schildernet|zoofy|qassa|startpagina|infobel|drimble|openingstijden|oozo\.|allebedrijvenin|bedrijvenpagina|onderneming\.net|top\d{2,}|wiewat|salonweb|^local\.|beoordelingen|reviews?\.|-gigant|gigant\.|portaal|platform|overzicht|vindeen|vind-een|-nu\.nl$|-in\.nl$|bedrijvengids|zoekbedrijf|branchevereniging/i;
 
 /** Zoekt bedrijfssites voor een branche (+plaats) en scant ze op WordPress
  * en verwaarlozing. Resultaat gesorteerd: kansrijkste bovenaan. */
@@ -234,12 +234,12 @@ async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<s
     const client = new Anthropic();
     const resp = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
+      max_tokens: 2000,
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 } as never],
       messages: [
         {
           role: "user",
-          content: `Zoek websites van echte lokale bedrijven in Nederland: branche "${branche}"${plaats ? `, plaats/regio "${plaats}"` : ""}. Alleen eigen bedrijfswebsites — GEEN gidsen, vergelijkers, offerteplatforms of landelijke ketens. Antwoord UITSLUITEND met een JSON-array van kale domeinnamen, bv. ["bedrijf1.nl","bedrijf2.nl"], maximaal 12 stuks, niets eromheen.`,
+          content: `Zoek websites van individuele bedrijven in Nederland in de branche "${branche}"${plaats ? ` in ${plaats}` : ""} — dus de eigen site van een bedrijf, niet een overzichts- of vergelijkingssite. Geef de domeinnamen als JSON-array, bijvoorbeeld ["bedrijf1.nl","bedrijf2.nl"]. Maximaal 12.`,
         },
       ],
     });
@@ -247,12 +247,26 @@ async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<s
       .filter((b) => b.type === "text")
       .map((b) => (b as { text: string }).text)
       .join("");
+    // Eerst de nette weg; loopt het antwoord toch af (afgekapt of extra
+    // uitleg eromheen), dan vissen we de domeinen er alsnog los uit.
+    let lijst: string[] = [];
     const json = tekst.match(/\[[\s\S]*?\]/)?.[0];
-    if (!json) return [];
-    const lijst = JSON.parse(json) as string[];
-    return lijst
-      .map((d) => String(d).trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, ""))
+    if (json) {
+      try {
+        lijst = JSON.parse(json) as string[];
+      } catch {
+        lijst = [];
+      }
+    }
+    if (lijst.length === 0) {
+      lijst = [
+        ...tekst.matchAll(/\b([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:nl|com|eu|net|be))\b/gi),
+      ].map((m) => m[1]);
+    }
+    const schoon = lijst
+      .map((d) => String(d).trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "").toLowerCase())
       .filter((d) => d.includes(".") && !NIET_INTERESSANT.test(d));
+    return [...new Set(schoon)];
   } catch (e) {
     console.error("Claude-zoekterugval mislukt:", e);
     return [];

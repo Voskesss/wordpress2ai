@@ -130,7 +130,11 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
       {gevonden && (
         <div className="mt-4 space-y-2">
           {gevonden.length === 0 && (
-            <p className="text-sm text-stone-500">Niets bruikbaars gevonden — probeer een andere branche of plaats.</p>
+            <p className="text-sm text-stone-500">
+              {plaats.trim()
+                ? "Niets bruikbaars gevonden — probeer een andere branche of een naburige plaats."
+                : "Niets gevonden zonder plaats: een brede zoekopdracht levert vooral gidsen en vergelijkers op, en die filteren we weg. Vul een plaats in — dan vind ik de echte bedrijven."}
+            </p>
           )}
           {gevonden.map((r) => (
             <div
