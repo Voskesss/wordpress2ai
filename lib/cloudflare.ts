@@ -21,15 +21,28 @@ function hdr(json = true): Record<string, string> {
   return h;
 }
 
+/** Werkmappen en instructiebestanden die nooit publiek horen te staan.
+ * "delen" bevat de bouwstenen die bij deploy al in de pagina's zijn gezet. */
+const NIET_PUBLIEK_MAPPEN = new Set([".git", ".github", "delen"]);
+const NIET_PUBLIEK_BESTANDEN = new Set([
+  "_redirects",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "README.md",
+  ".gitignore",
+  ".DS_Store",
+]);
+
 async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
   const items = await readdir(dir, { withFileTypes: true });
   const paden: string[] = [];
   for (const item of items) {
     const vol = path.join(dir, item.name);
     if (item.isDirectory()) {
-      if (item.name === ".git") continue;
+      if (NIET_PUBLIEK_MAPPEN.has(item.name)) continue;
       paden.push(...(await alleBestanden(vol, basis)));
     } else {
+      if (NIET_PUBLIEK_BESTANDEN.has(item.name)) continue;
       paden.push(path.relative(basis, vol));
     }
   }
@@ -152,6 +165,24 @@ export async function deployMapNaarCloudflare(
       if (res.result?.jwt) completionJwt = res.result.jwt;
     }
 
+    // Doorverwijzingen uit _redirects inlezen: Cloudflare Workers ondersteunt
+    // dat bestand niet zelf (dat is een Pages-functie), dus bakken we de regels
+    // in het worker-script. Zonder dit geven oude adressen een 404 = SEO-verlies.
+    const redirectRegels: Record<string, { naar: string; code: number }> = {};
+    try {
+      const tekst = await readFile(path.join(werkmap, "_redirects"), "utf8");
+      for (const regel of tekst.split("\n")) {
+        const schoon = regel.trim();
+        if (!schoon || schoon.startsWith("#")) continue;
+        const [van, naar, code] = schoon.split(/\s+/);
+        if (!van || !naar || van.includes("*") || van.includes(":")) continue;
+        const sleutel = van.replace(/\/+$/, "") || "/";
+        redirectRegels[sleutel] = { naar, code: Number(code) || 301 };
+      }
+    } catch {
+      // geen _redirects-bestand: prima
+    }
+
     // 3. Worker publiceren — met een klein script dat workers.dev-adressen
     // op noindex zet (voorkomt duplicate content naast het echte klantdomein)
     const metadata = {
@@ -167,8 +198,20 @@ export async function deployMapNaarCloudflare(
       },
       bindings: [{ name: "ASSETS", type: "assets" }],
     };
-    const workerScript = `export default {
+    const workerScript = `const REDIRECTS = ${JSON.stringify(redirectRegels)};
+
+export default {
   async fetch(request, env) {
+    // Doorverwijzingen (301) — houdt oude adressen en Google-posities intact
+    try {
+      const url = new URL(request.url);
+      const sleutel = url.pathname.replace(/\\/+$/, "") || "/";
+      const doel = REDIRECTS[sleutel];
+      if (doel) {
+        return Response.redirect(new URL(doel.naar, url.origin).toString(), doel.code);
+      }
+    } catch (e) {}
+
     let res;
     try {
       res = await env.ASSETS.fetch(request);
