@@ -242,13 +242,28 @@ export async function prospectToevoegen(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const observatie = String(formData.get("observatie") ?? "").trim();
   if (!bedrijf || !website || !email.includes("@")) return;
-  // Nooit iemand opnieuw opvoeren die zich heeft afgemeld
-  const [bestaand] = await db.select().from(prospects).where(eq(prospects.email, email));
-  if (bestaand) {
+  // Dubbelen voorkomen: nooit twee keer dezelfde naam, website of e-mail
+  // (en nooit iemand die zich heeft afgemeld opnieuw opvoeren)
+  const schoonWebsite = website
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/+$/, "");
+  const alleProspects = await db.select().from(prospects);
+  const bestaatAl = alleProspects.some(
+    (p) =>
+      p.email.toLowerCase() === email ||
+      p.website.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "") ===
+        schoonWebsite ||
+      p.bedrijf.trim().toLowerCase() === bedrijf.toLowerCase()
+  );
+  if (bestaatAl) {
     revalidatePath("/admin/outreach");
     return;
   }
-  await db.insert(prospects).values({ bedrijf, website, email, observatie: observatie || null });
+  await db
+    .insert(prospects)
+    .values({ bedrijf, website: schoonWebsite, email, observatie: observatie || null });
   revalidatePath("/admin/outreach");
 }
 

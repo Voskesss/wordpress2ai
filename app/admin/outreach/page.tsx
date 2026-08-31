@@ -98,7 +98,11 @@ export default async function Outreach() {
         </div>
       </form>
 
-      <ScanVak />
+      <ScanVak
+        bestaandeDomeinen={alle.map((p) =>
+          p.website.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "")
+        )}
+      />
 
       {/* Toevoegen */}
       <form
@@ -109,6 +113,11 @@ export default async function Outreach() {
         <h2 className="font-display text-xl font-semibold sm:col-span-2">
           Prospect toevoegen
         </h2>
+        <p className="text-xs text-stone-500 sm:col-span-2">
+          Dubbelen worden automatisch geweigerd: een bedrijfsnaam, website of
+          e-mailadres dat al in de lijst (of op de niet-mailen-lijst) staat wordt
+          niet nog een keer toegevoegd.
+        </p>
         <label className="block text-sm font-semibold">
           Bedrijfsnaam
           <input name="bedrijf" required placeholder="Bakkerij De Korenbloem" className={invoerStijl} />

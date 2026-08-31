@@ -5,7 +5,9 @@ import type { ScanResultaat } from "@/lib/prospectscan";
 
 /** Website scannen vanuit de admin: WordPress + verwaarlozing checken en
  * het resultaat met één klik in het prospect-formulier zetten. */
-export default function ScanVak() {
+export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?: string[] }) {
+  const alBekend = (d: string) =>
+    bestaandeDomeinen.includes(d.toLowerCase().replace(/^www\./, ""));
   const [domein, setDomein] = useState("");
   const [bezig, setBezig] = useState(false);
   const [resultaat, setResultaat] = useState<ScanResultaat | null>(null);
@@ -134,9 +136,11 @@ export default function ScanVak() {
             <div
               key={r.domein}
               className={`flex flex-wrap items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm ${
-                r.isWordpress && r.score >= 4
-                  ? "border-violet-300 bg-violet-50/60"
-                  : "border-stone-200 bg-stone-50"
+                alBekend(r.domein)
+                  ? "border-stone-200 bg-stone-100 opacity-70"
+                  : r.isWordpress && r.score >= 4
+                    ? "border-violet-300 bg-violet-50/60"
+                    : "border-stone-200 bg-stone-50"
               }`}
             >
               <span className="font-semibold">{r.stempel}</span>
@@ -161,13 +165,19 @@ export default function ScanVak() {
                   {r.bevindingen.join(" · ")}
                 </span>
               )}
-              {r.isWordpress && (
-                <button
-                  onClick={() => vulMet(r)}
-                  className="ml-auto rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
-                >
-                  ↓ naar formulier
-                </button>
+              {alBekend(r.domein) ? (
+                <span className="ml-auto rounded-full bg-stone-200 px-3 py-1 text-xs font-semibold text-stone-600">
+                  ✓ staat al in je lijst
+                </span>
+              ) : (
+                r.isWordpress && (
+                  <button
+                    onClick={() => vulMet(r)}
+                    className="ml-auto rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
+                  >
+                    ↓ naar formulier
+                  </button>
+                )
               )}
             </div>
           ))}
