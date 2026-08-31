@@ -54,8 +54,11 @@ export default function NieuweWebsite() {
         <div className="reveal rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
           <h2 className="font-display text-xl font-semibold">AI-ontwerp</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            vanaf €750{" "}
+            vanaf €250{" "}
             <span className="text-base font-normal text-stone-500">eenmalig</span>
+          </p>
+          <p className="mt-1 text-sm font-medium text-stone-600">
+            tot 8 pagina&apos;s €250 · tot 20 pagina&apos;s €500 · daarboven €750
           </p>
           <p className="mt-2 text-sm text-stone-500">
             De AI ontwerpt en bouwt je site op basis van jouw verhaal, huisstijl
@@ -64,7 +67,7 @@ export default function NieuweWebsite() {
           </p>
           <ul className="mt-5 space-y-2.5 text-stone-600 text-sm">
             {[
-              "Compleet ontwerp + bouw, tot ± 8 pagina's",
+              "Compleet ontwerp + bouw van al je pagina's",
               "Jouw logo, kleuren en foto's verwerkt",
               "Supersnel, veilig en goed vindbaar in Google",
               "Contactformulier en AI-beheerder inbegrepen",
@@ -178,7 +181,7 @@ export default function NieuweWebsite() {
             <label className="block text-sm font-semibold">
               Welk ontwerp past bij je?
               <select name="ontwerp" className={invoer} defaultValue="ai">
-                <option value="ai">AI-ontwerp (vanaf €750)</option>
+                <option value="ai">AI-ontwerp (vanaf €250)</option>
                 <option value="designer">
                   Ontwerp door een designer (vanaf €1750)
                 </option>
