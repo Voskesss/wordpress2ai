@@ -48,6 +48,7 @@ export function maakOutreachMail(
 ${observatie}
 <p>Wij doen iets vrij nieuws: we zetten WordPress-sites om naar een razendsnelle website zonder onderhoud — geen updates, plugins of hostinggedoe meer. Aanpassen doe je daarna door het gewoon te typen ("zet de openingstijden op zaterdag tot 17:00") en onze AI voert het uit.</p>
 <p>Het mooie: je ziet eerst de complete kopie van je site, en alleen als je tevreden bent betaal je (eenmalig €250–€750). Niet goed = niets betalen.</p>
+<p>Ben je eigenlijk wel toe aan iets nieuws? Dan ontwerpen we ook een compleet nieuwe website (vanaf €750), met dezelfde AI-koppeling erachter — <a href="https://wordswap.nl/nieuwe-website" style="color:#6d28d9">meer daarover</a>.</p>
 <p>Als je nieuwsgierig bent kun je op <a href="https://wordswap.nl/demo" style="color:#6d28d9">wordswap.nl/demo</a> gratis zelf proberen hoe het werkt. Wil je liever eerst rustig horen wat dit voor jou betekent? Dan geef ik regelmatig een gratis online webinar van een half uur — aanmelden kan op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>. Reageren op deze mail mag natuurlijk ook gewoon.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
@@ -60,6 +61,7 @@ ${groet}${afmeldRegel(p)}</div>`,
 <p>Hallo,</p>
 <p>Een tijdje terug stuurde ik je een berichtje over de website van ${ontsnap(p.bedrijf)} — ik snap dat zoiets er makkelijk bij inschiet.</p>
 <p>Daarom één simpele vraag: zou je willen zien hoe jouw site eruitziet als snelle, onderhoudsvrije versie? Die kopie maken we gratis en vrijblijvend — je betaalt alleen als je hem wilt houden.</p>
+<p>En mocht je liever een frisse, compleet nieuwe website willen: dat kan net zo goed (vanaf €750, inclusief ontwerp).</p>
 <p>Eén reply met "ja, laat maar zien" is genoeg.</p>
 <p>Liever eerst vrijblijvend meekijken? In een gratis webinar van een half uur laat ik precies zien hoe het werkt — data en aanmelden op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
 ${groet}${afmeldRegel(p)}</div>`,
