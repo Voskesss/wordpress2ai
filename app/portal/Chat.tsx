@@ -790,14 +790,31 @@ export default function Chat({
         {/* Bovenbalk */}
         <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
           {concept ? (
-            <span className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
+            <span className="flex shrink-0 items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               Concept — nog niet zichtbaar voor bezoekers
             </span>
           ) : (
-            <span className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
+            <span className="flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Gelijk aan de live site
+            </span>
+          )}
+          {/* Adres van de pagina die je nu bekijkt, zoals bezoekers hem zien */}
+          {liveUrl && (
+            <span
+              title={`${liveUrl}${huidigePagina === "/" ? "" : huidigePagina}`}
+              className="hidden lg:flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs text-stone-500"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-stone-400">
+                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z" stroke="currentColor" strokeWidth="1.8" />
+              </svg>
+              <span className="truncate">
+                {liveUrl}
+                <span className="text-stone-800">
+                  {huidigePagina === "/" ? "" : huidigePagina}
+                </span>
+              </span>
             </span>
           )}
           <div className="flex items-center gap-2 shrink-0">
