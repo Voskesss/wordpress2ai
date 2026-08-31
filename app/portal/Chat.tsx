@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
   rol: "klant" | "assistent";
@@ -119,6 +120,7 @@ export default function Chat({
   const [stapTerugBezig, setStapTerugBezig] = useState(false);
   // Vriendelijke lader over het voorbeeld bij directe acties en het verversen
   const [laderTekst, setLaderTekst] = useState<string | null>(null);
+  const [seoOpen, setSeoOpen] = useState(false);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
@@ -1126,6 +1128,35 @@ export default function Chat({
             </div>
           )}
 
+          {seoOpen && (
+            <Vindbaarheid
+              siteId={siteId}
+              pad={huidigePagina}
+              domein={liveUrl}
+              onSluit={() => setSeoOpen(false)}
+              onKlaar={(data) => {
+                setSeoOpen(false);
+                setChatOpen(true);
+                setBerichten((b) => [
+                  ...b,
+                  { rol: "klant", tekst: "🔍 Vindbaarheid aangepast" },
+                  { rol: "assistent", tekst: data.reply ?? "Bijgewerkt!", metVerversTip: true },
+                ]);
+                if (data.previewUrl && data.changeId) {
+                  setConcept({
+                    changeId: data.changeId,
+                    previewUrl: data.previewUrl,
+                    prompt: "Vindbaarheid aangepast",
+                    paginas: data.bestanden ?? [],
+                  });
+                  herlaad(true);
+                  wachtOpVerseVersie();
+                  setOngedaanKans(null);
+                }
+              }}
+            />
+          )}
+
           {/* Concept-strip */}
           {concept && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
@@ -1544,6 +1575,21 @@ export default function Chat({
                   className="absolute h-0 w-0 opacity-0"
                   tabIndex={-1}
                 />
+              </button>
+              </Tip>
+              <Tip tekst="Titel, Google-omschrijving en webadres van deze pagina zelf regelen">
+              <button
+                onClick={() => setSeoOpen((v) => !v)}
+                disabled={bezig}
+                aria-label="Vindbaarheid van deze pagina"
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                  seoOpen ? "bg-violet-700 text-white" : "text-stone-500 hover:bg-stone-100"
+                }`}
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                  <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
               </button>
               </Tip>
               <textarea

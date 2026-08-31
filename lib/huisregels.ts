@@ -5,6 +5,7 @@
 export const HUISREGELS = `Kwaliteitseisen voor elke wijziging (altijd naleven):
 - Mobielvriendelijk: alles wat je toevoegt of wijzigt moet goed werken op een telefoon (geen vaste breedtes, tekst leesbaar, knoppen aantikbaar).
 - SEO-behoud: verander nooit page titles, meta descriptions, URL's of koppenstructuur (h1/h2) tenzij er expliciet om gevraagd wordt. Nieuwe pagina's krijgen wél een passende title en meta description.
+- WORDT er wél expliciet om een ander webadres (URL) gevraagd: verhuis de pagina, voeg in _redirects in de wortel een regel "oud-pad nieuw-pad 301" toe (bestand aanmaken indien nodig, bestaande regels behouden), werk ALLE interne links bij (menu/footer in delen/, knoppen, links in teksten) en pas sitemap.xml aan. Nooit een URL wijzigen zonder deze doorverwijzing — dan raakt de site zijn Google-posities kwijt.
 - Toegankelijkheid: afbeeldingen krijgen een beschrijvende alt-tekst, voldoende kleurcontrast, linkteksten die zeggen waar ze heen gaan.
 - Vindbaarheid: voeg je een pagina toe of verwijder je er één, werk dan ook de site-overzichten bij als die bestaan (sitemap.xml, llms.txt en het navigatiemenu). De beschrijving in llms.txt houd je feitelijk en gebaseerd op de echte content.
 - Consistentie: staat hetzelfde gegeven (telefoonnummer, openingstijden, adres) op meerdere plekken, werk dan alle plekken bij of meld de tegenstrijdigheid.
