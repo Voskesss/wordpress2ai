@@ -1038,14 +1038,14 @@ export default function Chat({
         <div
           className={
             splitModus
-              ? "flex w-[26rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
+              ? "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
               : isMobiel
                 ? `absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
                     !balkOpen ? "hidden" : ""
                   }`
                 : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
                   // gesprek en de panelen zweven eroverheen (absolute, bottom-full)
-                  "relative z-10 mx-auto w-[min(96%,44rem)] pb-3"
+                  "relative z-10 mx-auto w-[min(96%,44rem)] lg:w-[min(94%,52rem)] xl:w-[min(92%,62rem)] 2xl:w-[min(90%,72rem)] pb-3"
           }
         >
           {isMobiel && balkOpen && (
