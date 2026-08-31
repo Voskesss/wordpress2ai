@@ -130,6 +130,7 @@ gtag('config', 'G-S0169SZ52B');`}
           <Link href="/wordpress-aansturen-met-ai" className="hover:text-violet-600">Website aansturen met AI</Link>
           <Link href="/wordpress-omzetten-snel-en-ai-vriendelijk" className="hover:text-violet-600">Snel &amp; AI-vriendelijk</Link>
           <Link href="/veiligheid" className="hover:text-violet-600">Veiligheid</Link>
+          <Link href="/webinar" className="hover:text-violet-600">Gratis webinar</Link>
           <Link href="/contact" className="hover:text-violet-600">Contact</Link>
           <Link href="/privacy" className="hover:text-violet-600">Privacy</Link>
           <Link href="/voorwaarden" className="hover:text-violet-600">Algemene voorwaarden</Link>

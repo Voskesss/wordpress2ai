@@ -172,3 +172,14 @@ export const prospects = pgTable("prospects", {
   mail3Op: timestamp("mail3_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Webinars: door Jos ingeplande sessies waar bezoekers zich voor inschrijven
+export const webinars = pgTable("webinars", {
+  id: serial("id").primaryKey(),
+  titel: text("titel").notNull(),
+  wanneer: timestamp("wanneer").notNull(),
+  meetLink: text("meet_link"),
+  opnameLink: text("opname_link"),
+  actief: boolean("actief").notNull().default(true),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});

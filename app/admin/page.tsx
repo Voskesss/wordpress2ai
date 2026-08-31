@@ -141,6 +141,12 @@ export default async function Admin() {
             📣 Outreach
           </Link>
           <Link
+            href="/admin/webinars"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+          >
+            🎥 Webinars
+          </Link>
+          <Link
             href="/admin/nieuw"
             className="rounded-full border-2 border-violet-600 px-5 py-2.5 text-violet-700 text-sm font-semibold hover:bg-violet-50"
           >

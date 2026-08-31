@@ -309,3 +309,36 @@ export async function verstuurOutreach(formData: FormData) {
     .where(eq(prospects.id, id));
   revalidatePath("/admin/outreach");
 }
+
+/** Webinar inplannen. */
+export async function webinarToevoegen(formData: FormData) {
+  await requireAdmin();
+  const { webinars } = await import("@/db/schema");
+  const titel = String(formData.get("titel") ?? "").trim();
+  const datum = String(formData.get("datum") ?? "");
+  const tijd = String(formData.get("tijd") ?? "");
+  const meetLink = String(formData.get("meetLink") ?? "").trim();
+  if (!titel || !datum || !tijd) return;
+  const wanneer = new Date(`${datum}T${tijd}`);
+  if (isNaN(wanneer.getTime())) return;
+  await db.insert(webinars).values({ titel, wanneer, meetLink: meetLink || null });
+  revalidatePath("/admin/webinars");
+  revalidatePath("/webinar");
+}
+
+/** Webinar bijwerken (opnamelink, aan/uit) of verwijderen. */
+export async function webinarBijwerken(formData: FormData) {
+  await requireAdmin();
+  const { webinars } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  if (formData.get("verwijder")) {
+    await db.delete(webinars).where(eq(webinars.id, id));
+  } else {
+    const opnameLink = String(formData.get("opnameLink") ?? "").trim();
+    const actief = formData.get("actief") === "on";
+    await db.update(webinars).set({ opnameLink: opnameLink || null, actief }).where(eq(webinars.id, id));
+  }
+  revalidatePath("/admin/webinars");
+  revalidatePath("/webinar");
+}

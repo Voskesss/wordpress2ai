@@ -74,15 +74,40 @@ export async function POST(req: Request) {
     const invullerEmail = Object.entries(velden).find(
       ([k, v]) => /mail/i.test(k) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)
     )?.[1];
+    // Webinar-inschrijving? Zoek de sessie op voor datum/link + agenda-bestand.
+    let webinarInfo = "";
+    if (formulier === "webinar" && velden.webinar) {
+      const { webinars } = await import("@/db/schema");
+      const [w] = await db.select().from(webinars).where(eq(webinars.titel, velden.webinar));
+      if (w) {
+        const wanneer = w.wanneer.toLocaleString("nl-NL", {
+          weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+        });
+        webinarInfo = `<p><strong>Wanneer:</strong> ${ontsnap(wanneer)}</p>${
+          w.meetLink ? `<p><strong>Deelnamelink:</strong> <a href="${ontsnap(w.meetLink)}">${ontsnap(w.meetLink)}</a></p>` : "<p>De deelnamelink sturen we je kort van tevoren toe.</p>"
+        }`;
+      }
+    }
+
     if (invullerEmail) {
-      // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf
-      await verstuurSiteMail({
-        site: site ?? null,
-        naar: invullerEmail,
-        onderwerp: `Bedankt voor uw bericht aan ${siteNaam}`,
-        html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`,
-        antwoordNaar: site?.notificatieEmail ?? undefined,
-      });
+      if (formulier === "webinar") {
+        await verstuurSiteMail({
+          site: site ?? null,
+          naar: invullerEmail,
+          onderwerp: `Je bent aangemeld voor het webinar van ${siteNaam}`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}<p>Tot dan! Zet het vast in je agenda — een reply op deze mail komt gewoon bij ons aan als je vragen hebt.</p>`,
+          antwoordNaar: site?.notificatieEmail ?? undefined,
+        });
+      } else {
+        // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf
+        await verstuurSiteMail({
+          site: site ?? null,
+          naar: invullerEmail,
+          onderwerp: `Bedankt voor uw bericht aan ${siteNaam}`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`,
+          antwoordNaar: site?.notificatieEmail ?? undefined,
+        });
+      }
     }
 
     // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de invuller
