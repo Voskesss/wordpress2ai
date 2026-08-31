@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import { prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
 import ObservatieVeld from "./ObservatieVeld";
+import ScanVak from "./ScanVak";
 
 export const metadata: Metadata = {
   title: "Outreach",
@@ -49,8 +50,11 @@ export default async function Outreach() {
         de prospect automatisch op &ldquo;niet mailen&rdquo; zet.
       </p>
 
+      <ScanVak />
+
       {/* Toevoegen */}
       <form
+        id="prospect-formulier"
         action={prospectToevoegen}
         className="mt-8 rounded-3xl border-2 border-violet-200 bg-violet-50/40 p-6 grid gap-3 sm:grid-cols-2"
       >
