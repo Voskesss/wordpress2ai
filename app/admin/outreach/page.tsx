@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { outreachTestmail, prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
+import { outreachTestmail, prospectBijwerken, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
 import { maakOutreachMail } from "@/lib/outreach";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
@@ -35,7 +35,9 @@ const dagen = (d: Date | null) =>
 
 export default async function Outreach() {
   await requireAdmin();
-  const lijst = await db.select().from(prospects).orderBy(desc(prospects.id));
+  const alle = await db.select().from(prospects).orderBy(desc(prospects.id));
+  const lijst = alle.filter((p) => p.status !== "niet_mailen");
+  const afgemeld = alle.filter((p) => p.status === "niet_mailen");
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -55,10 +57,10 @@ export default async function Outreach() {
       <div className="mt-8 grid gap-2 sm:grid-cols-4">
         {(
           [
-            ["Nog te mailen", lijst.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
-            ["Loopt (mail 1-3)", lijst.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
-            ["Gereageerd / klant", lijst.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
-            ["Niet mailen", lijst.filter((p) => p.status === "niet_mailen").length, "bg-red-100 text-red-800"],
+            ["Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
+            ["Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
+            ["Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
+            ["Niet mailen", afgemeld.length, "bg-red-100 text-red-800"],
           ] as const
         ).map(([label, aantal, kleur]) => (
           <div key={label} className={`rounded-2xl px-4 py-3 ${kleur}`}>
@@ -268,10 +270,43 @@ export default async function Outreach() {
                     />
                   </div>
                 </form>
+                <form action={prospectVerwijderen} className="mt-2">
+                  <input type="hidden" name="id" value={p.id} />
+                  <ActieKnop
+                    label="Prospect verwijderen"
+                    bezigLabel="Verwijderen..."
+                    className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
+                  />
+                </form>
               </details>
             </div>
           );
         })}
+      </div>
+
+      {/* Blokkeerlijst */}
+      <div className="mt-10 rounded-3xl border border-red-200 bg-red-50/40 p-6">
+        <h2 className="font-display text-xl font-semibold text-red-900">
+          🚫 Niet-mailen-lijst ({afgemeld.length})
+        </h2>
+        <p className="mt-1 text-sm text-red-800">
+          Deze mensen hebben zich afgemeld (of jij hebt ze zo gezet). Ze krijgen
+          nooit meer mail van ons — ook niet als je het adres opnieuw probeert
+          toe te voegen. Deze lijst is bewust niet te wissen.
+        </p>
+        {afgemeld.length === 0 ? (
+          <p className="mt-3 text-sm text-red-700">Nog niemand afgemeld.</p>
+        ) : (
+          <ul className="mt-3 space-y-1 text-sm text-red-900">
+            {afgemeld.map((p) => (
+              <li key={p.id} className="flex flex-wrap gap-x-2">
+                <span className="font-medium">{p.bedrijf}</span>
+                <span className="text-red-700">{p.email}</span>
+                <span className="text-red-500">· {p.website}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

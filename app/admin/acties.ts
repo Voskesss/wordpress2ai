@@ -283,6 +283,24 @@ export async function prospectBijwerken(formData: FormData) {
   revalidatePath("/admin/outreach");
 }
 
+/** Outreach: prospect verwijderen. Afgemelde adressen blijven bewaard op een
+ * aparte blokkeerlijst, zodat ze nooit opnieuw benaderd kunnen worden. */
+export async function prospectVerwijderen(formData: FormData) {
+  await requireAdmin();
+  const { prospects } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const [p] = await db.select().from(prospects).where(eq(prospects.id, id));
+  if (!p) return;
+  if (p.status === "niet_mailen") {
+    // Nooit wissen: dan zou het adres opnieuw toegevoegd kunnen worden
+    revalidatePath("/admin/outreach");
+    return;
+  }
+  await db.delete(prospects).where(eq(prospects.id, id));
+  revalidatePath("/admin/outreach");
+}
+
 /** Outreach: volgende mail versturen (1 → 2 → 3, nooit voorbij niet-mailen). */
 export async function verstuurOutreach(formData: FormData) {
   await requireAdmin();
