@@ -61,8 +61,12 @@ export default function Privacy() {
         </p>
         <p>
           We verzamelen géén advertentie- of trackingprofielen en plaatsen geen
-          marketingcookies. Er worden alleen functionele cookies gebruikt (voor
-          het inloggen op het klantportaal).
+          marketingcookies. Standaard gebruiken we alleen functionele cookies
+          (voor het inloggen op het klantportaal). Alleen als je daar op deze
+          site uitdrukkelijk &quot;ja&quot; op zegt, meten we bezoek anoniem met
+          Google Analytics (met afgeschermd IP-adres); zeg je niets of
+          &quot;nee&quot;, dan wordt er niets gemeten. Je keuze bewaren we in je
+          eigen browser en kun je wissen via je browserinstellingen.
         </p>
       </Blok>
 

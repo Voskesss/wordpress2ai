@@ -1,12 +1,12 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
+import CookieKeuze from "./CookieKeuze";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces, EB_Garamond } from "next/font/google";
 import Link from "next/link";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -77,17 +77,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${fraunces.variable} ${garamond.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 font-[family-name:var(--font-geist-sans)]">
-        {!isDev && (
-          <>
-            <Script src="https://www.googletagmanager.com/gtag/js?id=G-S0169SZ52B" strategy="afterInteractive" />
-            <Script id="ga4" strategy="afterInteractive">
-              {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-S0169SZ52B');`}
-            </Script>
-          </>
-        )}
+        {/* Analytics laadt pas na expliciete toestemming (zie CookieKeuze) */}
+        {!isDev && <CookieKeuze />}
         <ClerkProvider localization={nlNL}>
           <script
           type="application/ld+json"
