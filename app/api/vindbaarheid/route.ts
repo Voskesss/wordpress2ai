@@ -21,6 +21,35 @@ function bestandVoorPad(pad: string): string[] {
   return [`${kaal}/index.html`, `${kaal}.html`];
 }
 
+/** Maakt relatieve verwijzingen (href/src/srcset) absoluut t.o.v. de oude map.
+ * Nodig als een pagina naar een andere map verhuist: anders breken CSS,
+ * afbeeldingen en links. */
+function maakPadenAbsoluut(html: string, oudeMap: string): string {
+  const basis = oudeMap ? `/${oudeMap.replace(/\/+$/, "")}/` : "/";
+  const absoluut = (waarde: string) => {
+    const w = waarde.trim();
+    if (
+      !w ||
+      /^(https?:|\/\/|\/|#|mailto:|tel:|data:|javascript:)/i.test(w)
+    ) {
+      return waarde;
+    }
+    // ../ en ./ netjes oplossen
+    const delen = (basis + w).split("/");
+    const stapel: string[] = [];
+    for (const deel of delen) {
+      if (deel === "" || deel === ".") continue;
+      if (deel === "..") stapel.pop();
+      else stapel.push(deel);
+    }
+    return "/" + stapel.join("/");
+  };
+  return html.replace(
+    /\b(href|src|poster)=(["'])([^"']*)\2/gi,
+    (heel, attr, quote, waarde) => `${attr}=${quote}${absoluut(waarde)}${quote}`
+  );
+}
+
 const titelUit = (html: string) => html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? "";
 const omschrijvingUit = (html: string) =>
   html.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1] ?? "";
@@ -166,8 +195,13 @@ export async function POST(req: Request) {
     ) {
       const kaal = gevraagdAdres.replace(/^\/+|\/+$/g, "");
       nieuwPad = `${kaal}/index.html`;
+      // Relatieve verwijzingen (stijl.css, afbeeldingen, links) absoluut maken —
+      // anders breekt de pagina zodra hij in een andere map staat
+      const oudeMap = oudPad.includes("/") ? oudPad.slice(0, oudPad.lastIndexOf("/")) : "";
+      inhoud = maakPadenAbsoluut(inhoud, oudeMap);
       await mkdir(path.join(werkmap, kaal), { recursive: true });
       await rename(path.join(werkmap, oudPad), path.join(werkmap, nieuwPad));
+      await writeFile(path.join(werkmap, nieuwPad), inhoud);
       gewijzigd[0] = { pad: nieuwPad, inhoud: Buffer.from(inhoud) };
 
       // 301-doorverwijzing
@@ -305,7 +339,14 @@ export async function POST(req: Request) {
     ]);
 
     await wvDeploy;
-    return NextResponse.json({ ok: true, reply, previewUrl, changeId, bestanden: paden });
+    return NextResponse.json({
+      ok: true,
+      reply,
+      previewUrl,
+      changeId,
+      bestanden: paden,
+      nieuwAdres: nieuwPad !== oudPad ? gevraagdAdres.replace(/\/?$/, "/") : undefined,
+    });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
   }

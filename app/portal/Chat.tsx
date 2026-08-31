@@ -1154,6 +1154,11 @@ export default function Chat({
                     prompt: "Vindbaarheid aangepast",
                     paginas: data.bestanden ?? [],
                   });
+                  // Adres gewijzigd? Voorbeeld naar het nieuwe adres sturen
+                  if (data.nieuwAdres) {
+                    huidigeRef.current = data.nieuwAdres;
+                    setHuidigePagina(data.nieuwAdres);
+                  }
                   herlaad(true);
                   wachtOpVerseVersie();
                   setOngedaanKans(null);

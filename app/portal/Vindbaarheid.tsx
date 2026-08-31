@@ -21,6 +21,7 @@ export default function Vindbaarheid({
     previewUrl?: string;
     changeId?: number;
     bestanden?: string[];
+    nieuwAdres?: string;
   }) => void;
   onSluit: () => void;
 }) {
@@ -76,6 +77,7 @@ export default function Vindbaarheid({
         previewUrl?: string;
         changeId?: number;
         bestanden?: string[];
+        nieuwAdres?: string;
       };
       if (data.ok) onKlaar(data);
       else setFout(data.error === "Geen wijziging" ? "Er is nog niets gewijzigd." : "Opslaan lukte niet — probeer het zo nog eens.");
