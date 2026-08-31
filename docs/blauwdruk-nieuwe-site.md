@@ -16,7 +16,9 @@ blauwdruk.
    libraries; JavaScript alleen voor kleine interacties (menu, lightbox,
    slider) — een paar regels, zelf geschreven.
 3. **Zelfde techniek als migraties**: delen/ voor topbalk/menu/footer,
-   formulieren via /api/formulier met honeypot en bedankt-pagina, seo-basics
+   formulieren via /api/formulier met honeypot en bedankt-pagina (ook
+   bestandsupload mogelijk: multipart + input type=file, pdf/Word/afbeelding,
+   max 2 × 5 MB, komt als mailbijlage bij de klant aan), seo-basics
    (titels, meta-omschrijvingen, structured data waar logisch), mobiel-check
    verplicht (hamburger, ±375px), afbeeldingen als webp met nette maten.
 
