@@ -232,3 +232,80 @@ export async function bewaarSmtp(formData: FormData) {
   }
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+/** Outreach: prospect toevoegen. */
+export async function prospectToevoegen(formData: FormData) {
+  await requireAdmin();
+  const { prospects } = await import("@/db/schema");
+  const bedrijf = String(formData.get("bedrijf") ?? "").trim();
+  const website = String(formData.get("website") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const observatie = String(formData.get("observatie") ?? "").trim();
+  if (!bedrijf || !website || !email.includes("@")) return;
+  await db.insert(prospects).values({ bedrijf, website, email, observatie: observatie || null });
+  revalidatePath("/admin/outreach");
+}
+
+/** Outreach: observatie/e-mail bijwerken of status zetten. */
+export async function prospectBijwerken(formData: FormData) {
+  await requireAdmin();
+  const { prospects } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const status = String(formData.get("status") ?? "");
+  const observatie = formData.get("observatie");
+  const email = formData.get("email");
+  const wijziging: Record<string, unknown> = {};
+  if (["nieuw", "mail1", "mail2", "mail3", "gereageerd", "klant", "niet_mailen"].includes(status)) {
+    wijziging.status = status;
+  }
+  if (typeof observatie === "string") wijziging.observatie = observatie.trim() || null;
+  if (typeof email === "string" && email.includes("@")) wijziging.email = email.trim().toLowerCase();
+  if (Object.keys(wijziging).length > 0) {
+    await db.update(prospects).set(wijziging).where(eq(prospects.id, id));
+  }
+  revalidatePath("/admin/outreach");
+}
+
+/** Outreach: volgende mail versturen (1 → 2 → 3, nooit voorbij niet-mailen). */
+export async function verstuurOutreach(formData: FormData) {
+  await requireAdmin();
+  const { prospects } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const [p] = await db.select().from(prospects).where(eq(prospects.id, id));
+  if (!p) return;
+  if (["niet_mailen", "gereageerd", "klant", "mail3"].includes(p.status)) return;
+
+  const nummer = (p.status === "nieuw" ? 1 : p.status === "mail1" ? 2 : 3) as 1 | 2 | 3;
+  const { maakOutreachMail } = await import("@/lib/outreach");
+  const mail = maakOutreachMail(nummer, p);
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: `Jos van WordSwap <${adres}>`,
+      to: [p.email],
+      subject: mail.onderwerp,
+      html: mail.html,
+      reply_to: ["info@aibackoffice.nl"],
+    }),
+  });
+  if (!res.ok) {
+    console.error("Outreach-mail mislukt:", await res.text());
+    return;
+  }
+  await db
+    .update(prospects)
+    .set({
+      status: `mail${nummer}`,
+      ...(nummer === 1 ? { mail1Op: new Date() } : nummer === 2 ? { mail2Op: new Date() } : { mail3Op: new Date() }),
+    })
+    .where(eq(prospects.id, id));
+  revalidatePath("/admin/outreach");
+}

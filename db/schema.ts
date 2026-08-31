@@ -156,3 +156,19 @@ export const kennisDocumenten = pgTable("kennis_documenten", {
   inhoud: text("inhoud").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Outreach: prospects die we (netjes, max 3 mails) benaderen
+export const prospects = pgTable("prospects", {
+  id: serial("id").primaryKey(),
+  bedrijf: text("bedrijf").notNull(),
+  website: text("website").notNull(),
+  email: text("email").notNull(),
+  // Jos' persoonlijke observatie over de site — wordt in de mail verweven
+  observatie: text("observatie"),
+  // nieuw | mail1 | mail2 | mail3 | gereageerd | klant | niet_mailen
+  status: text("status").notNull().default("nieuw"),
+  mail1Op: timestamp("mail1_op"),
+  mail2Op: timestamp("mail2_op"),
+  mail3Op: timestamp("mail3_op"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
