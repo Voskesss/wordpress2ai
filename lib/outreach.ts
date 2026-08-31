@@ -45,7 +45,7 @@ export function maakOutreachMail(
 ${observatie}
 <p>Wij doen iets vrij nieuws: we zetten WordPress-sites om naar een razendsnelle website zonder onderhoud — geen updates, plugins of hostinggedoe meer. Aanpassen doe je daarna door het gewoon te typen ("zet de openingstijden op zaterdag tot 17:00") en onze AI voert het uit.</p>
 <p>Het mooie: je ziet eerst de complete kopie van je site, en alleen als je tevreden bent betaal je (eenmalig €250–€750). Niet goed = niets betalen.</p>
-<p>Als je nieuwsgierig bent: op <a href="https://wordswap.nl/demo" style="color:#6d28d9">wordswap.nl/demo</a> kun je het gratis zelf proberen op een oefensite. En reageren op deze mail mag natuurlijk ook gewoon.</p>
+<p>Als je nieuwsgierig bent kun je op <a href="https://wordswap.nl/demo" style="color:#6d28d9">wordswap.nl/demo</a> gratis zelf proberen hoe het werkt. Wil je liever eerst rustig horen wat dit voor jou betekent? Dan geef ik regelmatig een gratis online webinar van een half uur — aanmelden kan op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>. Reageren op deze mail mag natuurlijk ook gewoon.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
@@ -58,6 +58,7 @@ ${groet}${afmeldRegel(p)}</div>`,
 <p>Een tijdje terug stuurde ik je een berichtje over de website van ${ontsnap(p.bedrijf)} — ik snap dat zoiets er makkelijk bij inschiet.</p>
 <p>Daarom één simpele vraag: zou je willen zien hoe jouw site eruitziet als snelle, onderhoudsvrije versie? Die kopie maken we gratis en vrijblijvend — je betaalt alleen als je hem wilt houden.</p>
 <p>Eén reply met "ja, laat maar zien" is genoeg.</p>
+<p>Liever eerst vrijblijvend meekijken? In een gratis webinar van een half uur laat ik precies zien hoe het werkt — data en aanmelden op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
@@ -67,7 +68,7 @@ ${groet}${afmeldRegel(p)}</div>`,
     html: `<div style="${stijl}">
 <p>Hallo,</p>
 <p>Dit is mijn laatste berichtje — ik wil niet blijven mailen. Als een snellere website zonder onderhoud nu niet speelt bij ${ontsnap(p.bedrijf)}: helemaal prima, dan laat ik je met rust.</p>
-<p>Mocht het later ooit relevant worden (bijvoorbeeld als de hostingfactuur of een plugin-probleem weer eens irriteert): je vindt ons op <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a>. De gratis site-check blijft staan.</p>
+<p>Mocht het later ooit relevant worden (bijvoorbeeld als de hostingfactuur of een plugin-probleem weer eens irriteert): je vindt ons op <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a>. De gratis site-check blijft staan, en vrijblijvend meekijken kan altijd via een van onze gratis webinars: <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
 <p>Veel succes met de zaak!</p>
 ${groet}${afmeldRegel(p)}</div>`,
   };
