@@ -7,12 +7,37 @@ import { verstuurSiteMail } from "@/lib/mail";
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// Bijlagen (bv. cv bij een sollicitatie): alleen veilige documenttypen,
+// max 5 MB per bestand en max 2 bestanden per inzending.
+const BIJLAGE_EXTENSIES = /\.(pdf|docx?|odt|rtf|txt|jpe?g|png)$/i;
+const BIJLAGE_MAX_BYTES = 5 * 1024 * 1024;
+const BIJLAGE_MAX_AANTAL = 2;
+
 export async function POST(req: Request) {
   const velden: Record<string, string> = {};
+  const bijlagen: { bestandsnaam: string; inhoud: Buffer }[] = [];
   const ct = req.headers.get("content-type") ?? "";
   if (ct.includes("form")) {
     const form = await req.formData();
-    for (const [k, v] of form.entries()) velden[k] = String(v).slice(0, 2000);
+    for (const [k, v] of form.entries()) {
+      if (typeof v === "object" && v && "arrayBuffer" in v) {
+        const bestand = v as File;
+        if (!bestand.size) continue; // leeg uploadveld
+        const naam = (bestand.name || "bijlage").replace(/[^\w. -]+/g, "_").slice(0, 120);
+        if (
+          bijlagen.length < BIJLAGE_MAX_AANTAL &&
+          bestand.size <= BIJLAGE_MAX_BYTES &&
+          BIJLAGE_EXTENSIES.test(naam)
+        ) {
+          bijlagen.push({ bestandsnaam: naam, inhoud: Buffer.from(await bestand.arrayBuffer()) });
+          velden[k] = `${naam} (${Math.round(bestand.size / 1024)} kB, meegestuurd als bijlage)`;
+        } else {
+          velden[k] = `${naam} — geweigerd (te groot of geen toegestaan bestandstype)`;
+        }
+      } else {
+        velden[k] = String(v).slice(0, 2000);
+      }
+    }
   } else {
     return NextResponse.json({ error: "Ongeldig verzoek" }, { status: 400 });
   }
@@ -118,6 +143,7 @@ export async function POST(req: Request) {
         onderwerp: `Nieuwe ${formulier}-inzending via ${siteNaam}`,
         html: `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`,
         antwoordNaar: invullerEmail,
+        bijlagen,
       });
     }
   }

@@ -44,8 +44,9 @@ export async function verstuurSiteMail(opties: {
   onderwerp: string;
   html: string;
   antwoordNaar?: string;
+  bijlagen?: { bestandsnaam: string; inhoud: Buffer }[];
 }) {
-  const { site, naar, onderwerp, html, antwoordNaar } = opties;
+  const { site, naar, onderwerp, html, antwoordNaar, bijlagen } = opties;
   if (!naar) return;
 
   // Witlabel-route: eigen mailserver van de klant
@@ -66,6 +67,9 @@ export async function verstuurSiteMail(opties: {
           subject: onderwerp,
           html,
           ...(antwoordNaar ? { replyTo: antwoordNaar } : {}),
+          ...(bijlagen?.length
+            ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud })) }
+            : {}),
         });
         return;
       } catch (e) {
@@ -90,6 +94,9 @@ export async function verstuurSiteMail(opties: {
       subject: onderwerp,
       html,
       ...(antwoordNaar ? { reply_to: [antwoordNaar] } : {}),
+      ...(bijlagen?.length
+        ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud.toString("base64") })) }
+        : {}),
     }),
   }).catch((e) => console.error("Mail versturen mislukt:", e));
 }
