@@ -837,6 +837,16 @@ export default function Chat({
                 </button>
               ))}
             </div>
+            {concept && werkversieUrl && (
+              <a
+                href={`https://${werkversieUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-amber-700 hover:underline"
+              >
+                Open concept
+              </a>
+            )}
             {liveUrl && (
               <a
                 href={`https://${liveUrl}`}
