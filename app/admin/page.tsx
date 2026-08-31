@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { aiKosten, changes, formulierInzendingen, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { aanvraagVerwerken } from "./acties";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -69,12 +70,13 @@ export default async function Admin() {
   await requireAdmin();
   const leads = await demoLeads();
   const { desc } = await import("drizzle-orm");
-  const aanvragen = await db
+  const alleAanvragen = await db
     .select()
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.siteRepo, "wordswap"))
-    .orderBy(desc(formulierInzendingen.id))
-    .then((r) => r.slice(0, 20));
+    .orderBy(desc(formulierInzendingen.id));
+  const aanvragen = alleAanvragen.filter((a) => !a.gearchiveerd).slice(0, 20);
+  const afgehandeld = alleAanvragen.filter((a) => a.gearchiveerd).slice(0, 60);
   const alleSites = await db.select().from(sites).orderBy(sites.id);
   const maand = new Date().toISOString().slice(0, 7);
 
@@ -240,8 +242,61 @@ export default async function Admin() {
                     )
                   )}
                 </dl>
+                <div className="mt-3 flex gap-4">
+                  <form action={aanvraagVerwerken}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="actie" value="archiveer" />
+                    <button type="submit" className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer">
+                      ✓ Afgehandeld
+                    </button>
+                  </form>
+                  <form action={aanvraagVerwerken}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="actie" value="verwijder" />
+                    <button type="submit" className="text-xs text-stone-400 hover:text-red-600 cursor-pointer">
+                      Verwijderen
+                    </button>
+                  </form>
+                </div>
               </div>
             ))}
+            {aanvragen.length === 0 && (
+              <p className="text-sm text-stone-500">Geen openstaande aanvragen — netjes bijgewerkt.</p>
+            )}
+            {afgehandeld.length > 0 && (
+              <details>
+                <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
+                  Afgehandeld ({afgehandeld.length})
+                </summary>
+                <div className="mt-2 space-y-2 max-h-80 overflow-y-auto">
+                  {afgehandeld.map((a) => (
+                    <div key={a.id} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-500">
+                      <p className="flex flex-wrap items-center gap-2">
+                        <span>{a.aangemaakt.toLocaleDateString("nl-NL")}</span>
+                        <span className="font-medium capitalize text-stone-600">{a.formulier}</span>
+                        <span className="truncate">
+                          {Object.entries(a.velden as Record<string, string>)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(" · ")}
+                        </span>
+                      </p>
+                      <div className="mt-1 flex gap-3">
+                        <form action={aanvraagVerwerken}>
+                          <input type="hidden" name="id" value={a.id} />
+                          <input type="hidden" name="actie" value="terug" />
+                          <button type="submit" className="hover:text-violet-700 cursor-pointer">↩ Terugzetten</button>
+                        </form>
+                        <form action={aanvraagVerwerken}>
+                          <input type="hidden" name="id" value={a.id} />
+                          <input type="hidden" name="actie" value="verwijder" />
+                          <button type="submit" className="hover:text-red-600 cursor-pointer">Verwijderen</button>
+                        </form>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         </div>
       )}

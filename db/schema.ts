@@ -145,6 +145,8 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   formulier: text("formulier").notNull().default("contact"),
   velden: jsonb("velden").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
+  gearchiveerd: boolean("gearchiveerd").notNull().default(false),
 });
 
 export const kennisDocumenten = pgTable("kennis_documenten", {

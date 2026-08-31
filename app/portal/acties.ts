@@ -65,3 +65,40 @@ export async function verwijderKennisDocument(formData: FormData) {
     );
   revalidatePath("/portal");
 }
+
+/** Inzending archiveren (uit het overzicht) of definitief verwijderen. */
+export async function inzendingVerwerken(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) return;
+  const id = Number(formData.get("id"));
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
+  const site = await eigenSite(siteId);
+  if (!site) return;
+
+  const { formulierInzendingen } = await import("@/db/schema");
+  const { and } = await import("drizzle-orm");
+  const actie = String(formData.get("actie") ?? "archiveer");
+  if (actie === "verwijder") {
+    await db
+      .delete(formulierInzendingen)
+      .where(
+        and(
+          eq(formulierInzendingen.id, id),
+          eq(formulierInzendingen.siteRepo, site.githubRepo)
+        )
+      );
+  } else {
+    await db
+      .update(formulierInzendingen)
+      .set({ gearchiveerd: actie !== "terug" })
+      .where(
+        and(
+          eq(formulierInzendingen.id, id),
+          eq(formulierInzendingen.siteRepo, site.githubRepo)
+        )
+      );
+  }
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${siteId}`);
+}

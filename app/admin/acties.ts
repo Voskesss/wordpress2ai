@@ -342,3 +342,21 @@ export async function webinarBijwerken(formData: FormData) {
   revalidatePath("/admin/webinars");
   revalidatePath("/webinar");
 }
+
+/** Aanvraag op de admin-hoofdpagina archiveren, terugzetten of verwijderen. */
+export async function aanvraagVerwerken(formData: FormData) {
+  await requireAdmin();
+  const { formulierInzendingen } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const actie = String(formData.get("actie") ?? "archiveer");
+  if (actie === "verwijder") {
+    await db.delete(formulierInzendingen).where(eq(formulierInzendingen.id, id));
+  } else {
+    await db
+      .update(formulierInzendingen)
+      .set({ gearchiveerd: actie !== "terug" })
+      .where(eq(formulierInzendingen.id, id));
+  }
+  revalidatePath("/admin");
+}

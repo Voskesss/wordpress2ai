@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import {
   bewaarNotificatieEmail,
+  inzendingVerwerken,
   uploadKennisDocument,
   verwijderKennisDocument,
 } from "./acties";
@@ -16,12 +17,13 @@ export default async function SiteExtra({
   siteRepo: string;
   notificatieEmail: string | null;
 }) {
-  const inzendingen = await db
+  const alle = await db
     .select()
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.siteRepo, siteRepo))
-    .orderBy(desc(formulierInzendingen.id))
-    .then((r) => r.slice(0, 30));
+    .orderBy(desc(formulierInzendingen.id));
+  const inzendingen = alle.filter((i) => !i.gearchiveerd).slice(0, 30);
+  const gearchiveerd = alle.filter((i) => i.gearchiveerd).slice(0, 50);
   const documenten = await db
     .select()
     .from(kennisDocumenten)
@@ -64,9 +66,63 @@ export default async function SiteExtra({
                     )
                   )}
                 </dl>
+                <div className="mt-2 flex gap-3">
+                  <form action={inzendingVerwerken}>
+                    <input type="hidden" name="id" value={inz.id} />
+                    <input type="hidden" name="siteId" value={siteId} />
+                    <input type="hidden" name="actie" value="archiveer" />
+                    <button type="submit" className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer">
+                      ✓ Afgehandeld
+                    </button>
+                  </form>
+                  <form action={inzendingVerwerken}>
+                    <input type="hidden" name="id" value={inz.id} />
+                    <input type="hidden" name="siteId" value={siteId} />
+                    <input type="hidden" name="actie" value="verwijder" />
+                    <button type="submit" className="text-xs text-stone-400 hover:text-red-600 cursor-pointer">
+                      Verwijderen
+                    </button>
+                  </form>
+                </div>
               </div>
             ))}
           </div>
+        )}
+        {gearchiveerd.length > 0 && (
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
+              Afgehandeld ({gearchiveerd.length})
+            </summary>
+            <div className="mt-2 space-y-2 max-h-72 overflow-y-auto">
+              {gearchiveerd.map((inz) => (
+                <div key={inz.id} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-500">
+                  <p className="flex flex-wrap items-center gap-2">
+                    <span>{inz.aangemaakt.toLocaleDateString("nl-NL")}</span>
+                    <span className="font-medium capitalize text-stone-600">{inz.formulier}</span>
+                    <span className="truncate">
+                      {Object.entries(inz.velden as Record<string, string>)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(" · ")}
+                    </span>
+                  </p>
+                  <div className="mt-1 flex gap-3">
+                    <form action={inzendingVerwerken}>
+                      <input type="hidden" name="id" value={inz.id} />
+                      <input type="hidden" name="siteId" value={siteId} />
+                      <input type="hidden" name="actie" value="terug" />
+                      <button type="submit" className="hover:text-violet-700 cursor-pointer">↩ Terugzetten</button>
+                    </form>
+                    <form action={inzendingVerwerken}>
+                      <input type="hidden" name="id" value={inz.id} />
+                      <input type="hidden" name="siteId" value={siteId} />
+                      <input type="hidden" name="actie" value="verwijder" />
+                      <button type="submit" className="hover:text-red-600 cursor-pointer">Verwijderen</button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
         )}
         <form action={bewaarNotificatieEmail} className="mt-5 border-t border-stone-100 pt-4">
           <input type="hidden" name="siteId" value={siteId} />
