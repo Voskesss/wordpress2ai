@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
+import { outreachTestmail, prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
 import { maakOutreachMail } from "@/lib/outreach";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
@@ -50,6 +50,51 @@ export default async function Outreach() {
         stilte, mail&nbsp;3 na nog ±7 dagen. Elke mail heeft een afmeldlink die
         de prospect automatisch op &ldquo;niet mailen&rdquo; zet.
       </p>
+
+      {/* Overzicht per fase */}
+      <div className="mt-8 grid gap-2 sm:grid-cols-4">
+        {(
+          [
+            ["Nog te mailen", lijst.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
+            ["Loopt (mail 1-3)", lijst.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
+            ["Gereageerd / klant", lijst.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
+            ["Niet mailen", lijst.filter((p) => p.status === "niet_mailen").length, "bg-red-100 text-red-800"],
+          ] as const
+        ).map(([label, aantal, kleur]) => (
+          <div key={label} className={`rounded-2xl px-4 py-3 ${kleur}`}>
+            <p className="font-display text-2xl font-semibold">{aantal}</p>
+            <p className="text-xs font-medium">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Testmail */}
+      <form action={outreachTestmail} className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">✉️ Testmail naar jezelf</h2>
+        <p className="mt-1 text-sm text-stone-600">
+          Stuur een van de drie mails naar je eigen adres om te zien hoe hij in
+          een echte inbox oogt (met voorbeeldgegevens).
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            name="naar"
+            type="email"
+            required
+            defaultValue="josklijnhout@hotmail.com"
+            className="flex-1 min-w-[14rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+          />
+          <select name="nummer" className="rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none">
+            <option value="1">Mail 1 (eerste contact)</option>
+            <option value="2">Mail 2 (herinnering)</option>
+            <option value="3">Mail 3 (laatste)</option>
+          </select>
+          <ActieKnop
+            label="Stuur testmail"
+            bezigLabel="Versturen..."
+            className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+          />
+        </div>
+      </form>
 
       <ScanVak />
 
@@ -140,6 +185,12 @@ export default async function Outreach() {
                   </form>
                 )}
               </div>
+              {p.status === "niet_mailen" && (
+                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-sm text-red-800">
+                  🚫 Deze persoon wil geen mail meer. Er kan niets meer verstuurd
+                  worden — ook niet door dit adres opnieuw toe te voegen.
+                </p>
+              )}
               {p.observatie && (
                 <p className="mt-2 rounded-xl bg-stone-50 border border-stone-200 px-3.5 py-2 text-sm text-stone-600">
                   💬 {p.observatie}

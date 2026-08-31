@@ -242,6 +242,12 @@ export async function prospectToevoegen(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const observatie = String(formData.get("observatie") ?? "").trim();
   if (!bedrijf || !website || !email.includes("@")) return;
+  // Nooit iemand opnieuw opvoeren die zich heeft afgemeld
+  const [bestaand] = await db.select().from(prospects).where(eq(prospects.email, email));
+  if (bestaand) {
+    revalidatePath("/admin/outreach");
+    return;
+  }
   await db.insert(prospects).values({ bedrijf, website, email, observatie: observatie || null });
   revalidatePath("/admin/outreach");
 }
@@ -260,7 +266,17 @@ export async function prospectBijwerken(formData: FormData) {
     wijziging.status = status;
   }
   if (typeof observatie === "string") wijziging.observatie = observatie.trim() || null;
-  if (typeof email === "string" && email.includes("@")) wijziging.email = email.trim().toLowerCase();
+  if (typeof email === "string" && email.includes("@")) {
+    const nieuwAdres = email.trim().toLowerCase();
+    const [conflict] = await db
+      .select()
+      .from(prospects)
+      .where(eq(prospects.email, nieuwAdres));
+    // Niet toestaan als dat adres al bestaat als afgemelde prospect
+    if (!conflict || (conflict.id === id && conflict.status !== "niet_mailen")) {
+      wijziging.email = nieuwAdres;
+    }
+  }
   if (Object.keys(wijziging).length > 0) {
     await db.update(prospects).set(wijziging).where(eq(prospects.id, id));
   }
@@ -276,6 +292,13 @@ export async function verstuurOutreach(formData: FormData) {
   const [p] = await db.select().from(prospects).where(eq(prospects.id, id));
   if (!p) return;
   if (["niet_mailen", "gereageerd", "klant", "mail3"].includes(p.status)) return;
+  // Extra vangnet: staat dit e-mailadres ergens op niet-mailen, dan nooit versturen
+  const afgemeld = await db
+    .select()
+    .from(prospects)
+    .where(eq(prospects.email, p.email))
+    .then((rs) => rs.some((r) => r.status === "niet_mailen"));
+  if (afgemeld) return;
 
   const nummer = (p.status === "nieuw" ? 1 : p.status === "mail1" ? 2 : 3) as 1 | 2 | 3;
   const { maakOutreachMail } = await import("@/lib/outreach");
@@ -435,4 +458,41 @@ export async function webinarMailen(formData: FormData) {
     }).catch((e) => console.error("Webinar-mail mislukt:", e));
   }
   revalidatePath("/admin/webinars");
+}
+
+/** Testmail: stuur een outreach-mail naar jezelf om hem te beoordelen. */
+export async function outreachTestmail(formData: FormData) {
+  await requireAdmin();
+  const naar = String(formData.get("naar") ?? "").trim().toLowerCase();
+  const nummer = Number(formData.get("nummer") || 1);
+  if (!naar.includes("@") || ![1, 2, 3].includes(nummer)) return;
+
+  const { maakOutreachMail } = await import("@/lib/outreach");
+  const voorbeeld = {
+    id: 0,
+    bedrijf: String(formData.get("bedrijf") ?? "Bakkerij De Korenbloem"),
+    website: String(formData.get("website") ?? "www.voorbeeldbedrijf.nl"),
+    email: naar,
+    observatie:
+      String(formData.get("observatie") ?? "") ||
+      "Wat me opviel: de site laadt op mobiel vrij traag en het menu valt buiten beeld — zonde, want jullie werk ziet er goed uit.",
+  };
+  const mail = maakOutreachMail(nummer as 1 | 2 | 3, voorbeeld);
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: `Jos van WordSwap <${adres}>`,
+      to: [naar],
+      subject: `[TEST mail ${nummer}] ${mail.onderwerp}`,
+      html: `<div style="background:#fef3c7;border:1px solid #fde68a;padding:10px 14px;border-radius:10px;font-family:sans-serif;font-size:13px;color:#92400e;margin-bottom:16px">Dit is een TESTMAIL van outreach-mail ${nummer}. De afmeldknop onderaan doet in deze test niets.</div>${mail.html}`,
+      reply_to: ["info@aibackoffice.nl"],
+    }),
+  }).catch((e) => console.error("Testmail mislukt:", e));
+  revalidatePath("/admin/outreach");
 }
