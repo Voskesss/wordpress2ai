@@ -211,11 +211,33 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
           {!resultaat.bereikbaar ? (
             <p>❌ <strong>{resultaat.domein}</strong> is niet bereikbaar.</p>
           ) : !resultaat.isWordpress ? (
-            <p>
-              ⚪ <strong>{resultaat.domein}</strong> lijkt geen WordPress
-              ({resultaat.laadMs}ms) — waarschijnlijk geen match voor de
-              overstap-pitch.
-            </p>
+            <div>
+              <p>
+                ⚪ <strong>{resultaat.domein}</strong> is geen WordPress
+                {resultaat.platform ? (
+                  <> maar draait op <strong>{resultaat.platform}</strong></>
+                ) : (
+                  <> en het systeem erachter is niet herkenbaar (mogelijk maatwerk)</>
+                )}{" "}
+                ({resultaat.laadMs}ms).
+              </p>
+              <p className="mt-1 text-stone-600">
+                {resultaat.platform?.includes("maatwerk")
+                  ? "Waarschijnlijk een ontwikkelaar in de buurt — minder kansrijk voor de overstap-pitch."
+                  : "Ook prima over te zetten — gebruik alleen niet de WordPress-mail, maar een aangepaste eerste regel."}
+                {resultaat.email && (
+                  <> E-mail gevonden: <strong>{resultaat.email}</strong>.</>
+                )}
+              </p>
+              {resultaat.platform && !resultaat.platform.includes("maatwerk") && (
+                <button
+                  onClick={() => vulMet(resultaat)}
+                  className="mt-2 rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+                >
+                  → Toch in het formulier zetten
+                </button>
+              )}
+            </div>
           ) : (
             <>
               <p className="font-semibold">

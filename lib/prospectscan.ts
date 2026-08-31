@@ -5,6 +5,8 @@ export type ScanResultaat = {
   domein: string;
   bereikbaar: boolean;
   isWordpress: boolean;
+  /** Herkend systeem als het geen WordPress is (Wix, Squarespace, ...) */
+  platform?: string;
   laadMs: number;
   score: number;
   stempel: string;
@@ -95,6 +97,42 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
   const isWp =
     /wp-content|wp-includes|wp-json/i.test(html) ||
     /<meta[^>]+generator[^>]+WordPress/i.test(html);
+
+  // Geen WordPress? Kijk wat er dan wél achter zit — ook andere systemen
+  // kunnen we overzetten, dus dit blijft een prospect.
+  let platform: string | undefined;
+  if (!isWp) {
+    const kenmerken: [RegExp, string][] = [
+      [/wix\.com|wixstatic\.com|wix-code|X-Wix/i, "Wix"],
+      [/squarespace\.com|static1\.squarespace|squarespace-cdn/i, "Squarespace"],
+      [/webflow\.(io|com)|website-files\.com|data-wf-page/i, "Webflow"],
+      [/cdn\.shopify|myshopify\.com|Shopify\.theme/i, "Shopify"],
+      [/joomla|\/media\/jui\/|com_content/i, "Joomla"],
+      [/drupal\.js|\/sites\/default\/files|Drupal\.settings/i, "Drupal"],
+      [/jouwweb\.nl|jouwweb\.cdn/i, "JouwWeb"],
+      [/website-editor\.net|duda(mobile)?\.com|dmalbum/i, "Duda"],
+      [/sitedish|webador/i, "Webador"],
+      [/typo3/i, "TYPO3"],
+      [/mijnwebwinkel|mywebstore/i, "Mijnwebwinkel"],
+      [/strikingly|weebly|jimdo/i, "Jimdo/Weebly"],
+      [/_next\/static|__NEXT_DATA__/i, "Next.js (maatwerk)"],
+      [/gatsby|___gatsby/i, "Gatsby (maatwerk)"],
+      [/nuxt|__NUXT__/i, "Nuxt (maatwerk)"],
+      // Kant-en-klare bouwers van hostingpartijen (CM4all e.d.): herkenbaar
+      // aan hex-mappen als /themes/01dd.../ en index.bundle.js
+      [/\/themes\/[0-9a-f]{12,}\/|cm4all|sitebuilder/i, "sitebuilder van een hostingpartij"],
+    ];
+    for (const [re, naam] of kenmerken) {
+      if (re.test(html)) {
+        platform = naam;
+        break;
+      }
+    }
+    if (!platform) {
+      const gen = html.match(/<meta[^>]+name=["']generator["'][^>]+content=["']([^"']+)/i)?.[1];
+      if (gen) platform = gen.split(/[0-9]/)[0].trim();
+    }
+  }
   let contact = haalContact(html, schoon);
   // Geen e-mail op de homepage? Even op de contactpagina kijken.
   if (!contact.email) {
@@ -114,7 +152,8 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
       ...leeg,
       bereikbaar: true,
       laadMs: duurMs,
-      stempel: "geen WordPress",
+      platform,
+      stempel: platform ? `geen WordPress — wel ${platform}` : "geen WordPress",
       ...contact,
     };
   }
