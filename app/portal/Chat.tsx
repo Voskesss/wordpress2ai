@@ -84,7 +84,7 @@ export default function Chat({
   const [invoer, setInvoer] = useState("");
   const [bezig, setBezig] = useState(false);
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
-  const [afbeelding, setAfbeelding] = useState<File | null>(null);
+  const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const huidigeRef = useRef("/");
@@ -329,28 +329,28 @@ export default function Chat({
     if (!tekst || bezig) return;
     setInvoer("");
     setChatOpen(true);
-    const teVersturen = overrideAfbeelding ?? afbeelding;
-    setAfbeelding(null);
+    const teVersturen = overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
+    setAfbeeldingen([]);
     const gekozen = selectie;
     setSelectie(null);
     const gekozenKleur = kleur;
     setKleur(null);
     setBerichten((b) => [
       ...b,
-      { rol: "klant", tekst: teVersturen ? `\u{1F4CE} ${tekst}` : tekst },
+      { rol: "klant", tekst: teVersturen.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
     ]);
     setBezig(true);
-    setStatusTekst(teVersturen ? "Ik verwerk je afbeelding..." : null);
+    setStatusTekst(teVersturen.length > 0 ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...` : null);
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
       let res: Response;
-      if (teVersturen) {
+      if (teVersturen.length > 0) {
         const form = new FormData();
         form.set("siteId", String(siteId));
         form.set("bericht", tekst);
         form.set("huidigePagina", huidigePagina);
-        form.set("afbeelding", teVersturen);
+        for (const f of teVersturen) form.append("afbeelding", f);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
         if (gekozenKleur) form.set("kleur", gekozenKleur);
         res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
@@ -1408,24 +1408,32 @@ export default function Chat({
                 : "border-stone-200"
             }`}
           >
-            {afbeelding && (
-              <div className="mx-2 mt-1 mb-2 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 w-fit">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={URL.createObjectURL(afbeelding)}
-                  alt="Gekozen afbeelding"
-                  className="h-12 w-12 rounded-lg object-cover"
-                />
-                <span className="text-sm text-stone-600 max-w-[10rem] truncate">
-                  {afbeelding.name}
+            {afbeeldingen.length > 0 && (
+              <div className="mx-2 mt-1 mb-2 flex flex-wrap items-center gap-2">
+                {afbeeldingen.map((foto, fi) => (
+                  <div
+                    key={`${foto.name}-${fi}`}
+                    className="flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-2.5 py-1.5"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={URL.createObjectURL(foto)}
+                      alt=""
+                      className="h-10 w-10 rounded-lg object-cover"
+                    />
+                    <span className="max-w-[7rem] truncate text-xs text-stone-600">{foto.name}</span>
+                    <button
+                      onClick={() => setAfbeeldingen((v) => v.filter((_, i) => i !== fi))}
+                      aria-label={`${foto.name} verwijderen`}
+                      className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <span className="text-xs text-stone-400">
+                  {afbeeldingen.length} foto{afbeeldingen.length > 1 ? "'s" : ""} — je kunt er meer toevoegen
                 </span>
-                <button
-                  onClick={() => setAfbeelding(null)}
-                  aria-label="Afbeelding verwijderen"
-                  className="text-stone-400 hover:text-stone-700 cursor-pointer"
-                >
-                  ✕
-                </button>
               </div>
             )}
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1">
@@ -1448,15 +1456,16 @@ export default function Chat({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  const bestand = e.target.files?.[0] ?? null;
-                  if (bestand && fotoVervangRef.current) {
-                    // Foto-vervangen-flow: bestand direct verwerken (zonder AI)
+                  const bestanden = Array.from(e.target.files ?? []);
+                  if (bestanden[0] && fotoVervangRef.current) {
+                    // Foto-vervangen-flow: eerste bestand direct verwerken (zonder AI)
                     fotoVervangRef.current = false;
-                    fotoDirect(bestand);
-                  } else {
-                    setAfbeelding(bestand);
+                    fotoDirect(bestanden[0]);
+                  } else if (bestanden.length > 0) {
+                    setAfbeeldingen((vorige) => [...vorige, ...bestanden].slice(0, 12));
                   }
                   e.target.value = "";
                 }}
@@ -1481,7 +1490,7 @@ export default function Chat({
                 <span className="hidden sm:inline whitespace-nowrap">Wijs aan</span>
               </button>
               </Tip>
-              <Tip tekst="Stuur een eigen foto mee om op de site te zetten">
+              <Tip tekst="Stuur eigen foto's mee om op de site te zetten (meerdere tegelijk kan — bijv. voor een portfolio)">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={bezig}

@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   let siteId: number;
   let bericht: string;
   let huidigePagina: string | undefined;
-  let afbeelding: { naam: string; data: Buffer } | null = null;
+  let afbeeldingen: { naam: string; data: Buffer }[] = [];
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
@@ -102,26 +102,37 @@ export async function POST(req: Request) {
       const k = String(form.get("kleur") ?? "");
       if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
     }
-    const file = form.get("afbeelding");
-    if (file instanceof File && file.size > 0) {
+    const files = form.getAll("afbeelding").filter((f): f is File => f instanceof File && f.size > 0);
+    if (files.length > 12) {
+      return NextResponse.json(
+        { error: "Maximaal 12 foto's per bericht" },
+        { status: 400 }
+      );
+    }
+    const gebruikteNamen = new Set<string>();
+    for (const file of files) {
       if (file.size > 8 * 1024 * 1024) {
         return NextResponse.json(
-          { error: "Afbeelding is te groot (max 8 MB)" },
+          { error: `Afbeelding ${file.name} is te groot (max 8 MB)` },
           { status: 400 }
         );
       }
-      const basisnaam = file.name
+      let basisnaam = file.name
         .replace(/\.[^.]+$/, "")
         .toLowerCase()
         .replace(/[^a-z0-9-]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .slice(0, 60) || "afbeelding";
+      let naam = basisnaam;
+      let n = 2;
+      while (gebruikteNamen.has(naam)) naam = `${basisnaam}-${n++}`;
+      gebruikteNamen.add(naam);
       const data = await sharp(Buffer.from(await file.arrayBuffer()))
         .rotate()
         .resize({ width: 2000, withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer();
-      afbeelding = { naam: `afbeeldingen/${basisnaam}.webp`, data };
+      afbeeldingen.push({ naam: `afbeeldingen/${naam}.webp`, data });
     }
   } else {
     const body = (await req.json()) as {
@@ -164,7 +175,7 @@ export async function POST(req: Request) {
 
   // Demo: geen foto-uploads en een daglimiet per gebruiker
   if (site.isDemo) {
-    afbeelding = null;
+    afbeeldingen = [];
     const vandaag = new Date();
     vandaag.setHours(0, 0, 0, 0);
     const { gte } = await import("drizzle-orm");
@@ -282,10 +293,10 @@ export async function POST(req: Request) {
         const siteOverzicht = await maakSiteOverzicht(werkmap);
         tik("voorbereid");
 
-        if (afbeelding) {
-          const doel = path.join(werkmap, afbeelding.naam);
+        for (const foto of afbeeldingen) {
+          const doel = path.join(werkmap, foto.naam);
           await mkdir(path.dirname(doel), { recursive: true });
-          await writeFile(doel, afbeelding.data);
+          await writeFile(doel, foto.data);
         }
 
         const contextRegels = [
@@ -316,8 +327,10 @@ export async function POST(req: Request) {
           selectie
             ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
             : null,
-          afbeelding
-            ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeelding.naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met Read. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
+          afbeeldingen.length > 1
+            ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => a.naam).join(", ")} (geoptimaliseerd, max 2000px breed). BEKIJK ze eerst met Read. Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
+            : afbeeldingen.length === 1
+            ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met Read. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
             : null,
           openConcept
             ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
