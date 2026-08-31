@@ -10,6 +10,9 @@ export type ScanResultaat = {
   stempel: string;
   bevindingen: string[];
   observatie: string;
+  /** Automatisch van de site geplukt, als vulling voor het prospect-formulier */
+  bedrijf?: string;
+  email?: string;
 };
 
 async function haal(
@@ -28,6 +31,46 @@ async function haal(
   } catch {
     return null;
   }
+}
+
+/** Plukt bedrijfsnaam en e-mailadres uit de HTML van een site. */
+function haalContact(html: string, domein: string): { bedrijf?: string; email?: string } {
+  // Bedrijfsnaam: og:site_name > <title> (opgeschoond) > domein
+  let bedrijf =
+    html.match(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)/i)?.[1] ??
+    html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
+  if (bedrijf) {
+    bedrijf = bedrijf
+      .split(/\s[|–—-]\s/)[0] // "Bedrijf | Slogan" → "Bedrijf"
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80);
+    if (/^(home|welkom|start|homepage)$/i.test(bedrijf)) bedrijf = undefined;
+  }
+  if (!bedrijf) {
+    const kern = domein.replace(/\.(nl|com|eu|be|net|org)$/i, "").replace(/[-.]/g, " ");
+    bedrijf = kern.charAt(0).toUpperCase() + kern.slice(1);
+  }
+
+  // E-mail: eerst mailto-links, anders platte adressen in de tekst
+  const kandidaten = [
+    ...[...html.matchAll(/mailto:([^"'?\s>]+@[^"'?\s>]+)/gi)].map((m) => m[1]),
+    ...[...html.matchAll(/[\w.+-]+@[\w-]+\.[\w.-]{2,}/g)].map((m) => m[0]),
+  ]
+    .map((e) => e.toLowerCase().replace(/[.,;:]+$/, ""))
+    .filter(
+      (e) =>
+        !/\.(png|jpe?g|gif|webp|svg|css|js)$/i.test(e) &&
+        !/(sentry|wixpress|example|domain\.com|yoursite|gravatar|godaddy)/i.test(e)
+    );
+  // Voorkeur voor een adres op het eigen domein, en voor info@/contact@
+  const eigen = kandidaten.filter((e) => e.endsWith(`@${domein}`) || e.includes(domein.split(".")[0]));
+  const pool = eigen.length > 0 ? eigen : kandidaten;
+  const email =
+    pool.find((e) => /^(info|contact|welkom|hallo|mail)@/.test(e)) ?? pool[0];
+
+  return { bedrijf, email };
 }
 
 export async function scanProspect(domein: string): Promise<ScanResultaat> {
@@ -52,12 +95,27 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
   const isWp =
     /wp-content|wp-includes|wp-json/i.test(html) ||
     /<meta[^>]+generator[^>]+WordPress/i.test(html);
+  let contact = haalContact(html, schoon);
+  // Geen e-mail op de homepage? Even op de contactpagina kijken.
+  if (!contact.email) {
+    for (const pad of ["/contact", "/contact/", "/contact.html", "/contact-opnemen"]) {
+      const cp = await haal(`${basis}${pad}`, 6000);
+      if (!cp?.res.ok) continue;
+      const extra = haalContact(cp.tekst, schoon);
+      if (extra.email) {
+        contact = { ...contact, email: extra.email };
+        break;
+      }
+    }
+  }
+
   if (!isWp) {
     return {
       ...leeg,
       bereikbaar: true,
       laadMs: duurMs,
       stempel: "geen WordPress",
+      ...contact,
     };
   }
 
@@ -115,6 +173,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
       .slice(0, 3)
       .map((b) => b.tekst)
       .join(", "),
+    ...contact,
   };
 }
 

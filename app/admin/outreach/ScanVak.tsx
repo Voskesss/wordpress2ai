@@ -61,6 +61,8 @@ export default function ScanVak() {
       veld.dispatchEvent(new Event("input", { bubbles: true }));
     };
     zet("website", r.domein);
+    if (r.bedrijf) zet("bedrijf", r.bedrijf);
+    if (r.email) zet("email", r.email);
     if (r.observatie) zet("observatie", r.observatie);
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -75,7 +77,7 @@ export default function ScanVak() {
         // website/observatie altijd overschrijven; bedrijf/email alleen als leeg
       }
       if (veld) {
-        if (naam === "website" || naam === "observatie" || !veld.value) {
+        if (["website", "observatie", "bedrijf", "email"].includes(naam) || !veld.value) {
           const setter = Object.getOwnPropertyDescriptor(
             naam === "observatie" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
             "value"
@@ -86,6 +88,8 @@ export default function ScanVak() {
       }
     };
     zet("website", resultaat.domein);
+    if (resultaat.bedrijf) zet("bedrijf", resultaat.bedrijf);
+    if (resultaat.email) zet("email", resultaat.email);
     if (resultaat.observatie) zet("observatie", resultaat.observatie);
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -147,6 +151,11 @@ export default function ScanVak() {
               {r.isWordpress && (
                 <span className="text-stone-500">score {r.score} · {r.laadMs}ms</span>
               )}
+              {r.email ? (
+                <span className="text-stone-500">✉️ {r.email}</span>
+              ) : (
+                <span className="text-amber-600">✉️ mail niet gevonden</span>
+              )}
               {r.bevindingen.length > 0 && (
                 <span className="w-full text-xs text-stone-500 sm:w-auto sm:flex-1 truncate">
                   {r.bevindingen.join(" · ")}
@@ -200,6 +209,14 @@ export default function ScanVak() {
                 <span className="font-normal text-stone-500">
                   (score {resultaat.score}, {resultaat.laadMs}ms)
                 </span>
+              </p>
+              <p className="mt-1 text-stone-600">
+                {resultaat.bedrijf && <>Bedrijf: <strong>{resultaat.bedrijf}</strong>. </>}
+                {resultaat.email ? (
+                  <>E-mail: <strong>{resultaat.email}</strong></>
+                ) : (
+                  <span className="text-amber-700">Geen e-mailadres gevonden — even zelf op hun site kijken.</span>
+                )}
               </p>
               {resultaat.bevindingen.length > 0 && (
                 <ul className="mt-2 list-disc pl-5 text-stone-600 space-y-0.5">
