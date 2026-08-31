@@ -6,6 +6,7 @@ import { prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import { prospectBijwerken, prospectToevoegen, verstuurOutreach } from "../acties";
+import { maakOutreachMail } from "@/lib/outreach";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
 
@@ -144,6 +145,44 @@ export default async function Outreach() {
                   💬 {p.observatie}
                 </p>
               )}
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
+                  📧 Bekijk de mails zoals ze verstuurd (zijn/worden)
+                </summary>
+                <div className="mt-3 space-y-3">
+                  {([1, 2, 3] as const).map((nr) => {
+                    const mail = maakOutreachMail(nr, p);
+                    const verstuurd =
+                      nr === 1 ? p.mail1Op : nr === 2 ? p.mail2Op : p.mail3Op;
+                    const isVolgende = volgende === nr;
+                    return (
+                      <div
+                        key={nr}
+                        className={`rounded-2xl border p-4 ${
+                          isVolgende ? "border-violet-300 bg-violet-50/40" : "border-stone-200 bg-white"
+                        }`}
+                      >
+                        <p className="text-xs font-semibold text-stone-500">
+                          Mail {nr}
+                          {verstuurd
+                            ? ` — verstuurd op ${verstuurd.toLocaleDateString("nl-NL")}`
+                            : isVolgende
+                              ? " — dit is de volgende die verstuurd wordt"
+                              : ""}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold">Onderwerp: {mail.onderwerp}</p>
+                        <div
+                          className="mt-2 rounded-xl border border-stone-100 bg-stone-50 p-4 text-sm [&_p]:mb-2 [&_a]:text-violet-700"
+                          dangerouslySetInnerHTML={{ __html: mail.html }}
+                        />
+                      </div>
+                    );
+                  })}
+                  <p className="text-xs text-stone-400">
+                    Pas je de observatie hieronder aan, dan verandert mail 1 automatisch mee.
+                  </p>
+                </div>
+              </details>
               <details className="mt-2">
                 <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
                   Bewerken / status wijzigen
