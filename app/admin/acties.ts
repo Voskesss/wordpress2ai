@@ -365,7 +365,7 @@ export async function verstuurOutreach(formData: FormData) {
       to: [p.email],
       subject: mail.onderwerp,
       html: mail.html,
-      reply_to: ["info@aibackoffice.nl"],
+      reply_to: ["info@wordswap.nl"],
     }),
   });
   if (!res.ok) {
@@ -502,7 +502,7 @@ export async function webinarMailen(formData: FormData) {
         to: [o.email],
         subject: sjabloon.onderwerp,
         html: sjabloon.html.replace("{{naam}}", o.naam ? ` ${o.naam}` : ""),
-        reply_to: ["info@aibackoffice.nl"],
+        reply_to: ["info@wordswap.nl"],
       }),
     }).catch((e) => console.error("Webinar-mail mislukt:", e));
   }
@@ -540,7 +540,7 @@ export async function outreachTestmail(formData: FormData) {
       to: [naar],
       subject: `[TEST mail ${nummer}] ${mail.onderwerp}`,
       html: `<div style="background:#fef3c7;border:1px solid #fde68a;padding:10px 14px;border-radius:10px;font-family:sans-serif;font-size:13px;color:#92400e;margin-bottom:16px">Dit is een TESTMAIL van outreach-mail ${nummer}. De afmeldknop onderaan doet in deze test niets.</div>${mail.html}`,
-      reply_to: ["info@aibackoffice.nl"],
+      reply_to: ["info@wordswap.nl"],
     }),
   }).catch((e) => console.error("Testmail mislukt:", e));
   revalidatePath("/admin/outreach");

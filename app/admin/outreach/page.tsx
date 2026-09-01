@@ -189,6 +189,17 @@ export default async function Outreach() {
                     <> · {dagenStil === 0 ? "vandaag" : `${dagenStil} dg geleden`}</>
                   )}
                 </span>
+                {p.status.startsWith("mail") && (
+                  <form action={prospectBijwerken}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="status" value="gereageerd" />
+                    <ActieKnop
+                      label="🎉 Gereageerd"
+                      bezigLabel="..."
+                      className="rounded-full border border-emerald-300 px-4 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                    />
+                  </form>
+                )}
                 {mailBaar && (
                   <form action={verstuurOutreach}>
                     <input type="hidden" name="id" value={p.id} />
