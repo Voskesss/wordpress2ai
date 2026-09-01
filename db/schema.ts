@@ -173,6 +173,8 @@ export const prospects = pgTable("prospects", {
   score: integer("score"),
   laadMs: integer("laad_ms"),
   kenmerken: text("kenmerken"),
+  // Concreet prijsvoorstel in de mail (optioneel; leeg = "vanaf €250")
+  prijs: text("prijs"),
   // nieuw | mail1 | mail2 | mail3 | gereageerd | klant | niet_mailen
   status: text("status").notNull().default("nieuw"),
   mail1Op: timestamp("mail1_op"),

@@ -247,6 +247,7 @@ export async function prospectToevoegen(formData: FormData) {
   const score = Number(formData.get("score"));
   const laadMs = Number(formData.get("laadMs"));
   const kenmerken = String(formData.get("kenmerken") ?? "").trim();
+  const prijs = String(formData.get("prijs") ?? "").trim();
   if (!bedrijf || !website || !email.includes("@")) return;
   // Dubbelen voorkomen: nooit twee keer dezelfde naam, website of e-mail
   // (en nooit iemand die zich heeft afgemeld opnieuw opvoeren)
@@ -279,6 +280,7 @@ export async function prospectToevoegen(formData: FormData) {
       score: Number.isFinite(score) ? score : null,
       laadMs: Number.isFinite(laadMs) && laadMs > 0 ? laadMs : null,
       kenmerken: kenmerken || null,
+      prijs: prijs || null,
     });
   revalidatePath("/admin/outreach");
 }
@@ -297,6 +299,8 @@ export async function prospectBijwerken(formData: FormData) {
     wijziging.status = status;
   }
   if (typeof observatie === "string") wijziging.observatie = observatie.trim() || null;
+  const prijs = formData.get("prijs");
+  if (typeof prijs === "string") wijziging.prijs = prijs.trim() || null;
   if (typeof email === "string" && email.includes("@")) {
     const nieuwAdres = email.trim().toLowerCase();
     const [conflict] = await db

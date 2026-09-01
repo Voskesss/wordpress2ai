@@ -6,6 +6,8 @@ export type Prospect = {
   website: string;
   email: string;
   observatie: string | null;
+  /** Concreet prijsvoorstel (bv. "€500"); leeg = "vanaf €250" */
+  prijs?: string | null;
 };
 
 /** Afmeldtoken: koppelt een afmeldlink onvervalsbaar aan één prospect. */
@@ -92,7 +94,7 @@ export function maakOutreachMail(
 <p>Ik kwam de website van ${ontsnap(p.bedrijf)} tegen en heb er even naar gekeken.</p>
 ${obs.zin}
 <p>Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.</p>
-<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je (eenmalig, vanaf €250). Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
+<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je${p.prijs ? ` — voor jouw site eenmalig ${ontsnap(p.prijs)}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is` : " (eenmalig, vanaf €250)"}. Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
 <p>Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.</p>
 <p>En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.</p>
 ${groet}${afmeldRegel(p)}</div>`,
@@ -106,7 +108,7 @@ ${groet}${afmeldRegel(p)}</div>`,
 <p>Hallo,</p>
 <p>Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.</p>
 <p>Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.</p>
-<p>De kopie die wij maken kost €5 tot €20 per maand, alles inbegrepen, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
+<p>De kopie die wij maken kost €5 tot €20 per maand, alles inbegrepen${p.prijs ? ` (de overstap zelf: eenmalig ${ontsnap(p.prijs)} voor jouw site)` : ""}, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
 <p>Eén reply met "laat maar zien" is genoeg.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };

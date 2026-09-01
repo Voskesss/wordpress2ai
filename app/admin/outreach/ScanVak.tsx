@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ScanResultaat } from "@/lib/prospectscan";
+import { richtprijs, type ScanResultaat } from "@/lib/prospectscan";
 
 /** Website scannen vanuit de admin: WordPress + verwaarlozing checken en
  * het resultaat met één klik in het prospect-formulier zetten. */
@@ -65,6 +65,7 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
       "kenmerken",
       [...(r.kapot ?? []), ...(r.bevindingen ?? [])].join(", ") || (r.platform ?? "")
     );
+    zetStil("prijs", richtprijs(r.paginas ?? 0) ?? "");
     const zet = (naam: string, waarde: string) => {
       const veld = form.elements.namedItem(naam) as HTMLInputElement | HTMLTextAreaElement | null;
       if (!veld) return;
@@ -170,7 +171,10 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
                 {r.domein} ↗
               </a>
               {r.isWordpress && (
-                <span className="text-stone-500">score {r.score} · {r.laadMs}ms</span>
+                <span className="text-stone-500">
+                  score {r.score} · {r.laadMs}ms
+                  {r.paginas > 0 && <> · {r.paginas} pag. → {richtprijs(r.paginas)}</>}
+                </span>
               )}
               {r.kapot?.length > 0 && (
                 <span className="rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-xs font-semibold text-red-700">

@@ -12,6 +12,8 @@ export type ScanResultaat = {
   /** Serieus bedrijf? (KvK/telefoon/adres/privacy op de site gevonden) */
   serieus: boolean;
   serieusSignalen: string[];
+  /** Aantal pagina's volgens de sitemap (0 = geen sitemap gevonden) */
+  paginas: number;
   laadMs: number;
   score: number;
   stempel: string;
@@ -93,6 +95,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
     kapot: [],
     serieus: false,
     serieusSignalen: [],
+    paginas: 0,
     observatie: "",
   };
   if (!schoon) return leeg;
@@ -218,6 +221,24 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
   // Mixed content: http-bronnen op een https-pagina (browser blokkeert die)
   if (/src=["']http:\/\//i.test(html)) kapot.push("onveilige onderdelen (mixed content — browsers blokkeren die)");
 
+  // === Hoe groot is de site? (voor een richtprijs) ===
+  let paginas = 0;
+  try {
+    let sm = await haal(`${basis}/sitemap.xml`, 8000);
+    if (sm?.res.ok && /<sitemapindex/i.test(sm.tekst)) {
+      // Sitemap-index: de deel-sitemaps optellen (max 5 om het snel te houden)
+      const delen = [...sm.tekst.matchAll(/<loc>([^<]+)<\/loc>/gi)].map((m) => m[1]).slice(0, 5);
+      for (const d of delen) {
+        const deel = await haal(d, 8000);
+        if (deel?.res.ok) paginas += (deel.tekst.match(/<url>/gi) ?? []).length;
+      }
+    } else if (sm?.res.ok) {
+      paginas = (sm.tekst.match(/<url>/gi) ?? []).length;
+    }
+  } catch {
+    // geen sitemap: prima, dan blijft het 0
+  }
+
   // === Serieus bedrijf? ===
   const serieusSignalen: string[] = [];
   if (/kvk|k\.v\.k|kamer van koophandel/i.test(html)) serieusSignalen.push("KvK-nummer");
@@ -236,6 +257,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
       kapot,
       serieus,
       serieusSignalen,
+      paginas,
       stempel: platform ? `geen WordPress — wel ${platform}` : "geen WordPress",
       ...contact,
     };
@@ -301,6 +323,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
     kapot,
     serieus,
     serieusSignalen,
+    paginas,
     observatie: bevindingen
       .slice(0, 3)
       .map((b) => b.tekst)
@@ -408,4 +431,12 @@ async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<s
     console.error("Claude-zoekterugval mislukt:", e);
     return [];
   }
+}
+
+/** Richtprijs voor de overstap op basis van de sitegrootte. */
+export function richtprijs(paginas: number): string | null {
+  if (!paginas) return null;
+  if (paginas <= 8) return "€250";
+  if (paginas <= 20) return "€500";
+  return "€750";
 }
