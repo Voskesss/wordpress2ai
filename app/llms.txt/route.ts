@@ -15,6 +15,7 @@ Kernpunten:
 
 - [Home](https://wordswap.nl/): wat WordSwap is en waarom het beter is dan zelf WordPress bijhouden
 - [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): het migratieproces in stappen, de preview-flow en veelgestelde vragen
+- [Zelf doen](https://wordswap.nl/zelf-doen): complete stap-voor-stap-handleiding om je WordPress-site zélf om te zetten naar een statische site — transparant, inclusief valkuilen
 - [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
 - [Contact](https://wordswap.nl/contact): gratis site-check aanvragen, antwoord binnen één werkdag
 - [Demo](https://wordswap.nl/demo): gratis proberen hoe je een website aanpast door het te typen

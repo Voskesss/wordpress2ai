@@ -110,6 +110,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </div>
           <nav className="flex flex-col gap-2 text-sm">
           <Link href="/hoe-het-werkt" className="hover:text-violet-600">Hoe het werkt</Link>
+          <Link href="/zelf-doen" className="hover:text-violet-600">Zelf doen</Link>
           <Link href="/prijzen" className="hover:text-violet-600">Prijzen</Link>
           <Link href="/nieuwe-website" className="hover:text-violet-600">Nieuwe website</Link>
           <Link href="/wordpress-overzetten" className="hover:text-violet-600">WordPress overzetten</Link>

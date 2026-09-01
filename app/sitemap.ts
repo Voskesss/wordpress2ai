@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paden = [
     "",
     "/hoe-het-werkt",
+    "/zelf-doen",
     "/prijzen",
     "/demo",
     "/nieuwe-website",
