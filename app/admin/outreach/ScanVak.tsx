@@ -61,7 +61,10 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
     zetStil("plaats", plaats.trim());
     zetStil("score", String(r.score ?? ""));
     zetStil("laadMs", String(r.laadMs ?? ""));
-    zetStil("kenmerken", (r.bevindingen ?? []).join(", ") || (r.platform ?? ""));
+    zetStil(
+      "kenmerken",
+      [...(r.kapot ?? []), ...(r.bevindingen ?? [])].join(", ") || (r.platform ?? "")
+    );
     const zet = (naam: string, waarde: string) => {
       const veld = form.elements.namedItem(naam) as HTMLInputElement | HTMLTextAreaElement | null;
       if (!veld) return;
@@ -168,6 +171,16 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
               </a>
               {r.isWordpress && (
                 <span className="text-stone-500">score {r.score} · {r.laadMs}ms</span>
+              )}
+              {r.kapot?.length > 0 && (
+                <span className="rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+                  🔴 {r.kapot[0]}
+                </span>
+              )}
+              {r.serieus && (
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs text-emerald-700">
+                  serieus bedrijf ({r.serieusSignalen.slice(0, 2).join(", ")})
+                </span>
               )}
               {r.email ? (
                 <span className="text-stone-500">✉️ {r.email}</span>

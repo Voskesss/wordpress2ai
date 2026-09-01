@@ -7,6 +7,11 @@ export type ScanResultaat = {
   isWordpress: boolean;
   /** Herkend systeem als het geen WordPress is (Wix, Squarespace, ...) */
   platform?: string;
+  /** Concreet kapotte dingen: dode links, kapotte afbeeldingen, mixed content */
+  kapot: string[];
+  /** Serieus bedrijf? (KvK/telefoon/adres/privacy op de site gevonden) */
+  serieus: boolean;
+  serieusSignalen: string[];
   laadMs: number;
   score: number;
   stempel: string;
@@ -26,7 +31,7 @@ async function haal(
     const res = await fetch(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(ms),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; WordSwapCheck/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36" },
     });
     const tekst = await res.text();
     return { res, tekst, duurMs: Date.now() - start };
@@ -85,6 +90,9 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
     score: 0,
     stempel: "niet bereikbaar",
     bevindingen: [],
+    kapot: [],
+    serieus: false,
+    serieusSignalen: [],
     observatie: "",
   };
   if (!schoon) return leeg;
@@ -147,12 +155,87 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
     }
   }
 
+  // === Wat is er concreet kapot? (sterkste opening voor een mail) ===
+  const kapot: string[] = [];
+
+  // Interne links uit menu/pagina: een greep nemen en controleren op 404
+  const interneLinks = [
+    ...new Set(
+      [...html.matchAll(/<a[^>]+href=["']([^"'#?]+)["']/gi)]
+        .map((m) => m[1])
+        .filter((h) => h.startsWith("/") || h.includes(schoon))
+        .map((h) => (h.startsWith("http") ? h : `${basis}${h}`))
+        .filter((h) => !/\.(jpg|jpeg|png|gif|webp|pdf|zip|css|js|xml)$/i.test(h))
+    ),
+  ].slice(0, 8);
+  const linkChecks = await Promise.all(
+    interneLinks.map(async (u) => {
+      try {
+        const r = await fetch(u, {
+          method: "HEAD",
+          redirect: "follow",
+          signal: AbortSignal.timeout(6000),
+          headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" },
+        });
+        return { u, status: r.status };
+      } catch {
+        return { u, status: 0 };
+      }
+    })
+  );
+  const dodeLinks = linkChecks.filter((l) => l.status === 404 || l.status === 410);
+  if (dodeLinks.length > 0) {
+    const vb = dodeLinks[0].u.replace(basis, "");
+    kapot.push(
+      dodeLinks.length === 1
+        ? `dode link in de site (${vb} geeft een 404)`
+        : `${dodeLinks.length} dode links in de site (o.a. ${vb})`
+    );
+  }
+
+  // Afbeeldingen: een greep controleren
+  const imgs = [
+    ...new Set(
+      [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)]
+        .map((m) => m[1])
+        .filter((h) => h.startsWith("/") || h.includes(schoon))
+        .map((h) => (h.startsWith("http") ? h : `${basis}${h}`))
+    ),
+  ].slice(0, 6);
+  const imgChecks = await Promise.all(
+    imgs.map(async (u) => {
+      try {
+        const r = await fetch(u, { method: "HEAD", signal: AbortSignal.timeout(6000) });
+        return r.ok;
+      } catch {
+        return false;
+      }
+    })
+  );
+  const kapotteImgs = imgChecks.filter((ok) => !ok).length;
+  if (kapotteImgs > 0) kapot.push(`${kapotteImgs} kapotte afbeelding${kapotteImgs === 1 ? "" : "en"}`);
+
+  // Mixed content: http-bronnen op een https-pagina (browser blokkeert die)
+  if (/src=["']http:\/\//i.test(html)) kapot.push("onveilige onderdelen (mixed content — browsers blokkeren die)");
+
+  // === Serieus bedrijf? ===
+  const serieusSignalen: string[] = [];
+  if (/kvk|k\.v\.k|kamer van koophandel/i.test(html)) serieusSignalen.push("KvK-nummer");
+  if (/(?:^|[^\d])(0[0-9]{1,2}[- ]?[0-9]{6,8}|\+31)/.test(html.replace(/<[^>]+>/g, " "))) serieusSignalen.push("telefoonnummer");
+  if (/\b\d{4}\s?[A-Z]{2}\b/.test(html)) serieusSignalen.push("adres met postcode");
+  if (/privacy(verklaring|beleid|statement|-policy)/i.test(html)) serieusSignalen.push("privacyverklaring");
+  if (/algemene voorwaarden/i.test(html)) serieusSignalen.push("algemene voorwaarden");
+  const serieus = serieusSignalen.length >= 2;
+
   if (!isWp) {
     return {
       ...leeg,
       bereikbaar: true,
       laadMs: duurMs,
       platform,
+      kapot,
+      serieus,
+      serieusSignalen,
       stempel: platform ? `geen WordPress — wel ${platform}` : "geen WordPress",
       ...contact,
     };
@@ -198,6 +281,7 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
   if (readme?.res.ok && /WordPress/i.test(readme.tekst))
     bevindingen.push({ punten: 2, tekst: "standaard WordPress-bestanden staan open (readme.html)" });
 
+  for (const k of kapot) bevindingen.push({ punten: 4, tekst: k });
   const score = bevindingen.reduce((s, b) => s + b.punten, 0);
   return {
     domein: schoon,
@@ -206,8 +290,17 @@ export async function scanProspect(domein: string): Promise<ScanResultaat> {
     laadMs: duurMs,
     score,
     stempel:
-      score >= 7 ? "🔥 top-prospect" : score >= 4 ? "✅ kansrijk" : "🟡 WordPress, redelijk bijgehouden",
+      kapot.length > 0 && serieus
+        ? "🔥 top-prospect (kapot + serieus bedrijf)"
+        : score >= 7
+          ? "🔥 top-prospect"
+          : score >= 4
+            ? "✅ kansrijk"
+            : "🟡 WordPress, redelijk bijgehouden",
     bevindingen: bevindingen.map((b) => b.tekst),
+    kapot,
+    serieus,
+    serieusSignalen,
     observatie: bevindingen
       .slice(0, 3)
       .map((b) => b.tekst)
@@ -262,7 +355,12 @@ export async function zoekProspects(
   }
   return resultaten
     .filter((r) => r.bereikbaar)
-    .sort((a, b) => Number(b.isWordpress) - Number(a.isWordpress) || b.score - a.score);
+    .sort(
+      (a, b) =>
+        Number(b.isWordpress) - Number(a.isWordpress) ||
+        Number(b.kapot.length > 0 && b.serieus) - Number(a.kapot.length > 0 && a.serieus) ||
+        b.score - a.score
+    );
 }
 
 /** Terugval: laat Claude (met websearch) bedrijfssites vinden — werkt ook

@@ -37,6 +37,19 @@ function menselijkeObservatie(p: Prospect): { zin: string; onderwerp?: string } 
   const lijkscan = /laadtijd|WordPress \d|jQuery|viewport|Elementor|readme|copyright|https/i.test(o);
   if (o && !lijkscan) return { zin: `<p>${ontsnap(o)}</p>` };
 
+  const dode = o.match(/dode links? in de site \(o\.a\. ([^)]+)\)|dode link in de site \(([^)]+) geeft/i);
+  if (dode) {
+    const pad = (dode[1] ?? dode[2] ?? "").trim();
+    return {
+      onderwerp: `Er is iets kapot op je website`,
+      zin: `<p>Wat me opviel: er zitten links op je site die nergens meer heen gaan${pad ? ` (bijvoorbeeld ${ontsnap(pad)})` : ""}. Bezoekers die daarop klikken krijgen een foutmelding — en die komen zelden terug om het nog eens te proberen.</p>`,
+    };
+  }
+  if (/kapotte afbeelding/i.test(o))
+    return {
+      onderwerp: `Er is iets kapot op je website`,
+      zin: `<p>Wat me opviel: een paar afbeeldingen op je site laden niet meer. Dat oogt klein, maar het is het eerste wat een bezoeker ziet — en het wekt de indruk dat er niet meer naar de site wordt omgekeken.</p>`,
+    };
   const sec = o.match(/\((\d+[.,]\d)s laadtijd\)/)?.[1]?.replace(".", ",");
   const wpOud = /stokoude|verouderde WordPress/i.test(o);
   const jaar = o.match(/copyright[^,]*op (\d{4})/i)?.[1];
