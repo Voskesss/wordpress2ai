@@ -52,6 +52,16 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
   function vulMet(r: ScanResultaat) {
     const form = document.getElementById("prospect-formulier") as HTMLFormElement | null;
     if (!form) return;
+    // Kenmerken voor de doelgroep-analyse (verborgen velden)
+    const zetStil = (naam: string, waarde: string) => {
+      const veld = form.elements.namedItem(naam) as HTMLInputElement | null;
+      if (veld) veld.value = waarde;
+    };
+    zetStil("branche", branche.trim());
+    zetStil("plaats", plaats.trim());
+    zetStil("score", String(r.score ?? ""));
+    zetStil("laadMs", String(r.laadMs ?? ""));
+    zetStil("kenmerken", (r.bevindingen ?? []).join(", ") || (r.platform ?? ""));
     const zet = (naam: string, waarde: string) => {
       const veld = form.elements.namedItem(naam) as HTMLInputElement | HTMLTextAreaElement | null;
       if (!veld) return;

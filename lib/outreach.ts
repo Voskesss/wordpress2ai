@@ -29,41 +29,72 @@ const stijl = `font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;li
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-/** De drie outreach-mails: persoonlijk, kort en niet opdringerig. */
+/** Zet de rauwe scan-bevindingen ("erg traag (4.2s laadtijd), verouderde
+ * WordPress 6.2") om in een leesbare zin die over hún bedrijf gaat. Heeft Jos
+ * zelf een observatie getypt (geen bevindingen-lijstje), dan gaat die voor. */
+function menselijkeObservatie(p: Prospect): { zin: string; onderwerp?: string } {
+  const o = p.observatie?.trim() ?? "";
+  const lijkscan = /laadtijd|WordPress \d|jQuery|viewport|Elementor|readme|copyright|https/i.test(o);
+  if (o && !lijkscan) return { zin: `<p>${ontsnap(o)}</p>` };
+
+  const sec = o.match(/\((\d+[.,]\d)s laadtijd\)/)?.[1]?.replace(".", ",");
+  const wpOud = /stokoude|verouderde WordPress/i.test(o);
+  const jaar = o.match(/copyright[^,]*op (\d{4})/i)?.[1];
+  const geenMobiel = /viewport ontbreekt/i.test(o);
+
+  if (sec)
+    return {
+      onderwerp: `Je website doet er ${sec} seconden over`,
+      zin: `<p>Wat me opviel: je site heeft er bij mij ${sec} seconden over gedaan om te laden. Dat klinkt als niks, maar het is precies de tijd waarin een bezoeker beslist om weg te klikken — vaak nog vóór hij je aanbod heeft gezien.</p>`,
+    };
+  if (geenMobiel)
+    return {
+      zin: `<p>Wat me opviel: op een telefoon toont je site de desktop-versie in het klein. Meer dan de helft van je bezoekers kijkt juist op zijn telefoon — die knijpen en schuiven nu om te lezen wat je doet.</p>`,
+    };
+  if (wpOud)
+    return {
+      zin: `<p>Wat me opviel: je site draait op een WordPress-versie die al een tijd geen updates meer heeft gehad. Dat is het soort ding waar niemand naar omkijkt — tot een plugin of een hack het ineens wél belangrijk maakt.</p>`,
+    };
+  if (jaar)
+    return {
+      zin: `<p>Wat me opviel: onderaan je site staat nog ${jaar}. Klein detail, maar bezoekers lezen daar onbewust "hier wordt niet meer naar omgekeken" — terwijl je bedrijf gewoon draait.</p>`,
+    };
+  if (o) return { zin: `<p>Ik heb even naar je site gekeken en zag een paar dingen die aandacht verdienen (techniek, snelheid) — niets dramatisch, wel dingen die je bezoekers merken.</p>` };
+  return { zin: "" };
+}
+
+/** De drie outreach-mails: concreet over hún site, één vraag, één antwoord genoeg. */
 export function maakOutreachMail(
   nummer: 1 | 2 | 3,
   p: Prospect
 ): { onderwerp: string; html: string } {
-  const observatie = p.observatie
-    ? `<p>${ontsnap(p.observatie)}</p>`
-    : "";
   const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap — <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a></p>`;
+  const obs = menselijkeObservatie(p);
 
   if (nummer === 1) {
     return {
-      onderwerp: `Even over de website van ${p.bedrijf}`,
+      onderwerp: obs.onderwerp ?? `Even over de website van ${p.bedrijf}`,
       html: `<div style="${stijl}">
 <p>Hallo,</p>
-<p>Ik kwam de website van ${ontsnap(p.bedrijf)} tegen (${ontsnap(p.website)}) en heb er even naar gekeken.</p>
-${observatie}
-<p>Wij doen iets vrij nieuws: we zetten WordPress-sites om naar een razendsnelle website zonder onderhoud — geen updates, plugins of hostinggedoe meer. Aanpassen doe je daarna door het gewoon te typen ("zet de openingstijden op zaterdag tot 17:00") en onze AI voert het uit.</p>
-<p>Het mooie: je ziet eerst de complete kopie van je site, en alleen als je tevreden bent betaal je (eenmalig €250–€750). Niet goed = niets betalen.</p>
-<p>Ben je eigenlijk wel toe aan iets nieuws? Dan ontwerpen we ook een compleet nieuwe website (vanaf €350), met dezelfde AI-koppeling erachter — <a href="https://wordswap.nl/nieuwe-website" style="color:#6d28d9">meer daarover</a>.</p>
-<p>Als je nieuwsgierig bent kun je op <a href="https://wordswap.nl/demo" style="color:#6d28d9">wordswap.nl/demo</a> gratis zelf proberen hoe het werkt. Wil je liever eerst rustig horen wat dit voor jou betekent? Dan geef ik regelmatig een gratis online webinar van een half uur — aanmelden kan op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>. Reageren op deze mail mag natuurlijk ook gewoon.</p>
+<p>Ik kwam de website van ${ontsnap(p.bedrijf)} tegen en heb er even naar gekeken.</p>
+${obs.zin}
+<p>Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.</p>
+<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je (eenmalig, vanaf €250). Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
+<p>Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.</p>
+<p>En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
 
   if (nummer === 2) {
     return {
-      onderwerp: `Korte vraag over ${p.website}`,
+      onderwerp: `Wat kost de site van ${p.bedrijf} per maand?`,
       html: `<div style="${stijl}">
 <p>Hallo,</p>
-<p>Een tijdje terug stuurde ik je een berichtje over de website van ${ontsnap(p.bedrijf)} — ik snap dat zoiets er makkelijk bij inschiet.</p>
-<p>Daarom één simpele vraag: zou je willen zien hoe jouw site eruitziet als snelle, onderhoudsvrije versie? Die kopie maken we gratis en vrijblijvend — je betaalt alleen als je hem wilt houden.</p>
-<p>En mocht je liever een frisse, compleet nieuwe website willen: dat kan net zo goed (vanaf €350, inclusief ontwerp).</p>
-<p>Eén reply met "ja, laat maar zien" is genoeg.</p>
-<p>Liever eerst vrijblijvend meekijken? In een gratis webinar van een half uur laat ik precies zien hoe het werkt — data en aanmelden op <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
+<p>Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.</p>
+<p>Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.</p>
+<p>De kopie die wij maken kost €5 tot €20 per maand, alles inbegrepen, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
+<p>Eén reply met "laat maar zien" is genoeg.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
@@ -72,8 +103,9 @@ ${groet}${afmeldRegel(p)}</div>`,
     onderwerp: `Laatste berichtje van mij`,
     html: `<div style="${stijl}">
 <p>Hallo,</p>
-<p>Dit is mijn laatste berichtje — ik wil niet blijven mailen. Als een snellere website zonder onderhoud nu niet speelt bij ${ontsnap(p.bedrijf)}: helemaal prima, dan laat ik je met rust.</p>
-<p>Mocht het later ooit relevant worden (bijvoorbeeld als de hostingfactuur of een plugin-probleem weer eens irriteert): je vindt ons op <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a>. De gratis site-check blijft staan, en vrijblijvend meekijken kan altijd via een van onze gratis webinars: <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
+<p>Dit is mijn laatste berichtje — ik ga je niet blijven mailen. Speelt het nu niet bij ${ontsnap(p.bedrijf)}: helemaal prima.</p>
+<p>Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a>.</p>
+<p>Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
 <p>Veel succes met de zaak!</p>
 ${groet}${afmeldRegel(p)}</div>`,
   };

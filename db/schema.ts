@@ -167,6 +167,12 @@ export const prospects = pgTable("prospects", {
   email: text("email").notNull(),
   // Jos' persoonlijke observatie over de site — wordt in de mail verweven
   observatie: text("observatie"),
+  // Kenmerken voor doelgroep-analyse: waar kwam hij vandaan en wat zag de scan?
+  branche: text("branche"),
+  plaats: text("plaats"),
+  score: integer("score"),
+  laadMs: integer("laad_ms"),
+  kenmerken: text("kenmerken"),
   // nieuw | mail1 | mail2 | mail3 | gereageerd | klant | niet_mailen
   status: text("status").notNull().default("nieuw"),
   mail1Op: timestamp("mail1_op"),

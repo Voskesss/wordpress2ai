@@ -241,6 +241,12 @@ export async function prospectToevoegen(formData: FormData) {
   const website = String(formData.get("website") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const observatie = String(formData.get("observatie") ?? "").trim();
+  // Kenmerken voor de doelgroep-analyse (komen mee uit de scanner)
+  const branche = String(formData.get("branche") ?? "").trim();
+  const plaats = String(formData.get("plaats") ?? "").trim();
+  const score = Number(formData.get("score"));
+  const laadMs = Number(formData.get("laadMs"));
+  const kenmerken = String(formData.get("kenmerken") ?? "").trim();
   if (!bedrijf || !website || !email.includes("@")) return;
   // Dubbelen voorkomen: nooit twee keer dezelfde naam, website of e-mail
   // (en nooit iemand die zich heeft afgemeld opnieuw opvoeren)
@@ -263,7 +269,17 @@ export async function prospectToevoegen(formData: FormData) {
   }
   await db
     .insert(prospects)
-    .values({ bedrijf, website: schoonWebsite, email, observatie: observatie || null });
+    .values({
+      bedrijf,
+      website: schoonWebsite,
+      email,
+      observatie: observatie || null,
+      branche: branche || null,
+      plaats: plaats || null,
+      score: Number.isFinite(score) ? score : null,
+      laadMs: Number.isFinite(laadMs) && laadMs > 0 ? laadMs : null,
+      kenmerken: kenmerken || null,
+    });
   revalidatePath("/admin/outreach");
 }
 

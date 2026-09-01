@@ -9,6 +9,7 @@ import { outreachTestmail, prospectBijwerken, prospectToevoegen, prospectVerwijd
 import { maakOutreachMail } from "@/lib/outreach";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
+import WatWerkt from "./WatWerkt";
 
 export const metadata: Metadata = {
   title: "Outreach",
@@ -104,6 +105,8 @@ export default async function Outreach() {
         )}
       />
 
+      <WatWerkt rijen={alle} />
+
       {/* Toevoegen */}
       <form
         id="prospect-formulier"
@@ -118,6 +121,11 @@ export default async function Outreach() {
           e-mailadres dat al in de lijst (of op de niet-mailen-lijst) staat wordt
           niet nog een keer toegevoegd.
         </p>
+        <input type="hidden" name="branche" />
+        <input type="hidden" name="plaats" />
+        <input type="hidden" name="score" />
+        <input type="hidden" name="laadMs" />
+        <input type="hidden" name="kenmerken" />
         <label className="block text-sm font-semibold">
           Bedrijfsnaam
           <input name="bedrijf" required placeholder="Bakkerij De Korenbloem" className={invoerStijl} />
