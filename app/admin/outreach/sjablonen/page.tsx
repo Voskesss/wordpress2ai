@@ -6,6 +6,7 @@ import { mailSjablonen } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { standaardSjabloon } from "@/lib/outreach";
 import ActieKnop from "../../klant/[id]/ActieKnop";
+import MailBewerker from "../MailBewerker";
 import { sjabloonActie, sjabloonOpslaan } from "../../acties";
 
 export const metadata: Metadata = {
@@ -81,14 +82,7 @@ export default async function Sjablonen() {
                     Naam van deze versie
                     <input name="naam" defaultValue={v.naam} required className={invoerStijl} />
                   </label>
-                  <label className="block text-sm font-semibold">
-                    Onderwerp
-                    <input name="onderwerp" defaultValue={v.onderwerp} required className={invoerStijl} />
-                  </label>
-                  <label className="block text-sm font-semibold">
-                    Tekst (witregel = nieuwe alinea)
-                    <textarea name="tekst" defaultValue={v.tekst} required rows={14} className={`${invoerStijl} font-mono text-[13px] leading-relaxed`} />
-                  </label>
+                  <MailBewerker beginOnderwerp={v.onderwerp} beginTekst={v.tekst} sjabloon />
                   <div className="flex flex-wrap gap-2">
                     <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
                   </div>
@@ -127,14 +121,7 @@ export default async function Sjablonen() {
                   Naam van deze versie
                   <input name="naam" placeholder={`bv. "versie B — korter"`} required className={invoerStijl} />
                 </label>
-                <label className="block text-sm font-semibold">
-                  Onderwerp
-                  <input name="onderwerp" defaultValue={standaard.onderwerp} required className={invoerStijl} />
-                </label>
-                <label className="block text-sm font-semibold">
-                  Tekst (witregel = nieuwe alinea)
-                  <textarea name="tekst" defaultValue={standaard.tekst} required rows={14} className={`${invoerStijl} font-mono text-[13px] leading-relaxed`} />
-                </label>
+                <MailBewerker beginOnderwerp={standaard.onderwerp} beginTekst={standaard.tekst} sjabloon />
                 <div>
                   <ActieKnop label="Opslaan en meteen gebruiken" bezigLabel="Opslaan..." className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
                 </div>

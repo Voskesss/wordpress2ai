@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import { outreachTestmail, prospectBijwerken, prospectMailOpslaan, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
 import { kiesMail, vulIn } from "@/lib/outreach";
+import MailBewerker from "./MailBewerker";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
 import WatWerkt from "./WatWerkt";
@@ -284,20 +285,13 @@ export default async function Outreach() {
                             <form action={prospectMailOpslaan} className="mt-3 grid gap-2">
                               <input type="hidden" name="prospectId" value={p.id} />
                               <input type="hidden" name="nummer" value={nr} />
-                              <input
-                                name="onderwerp"
-                                defaultValue={persVoor(p.id, nr)?.onderwerp ?? mail.onderwerp}
-                                className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm focus:border-violet-600 focus:outline-none"
+                              <MailBewerker
+                                beginOnderwerp={persVoor(p.id, nr)?.onderwerp ?? mail.onderwerp}
+                                beginTekst={persVoor(p.id, nr)?.tekst ?? mail.tekst}
+                                bedrijf={p.bedrijf}
+                                website={p.website}
+                                observatie={p.observatie}
                               />
-                              <textarea
-                                name="tekst"
-                                rows={12}
-                                defaultValue={persVoor(p.id, nr)?.tekst ?? mail.tekst}
-                                className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 font-mono text-[13px] leading-relaxed focus:border-violet-600 focus:outline-none"
-                              />
-                              <p className="text-[11px] text-stone-400">
-                                Groet en afmeldknop komen er automatisch onder. Maak beide velden leeg en sla op om terug te gaan naar de basistekst.
-                              </p>
                               <div>
                                 <ActieKnop label="Bewaar persoonlijke versie" bezigLabel="Opslaan..." className="rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer" />
                               </div>
