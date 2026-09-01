@@ -156,7 +156,16 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
     .split(/\n\s*\n/)
     .map((a) => a.trim())
     .filter(Boolean)
-    .map((a) => `<p>${ontsnap(a).replace(/\n/g, "<br>")}</p>`)
+    .map((a) => {
+      // Getypte links klikbaar maken (https://... of wordswap.nl/...)
+      const met = ontsnap(a)
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#6d28d9">$1</a>')
+        .replace(
+          /(^|[\s(])((?:www\.)?wordswap\.nl(?:\/[\w\-\/]*)?)/g,
+          '$1<a href="https://$2" style="color:#6d28d9">$2</a>'
+        );
+      return `<p>${met.replace(/\n/g, "<br>")}</p>`;
+    })
     .join("\n");
   const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap — <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a></p>`;
   return `<div style="${stijl}">\n${alineas}\n${groet}${afmeldRegel(p)}</div>`;
