@@ -346,11 +346,11 @@ export async function zoekProspects(
     }
   }
 
-  const kandidaten = domeinen.slice(0, 12);
+  const kandidaten = domeinen.slice(0, 25);
   const resultaten: ScanResultaat[] = [];
-  // Vier tegelijk scannen (sneller, zonder de boel te overvragen)
-  for (let i = 0; i < kandidaten.length; i += 4) {
-    const stuk = await Promise.all(kandidaten.slice(i, i + 4).map((d) => scanProspect(d)));
+  // Zes tegelijk scannen (sneller, zonder de boel te overvragen)
+  for (let i = 0; i < kandidaten.length; i += 6) {
+    const stuk = await Promise.all(kandidaten.slice(i, i + 6).map((d) => scanProspect(d)));
     resultaten.push(...stuk);
   }
   return resultaten
@@ -371,12 +371,12 @@ async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<s
     const client = new Anthropic();
     const resp = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 } as never],
+      max_tokens: 3000,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 } as never],
       messages: [
         {
           role: "user",
-          content: `Zoek websites van individuele bedrijven in Nederland in de branche "${branche}"${plaats ? ` in ${plaats}` : ""} — dus de eigen site van een bedrijf, niet een overzichts- of vergelijkingssite. Geef de domeinnamen als JSON-array, bijvoorbeeld ["bedrijf1.nl","bedrijf2.nl"]. Maximaal 12.`,
+          content: `Zoek websites van individuele bedrijven in Nederland in de branche "${branche}"${plaats ? ` in ${plaats}` : ""} — dus de eigen site van een bedrijf, niet een overzichts- of vergelijkingssite. Geef de domeinnamen als JSON-array, bijvoorbeeld ["bedrijf1.nl","bedrijf2.nl"]. Zoek gerust een paar keer met andere zoektermen om er zoveel mogelijk te vinden — maximaal 25.`,
         },
       ],
     });

@@ -136,7 +136,7 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
           disabled={zoekBezig || !branche.trim()}
           className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
         >
-          {zoekBezig ? "Zoeken & scannen... (±30 sec)" : "Zoek"}
+          {zoekBezig ? "Zoeken & scannen... (1-2 min)" : "Zoek"}
         </button>
       </div>
 

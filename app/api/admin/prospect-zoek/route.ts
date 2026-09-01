@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { zoekProspects } from "@/lib/prospectscan";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /** Zoekt en scant bedrijfssites voor een branche (+plaats) — admin-Outreach. */
 export async function POST(req: Request) {
