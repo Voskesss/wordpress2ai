@@ -125,3 +125,116 @@ ${groet}${afmeldRegel(p)}</div>`,
 ${groet}${afmeldRegel(p)}</div>`,
   };
 }
+
+
+// ===== Sjabloon-laag =====
+// De basisteksten hierboven blijven de ingebouwde standaard. Jos kan per mail
+// eigen versies opslaan (mail_sjablonen) en per prospect een persoonlijke
+// versie (prospect_mails). Volgorde: persoonlijk > actief sjabloon > standaard.
+
+/** De invulvelden die in een sjabloon mogen staan. */
+export function vulIn(sjabloon: string, p: Prospect): string {
+  const obs = p.observatie?.trim() ?? "";
+  const opening = menselijkeObservatie(p).zin.replace(/<\/?p>/g, "");
+  return sjabloon
+    .replace(/\{\{bedrijf\}\}/g, p.bedrijf)
+    .replace(/\{\{website\}\}/g, p.website)
+    .replace(/\{\{observatie\}\}/g, obs)
+    .replace(/\{\{opening\}\}/g, opening)
+    .replace(
+      /\{\{prijsregel\}\}/g,
+      p.prijs
+        ? `voor jouw site eenmalig ${p.prijs}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is`
+        : "eenmalig, vanaf €250"
+    )
+    .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf €250");
+}
+
+/** Platte sjabloontekst → dezelfde nette HTML-mail als de standaardmails. */
+export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
+  const alineas = tekst
+    .split(/\n\s*\n/)
+    .map((a) => a.trim())
+    .filter(Boolean)
+    .map((a) => `<p>${ontsnap(a).replace(/\n/g, "<br>")}</p>`)
+    .join("\n");
+  const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap — <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a></p>`;
+  return `<div style="${stijl}">\n${alineas}\n${groet}${afmeldRegel(p)}</div>`;
+}
+
+/** Standaardmail terug als platte sjabloontekst (startpunt voor bewerken). */
+export function standaardSjabloon(nummer: 1 | 2 | 3): { onderwerp: string; tekst: string } {
+  if (nummer === 1)
+    return {
+      onderwerp: "Even over de website van {{bedrijf}}",
+      tekst: `Hallo,
+
+Ik kwam de website van {{bedrijf}} tegen en heb er even naar gekeken.
+
+{{opening}}
+
+Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.
+
+Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je ({{prijsregel}}). Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.
+
+Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.
+
+En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.`,
+    };
+  if (nummer === 2)
+    return {
+      onderwerp: "Wat kost de site van {{bedrijf}} per maand?",
+      tekst: `Hallo,
+
+Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.
+
+Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.
+
+De kopie die wij maken kost €5 tot €20 per maand, alles inbegrepen (de overstap zelf: {{prijs}}), en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.
+
+Eén reply met "laat maar zien" is genoeg.`,
+    };
+  return {
+    onderwerp: "Laatste berichtje van mij",
+    tekst: `Hallo,
+
+Dit is mijn laatste berichtje — ik ga je niet blijven mailen. Speelt het nu niet bij {{bedrijf}}: helemaal prima.
+
+Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: wordswap.nl.
+
+Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: wordswap.nl/webinar.
+
+Veel succes met de zaak!`,
+  };
+}
+
+export type MailBasis = { onderwerp: string; tekst: string; naam?: string };
+
+/** Kiest de mail voor een prospect: persoonlijk > actief sjabloon > standaard.
+ * Geeft ook terug welke bron gebruikt is (voor de doelgroep-analyse). */
+export function kiesMail(
+  nummer: 1 | 2 | 3,
+  p: Prospect,
+  sjabloon?: MailBasis | null,
+  persoonlijk?: MailBasis | null
+): { onderwerp: string; html: string; tekst: string; bron: string } {
+  const basis = persoonlijk ?? sjabloon;
+  if (basis) {
+    const tekst = vulIn(basis.tekst, p);
+    return {
+      onderwerp: vulIn(basis.onderwerp, p),
+      tekst,
+      html: sjabloonNaarHtml(tekst, p),
+      bron: persoonlijk ? "persoonlijk" : (sjabloon?.naam ?? "sjabloon"),
+    };
+  }
+  // Standaard: de slimme opbouw voor de mail zelf, en de sjabloonversie van
+  // dezelfde tekst als startpunt voor personaliseren.
+  const m = maakOutreachMail(nummer, p);
+  return {
+    onderwerp: m.onderwerp,
+    html: m.html,
+    tekst: vulIn(standaardSjabloon(nummer).tekst, p),
+    bron: "standaard",
+  };
+}

@@ -1,5 +1,6 @@
 type ProspectRij = {
   status: string;
+  mailVersie?: string | null;
   branche: string | null;
   plaats: string | null;
   score: number | null;
@@ -29,6 +30,7 @@ export default function WatWerkt({ rijen }: { rijen: ProspectRij[] }) {
   for (const r of gemaild) {
     const raak = isRaak(r);
     if (r.branche) tel(`branche: ${r.branche.toLowerCase()}`, raak);
+    if (r.mailVersie) tel(`mailversie: ${r.mailVersie}`, raak);
     if (r.score != null)
       tel(
         r.score >= 7 ? "zwaar verwaarloosde site (score 7+)" : r.score >= 4 ? "matig bijgehouden (score 4-6)" : "redelijk bijgehouden (score 0-3)",

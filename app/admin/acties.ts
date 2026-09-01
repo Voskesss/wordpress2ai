@@ -354,8 +354,18 @@ export async function verstuurOutreach(formData: FormData) {
   if (afgemeld) return;
 
   const nummer = (p.status === "nieuw" ? 1 : p.status === "mail1" ? 2 : 3) as 1 | 2 | 3;
-  const { maakOutreachMail } = await import("@/lib/outreach");
-  const mail = maakOutreachMail(nummer, p);
+  const { kiesMail } = await import("@/lib/outreach");
+  const { mailSjablonen, prospectMails } = await import("@/db/schema");
+  const { and } = await import("drizzle-orm");
+  const [sjab] = await db
+    .select()
+    .from(mailSjablonen)
+    .where(and(eq(mailSjablonen.nummer, nummer), eq(mailSjablonen.actief, true)));
+  const [pers] = await db
+    .select()
+    .from(prospectMails)
+    .where(and(eq(prospectMails.prospectId, id), eq(prospectMails.nummer, nummer)));
+  const mail = kiesMail(nummer, p, sjab ?? null, pers ?? null);
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
@@ -380,7 +390,7 @@ export async function verstuurOutreach(formData: FormData) {
     .update(prospects)
     .set({
       status: `mail${nummer}`,
-      ...(nummer === 1 ? { mail1Op: new Date() } : nummer === 2 ? { mail2Op: new Date() } : { mail3Op: new Date() }),
+      ...(nummer === 1 ? { mail1Op: new Date(), mailVersie: mail.bron } : nummer === 2 ? { mail2Op: new Date() } : { mail3Op: new Date() }),
     })
     .where(eq(prospects.id, id));
   revalidatePath("/admin/outreach");
@@ -547,5 +557,75 @@ export async function outreachTestmail(formData: FormData) {
       reply_to: ["info@wordswap.nl"],
     }),
   }).catch((e) => console.error("Testmail mislukt:", e));
+  revalidatePath("/admin/outreach");
+}
+
+
+/** Mailsjabloon opslaan (nieuw of bewerken) en optioneel activeren. */
+export async function sjabloonOpslaan(formData: FormData) {
+  await requireAdmin();
+  const { mailSjablonen } = await import("@/db/schema");
+  const { and } = await import("drizzle-orm");
+  const id = Number(formData.get("id"));
+  const nummer = Number(formData.get("nummer"));
+  const naam = String(formData.get("naam") ?? "").trim();
+  const onderwerp = String(formData.get("onderwerp") ?? "").trim();
+  const tekst = String(formData.get("tekst") ?? "").trim();
+  const activeren = formData.get("activeren") === "1";
+  if (![1, 2, 3].includes(nummer) || !naam || !onderwerp || !tekst) return;
+  let doelId = id;
+  if (Number.isInteger(id) && id > 0) {
+    await db.update(mailSjablonen).set({ naam, onderwerp, tekst }).where(eq(mailSjablonen.id, id));
+  } else {
+    const [rij] = await db
+      .insert(mailSjablonen)
+      .values({ nummer, naam, onderwerp, tekst })
+      .returning({ id: mailSjablonen.id });
+    doelId = rij.id;
+  }
+  if (activeren && doelId) {
+    await db.update(mailSjablonen).set({ actief: false }).where(eq(mailSjablonen.nummer, nummer));
+    await db.update(mailSjablonen).set({ actief: true }).where(eq(mailSjablonen.id, doelId));
+  }
+  revalidatePath("/admin/outreach/sjablonen");
+  revalidatePath("/admin/outreach");
+}
+
+/** Mailsjabloon activeren of verwijderen. */
+export async function sjabloonActie(formData: FormData) {
+  await requireAdmin();
+  const { mailSjablonen } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const [rij] = await db.select().from(mailSjablonen).where(eq(mailSjablonen.id, id));
+  if (!rij) return;
+  if (formData.get("verwijder") === "1") {
+    await db.delete(mailSjablonen).where(eq(mailSjablonen.id, id));
+  } else if (formData.get("deactiveer") === "1") {
+    await db.update(mailSjablonen).set({ actief: false }).where(eq(mailSjablonen.id, id));
+  } else {
+    await db.update(mailSjablonen).set({ actief: false }).where(eq(mailSjablonen.nummer, rij.nummer));
+    await db.update(mailSjablonen).set({ actief: true }).where(eq(mailSjablonen.id, id));
+  }
+  revalidatePath("/admin/outreach/sjablonen");
+  revalidatePath("/admin/outreach");
+}
+
+/** Persoonlijke mailversie voor één prospect opslaan (leeg = terug naar de basis). */
+export async function prospectMailOpslaan(formData: FormData) {
+  await requireAdmin();
+  const { prospectMails } = await import("@/db/schema");
+  const { and } = await import("drizzle-orm");
+  const prospectId = Number(formData.get("prospectId"));
+  const nummer = Number(formData.get("nummer"));
+  const onderwerp = String(formData.get("onderwerp") ?? "").trim();
+  const tekst = String(formData.get("tekst") ?? "").trim();
+  if (!Number.isInteger(prospectId) || ![1, 2, 3].includes(nummer)) return;
+  await db
+    .delete(prospectMails)
+    .where(and(eq(prospectMails.prospectId, prospectId), eq(prospectMails.nummer, nummer)));
+  if (onderwerp && tekst) {
+    await db.insert(prospectMails).values({ prospectId, nummer, onderwerp, tekst });
+  }
   revalidatePath("/admin/outreach");
 }

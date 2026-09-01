@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
-import { prospects } from "@/db/schema";
+import { mailSjablonen, prospectMails, prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { outreachTestmail, prospectBijwerken, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
-import { maakOutreachMail } from "@/lib/outreach";
+import { outreachTestmail, prospectBijwerken, prospectMailOpslaan, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
+import { kiesMail, vulIn } from "@/lib/outreach";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
 import WatWerkt from "./WatWerkt";
@@ -37,6 +37,11 @@ const dagen = (d: Date | null) =>
 export default async function Outreach() {
   await requireAdmin();
   const alle = await db.select().from(prospects).orderBy(desc(prospects.id));
+  const sjablonen = await db.select().from(mailSjablonen);
+  const persoonlijk = await db.select().from(prospectMails);
+  const actiefSjabloon = (nr: number) => sjablonen.find((s) => s.nummer === nr && s.actief) ?? null;
+  const persVoor = (pid: number, nr: number) =>
+    persoonlijk.find((m) => m.prospectId === pid && m.nummer === nr) ?? null;
   const lijst = alle.filter((p) => p.status !== "niet_mailen");
   const afgemeld = alle.filter((p) => p.status === "niet_mailen");
 
@@ -45,7 +50,15 @@ export default async function Outreach() {
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
         ← Alle klanten
       </Link>
-      <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight">Outreach</h1>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-4xl font-semibold tracking-tight">Outreach</h1>
+        <Link
+          href="/admin/outreach/sjablonen"
+          className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+        >
+          📝 Mailsjablonen bewerken
+        </Link>
+      </div>
       <p className="mt-3 text-stone-600 leading-relaxed max-w-2xl">
         Zet hier bedrijven in waarvan je denkt: die willen dit. Maximaal drie
         mails, niet opdringerig, met jouw persoonlijke observatie over hun site
@@ -240,7 +253,7 @@ export default async function Outreach() {
                 </summary>
                 <div className="mt-3 space-y-3">
                   {([1, 2, 3] as const).map((nr) => {
-                    const mail = maakOutreachMail(nr, p);
+                    const mail = kiesMail(nr, p, actiefSjabloon(nr), persVoor(p.id, nr));
                     const verstuurd =
                       nr === 1 ? p.mail1Op : nr === 2 ? p.mail2Op : p.mail3Op;
                     const isVolgende = volgende === nr;
@@ -253,6 +266,9 @@ export default async function Outreach() {
                       >
                         <p className="text-xs font-semibold text-stone-500">
                           Mail {nr}
+                          {mail.bron === "persoonlijk" && (
+                            <span className="ml-1 rounded-full bg-violet-100 px-2 py-0.5 text-violet-700">✍️ gepersonaliseerd</span>
+                          )}
                           {verstuurd
                             ? ` — verstuurd op ${verstuurd.toLocaleDateString("nl-NL")}`
                             : isVolgende
@@ -260,6 +276,34 @@ export default async function Outreach() {
                               : ""}
                         </p>
                         <p className="mt-1 text-sm font-semibold">Onderwerp: {mail.onderwerp}</p>
+                        {isVolgende && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs font-medium text-violet-700 hover:underline">
+                              ✍️ {mail.bron === "persoonlijk" ? "Persoonlijke versie bewerken" : "Personaliseer deze mail voor deze prospect"}
+                            </summary>
+                            <form action={prospectMailOpslaan} className="mt-3 grid gap-2">
+                              <input type="hidden" name="prospectId" value={p.id} />
+                              <input type="hidden" name="nummer" value={nr} />
+                              <input
+                                name="onderwerp"
+                                defaultValue={persVoor(p.id, nr)?.onderwerp ?? mail.onderwerp}
+                                className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm focus:border-violet-600 focus:outline-none"
+                              />
+                              <textarea
+                                name="tekst"
+                                rows={12}
+                                defaultValue={persVoor(p.id, nr)?.tekst ?? mail.tekst}
+                                className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 font-mono text-[13px] leading-relaxed focus:border-violet-600 focus:outline-none"
+                              />
+                              <p className="text-[11px] text-stone-400">
+                                Groet en afmeldknop komen er automatisch onder. Maak beide velden leeg en sla op om terug te gaan naar de basistekst.
+                              </p>
+                              <div>
+                                <ActieKnop label="Bewaar persoonlijke versie" bezigLabel="Opslaan..." className="rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer" />
+                              </div>
+                            </form>
+                          </details>
+                        )}
                         <div
                           className="mt-2 rounded-xl border border-stone-100 bg-stone-50 p-4 text-sm [&_p]:mb-2 [&_a]:text-violet-700"
                           dangerouslySetInnerHTML={{ __html: mail.html }}

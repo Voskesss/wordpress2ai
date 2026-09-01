@@ -175,12 +175,36 @@ export const prospects = pgTable("prospects", {
   kenmerken: text("kenmerken"),
   // Concreet prijsvoorstel in de mail (optioneel; leeg = "vanaf €250")
   prijs: text("prijs"),
+  // Naam van de sjabloonversie waarmee mail 1 is verstuurd (voor de analyse)
+  mailVersie: text("mail_versie"),
   // nieuw | mail1 | mail2 | mail3 | gereageerd | klant | niet_mailen
   status: text("status").notNull().default("nieuw"),
   mail1Op: timestamp("mail1_op"),
   mail2Op: timestamp("mail2_op"),
   mail3Op: timestamp("mail3_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
+// Mailsjablonen: de basisteksten van de outreach-mails, met meerdere
+// versies per mailnummer; per nummer is er precies één actief.
+export const mailSjablonen = pgTable("mail_sjablonen", {
+  id: serial("id").primaryKey(),
+  nummer: integer("nummer").notNull(), // 1 | 2 | 3
+  naam: text("naam").notNull(),
+  onderwerp: text("onderwerp").notNull(),
+  tekst: text("tekst").notNull(), // platte tekst met {{invulvelden}}
+  actief: boolean("actief").notNull().default(false),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
+// Persoonlijke versie van een mail voor één prospect (overschrijft de basis)
+export const prospectMails = pgTable("prospect_mails", {
+  id: serial("id").primaryKey(),
+  prospectId: integer("prospect_id").notNull(),
+  nummer: integer("nummer").notNull(),
+  onderwerp: text("onderwerp").notNull(),
+  tekst: text("tekst").notNull(),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
 
 // Webinars: door Jos ingeplande sessies waar bezoekers zich voor inschrijven
