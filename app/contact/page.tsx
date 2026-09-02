@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
+import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -38,6 +39,22 @@ export default async function Contact() {
             </li>
           ))}
         </ul>
+        {josFoto() && (
+          <div className="mt-10 flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={josFoto()!}
+              alt="Jos Klijnhout"
+              width={72}
+              height={72}
+              className="h-[4.5rem] w-[4.5rem] rounded-full border-4 border-white object-cover shadow-md"
+            />
+            <p className="text-sm text-stone-600 leading-snug">
+              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf —
+              geen ticketsysteem, geen supportafdeling.
+            </p>
+          </div>
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/mascotte/zwaaiend.webp" alt="" aria-hidden className="mt-8 hidden w-44 rounded-3xl lg:block" />
       </div>

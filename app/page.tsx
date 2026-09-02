@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { josFoto, josVideoEmbed } from "@/lib/persoonlijk";
 import Logo from "./Logo";
 
 const herkenbaar = [
@@ -281,9 +282,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Persoonlijke noot */}
+      {/* Persoonlijke noot — met echt gezicht zodra public/team/jos.webp bestaat */}
       <section className="mx-auto max-w-3xl px-6 pb-24">
         <div className="reveal rounded-3xl border border-violet-100 bg-violet-50/60 p-10">
+          {josFoto() && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={josFoto()!}
+              alt="Jos Klijnhout, oprichter van WordSwap"
+              width={112}
+              height={112}
+              className="mb-6 h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg"
+            />
+          )}
           <p className="font-display text-2xl leading-snug text-stone-800">
             &ldquo;Ik heb te veel ondernemers gezien die &apos;s avonds nog
             zaten te worstelen met hun website, die niet durfden te klikken uit
@@ -292,8 +303,19 @@ export default function Home() {
             website moet gewoon meewerken.&rdquo;
           </p>
           <p className="mt-6 font-semibold text-violet-700">
-            — Jos, oprichter WordSwap
+            — Jos Klijnhout, oprichter WordSwap
           </p>
+          {josVideoEmbed() && (
+            <div className="mt-8 overflow-hidden rounded-2xl shadow-lg" style={{ aspectRatio: "16/9" }}>
+              <iframe
+                src={josVideoEmbed()!}
+                title="Kennismaken met Jos van WordSwap"
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
           <p className="mt-6 text-stone-600 leading-relaxed">
             En gaat er tóch een keer iets fout? Dan geef je het gewoon door en
             zet de AI het weer goed. Van elke versie van je website wordt
