@@ -7,15 +7,18 @@ export default function ActieKnop({
   label,
   bezigLabel,
   className,
+  title,
 }: {
   label: string;
   bezigLabel: string;
   className?: string;
+  title?: string;
 }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
+      title={title}
       disabled={pending}
       className={`${className} disabled:opacity-70 ${pending ? "animate-pulse" : ""}`}
     >

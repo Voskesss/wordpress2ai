@@ -216,7 +216,8 @@ export default async function Outreach() {
                     <input type="hidden" name="id" value={p.id} />
                     <input type="hidden" name="status" value="gereageerd" />
                     <ActieKnop
-                      label="🎉 Gereageerd"
+                      label="🎉 Heeft geantwoord (stop de mails)"
+                      title="Klik dit als je in je inbox een antwoord van deze prospect ziet — mail 2 en 3 gaan dan niet meer weg"
                       bezigLabel="..."
                       className="rounded-full border border-emerald-300 px-4 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer"
                     />
