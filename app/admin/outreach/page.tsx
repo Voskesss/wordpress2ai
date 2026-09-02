@@ -88,29 +88,6 @@ export default async function Outreach({
         de prospect automatisch op &ldquo;niet mailen&rdquo; zet.
       </p>
 
-      {/* Overzicht per fase — klik om de lijst te filteren */}
-      <div className="mt-8 grid gap-2 sm:grid-cols-5">
-        {(
-          [
-            ["actie", "Actie nodig", alle.filter(filters.actie).length, "bg-amber-100 text-amber-800"],
-            ["nieuw", "Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
-            ["loopt", "Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
-            ["raak", "Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
-            ["alles", "Alles", alle.filter(filters.alles).length, "bg-white border border-stone-200 text-stone-700"],
-          ] as const
-        ).map(([sleutel, label, aantal, kleur]) => (
-          <Link
-            key={sleutel}
-            href={`/admin/outreach?toon=${sleutel}`}
-            className={`rounded-2xl px-4 py-3 transition ${kleur} ${
-              toon === sleutel ? "ring-2 ring-violet-600 ring-offset-2" : "opacity-80 hover:opacity-100"
-            }`}
-          >
-            <p className="font-display text-2xl font-semibold">{aantal}</p>
-            <p className="text-xs font-medium">{label}</p>
-          </Link>
-        ))}
-      </div>
 
       {/* Testmail */}
       <form action={outreachTestmail} className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
@@ -200,8 +177,32 @@ export default async function Outreach({
         </div>
       </form>
 
+      {/* Overzicht per fase — klik om de lijst te filteren */}
+      <div className="mt-10 grid gap-2 sm:grid-cols-5">
+        {(
+          [
+            ["actie", "Actie nodig", alle.filter(filters.actie).length, "bg-amber-100 text-amber-800"],
+            ["nieuw", "Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
+            ["loopt", "Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
+            ["raak", "Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
+            ["alles", "Alles", alle.filter(filters.alles).length, "bg-white border border-stone-200 text-stone-700"],
+          ] as const
+        ).map(([sleutel, label, aantal, kleur]) => (
+          <Link
+            key={sleutel}
+            href={`/admin/outreach?toon=${sleutel}`}
+            className={`rounded-2xl px-4 py-3 transition ${kleur} ${
+              toon === sleutel ? "ring-2 ring-violet-600 ring-offset-2" : "opacity-80 hover:opacity-100"
+            }`}
+          >
+            <p className="font-display text-2xl font-semibold">{aantal}</p>
+            <p className="text-xs font-medium">{label}</p>
+          </Link>
+        ))}
+      </div>
+
       {/* Lijst */}
-      <div className="mt-8 space-y-4">
+      <div className="mt-4 space-y-4">
         {lijst.length === 0 && (
           <p className="text-stone-500">
             {alle.length === 0
