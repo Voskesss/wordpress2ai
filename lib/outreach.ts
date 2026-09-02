@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { HANDTEKENING } from "./mailer";
 
 export type Prospect = {
   id: number;
@@ -83,7 +84,7 @@ export function maakOutreachMail(
   nummer: 1 | 2 | 3,
   p: Prospect
 ): { onderwerp: string; html: string } {
-  const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap — <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a></p>`;
+  const groet = `<p>Groet,</p>${HANDTEKENING}`;
   const obs = menselijkeObservatie(p);
 
   if (nummer === 1) {
@@ -167,7 +168,7 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
       return `<p>${met.replace(/\n/g, "<br>")}</p>`;
     })
     .join("\n");
-  const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap — <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a></p>`;
+  const groet = `<p>Groet,</p>${HANDTEKENING}`;
   return `<div style="${stijl}">\n${alineas}\n${groet}${afmeldRegel(p)}</div>`;
 }
 
