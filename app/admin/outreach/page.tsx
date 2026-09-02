@@ -35,16 +35,36 @@ const statusLabel: Record<string, [string, string]> = {
 const dagen = (d: Date | null) =>
   d ? Math.floor((Date.now() - d.getTime()) / 86_400_000) : null;
 
-export default async function Outreach() {
+export default async function Outreach({
+  searchParams,
+}: {
+  searchParams: Promise<{ toon?: string }>;
+}) {
   await requireAdmin();
+  const { toon = "actie" } = await searchParams;
   const alle = await db.select().from(prospects).orderBy(desc(prospects.id));
   const sjablonen = await db.select().from(mailSjablonen);
   const persoonlijk = await db.select().from(prospectMails);
   const actiefSjabloon = (nr: number) => sjablonen.find((s) => s.nummer === nr && s.actief) ?? null;
   const persVoor = (pid: number, nr: number) =>
     persoonlijk.find((m) => m.prospectId === pid && m.nummer === nr) ?? null;
-  const lijst = alle.filter((p) => p.status !== "niet_mailen");
   const afgemeld = alle.filter((p) => p.status === "niet_mailen");
+  const filters: Record<string, (p: (typeof alle)[number]) => boolean> = {
+    actie: (p) => p.status !== "niet_mailen" && !["gereageerd", "klant"].includes(p.status),
+    nieuw: (p) => p.status === "nieuw",
+    loopt: (p) => p.status.startsWith("mail"),
+    raak: (p) => ["gereageerd", "klant"].includes(p.status),
+    alles: (p) => p.status !== "niet_mailen",
+  };
+  const filter = filters[toon] ?? filters.actie;
+  // Sortering: eerst wie nog nooit gemaild is, dan wie het langst stil is
+  const lijst = alle.filter(filter).sort((a, b) => {
+    const rang = (p: typeof a) => (p.status === "nieuw" ? 0 : p.status.startsWith("mail") ? 1 : 2);
+    if (rang(a) !== rang(b)) return rang(a) - rang(b);
+    const la = (a.mail3Op ?? a.mail2Op ?? a.mail1Op)?.getTime() ?? 0;
+    const lb = (b.mail3Op ?? b.mail2Op ?? b.mail1Op)?.getTime() ?? 0;
+    return la - lb;
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -68,20 +88,27 @@ export default async function Outreach() {
         de prospect automatisch op &ldquo;niet mailen&rdquo; zet.
       </p>
 
-      {/* Overzicht per fase */}
-      <div className="mt-8 grid gap-2 sm:grid-cols-4">
+      {/* Overzicht per fase — klik om de lijst te filteren */}
+      <div className="mt-8 grid gap-2 sm:grid-cols-5">
         {(
           [
-            ["Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
-            ["Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
-            ["Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
-            ["Niet mailen", afgemeld.length, "bg-red-100 text-red-800"],
+            ["actie", "Actie nodig", alle.filter(filters.actie).length, "bg-amber-100 text-amber-800"],
+            ["nieuw", "Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
+            ["loopt", "Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
+            ["raak", "Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
+            ["alles", "Alles", alle.filter(filters.alles).length, "bg-white border border-stone-200 text-stone-700"],
           ] as const
-        ).map(([label, aantal, kleur]) => (
-          <div key={label} className={`rounded-2xl px-4 py-3 ${kleur}`}>
+        ).map(([sleutel, label, aantal, kleur]) => (
+          <Link
+            key={sleutel}
+            href={`/admin/outreach?toon=${sleutel}`}
+            className={`rounded-2xl px-4 py-3 transition ${kleur} ${
+              toon === sleutel ? "ring-2 ring-violet-600 ring-offset-2" : "opacity-80 hover:opacity-100"
+            }`}
+          >
             <p className="font-display text-2xl font-semibold">{aantal}</p>
             <p className="text-xs font-medium">{label}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -176,7 +203,11 @@ export default async function Outreach() {
       {/* Lijst */}
       <div className="mt-8 space-y-4">
         {lijst.length === 0 && (
-          <p className="text-stone-500">Nog geen prospects — voeg de eerste toe.</p>
+          <p className="text-stone-500">
+            {alle.length === 0
+              ? "Nog geen prospects — voeg de eerste toe."
+              : "Niets in deze weergave — klik hierboven op een ander vakje."}
+          </p>
         )}
         {lijst.map((p) => {
           const [label, kleur] = statusLabel[p.status] ?? statusLabel.nieuw;
