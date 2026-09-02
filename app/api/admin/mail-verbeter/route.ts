@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   if (user?.publicMetadata?.role !== "admin") {
     return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
   }
-  const { onderwerp, tekst, aanwijzing, bedrijf, website, observatie, sjabloon } =
+  const { onderwerp, tekst, aanwijzing, bedrijf, website, observatie, sjabloon, los } =
     (await req.json()) as {
       onderwerp: string;
       tekst: string;
@@ -18,6 +18,8 @@ export async function POST(req: Request) {
       website?: string;
       observatie?: string;
       sjabloon?: boolean;
+      /** true = vrije mail uit de mailer (geen acquisitie-huisstijl afdwingen) */
+      los?: boolean;
     };
   if (!tekst?.trim() || !aanwijzing?.trim()) {
     return NextResponse.json({ error: "Tekst en aanwijzing nodig" }, { status: 400 });
@@ -28,7 +30,12 @@ export async function POST(req: Request) {
   const resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 3000,
-    system: `Je verbetert een koude maar vriendelijke acquisitie-mail van Jos (WordSwap: zet WordPress-sites om naar snelle sites zonder onderhoud, daarna aanpassen via AI-chat, no cure no pay).
+    system: los
+      ? `Je helpt Jos van WordSwap (zet WordPress-sites om naar snelle sites zonder onderhoud, beheer via AI-chat) met een zakelijke e-mail. Schrijfstijl: Nederlands, je-vorm tenzij de mail duidelijk formeler moet, vriendelijk, kort en concreet, geen buzzwoorden. De handtekening komt er automatisch onder — voeg nooit een groet of afsluiting toe. Voer de aanwijzing van Jos uit; wijzig alleen wat de aanwijzing raakt. Antwoordformaat, exact dit en niets eromheen:
+ONDERWERP: <de onderwerpregel>
+
+<de volledige mailtekst, met een witregel tussen alinea's>`
+      : `Je verbetert een koude maar vriendelijke acquisitie-mail van Jos (WordSwap: zet WordPress-sites om naar snelle sites zonder onderhoud, daarna aanpassen via AI-chat, no cure no pay).
 
 Huisstijl van de mails: Nederlands, je-vorm, kort en concreet, over de situatie van de ontvanger (niet "wij doen"), geen brede beloftes, geen buzzwoorden, respectvol over hun site (de ontvanger is trots op zijn zaak), precies één actie ("één reply is genoeg"). Groet en afmeldknop staan er NIET in — die worden automatisch toegevoegd, dus voeg ze nooit toe.
 

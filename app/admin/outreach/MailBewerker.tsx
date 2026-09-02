@@ -12,6 +12,7 @@ export default function MailBewerker({
   website,
   observatie,
   sjabloon,
+  los,
 }: {
   beginOnderwerp: string;
   beginTekst: string;
@@ -20,6 +21,8 @@ export default function MailBewerker({
   observatie?: string | null;
   /** true = sjabloonmodus: AI laat {{invulvelden}} intact */
   sjabloon?: boolean;
+  /** true = vrije mail (mailer): geen acquisitie-huisstijl */
+  los?: boolean;
 }) {
   const [onderwerp, setOnderwerp] = useState(beginOnderwerp);
   const [tekst, setTekst] = useState(beginTekst);
@@ -35,7 +38,7 @@ export default function MailBewerker({
       const res = await fetch("/api/admin/mail-verbeter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ onderwerp, tekst, aanwijzing, bedrijf, website, observatie, sjabloon }),
+        body: JSON.stringify({ onderwerp, tekst, aanwijzing, bedrijf, website, observatie, sjabloon, los }),
       });
       const data = (await res.json()) as { onderwerp?: string; tekst?: string; error?: string };
       if (data.onderwerp && data.tekst) {
