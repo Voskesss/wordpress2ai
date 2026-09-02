@@ -58,19 +58,25 @@ export default function MailerVak() {
         <p className="text-xs font-semibold text-stone-500">
           Dit komt er automatisch onder:
         </p>
-        <div className="mt-2 border-t-2 border-violet-700 pt-3">
-          <p className="text-[15px] font-bold text-stone-900">Jos Klijnhout</p>
-          <p className="text-[13px] text-stone-500">
-            W<span className="text-violet-700">ord</span>Swap — websites zonder
-            onderhoud, aanpassen door het te typen
-          </p>
-          <p className="mt-1.5 text-[13px]">
-            <span className="font-semibold text-violet-700">wordswap.nl</span>
-            <span className="text-stone-300"> · </span>
-            <span className="text-stone-500">jos@wordswap.nl</span>
-            <span className="text-stone-300"> · </span>
-            <span className="text-stone-500">probeer de demo</span>
-          </p>
+        <div className="mt-2 border-t-[3px] border-violet-700 pt-4">
+          <div className="flex items-center gap-3.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mail.png" alt="" width={52} height={52} className="rounded-xl" />
+            <div>
+              <p className="text-[16px] font-bold text-stone-900">Jos Klijnhout</p>
+              <p className="text-[13px] text-stone-600">
+                <span className="font-bold text-stone-900">W<span className="text-violet-700">ord</span>Swap</span> · websites zonder onderhoud
+              </p>
+              <p className="text-[13px]">
+                <span className="font-semibold text-violet-700">wordswap.nl</span>
+                <span className="text-stone-300"> · </span>
+                <span className="text-stone-500">jos@wordswap.nl</span>
+              </p>
+            </div>
+          </div>
+          <span className="mt-3.5 inline-block rounded-full bg-violet-700 px-5 py-2 text-[13px] font-semibold text-white">
+            Probeer de demo — pas een site aan door te typen
+          </span>
         </div>
       </div>
       {melding && (
