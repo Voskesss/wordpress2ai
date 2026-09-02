@@ -1535,7 +1535,15 @@ export default function Chat({
                 multiple
                 className="hidden"
                 onChange={(e) => {
-                  const bestanden = Array.from(e.target.files ?? []);
+                  const alles = Array.from(e.target.files ?? []);
+                  // Videobestanden zijn te groot voor een website — vriendelijk uitleggen
+                  if (alles.some((f) => f.type.startsWith("video/"))) {
+                    setStatusTekst(
+                      "Video's kunnen niet als bestand op de site (te groot). Zet je video op YouTube of Vimeo en plak de link hier in de chat — dan zet ik hem netjes op de pagina."
+                    );
+                    setTimeout(() => setStatusTekst(null), 9000);
+                  }
+                  const bestanden = alles.filter((f) => !f.type.startsWith("video/"));
                   if (bestanden[0] && fotoVervangRef.current) {
                     // Foto-vervangen-flow: eerste bestand direct verwerken (zonder AI)
                     fotoVervangRef.current = false;
