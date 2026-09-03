@@ -230,6 +230,7 @@ export default function Chat({
   function zetAanwijzen(aan: boolean) {
     setAanwijzen(aan);
     meldAanwijzen(aan);
+    if (!aan) setAanwijsKandidaat(null);
     // Mobiel: aanwijzen doe je óp de site — automatisch heen wisselen
     if (aan && isMobiel) setMobielWeergave("site");
   }
@@ -358,6 +359,8 @@ export default function Chat({
   const [balkOpen, setBalkOpen] = useState(true);
   // Mobiel: chat en site als twee volledige schermen (zoals een artifact)
   const [mobielWeergave, setMobielWeergave] = useState<"site" | "chat">("site");
+  // Mobiel aanwijzen in twee stappen: eerst tikken (randje), dan bevestigen
+  const [aanwijsKandidaat, setAanwijsKandidaat] = useState<{ tag: string; tekst: string } | null>(null);
   // Schermvullend op desktop: chat als vast paneel naast het voorbeeld
   const splitModus = volledigScherm && !isMobiel;
   const mobielChat = isMobiel && mobielWeergave === "chat";
@@ -397,7 +400,11 @@ export default function Chat({
           setLaderTekst(null);
         }
       }
+      if (e.data?.type === "wp2ai-aanwijs-focus") {
+        setAanwijsKandidaat({ tag: String(e.data.tag ?? ""), tekst: String(e.data.tekst ?? "") });
+      }
       if (e.data?.type === "wp2ai-selectie") {
+        setAanwijsKandidaat(null);
         setSelectie({
           pad: String(e.data.pad ?? "/"),
           tag: String(e.data.tag ?? ""),
@@ -1182,12 +1189,33 @@ export default function Chat({
         {/* Mobiel: aanwijs-hint over de site heen */}
         {isMobiel && !mobielChat && aanwijzen && (
           <div className="absolute left-1/2 top-3 z-20 flex w-[94%] -translate-x-1/2 items-center gap-3 rounded-2xl bg-stone-900/85 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
-            <span className="flex-1">👆 Tik aan wat je wilt aanpassen</span>
+            {aanwijsKandidaat ? (
+              <>
+                <span className="min-w-0 flex-1 truncate">
+                  {aanwijsKandidaat.tag === "img"
+                    ? "📷 Foto geselecteerd"
+                    : `"${aanwijsKandidaat.tekst || `een ${aanwijsKandidaat.tag}-onderdeel`}"`}
+                </span>
+                <button
+                  onClick={() =>
+                    iframeRef.current?.contentWindow?.postMessage({ type: "wp2ai-aanwijs-bevestig" }, "*")
+                  }
+                  className="shrink-0 rounded-full bg-violet-500 px-4 py-1.5 text-xs font-bold cursor-pointer"
+                >
+                  ✔️ Deze aanpassen
+                </button>
+              </>
+            ) : (
+              <span className="flex-1">👆 Tik aan wat je wilt aanpassen — tik gerust nog eens ergens anders</span>
+            )}
             <button
-              onClick={() => zetAanwijzen(false)}
-              className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold cursor-pointer"
+              onClick={() => {
+                setAanwijsKandidaat(null);
+                zetAanwijzen(false);
+              }}
+              className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold cursor-pointer"
             >
-              Annuleer
+              ✕
             </button>
           </div>
         )}
