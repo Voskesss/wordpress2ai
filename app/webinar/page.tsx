@@ -3,6 +3,7 @@ import Link from "next/link";
 import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { webinars } from "@/db/schema";
+import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
   title: "Gratis webinar: weg uit WordPress",
@@ -23,26 +24,82 @@ export default async function Webinar() {
     .where(and(eq(webinars.actief, true), gte(webinars.wanneer, new Date())))
     .orderBy(asc(webinars.wanneer));
 
+  const foto = josFoto();
+  const eerstvolgende = komende[0] ?? null;
+
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="sm:flex sm:items-center sm:gap-8">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-widest text-violet-700">
-            Gratis online webinar
-          </p>
-          <h1 className="font-display mt-2 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
+    <div className="mx-auto max-w-5xl px-6 py-16">
+      <h1 className="font-display text-center text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
+        Doe kennis op met ons
+        <br />
+        <span className="bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">
+          gratis webinar
+        </span>
+      </h1>
+      <p className="mx-auto mt-5 max-w-2xl text-center text-lg text-stone-600 leading-relaxed">
+        In een half uur zie je live hoe je van plugin-updates, hosting-gedoe en
+        trage laadtijden af komt — en hoe je daarna je website aanpast door het
+        gewoon te typen. Vragen stellen mag de hele sessie door.
+      </p>
+
+      {/* Uitgelicht webinar in Brandfirm-stijl: collage links, inhoud rechts */}
+      <div className="mt-12 grid overflow-hidden rounded-[2rem] bg-violet-50/60 border border-violet-100 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        {/* Collage met speelse vormen */}
+        <div className="relative hidden min-h-[26rem] lg:block">
+          <div className="absolute left-8 top-8 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-violet-600 to-fuchsia-500 opacity-90" />
+          <div className="absolute right-10 top-14 h-14 w-14 rounded-full bg-amber-300" />
+          <div className="absolute bottom-24 left-6 h-16 w-28 rounded-2xl bg-white shadow-lg p-3">
+            <p className="text-[10px] font-semibold text-stone-500">Jij typt:</p>
+            <p className="mt-0.5 truncate text-[11px] text-stone-800">&ldquo;zet zaterdag open tot 17:00&rdquo;</p>
+          </div>
+          <div className="absolute bottom-10 right-8 h-12 w-32 rounded-2xl bg-violet-700 p-3 shadow-lg">
+            <p className="text-[11px] font-semibold text-white">✓ Staat live</p>
+          </div>
+          {foto ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={foto}
+              alt="Jos Klijnhout"
+              className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-[2.5rem] border-4 border-white object-cover shadow-2xl"
+            />
+          ) : (
+            <div className="font-display absolute left-1/2 top-1/2 flex h-44 w-44 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2.5rem] border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-500 text-5xl font-semibold text-white shadow-2xl">
+              JK
+            </div>
+          )}
+        </div>
+
+        {/* Inhoud */}
+        <div className="p-8 sm:p-12">
+          <span className="rounded-full bg-fuchsia-100 px-3.5 py-1.5 text-sm font-semibold text-fuchsia-700">
+            Webinar
+          </span>
+          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight">
             Weg uit WordPress — zonder gedoe
-          </h1>
-          <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-            In een half uur laten we je live zien hoe je van plugin-updates,
-            hosting-gedoe en trage laadtijden af komt. Je stelt gerust je
-            vragen — en je ziet met eigen ogen hoe je een website aanpast door
-            het gewoon te typen.
+          </h2>
+          <p className="mt-4 text-stone-600 leading-relaxed">
+            Jos Klijnhout, eigenaar van AI Backoffice en WordSwap, laat live
+            zien hoe hij een website aanpast door het gewoon te typen — en wat
+            er komt kijken bij de overstap van WordPress naar een site zonder
+            onderhoud. Eerlijk over wat het kost én over wanneer het níét past.
           </p>
+          <div className="mt-6 space-y-2 text-stone-700">
+            <p>📅 {eerstvolgende
+              ? eerstvolgende.wanneer.toLocaleString("nl-NL", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) + " uur"
+              : "Nieuwe datum volgt — schrijf je hieronder in voor bericht"}</p>
+            <p>⏱ 30 minuten, inclusief je vragen</p>
+            <p>💻 Online — link krijg je na inschrijving</p>
+          </div>
+          <a
+            href="#inschrijven"
+            className="lift mt-8 inline-block rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+          >
+            Meld je gratis aan
+          </a>
         </div>
       </div>
 
-      <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+      <ul className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
         {[
           "Waarom WordPress je vooral tijd en geld kost",
           "Live demo: een wijziging typen en publiceren",
@@ -54,7 +111,7 @@ export default async function Webinar() {
         ))}
       </ul>
 
-      <div className="mt-10 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+      <div id="inschrijven" className="mx-auto mt-10 max-w-3xl scroll-mt-24 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
         {komende.length === 0 ? (
           <div className="text-center">
             <h2 className="font-display text-2xl font-semibold">
