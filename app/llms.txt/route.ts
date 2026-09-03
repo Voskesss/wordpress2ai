@@ -5,7 +5,7 @@ const INHOUD = `# WordSwap
 > WordSwap zet WordPress-websites om naar snelle, veilige websites zonder onderhoud. Wijzigingen geeft de eigenaar daarna door in gewone taal — de AI voert ze uit, de eigenaar keurt ze goed vóór publicatie. Voor Nederlandse ondernemers met een brochure-site (schilders, advocaten, fysiotherapeuten en vergelijkbare lokale bedrijven).
 
 Kernpunten:
-- Eenmalige migratie €250 tot €750 (naar grootte van de site, no cure no pay), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op gebruik
+- Eenmalige migratie €150 tot €650 (naar grootte van de site, no cure no pay), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op gebruik
 - Geen plugin-updates, geen hosting-gedoe, niets te hacken; contactformulier inbegrepen; e-mailmigratie als aanvulling mogelijk
 - SEO blijft behouden: URL's, paginatitels, meta descriptions en redirects worden 1-op-1 overgenomen
 - Elke wijziging eerst als concept met preview; de eigenaar publiceert zelf
@@ -19,7 +19,7 @@ Kernpunten:
 - [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
 - [Contact](https://wordswap.nl/contact): gratis site-check aanvragen, antwoord binnen één werkdag
 - [Demo](https://wordswap.nl/demo): gratis proberen hoe je een website aanpast door het te typen
-- [Nieuwe website](https://wordswap.nl/nieuwe-website): compleet nieuwe site laten maken — AI-ontwerp vanaf €350 of ontwerp door een designer
+- [Nieuwe website](https://wordswap.nl/nieuwe-website): compleet nieuwe site laten maken — AI-ontwerp vanaf €250 of ontwerp door een designer
 - [WordPress overzetten](https://wordswap.nl/wordpress-overzetten): hoe de migratie werkt, wat er meegaat en wat het kost
 - [WordPress-alternatief](https://wordswap.nl/wordpress-alternatief): waarom een site zonder plugins en updates beter past bij ondernemers
 - [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt

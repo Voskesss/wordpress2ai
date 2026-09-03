@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "Je website aansturen met AI — verder dan WordPress",
   description:
-    "WordPress aansturen met AI? Het kan slimmer: een website die je volledig via AI-chat beheert, zonder WordPress-onderhoud. Vanaf €250 overstappen.",
+    "WordPress aansturen met AI? Het kan slimmer: een website die je volledig via AI-chat beheert, zonder WordPress-onderhoud. Vanaf €150 overstappen.",
   alternates: { canonical: "/wordpress-aansturen-met-ai" },
 };
 
@@ -36,7 +36,7 @@ export default function Pagina() {
           {
             kop: "De overstap vanaf WordPress",
             tekst:
-              "Je huidige WordPress-site zetten we 1-op-1 over (95%-kopie, no cure no pay, vanaf €250) en vanaf dat moment stuur je hem aan via AI. Geen updates, geen hosting-gedoe, geen beheerschermen — alleen nog een chat die doet wat je zegt.",
+              "Je huidige WordPress-site zetten we 1-op-1 over (95%-kopie, no cure no pay, vanaf €150) en vanaf dat moment stuur je hem aan via AI. Geen updates, geen hosting-gedoe, geen beheerschermen — alleen nog een chat die doet wat je zegt.",
           },
         ],
         faq: [

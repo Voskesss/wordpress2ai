@@ -7,7 +7,7 @@ export type Prospect = {
   website: string;
   email: string;
   observatie: string | null;
-  /** Concreet prijsvoorstel (bv. "€500"); leeg = "vanaf €250" */
+  /** Concreet prijsvoorstel (bv. "€400"); leeg = "vanaf €150" */
   prijs?: string | null;
 };
 
@@ -95,7 +95,7 @@ export function maakOutreachMail(
 <p>Ik kwam de website van ${ontsnap(p.bedrijf)} tegen en heb er even naar gekeken.</p>
 ${obs.zin}
 <p>Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.</p>
-<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je${p.prijs ? ` — voor jouw site eenmalig ${ontsnap(p.prijs)}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is` : " (eenmalig, vanaf €250)"}. Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
+<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je${p.prijs ? ` — voor jouw site eenmalig ${ontsnap(p.prijs)}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is` : " (eenmalig, vanaf €150)"}. Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
 <p>Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.</p>
 <p>En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.</p>
 ${groet}${afmeldRegel(p)}</div>`,
@@ -146,9 +146,9 @@ export function vulIn(sjabloon: string, p: Prospect): string {
       /\{\{prijsregel\}\}/g,
       p.prijs
         ? `voor jouw site eenmalig ${p.prijs}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is`
-        : "eenmalig, vanaf €250"
+        : "eenmalig, vanaf €150"
     )
-    .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf €250");
+    .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf €150");
 }
 
 /** Platte sjabloontekst → dezelfde nette HTML-mail als de standaardmails. */

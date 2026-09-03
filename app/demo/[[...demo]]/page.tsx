@@ -71,7 +71,7 @@ export default function DemoPagina() {
             <Link href="/contact" className="font-semibold text-violet-700 underline">
               Neem contact op
             </Link>{" "}
-            — wij zetten hem over vanaf €250.
+            — wij zetten hem over vanaf €150.
           </p>
         </div>
 

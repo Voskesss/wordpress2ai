@@ -436,7 +436,7 @@ async function zoekDomeinenViaClaude(branche: string, plaats: string): Promise<s
 /** Richtprijs voor de overstap op basis van de sitegrootte. */
 export function richtprijs(paginas: number): string | null {
   if (!paginas) return null;
-  if (paginas <= 8) return "€250";
-  if (paginas <= 20) return "€500";
-  return "€750";
+  if (paginas <= 8) return "€150";
+  if (paginas <= 20) return "€400";
+  return "€650";
 }

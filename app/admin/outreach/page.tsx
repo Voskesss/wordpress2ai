@@ -158,7 +158,7 @@ export default async function Outreach({
         </label>
         <label className="block text-sm font-semibold">
           Prijs in de mail (optioneel)
-          <input name="prijs" placeholder="bv. €500 — leeg = vanaf €250" className={invoerStijl} />
+          <input name="prijs" placeholder="bv. €400 — leeg = vanaf €150" className={invoerStijl} />
           <span className="text-[11px] font-normal text-stone-400">
             De zoeker/scanner vult automatisch een richtprijs in op basis van
             het aantal pagina&apos;s. Weghalen mag altijd.
@@ -377,8 +377,8 @@ export default async function Outreach({
                     </select>
                   </label>
                   <label className="block text-sm font-semibold">
-                    Prijs in de mail (leeg = vanaf €250)
-                    <input name="prijs" defaultValue={p.prijs ?? ""} placeholder="bv. €500" className={invoerStijl} />
+                    Prijs in de mail (leeg = vanaf €150)
+                    <input name="prijs" defaultValue={p.prijs ?? ""} placeholder="bv. €400" className={invoerStijl} />
                   </label>
                   <label className="block text-sm font-semibold sm:col-span-2">
                     Observatie (voor mail 1)

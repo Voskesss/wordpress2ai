@@ -161,7 +161,7 @@ export default function ZelfDoen() {
             ongeluk iets anders is meegewijzigd. Dat verschil voel je pas bij
             de tiende wijziging, en het is de reden dat onze klanten blijven.
             De overstap zelf doen we no cure, no pay: je ziet eerst de complete
-            kopie, en alleen als je tevreden bent betaal je (vanaf €250).
+            kopie, en alleen als je tevreden bent betaal je (vanaf €150).
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

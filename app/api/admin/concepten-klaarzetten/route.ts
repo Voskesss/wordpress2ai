@@ -42,7 +42,7 @@ Huisstijl: Nederlands, je-vorm, kort (5-7 korte alinea's max), over de situatie 
 
 PERSOONLIJK betekent hier: gebruik uitsluitend de meegegeven waarnemingen over hún site (traagheid, kapotte dingen, verouderde onderdelen, het vak van het bedrijf). Verwijs concreet naar hun vak/branche als dat uit de bedrijfsnaam blijkt. VERZIN NIETS — geen waarnemingen die niet in de gegevens staan. Is er weinig bekend, hou het dan algemeen maar eerlijk ("ik heb even naar je site gekeken").
 
-Is er een prijs meegegeven, noem die als: alleen als je de kopie wilt houden betaal je eenmalig <prijs> (no cure no pay). Geen prijs = "eenmalig, vanaf €250".
+Is er een prijs meegegeven, noem die als: alleen als je de kopie wilt houden betaal je eenmalig <prijs> (no cure no pay). Geen prijs = "eenmalig, vanaf €150".
 
 Groet en afmeldknop komen er automatisch onder — voeg die nooit toe.
 

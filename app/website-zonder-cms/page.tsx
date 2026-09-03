@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "Website zonder CMS — wel alles zelf kunnen aanpassen",
   description:
-    "Een website zonder CMS: geen WordPress, geen beheerscherm, geen updates — maar wél zelf wijzigen, gewoon door het te typen. Wij zetten je site over vanaf €250, no cure no pay.",
+    "Een website zonder CMS: geen WordPress, geen beheerscherm, geen updates — maar wél zelf wijzigen, gewoon door het te typen. Wij zetten je site over vanaf €150, no cure no pay.",
   alternates: { canonical: "/website-zonder-cms" },
 };
 
@@ -48,7 +48,7 @@ export default function Pagina() {
           {
             vraag: "Kan ik mijn WordPress-site omzetten naar een site zonder CMS?",
             antwoord:
-              "Ja, dat is precies wat WordSwap doet: een 1-op-1 kopie van je huidige site, inclusief je vindbaarheid in Google (titels, omschrijvingen en oude adressen verwijzen netjes door). No cure, no pay: je ziet eerst de kopie, en betaalt alleen als je hem houdt (vanaf €250).",
+              "Ja, dat is precies wat WordSwap doet: een 1-op-1 kopie van je huidige site, inclusief je vindbaarheid in Google (titels, omschrijvingen en oude adressen verwijzen netjes door). No cure, no pay: je ziet eerst de kopie, en betaalt alleen als je hem houdt (vanaf €150).",
           },
           {
             vraag: "Wat als ik later toch een CMS wil?",
@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Hoe zit het met de kosten?",
             antwoord:
-              "Eenmalig €250 tot €750 voor de overstap (afhankelijk van de grootte), daarna €5 tot €20 per maand voor de AI-koppeling. Reken dat af tegen hosting, plugins en onderhoud van een CMS-site en je bent vrijwel altijd goedkoper uit.",
+              "Eenmalig €150 tot €650 voor de overstap (afhankelijk van de grootte), daarna €5 tot €20 per maand voor de AI-koppeling. Reken dat af tegen hosting, plugins en onderhoud van een CMS-site en je bent vrijwel altijd goedkoper uit.",
           },
         ],
       }}

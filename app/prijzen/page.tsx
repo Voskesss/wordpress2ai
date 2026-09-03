@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Prijzen",
   description:
-    "Eenmalig €250 tot €750 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op je gebruik. Geen lock-in: opzeggen of overstappen kan altijd.",
+    "Eenmalig €150 tot €650 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op je gebruik. Geen lock-in: opzeggen of overstappen kan altijd.",
 };
 
 const overstap = [
@@ -51,11 +51,11 @@ export default function Prijzen() {
         <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <h2 className="font-display text-xl font-semibold">De overstap</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
-            €250 – €750{" "}
+            €150 – €650{" "}
             <span className="text-base font-normal text-stone-500">eenmalig</span>
           </p>
           <p className="mt-2 text-sm text-stone-500">
-            €250 voor een kleine website, tot ± €750 voor een grote of complexe
+            €150 voor een kleine website, tot ± €650 voor een grote of complexe
             site (veel pagina&apos;s, blog, bijzondere functies). Je weet het
             bedrag vooraf — geen verrassingen achteraf. Let op: webshops en ledenportalen
             met inlog kunnen we niet overzetten — gewone bedrijfssites, ook
@@ -115,8 +115,8 @@ export default function Prijzen() {
             <p className="mt-2 text-stone-600 leading-relaxed">
               Geen zin om je oude site mee te nemen? We ontwerpen een frisse
               nieuwe website — mét dezelfde AI-koppeling erachter. Vanaf{" "}
-              <strong>€350</strong> voor een AI-ontwerp (tot 8 pagina&apos;s;
-              grotere sites €500 – €750), of <strong>€1.750</strong> met een
+              <strong>€250</strong> voor een AI-ontwerp (tot 8 pagina&apos;s;
+              grotere sites €400 – €650), of <strong>€1.750</strong> met een
               designer erbij.
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function Prijzen() {
           {[
             [
               "Grotere sites",
-              "Kleine site ± €250, grote of complexe site tot ± €750. Nóg groter of heel bijzonder? Dan krijg je vooraf een eerlijke offerte.",
+              "Kleine site ± €150, grote of complexe site tot ± €650. Nóg groter of heel bijzonder? Dan krijg je vooraf een eerlijke offerte.",
             ],
             [
               "Extra functies",
@@ -192,7 +192,7 @@ export default function Prijzen() {
             ],
             [
               "Nieuw design",
-              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €750, ontwerp door een designer vanaf €1750.",
+              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €650, ontwerp door een designer vanaf €1750.",
               "/nieuwe-website",
               "Bekijk nieuwe website →",
             ],

@@ -270,7 +270,7 @@ export default function Home() {
             Liever een héle nieuwe website?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-stone-600 leading-relaxed">
-            Kan ook. AI-ontwerp vanaf €350, of een uniek ontwerp door een
+            Kan ook. AI-ontwerp vanaf €250, of een uniek ontwerp door een
             designer — altijd met de AI-beheerder erbij.
           </p>
           <Link
@@ -334,7 +334,7 @@ export default function Home() {
             Voor altijd rust.
           </h2>
           <p className="mt-5 text-lg text-violet-100 max-w-xl mx-auto">
-            Eenmalig vanaf €250 voor de overstap (omzetten, SEO-behoud en
+            Eenmalig vanaf €150 voor de overstap (omzetten, SEO-behoud en
             domeinkoppeling), daarna €5 tot €20 per maand voor de AI-koppeling —
             afgestemd op hoe vaak je iets wijzigt.
             E-mailmigratie kan er als aanvulling bij. Reken maar na: dat is al

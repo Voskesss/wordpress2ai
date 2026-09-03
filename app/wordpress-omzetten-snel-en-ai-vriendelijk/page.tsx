@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een snelle, AI-vriendelijke website",
   description:
-    "Zo zet je je WordPress-site om naar een snellere website die ook door AI-chatbots (ChatGPT, Claude, Perplexity) goed gelezen en genoemd wordt. Vanaf €250, no cure no pay.",
+    "Zo zet je je WordPress-site om naar een snellere website die ook door AI-chatbots (ChatGPT, Claude, Perplexity) goed gelezen en genoemd wordt. Vanaf €150, no cure no pay.",
   alternates: { canonical: "/wordpress-omzetten-snel-en-ai-vriendelijk" },
 };
 
@@ -16,7 +16,7 @@ export default function Pagina() {
         label: "Snel & AI-vriendelijk",
         titel: "Hoe zet ik mijn WordPress-website om naar een snellere, AI-vriendelijke website?",
         intro:
-          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Die laadt vrijwel direct én is perfect leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een 1-op-1 kopie van je site, sneller en AI-klaar, vanaf €250 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
+          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Die laadt vrijwel direct én is perfect leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een 1-op-1 kopie van je site, sneller en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
         blokken: [
           {
             kop: "Waarom is een statische site sneller én AI-vriendelijker?",
@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Wat kost het omzetten?",
             antwoord:
-              "Eenmalig €250 voor een kleine site tot ± €750 voor een grote of complexe site, daarna €5 tot €20 per maand voor hosting én de AI-chat waarmee je wijzigingen doorgeeft. No cure no pay: je betaalt pas als je tevreden bent met de kopie.",
+              "Eenmalig €150 voor een kleine site tot ± €650 voor een grote of complexe site, daarna €5 tot €20 per maand voor hosting én de AI-chat waarmee je wijzigingen doorgeeft. No cure no pay: je betaalt pas als je tevreden bent met de kopie.",
           },
           {
             vraag: "Verlies ik mijn Google-posities?",

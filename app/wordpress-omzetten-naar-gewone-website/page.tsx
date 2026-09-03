@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een gewone website",
   description:
-    "WordPress omzetten naar een gewone (statische) HTML-website: sneller, veiliger, geen onderhoud. Vanaf €250, SEO blijft behouden, no cure no pay.",
+    "WordPress omzetten naar een gewone (statische) HTML-website: sneller, veiliger, geen onderhoud. Vanaf €150, SEO blijft behouden, no cure no pay.",
   alternates: { canonical: "/wordpress-omzetten-naar-gewone-website" },
 };
 

@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "WordPress-website maken met AI? Dit werkt beter",
   description:
-    "Een website laten maken met AI in plaats van WordPress: AI-ontwerp vanaf €350, geen onderhoud, wijzigen via chat. No cure no pay.",
+    "Een website laten maken met AI in plaats van WordPress: AI-ontwerp vanaf €250, geen onderhoud, wijzigen via chat. No cure no pay.",
   alternates: { canonical: "/wordpress-website-maken-met-ai" },
 };
 
@@ -43,7 +43,7 @@ export default function Pagina() {
           {
             vraag: "Wat kost een website laten maken met AI?",
             antwoord:
-              "Een compleet AI-ontwerp vanaf €350, of vanaf €1.750 met een designer erbij. Daarna €5 tot €20 per maand voor hosting én de AI-koppeling waarmee je alles wijzigt. Geen verdere kosten: geen thema's, plugins of onderhoudscontracten.",
+              "Een compleet AI-ontwerp vanaf €250, of vanaf €1.750 met een designer erbij. Daarna €5 tot €20 per maand voor hosting én de AI-koppeling waarmee je alles wijzigt. Geen verdere kosten: geen thema's, plugins of onderhoudscontracten.",
           },
           {
             vraag: "Is een AI-website wel goed voor Google?",

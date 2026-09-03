@@ -50,7 +50,7 @@ export default async function Sjablonen() {
         <code className="font-mono">{"{{opening}}"}</code> (de automatische
         constatering: traag / kapot / verouderd),{" "}
         <code className="font-mono">{"{{prijsregel}}"}</code> (het prijsvoorstel
-        of &quot;eenmalig, vanaf €250&quot;) en{" "}
+        of &quot;eenmalig, vanaf €150&quot;) en{" "}
         <code className="font-mono">{"{{prijs}}"}</code>. De groet en de
         afmeldknop komen er automatisch onder — die hoef je niet te typen.
       </p>

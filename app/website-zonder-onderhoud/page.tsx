@@ -3,7 +3,7 @@ import SeoLanding from "../SeoLanding";
 
 export const metadata: Metadata = {
   title: "Een website zonder onderhoud — bestaat dat?",
-  description: "Ja: een onderhoudsvrije website zonder updates, plugins of hostinggedoe. Wij zetten je huidige site over; aanpassen doe je daarna via chat. Vanaf €250.",
+  description: "Ja: een onderhoudsvrije website zonder updates, plugins of hostinggedoe. Wij zetten je huidige site over; aanpassen doe je daarna via chat. Vanaf €150.",
   alternates: { canonical: "/website-zonder-onderhoud" },
 };
 
