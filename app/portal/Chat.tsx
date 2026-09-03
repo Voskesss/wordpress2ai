@@ -294,6 +294,47 @@ export default function Chat({
     setTimeout(controleer, 5000);
   }
 
+  /** Direct de verse inhoud tonen (rechtstreeks uit de bron) en op de
+   * achtergrond stil doorwisselen naar het snelle adres zodra dat is
+   * bijgetrokken. Voor werkversies polsen we de deploy-stempel; voor
+   * klantdomeinen wisselen we na een ruime vaste wachttijd. */
+  function toonVersEnWisselStil(doelHost: string | null | undefined) {
+    const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+    setIframeSrc(`/site-weergave/${siteId}/${pad}`);
+    setReloadTeller((t) => t + 1);
+    setLaderTekst(null);
+    if (!doelHost) return;
+    const oudeStempel = stempelRef.current;
+    const isWorker = /\.workers\.dev$/.test(doelHost);
+    let pogingen = 0;
+    const wissel = () => {
+      const huidigPad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+      setIframeSrc(`https://${doelHost}/${huidigPad}`);
+      setReloadTeller((t) => t + 1);
+    };
+    const controleer = async () => {
+      pogingen += 1;
+      let vers = false;
+      if (isWorker) {
+        try {
+          const res = await fetch(
+            `/api/stempel?host=${encodeURIComponent(doelHost)}&pad=${encodeURIComponent("/" + pad)}`
+          );
+          const data = (await res.json()) as { stempel?: number };
+          vers = Boolean(data.stempel && data.stempel !== oudeStempel);
+        } catch {
+          // volgende poging
+        }
+      }
+      if (vers || pogingen >= (isWorker ? 15 : 9)) {
+        wissel();
+        return;
+      }
+      setTimeout(controleer, 4000);
+    };
+    setTimeout(controleer, isWorker ? 5000 : 8000);
+  }
+
   const [viewerBreedte, setViewerBreedte] = useState(0);
   useEffect(() => {
     const el = viewerRef.current;
@@ -825,7 +866,13 @@ export default function Chat({
       setChatOpen(true);
       if (actie === "publiceer" && concept) setOngedaanKans(concept.changeId);
       setConcept(null);
-      herlaad(false);
+      if (actie === "publiceer") {
+        // Meteen de gepubliceerde versie laten zien; stil doorwisselen naar
+        // het echte adres zodra dat is bijgetrokken (voorkomt "oude site"-schrik)
+        toonVersEnWisselStil(liveUrl);
+      } else {
+        herlaad(false);
+      }
     }
     setConceptActie(null);
   }
