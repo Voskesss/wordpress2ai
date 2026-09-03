@@ -117,7 +117,7 @@ export default function Home() {
           </div>
           <div className="float-card min-w-0 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/stock/werkplek.webp" alt="Rustige werkplek — je website werkt, jij hoeft er niets meer aan te doen" className="mx-auto max-h-[28rem] w-auto max-w-full rounded-3xl shadow-xl" />
+            <img src="/stock/hero-bakker.webp" alt="Een ondernemer geeft een duim omhoog naast zijn website, met de WordSwap-chat ernaast" className="mx-auto max-h-[32rem] w-auto max-w-full rounded-3xl shadow-xl" />
             <div className="mt-6 flex justify-center sm:scale-125">
               <Logo />
             </div>
