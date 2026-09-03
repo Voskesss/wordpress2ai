@@ -326,6 +326,16 @@ export default function Chat({
     return () => mq.removeEventListener("change", zet);
   }, []);
 
+  // De site alvast ophalen zodra het portaal opent: de eerste chatvraag
+  // hoeft dan niet meer op de download te wachten.
+  useEffect(() => {
+    fetch("/api/voorverwarm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siteId }),
+    }).catch(() => {});
+  }, [siteId]);
+
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {

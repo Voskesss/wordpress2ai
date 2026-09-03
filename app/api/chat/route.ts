@@ -44,6 +44,7 @@ function systeemPrompt(
 
 Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
+- ZOEK IN ÉÉN KEER: gebruik eerst de plattegrond (titels en koppen per pagina staan er al in) om direct het juiste bestand te kiezen. Moet je toch tekst zoeken, doe dan één Grep met een kort letterlijk fragment over de hele map — nooit meerdere zoekrondes achter elkaar met variaties.
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
 - KLEINE INGREPEN: wijzig bestanden met gerichte Edit-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met Write — dat is traag en foutgevoelig. Write gebruik je alleen voor gloednieuwe bestanden.
 - KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
