@@ -87,7 +87,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  const { siteId, pad } = (await req.json()) as { siteId: number; pad: string };
+  const { siteId, pad, vervangDoel } = (await req.json()) as {
+    siteId: number;
+    pad: string;
+    /** Optioneel: de foto die nu op de pagina staat en vervangen moet worden */
+    vervangDoel?: string;
+  };
   if (!Number.isInteger(siteId) || !pad || pad.includes("..")) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   }
@@ -106,14 +111,28 @@ export async function POST(req: Request) {
     const familie = alle.filter((b) => IS_BEELD.test(b) && stamVan(b) === stam && b !== pad);
     const bronnen = alle.filter((b) => /\.(html?|css)$/i.test(b));
 
-    // Welke familiegenoot is nu in gebruik?
-    let huidig: string | null = null;
     const perBron = new Map<string, string>();
     for (const b of bronnen) perBron.set(b, await readFile(path.join(werkmap, b), "utf8"));
-    for (const kandidaat of familie) {
-      if ([...perBron.values()].some((t) => t.includes(kandidaat))) {
-        huidig = kandidaat;
-        break;
+
+    // Gericht vervangen (uit de aanwijs-flow) of een oude familiegenoot terughalen
+    let huidig: string | null = null;
+    if (vervangDoel) {
+      const schoon = vervangDoel
+        .replace(/^https?:\/\/[^/]+/, "")
+        .split("?")[0]
+        .split("#")[0]
+        .replace(/^\/preview\/\d+\//, "/")
+        .replace(/^\/+/, "");
+      if (!schoon || schoon.includes("..") || schoon === pad) {
+        return NextResponse.json({ error: "Ongeldige doelfoto" }, { status: 400 });
+      }
+      if ([...perBron.values()].some((t) => t.includes(schoon))) huidig = schoon;
+    } else {
+      for (const kandidaat of familie) {
+        if ([...perBron.values()].some((t) => t.includes(kandidaat))) {
+          huidig = kandidaat;
+          break;
+        }
       }
     }
     if (!huidig) {
@@ -145,7 +164,9 @@ export async function POST(req: Request) {
         )
       : Promise.resolve();
 
-    const omschrijving = `Oude foto teruggezet: ${pad}`;
+    const omschrijving = vervangDoel
+      ? `Foto vervangen door een uit de fotobank: ${pad}`
+      : `Oude foto teruggezet: ${pad}`;
     const paden = gewijzigd.map((b) => b.pad);
     let changeId: number;
     let previewUrl: string;
@@ -189,7 +210,9 @@ export async function POST(req: Request) {
       await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
     }
 
-    const reply = `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+    const reply = vervangDoel
+      ? `Foto vervangen! ${pad} staat nu op de plek van ${huidig}. Bekijk het voorbeeld en publiceer als je tevreden bent.`
+      : `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
     await db.insert(messages).values([
       { siteId: site.id, rol: "klant" as const, tekst: `[Zelf aangepast] ${omschrijving}`, clerkUserId: userId },
       { siteId: site.id, rol: "assistent" as const, tekst: reply, clerkUserId: userId },

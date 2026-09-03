@@ -127,6 +127,7 @@ export default function Chat({
   const [laderTekst, setLaderTekst] = useState<string | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
   const [fotobankOpen, setFotobankOpen] = useState(false);
+  const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
@@ -1170,13 +1171,19 @@ export default function Chat({
             <Fotobank
               siteId={siteId}
               beeldBasis={werkversieUrl ?? liveUrl}
-              onSluit={() => setFotobankOpen(false)}
+              vervangDoel={fotobankDoel}
+              onSluit={() => {
+                setFotobankOpen(false);
+                setFotobankDoel(null);
+              }}
               onKlaar={(data) => {
                 setFotobankOpen(false);
+                setFotobankDoel(null);
+                setSelectie(null);
                 setChatOpen(true);
                 setBerichten((b) => [
                   ...b,
-                  { rol: "klant", tekst: "🖼️ Oude foto teruggezet" },
+                  { rol: "klant", tekst: fotobankDoel ? "🖼️ Foto vervangen uit de fotobank" : "🖼️ Oude foto teruggezet" },
                   { rol: "assistent", tekst: data.reply ?? "Teruggezet!", metVerversTip: true },
                 ]);
                 if (data.previewUrl && data.changeId) {
@@ -1385,6 +1392,20 @@ export default function Chat({
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
                   >
                     📷 Vervang deze foto
+                  </button>
+                )}
+                {selectie.tag === "img" && (
+                  <button
+                    onClick={() => {
+                      const src = selectie.html.match(/src=["']([^"']+)["']/)?.[1];
+                      if (!src) return;
+                      setFotobankDoel(src);
+                      setFotobankOpen(true);
+                    }}
+                    disabled={bezig}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    🖼️ Kies uit de fotobank
                   </button>
                 )}
                 {selectie.tekst && selectie.tag !== "img" && zelfTekst === null && (
@@ -1659,7 +1680,10 @@ export default function Chat({
               </Tip>
               <Tip tekst="Fotobank: alle foto's die ooit op je site stonden — oude versies terugzetten">
               <button
-                onClick={() => setFotobankOpen((v) => !v)}
+                onClick={() => {
+                  setFotobankDoel(null);
+                  setFotobankOpen((v) => !v);
+                }}
                 disabled={bezig}
                 aria-label="Fotobank"
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${

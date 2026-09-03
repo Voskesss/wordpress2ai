@@ -9,10 +9,14 @@ type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean };
 export default function Fotobank({
   siteId,
   beeldBasis,
+  vervangDoel,
   onKlaar,
   onSluit,
 }: {
   siteId: number;
+  /** Gezet vanuit de aanwijs-flow: de foto die vervangen wordt — de bank
+   * werkt dan als keuzemenu ("gebruik deze"). */
+  vervangDoel?: string | null;
   /** Domein waar de beelden nu draaien (werkversie of live) voor de miniaturen */
   beeldBasis?: string | null;
   onKlaar: (data: {
@@ -26,7 +30,7 @@ export default function Fotobank({
   const [beelden, setBeelden] = useState<Beeld[] | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezigMet, setBezigMet] = useState<string | null>(null);
-  const [alleenOud, setAlleenOud] = useState(true);
+  const [alleenOud, setAlleenOud] = useState(!vervangDoel);
 
   useEffect(() => {
     let weg = false;
@@ -46,7 +50,7 @@ export default function Fotobank({
     };
   }, [siteId]);
 
-  async function zetTerug(pad: string) {
+  async function kies(pad: string) {
     if (bezigMet) return;
     setBezigMet(pad);
     setFout(null);
@@ -54,7 +58,7 @@ export default function Fotobank({
       const res = await fetch("/api/fotobank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, pad }),
+        body: JSON.stringify({ siteId, pad, vervangDoel: vervangDoel ?? undefined }),
       });
       const data = (await res.json()) as {
         ok?: boolean;
@@ -65,7 +69,7 @@ export default function Fotobank({
         bestanden?: string[];
       };
       if (data.ok) onKlaar(data);
-      else setFout(data.error ?? "Terugzetten lukte niet.");
+      else setFout(data.error ?? "Vervangen lukte niet.");
     } finally {
       setBezigMet(null);
     }
@@ -83,15 +87,17 @@ export default function Fotobank({
   return (
     <div className="mb-3 max-h-[70vh] overflow-y-auto rounded-2xl border border-violet-300 bg-white/95 p-4 shadow-2xl backdrop-blur">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold">🖼️ Fotobank — alles wat ooit op je site stond</h3>
+        <h3 className="text-sm font-semibold">
+          {vervangDoel ? "🖼️ Kies de nieuwe foto uit je fotobank" : "🖼️ Fotobank — alles wat ooit op je site stond"}
+        </h3>
         <button onClick={onSluit} aria-label="Sluiten" className="cursor-pointer text-stone-400 hover:text-stone-700">
           ✕
         </button>
       </div>
       <p className="mt-1 text-xs text-stone-500">
-        Bij het vervangen van een foto gooien we niets weg. Hier vind je oude
-        versies terug en zet je ze met één klik weer op de site (als concept —
-        jij publiceert).
+        {vervangDoel
+          ? "Klik een foto aan en hij komt op de plek van de aangewezen foto te staan (als concept — jij publiceert). Liever een nieuw bestand? Gebruik dan de knop \"Vervang deze foto\"."
+          : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Vervangen? Wijs de foto op de site aan en kies daar \"Kies uit de fotobank\"."}
       </p>
       <label className="mt-2 flex items-center gap-2 text-xs text-stone-600">
         <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
@@ -133,17 +139,18 @@ export default function Fotobank({
               <p className="truncate text-[11px] text-stone-500" title={b.pad}>
                 {b.pad.split("/").pop()}
               </p>
-              {b.inGebruik ? (
-                <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                  staat nu op de site
+              {b.inGebruik && (
+                <span className="mt-1 mr-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  op de site
                 </span>
-              ) : (
+              )}
+              {vervangDoel && (
                 <button
-                  onClick={() => zetTerug(b.pad)}
+                  onClick={() => kies(b.pad)}
                   disabled={bezigMet !== null}
                   className="mt-1 cursor-pointer rounded-full border border-violet-300 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
                 >
-                  {bezigMet === b.pad ? "Bezig..." : "↩︎ Zet terug"}
+                  {bezigMet === b.pad ? "Bezig..." : "Gebruik deze"}
                 </button>
               )}
             </div>
