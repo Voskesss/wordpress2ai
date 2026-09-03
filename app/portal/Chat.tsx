@@ -208,6 +208,7 @@ export default function Chat({
 
   /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
   function gaNaar(pad: string) {
+    if (isMobiel) setMobielWeergave("site");
     const p = pad === "index.html" ? "" : pad;
     huidigeRef.current = "/" + p;
     setHuidigePagina("/" + p);
@@ -1474,19 +1475,28 @@ export default function Chat({
                 >
                   {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
                 </button>
-                <Tip tekst="Bekijk het complete voorbeeld in een nieuw tabblad">
-                  <a
-                    href={basisVoor(true)}
-                    target="_blank"
-                    rel="noopener"
-                    className="flex items-center gap-1 rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                {isMobiel ? (
+                  <button
+                    onClick={() => setMobielWeergave("site")}
+                    className="flex items-center gap-1 rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d="M14 4h6v6M20 4L10 14M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Bekijk
-                  </a>
-                </Tip>
+                    👀 Bekijk
+                  </button>
+                ) : (
+                  <Tip tekst="Bekijk het complete voorbeeld in een nieuw tabblad">
+                    <a
+                      href={basisVoor(true)}
+                      target="_blank"
+                      rel="noopener"
+                      className="flex items-center gap-1 rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <path d="M14 4h6v6M20 4L10 14M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Bekijk
+                    </a>
+                  </Tip>
+                )}
                 <Tip tekst="Draait alleen je laatste stap terug — eerdere stappen van dit concept blijven staan">
                   <button
                     onClick={stapTerug}

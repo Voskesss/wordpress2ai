@@ -15,7 +15,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function Portal() {
+export default async function Portal({
+  searchParams,
+}: {
+  searchParams: Promise<{ site?: string }>;
+}) {
+  const { site: gekozenParam } = await searchParams;
   const userId = await requireUser();
   const { and, or } = await import("drizzle-orm");
 
@@ -40,6 +45,15 @@ export default async function Portal() {
     .where(or(eq(sites.clerkUserId, userId), eq(sites.isDemo, true)));
   // Echte klanten zien hun eigen site(s), niet ook nog de probeer-demo
   const heeftEigenSite = mijnSites.some((s) => !s.isDemo && s.clerkUserId === userId);
+
+  // Meerdere websites? Eén tegelijk tonen, met een keuzebalk erboven.
+  // Standaard de eigen site (niet de demo), anders de eerste.
+  const gekozenId = Number(gekozenParam);
+  const getoondeSite =
+    mijnSites.find((s) => s.id === gekozenId) ??
+    mijnSites.find((s) => !s.isDemo && s.clerkUserId === userId) ??
+    mijnSites[0];
+  const getoondeSites = getoondeSite ? [getoondeSite] : [];
   if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
 
   const historieMap: Record<
@@ -110,8 +124,25 @@ export default async function Portal() {
     <div className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
       {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && <DemoWelkom />}
       <h1 className="font-display text-4xl font-semibold tracking-tight">
-        Mijn website
+        {mijnSites.length > 1 ? "Mijn websites" : "Mijn website"}
       </h1>
+      {mijnSites.length > 1 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {mijnSites.map((s) => (
+            <a
+              key={s.id}
+              href={`/portal?site=${s.id}`}
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                s.id === getoondeSite?.id
+                  ? "bg-violet-700 text-white shadow"
+                  : "border border-stone-300 text-stone-600 hover:border-violet-400 hover:text-violet-700"
+              }`}
+            >
+              {s.isDemo && s.clerkUserId !== userId ? "🧪 Probeer-demo" : s.naam}
+            </a>
+          ))}
+        </div>
+      )}
       {mijnSites.length === 0 ? (
         <div className="mt-8 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <p className="text-stone-600 leading-relaxed">
@@ -122,7 +153,7 @@ export default async function Portal() {
         </div>
       ) : (
         <div className="mt-8 space-y-4">
-          {mijnSites.map((site) => (
+          {getoondeSites.map((site) => (
             <div
               key={site.id}
               className="rounded-3xl border border-stone-200 bg-white p-2.5 sm:p-8 shadow-sm"
