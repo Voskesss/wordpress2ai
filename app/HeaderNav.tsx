@@ -8,6 +8,7 @@ const links = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
   { href: "/demo", label: "Demo" },
+  { href: "/webinar", label: "Webinar" },
   { href: "/contact", label: "Contact" },
 ];
 
