@@ -354,8 +354,11 @@ export default function Chat({
   const [isMobiel, setIsMobiel] = useState(false);
   // Op mobiel start de chatbalk ingeklapt, zodat je eerst lekker de site ziet
   const [balkOpen, setBalkOpen] = useState(true);
+  // Mobiel: chat en site als twee volledige schermen (zoals een artifact)
+  const [mobielWeergave, setMobielWeergave] = useState<"site" | "chat">("site");
   // Schermvullend op desktop: chat als vast paneel naast het voorbeeld
   const splitModus = volledigScherm && !isMobiel;
+  const mobielChat = isMobiel && mobielWeergave === "chat";
   // Smalle invoerbalk-indeling: op mobiel én in het smalle zijpaneel
   const smalleBalk = isMobiel || splitModus;
   useEffect(() => {
@@ -908,13 +911,37 @@ export default function Chat({
     <div className="min-w-0">
       <div
         className={`bg-white overflow-hidden flex flex-col ${
-          volledigScherm
+          volledigScherm || mobielChat
             ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
       >
+        {/* Mobiel: wisselaar tussen chat en site */}
+        {isMobiel && (
+          <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1.5">
+            {(
+              [
+                ["chat", "💬 Chat"],
+                ["site", concept ? "🌐 Jouw site (concept)" : "🌐 Jouw site"],
+              ] as const
+            ).map(([sleutel, label]) => (
+              <button
+                key={sleutel}
+                onClick={() => setMobielWeergave(sleutel)}
+                className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold cursor-pointer ${
+                  mobielWeergave === sleutel
+                    ? "bg-violet-700 text-white shadow"
+                    : "text-stone-600"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Bovenbalk */}
-        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm">
+        <div className={`${mobielChat ? "hidden" : "flex"} items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm`}>
           {concept ? (
             <span className="flex shrink-0 items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
@@ -1018,11 +1045,11 @@ export default function Chat({
           </div>
         </div>
 
-        <div className={splitModus ? "flex flex-1 min-h-0" : "contents"}>
+        <div className={mobielChat ? "flex min-h-0 flex-1 flex-col" : splitModus ? "flex flex-1 min-h-0" : "contents"}>
         {/* Website-viewer */}
         <div
           ref={viewerRef}
-          className={`relative ${
+          className={`relative ${mobielChat ? "hidden" : ""} ${
             volledigScherm
               ? "flex-1 min-h-0"
               : "h-[calc(100dvh-17rem)] sm:h-[calc(100dvh-20rem)] min-h-[24rem]"
@@ -1142,9 +1169,9 @@ export default function Chat({
         )}
 
         {/* Mobiel: ingeklapte chat — eerst lekker de site bekijken */}
-        {isMobiel && !balkOpen && (
+        {isMobiel && !mobielChat && (
           <button
-            onClick={() => setBalkOpen(true)}
+            onClick={() => setMobielWeergave("chat")}
             className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-white shadow-2xl cursor-pointer ${
               concept
                 ? "bg-amber-500 shadow-amber-400/50"
@@ -1165,29 +1192,27 @@ export default function Chat({
           className={
             splitModus
               ? "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
-              : isMobiel
-                ? `absolute bottom-4 left-1/2 z-10 w-[min(94%,44rem)] -translate-x-1/2 ${
-                    !balkOpen ? "hidden" : ""
-                  }`
+              : mobielChat
+                ? "flex min-h-0 flex-1 flex-col justify-end gap-0 overflow-y-auto bg-white p-3"
+                : isMobiel
+                  ? "hidden"
                 : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
                   // gesprek en de panelen zweven eroverheen (absolute, bottom-full)
                   "relative z-10 mx-auto w-[min(96%,44rem)] lg:w-[min(94%,52rem)] xl:w-[min(92%,62rem)] 2xl:w-[min(90%,72rem)] pb-3"
           }
         >
-          {isMobiel && balkOpen && (
-            <div className="mb-2 flex justify-center">
-              <button
-                onClick={() => setBalkOpen(false)}
-                className="rounded-full bg-stone-900/70 px-4 py-1.5 text-xs font-medium text-white backdrop-blur cursor-pointer"
-              >
-                ▾ Verberg chat — bekijk de site
-              </button>
-            </div>
+          {mobielChat && concept && (
+            <button
+              onClick={() => setMobielWeergave("site")}
+              className="mb-2 w-full rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 cursor-pointer"
+            >
+              👀 Bekijk de wijziging op je site →
+            </button>
           )}
           <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
-          {(chatOpen || splitModus) && (
-            <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
+          {(chatOpen || splitModus || mobielChat) && (
+            <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus || mobielChat ? "flex min-h-0 flex-1 flex-col" : ""}`}>
               <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
                   Gesprek
@@ -1206,7 +1231,7 @@ export default function Chat({
               <div
                 ref={scrollRef}
                 className={
-                  splitModus
+                  splitModus || mobielChat
                     ? "flex-1 min-h-0 overflow-y-auto p-4 space-y-3"
                     : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
                 }
