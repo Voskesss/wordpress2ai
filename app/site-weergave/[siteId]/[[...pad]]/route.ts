@@ -6,6 +6,7 @@ import {
   herschrijfHtml,
   vindSiteBestand,
 } from "@/lib/serveer";
+import { PAGINA_MELDER } from "@/lib/cloudflare";
 
 /**
  * De werkversie van een site: het openstaande concept als dat er is,
@@ -60,7 +61,12 @@ export async function GET(
       );
       ruw = vouwUit(ruw, delen);
     }
-    const html = herschrijfHtml(ruw, `/site-weergave/${id}`, gevonden.pad);
+    let html = herschrijfHtml(ruw, `/site-weergave/${id}`, gevonden.pad);
+    // Zelfde meldscript als op de gedeployde versie: aanwijzen en
+    // paginadetectie werken dan ook in deze directe weergave.
+    html = html.includes("</body>")
+      ? html.replace("</body>", `${PAGINA_MELDER}</body>`)
+      : html + PAGINA_MELDER;
     return new Response(html, {
       headers: {
         "Content-Type": mime,

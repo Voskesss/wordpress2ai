@@ -249,24 +249,49 @@ export default function Chat({
     setReloadTeller((t) => t + 1);
   }
 
-  /** Na een wijziging: blijven verversen tot Cloudflare de nieuwe versie toont
-   * (doorzetten duurt soms 15-30 seconden — dit vangt dat onzichtbaar op). */
+  /** Na een wijziging: de verse versie METEEN laten zien via de directe
+   * weergave (rechtstreeks uit de bron, dus altijd actueel), en op de
+   * achtergrond stil terugwisselen naar de snelle Cloudflare-versie zodra
+   * die is bijgetrokken (dat duurt 15-30 seconden). */
   function wachtOpVerseVersie(conceptActief = true) {
-    wachtOpVerseRef.current = { oudeStempel: stempelRef.current, pogingen: 0 };
-    setLaderTekst("Je wijziging wordt in het voorbeeld gezet...");
-    const controleer = () => {
+    const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+    if (!werkversieUrl || !conceptActief) {
+      // Geen snelle werkversie om naar te wisselen: gewoon één keer herladen
+      herlaad(conceptActief);
+      return;
+    }
+    const oudeStempel = stempelRef.current;
+    // 1. Direct de verse inhoud tonen
+    setIframeSrc(`/site-weergave/${siteId}/${pad}`);
+    setReloadTeller((t) => t + 1);
+    setLaderTekst(null);
+    // 2. Achter de schermen wachten tot Cloudflare vers is, dan stil wisselen
+    wachtOpVerseRef.current = { oudeStempel, pogingen: 0 };
+    const controleer = async () => {
       const wacht = wachtOpVerseRef.current;
       if (!wacht) return;
-      if (stempelRef.current !== wacht.oudeStempel || wacht.pogingen >= 10) {
+      wacht.pogingen += 1;
+      let vers = false;
+      try {
+        const res = await fetch(
+          `/api/stempel?host=${encodeURIComponent(werkversieUrl)}&pad=${encodeURIComponent("/" + pad)}`
+        );
+        const data = (await res.json()) as { stempel?: number };
+        vers = Boolean(data.stempel && data.stempel !== wacht.oudeStempel);
+      } catch {
+        // volgende poging
+      }
+      if (vers || wacht.pogingen >= 15) {
         wachtOpVerseRef.current = null;
-        setLaderTekst(null);
+        // Alleen wisselen als de kijker niet inmiddels ergens anders zit
+        const huidigPad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+        setIframeSrc(`https://${werkversieUrl}/${huidigPad}`);
+        setReloadTeller((t) => t + 1);
         return;
       }
-      wacht.pogingen += 1;
-      herlaad(conceptActief);
       setTimeout(controleer, 4000);
     };
-    setTimeout(controleer, 4000);
+    setTimeout(controleer, 5000);
   }
 
   const [viewerBreedte, setViewerBreedte] = useState(0);

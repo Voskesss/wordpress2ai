@@ -75,7 +75,14 @@ export async function GET(req: Request) {
         };
       })
     );
-    lijst.sort((a, b) => a.stam.localeCompare(b.stam) || Number(b.inGebruik) - Number(a.inGebruik));
+    // Nieuwste eerst: de -v<tijd>-toevoeging in de naam is een tijdstempel
+    const tijdVan = (pad: string) => {
+      const v = pad.match(/-v([0-9a-z]{6,})\.[^.]+$/i)?.[1];
+      return v ? parseInt(v, 36) : 0;
+    };
+    lijst.sort(
+      (a, b) => tijdVan(b.pad) - tijdVan(a.pad) || a.stam.localeCompare(b.stam) || Number(b.inGebruik) - Number(a.inGebruik)
+    );
     return NextResponse.json({ afbeeldingen: lijst });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
