@@ -7,7 +7,6 @@ import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import { outreachTestmail, prospectBijwerken, prospectMailOpslaan, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
 import { kiesMail, vulIn } from "@/lib/outreach";
-import ConceptenKnop from "./ConceptenKnop";
 import MailBewerker from "./MailBewerker";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
@@ -178,9 +177,16 @@ export default async function Outreach({
         </div>
       </form>
 
-      <ConceptenKnop
-        aantalNieuw={alle.filter((p) => p.status === "nieuw" && p.email.includes("@")).length}
-      />
+      {alle.some((p) => p.status === "nieuw" && p.email.includes("@")) && (
+        <Link
+          href="/admin/outreach/concepten"
+          className="mt-4 block rounded-3xl border-2 border-violet-300 bg-violet-50/60 p-4 text-sm font-semibold text-violet-800 hover:bg-violet-100"
+        >
+          ✍️ Concepten-werkbank → zet voor je{" "}
+          {alle.filter((p) => p.status === "nieuw" && p.email.includes("@")).length} nieuwe
+          prospect(s) een persoonlijke mail klaar, lees na en verstuur
+        </Link>
+      )}
 
       {/* Overzicht per fase — klik om de lijst te filteren */}
       <div className="mt-10 grid gap-2 sm:grid-cols-5">
