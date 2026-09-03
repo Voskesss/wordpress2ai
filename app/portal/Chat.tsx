@@ -230,6 +230,8 @@ export default function Chat({
   function zetAanwijzen(aan: boolean) {
     setAanwijzen(aan);
     meldAanwijzen(aan);
+    // Mobiel: aanwijzen doe je óp de site — automatisch heen wisselen
+    if (aan && isMobiel) setMobielWeergave("site");
   }
 
   function basisVoor(conceptActief: boolean) {
@@ -404,6 +406,8 @@ export default function Chat({
           kleuren: e.data.kleuren as Selectie["kleuren"],
         });
         setAanwijzen(false);
+        // Mobiel: terug naar de chat, waar de keuzeknoppen staan
+        setMobielWeergave("chat");
       }
     }
     window.addEventListener("message", onMessage);
@@ -911,7 +915,7 @@ export default function Chat({
     <div className="min-w-0">
       <div
         className={`bg-white overflow-hidden flex flex-col ${
-          volledigScherm || mobielChat
+          volledigScherm || isMobiel
             ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
@@ -937,6 +941,13 @@ export default function Chat({
                 {label}
               </button>
             ))}
+            <a
+              href="/portal"
+              aria-label="Terug naar het overzicht"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-stone-400"
+            >
+              ✕
+            </a>
           </div>
         )}
 
@@ -1045,12 +1056,12 @@ export default function Chat({
           </div>
         </div>
 
-        <div className={mobielChat ? "flex min-h-0 flex-1 flex-col" : splitModus ? "flex flex-1 min-h-0" : "contents"}>
+        <div className={mobielChat ? "flex min-h-0 flex-1 flex-col" : splitModus ? "flex flex-1 min-h-0" : isMobiel ? "flex min-h-0 flex-1 flex-col" : "contents"}>
         {/* Website-viewer */}
         <div
           ref={viewerRef}
           className={`relative ${mobielChat ? "hidden" : ""} ${
-            volledigScherm
+            volledigScherm || isMobiel
               ? "flex-1 min-h-0"
               : "h-[calc(100dvh-17rem)] sm:h-[calc(100dvh-20rem)] min-h-[24rem]"
           } ${
@@ -1165,6 +1176,19 @@ export default function Chat({
                 Tevreden? Publiceer hem daarna met de knop onderin.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Mobiel: aanwijs-hint over de site heen */}
+        {isMobiel && !mobielChat && aanwijzen && (
+          <div className="absolute left-1/2 top-3 z-20 flex w-[94%] -translate-x-1/2 items-center gap-3 rounded-2xl bg-stone-900/85 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
+            <span className="flex-1">👆 Tik aan wat je wilt aanpassen</span>
+            <button
+              onClick={() => zetAanwijzen(false)}
+              className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold cursor-pointer"
+            >
+              Annuleer
+            </button>
           </div>
         )}
 
