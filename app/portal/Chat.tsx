@@ -1189,39 +1189,43 @@ export default function Chat({
         {/* Mobiel: aanwijs-hint over de site heen */}
         {isMobiel && !mobielChat && aanwijzen && (
           <div className="absolute left-1/2 top-3 z-20 flex w-[94%] -translate-x-1/2 items-center gap-3 rounded-2xl bg-stone-900/85 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
-            {aanwijsKandidaat ? (
-              <>
-                <span className="min-w-0 flex-1 truncate">
-                  {aanwijsKandidaat.tag === "img"
-                    ? "📷 Foto geselecteerd"
-                    : `"${aanwijsKandidaat.tekst || `een ${aanwijsKandidaat.tag}-onderdeel`}"`}
-                </span>
-                <button
-                  onClick={() =>
-                    iframeRef.current?.contentWindow?.postMessage({ type: "wp2ai-aanwijs-bevestig" }, "*")
-                  }
-                  className="shrink-0 rounded-full bg-violet-500 px-4 py-1.5 text-xs font-bold cursor-pointer"
-                >
-                  ✔️ Deze aanpassen
-                </button>
-              </>
-            ) : (
-              <span className="flex-1">👆 Tik aan wat je wilt aanpassen — tik gerust nog eens ergens anders</span>
-            )}
-            <button
-              onClick={() => {
-                setAanwijsKandidaat(null);
-                zetAanwijzen(false);
-              }}
-              className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold cursor-pointer"
-            >
-              ✕
-            </button>
+            <span className="min-w-0 flex-1 truncate">
+              {aanwijsKandidaat
+                ? aanwijsKandidaat.tag === "img"
+                  ? "📷 Foto geselecteerd — of tik iets anders aan"
+                  : `"${aanwijsKandidaat.tekst || `een ${aanwijsKandidaat.tag}-onderdeel`}"`
+                : "👆 Tik aan wat je wilt aanpassen"}
+            </span>
           </div>
         )}
 
         {/* Mobiel: ingeklapte chat — eerst lekker de site bekijken */}
-        {isMobiel && !mobielChat && (
+        {/* Mobiel aanwijzen: grote bevestigbalk onderin (waar de duim zit) */}
+        {isMobiel && !mobielChat && aanwijzen && (
+          <div className="absolute bottom-4 left-1/2 z-10 flex w-[94%] -translate-x-1/2 items-center gap-2">
+            {aanwijsKandidaat && (
+              <button
+                onClick={() =>
+                  iframeRef.current?.contentWindow?.postMessage({ type: "wp2ai-aanwijs-bevestig" }, "*")
+                }
+                className="flex-1 rounded-full bg-violet-700 px-6 py-3.5 text-center font-semibold text-white shadow-2xl shadow-violet-400/50 cursor-pointer"
+              >
+                ✔️ Deze aanpassen
+              </button>
+            )}
+            <button
+              onClick={() => zetAanwijzen(false)}
+              className={`rounded-full py-3.5 font-semibold shadow-2xl cursor-pointer ${
+                aanwijsKandidaat
+                  ? "bg-white px-5 text-stone-600"
+                  : "flex-1 bg-stone-900/80 px-6 text-white backdrop-blur"
+              }`}
+            >
+              {aanwijsKandidaat ? "✕" : "✕ Toch niet aanwijzen"}
+            </button>
+          </div>
+        )}
+        {isMobiel && !mobielChat && !aanwijzen && (
           <button
             onClick={() => setMobielWeergave("chat")}
             className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-white shadow-2xl cursor-pointer ${
