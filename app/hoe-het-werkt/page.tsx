@@ -90,7 +90,7 @@ export default function HoeHetWerkt() {
           </p>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mascotte/uitleggend.webp" alt="" aria-hidden className="mt-6 sm:mt-0 w-36 sm:w-44 shrink-0 rounded-3xl" />
+        <img src="/stock/werkplek.webp" alt="" aria-hidden className="mt-6 sm:mt-0 w-36 sm:w-44 shrink-0 rounded-3xl" />
       </div>
 
       <div className="mx-auto max-w-3xl px-6 py-12">
