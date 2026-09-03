@@ -281,7 +281,7 @@ export async function POST(req: Request) {
           type: "status",
           tekst: openConcept
             ? "Ik werk verder op het openstaande concept..."
-            : "Momentje...",
+            : "Ik pak eerst je hele website er even bij — de eerste keer duurt dat iets langer...",
         });
         if (openConcept?.branch) {
           werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
@@ -293,6 +293,7 @@ export async function POST(req: Request) {
         } else {
           werkmap = await laadWerkmap(site.githubRepo);
         }
+        stuur({ type: "status", tekst: "Je site staat klaar — ik ga aan de slag..." });
         const snapshot = await maakSnapshot(werkmap);
         const siteOverzicht = await maakSiteOverzicht(werkmap);
         tik("voorbereid");
@@ -391,6 +392,17 @@ export async function POST(req: Request) {
                   if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
                     const pad = rel === "index.html" ? "/" : "/" + rel.replace(/index\.html$/, "").replace(/\.html?$/, "/");
                     stuur({ type: "bewerkt", pad });
+                  }
+                  // Realtime: de tekstwijziging alvast in het voorbeeld laten
+                  // zien (de echte versie volgt zodra de deploy klaar is)
+                  if (block.name === "Edit") {
+                    const inp = block.input as { old_string?: string; new_string?: string };
+                    const kaal = (t: string) => t.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+                    const zoek = kaal(String(inp.old_string ?? ""));
+                    const vervang = kaal(String(inp.new_string ?? ""));
+                    if (zoek.length >= 8 && zoek.length <= 400 && vervang.length <= 600 && zoek !== vervang) {
+                      stuur({ type: "tekst-live", zoek, vervang });
+                    }
                   }
                 }
               }

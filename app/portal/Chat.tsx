@@ -401,6 +401,12 @@ export default function Chat({
           try {
             const event = JSON.parse(regel);
             if (event.type === "status") setStatusTekst(event.tekst);
+            if (event.type === "tekst-live" && typeof event.zoek === "string") {
+              iframeRef.current?.contentWindow?.postMessage(
+                { type: "wp2ai-tekst-live", zoek: event.zoek, vervang: event.vervang },
+                "*"
+              );
+            }
             if (event.type === "bewerkt" && typeof event.pad === "string") {
               // Voorbeeld live meebewegen naar de pagina die bewerkt wordt
               if (huidigeRef.current !== event.pad) {
