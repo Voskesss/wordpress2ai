@@ -6,7 +6,7 @@ const ontsnap = (s: string) =>
 /** De vaste handtekening onder losse mails vanuit jos@wordswap.nl. */
 export const HANDTEKENING = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%;max-width:560px;font-family:-apple-system,'Segoe UI',sans-serif">
 <tr><td style="border-top:3px solid #7c3aed;padding-top:18px">
-<img src="https://wordswap.nl/logo-mail.png" height="40" alt="WordSwap" style="display:block;height:40px;width:auto">
+<img src="https://www.wordswap.nl/logo-mail.png" height="40" alt="WordSwap" style="display:block;height:40px;width:auto">
 <p style="margin:12px 0 0;font-size:16px;font-weight:700;color:#1c1917">Jos Klijnhout</p>
 <p style="margin:2px 0 0;font-size:13px;color:#57534e">websites zonder onderhoud — aanpassen door het te typen</p>
 <p style="margin:4px 0 0;font-size:13px">

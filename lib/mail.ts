@@ -49,11 +49,11 @@ function isEigenSite(site: MailSite): boolean {
  * AI Backoffice-vermelding eronder. */
 function metWordSwapOpmaak(html: string): string {
   return `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
-<img src="https://wordswap.nl/logo-mail.png" height="36" alt="WordSwap" style="display:block;height:36px;width:auto;margin-bottom:20px">
+<img src="https://www.wordswap.nl/logo-mail.png" height="36" alt="WordSwap" style="display:block;height:36px;width:auto;margin-bottom:20px">
 ${html}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%"><tr><td style="border-top:2px solid #7c3aed;padding-top:14px">
 <p style="margin:0;font-size:12px;color:#a8a29e">WordSwap is een dienst van</p>
-<img src="https://wordswap.nl/logo-aibackoffice.png" height="22" alt="AI Backoffice" style="display:block;height:22px;width:auto;margin-top:6px">
+<img src="https://www.wordswap.nl/logo-aibackoffice.png" height="22" alt="AI Backoffice" style="display:block;height:22px;width:auto;margin-top:6px">
 <p style="margin:8px 0 0;font-size:12px;color:#a8a29e">J.K. Klijnhout Holding B.V. · KvK 09190650 · <a href="https://wordswap.nl" style="color:#7c3aed;text-decoration:none">wordswap.nl</a></p>
 </td></tr></table></div>`;
 }
