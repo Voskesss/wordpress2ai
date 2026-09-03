@@ -156,3 +156,8 @@ export async function alleHtmlBestanden(dir: string): Promise<string[]> {
 export async function alleCssBestanden(dir: string): Promise<string[]> {
   return (await alleBestanden(dir)).filter((p) => /\.css$/i.test(p));
 }
+
+/** Alle bestanden in de werkmap (relatief), voor bijv. de fotobank. */
+export async function alleBestandenVan(dir: string): Promise<string[]> {
+  return alleBestanden(dir);
+}

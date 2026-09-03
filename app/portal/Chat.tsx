@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import Fotobank from "./Fotobank";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -125,6 +126,7 @@ export default function Chat({
   // Vriendelijke lader over het voorbeeld bij directe acties en het verversen
   const [laderTekst, setLaderTekst] = useState<string | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
+  const [fotobankOpen, setFotobankOpen] = useState(false);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
@@ -1164,6 +1166,33 @@ export default function Chat({
             </div>
           )}
 
+          {fotobankOpen && (
+            <Fotobank
+              siteId={siteId}
+              beeldBasis={werkversieUrl ?? liveUrl}
+              onSluit={() => setFotobankOpen(false)}
+              onKlaar={(data) => {
+                setFotobankOpen(false);
+                setChatOpen(true);
+                setBerichten((b) => [
+                  ...b,
+                  { rol: "klant", tekst: "🖼️ Oude foto teruggezet" },
+                  { rol: "assistent", tekst: data.reply ?? "Teruggezet!", metVerversTip: true },
+                ]);
+                if (data.previewUrl && data.changeId) {
+                  setConcept({
+                    changeId: data.changeId,
+                    previewUrl: data.previewUrl,
+                    prompt: "Oude foto teruggezet",
+                    paginas: data.bestanden ?? [],
+                  });
+                  herlaad(true);
+                  wachtOpVerseVersie();
+                  setOngedaanKans(null);
+                }
+              }}
+            />
+          )}
           {seoOpen && (
             <Vindbaarheid
               siteId={siteId}
@@ -1626,6 +1655,22 @@ export default function Chat({
                   className="absolute h-0 w-0 opacity-0"
                   tabIndex={-1}
                 />
+              </button>
+              </Tip>
+              <Tip tekst="Fotobank: alle foto's die ooit op je site stonden — oude versies terugzetten">
+              <button
+                onClick={() => setFotobankOpen((v) => !v)}
+                disabled={bezig}
+                aria-label="Fotobank"
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                  fotobankOpen ? "bg-violet-700 text-white" : "text-stone-500 hover:bg-stone-100"
+                }`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="9" cy="10" r="1.6" fill="currentColor" />
+                  <path d="M5 17l4.5-4.5 3 3L17 11l2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
               </Tip>
               <Tip tekst="Titel, Google-omschrijving en webadres van deze pagina zelf regelen">

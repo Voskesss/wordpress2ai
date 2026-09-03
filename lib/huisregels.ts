@@ -3,6 +3,7 @@
  * Per site kunnen daar eigen richtlijnen bovenop komen (sites.richtlijnen).
  */
 export const HUISREGELS = `
+- FOTO'S NOOIT VERWIJDEREN: oude beeldbestanden blijven altijd in de site staan (ze wegen niets en de eigenaar kan ze via de fotobank terugzetten). Vervang je een foto, gebruik dan een nieuwe bestandsnaam en werk de verwijzingen bij — verwijder het oude bestand niet.
 - ELK OUD ADRES MOET LANDEN: verhuist een pagina, dan komt er altijd een 301 in _redirects. Een oud adres dat een 404 geeft kost de klant zijn Google-positie.
 Kwaliteitseisen voor elke wijziging (altijd naleven):
 - Mobielvriendelijk: alles wat je toevoegt of wijzigt moet goed werken op een telefoon (geen vaste breedtes, tekst leesbaar, knoppen aantikbaar).
