@@ -30,7 +30,9 @@ function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
 }
 
 function paginaLabel(pad: string) {
-  const delen = pad.split("/");
+  const schoon = pad.replace(/^\/+|\/+$/g, "");
+  if (!schoon) return "homepage";
+  const delen = schoon.split("/");
   const naam = delen.pop() ?? pad;
   if (naam === "index.html") {
     // /index.html = homepage; map/index.html = die map
@@ -903,7 +905,7 @@ export default function Chat({
           rol: "assistent",
           tekst:
             actie === "publiceer"
-              ? "Gepubliceerd! Binnen 2 minuten staat het op je echte website."
+              ? "Gepubliceerd! Je ziet het hier meteen; op je echte adres duurt het nog een minuutje voordat iedereen de nieuwe versie krijgt."
               : "Het concept is verwijderd. Je website blijft zoals hij was.",
         },
       ]);
@@ -1302,11 +1304,37 @@ export default function Chat({
                 }
               >
                 {berichten.length === 0 && !bezig && (
-                  <p className="text-stone-400 text-sm">
-                    Klik door je website en typ hieronder wat je aangepast wilt
-                    hebben — bijvoorbeeld: &ldquo;verander de kop op deze
-                    pagina&rdquo;.
-                  </p>
+                  <div className="text-sm">
+                    <p className="font-semibold text-stone-800">Zo pas je je website aan</p>
+                    <p className="mt-1 text-stone-500">
+                      Typ gewoon wat er anders moet, in je eigen woorden. Je ziet
+                      eerst een voorbeeld — pas als jij op Publiceer klikt staat het live.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[
+                        "Zet de openingstijden op zaterdag tot 17:00",
+                        "Maak de kop op deze pagina wat pakkender",
+                        "Voeg een knop 'Bel ons' toe bovenaan",
+                      ].map((vb) => (
+                        <button
+                          key={vb}
+                          onClick={() => {
+                            setInvoer(vb);
+                            invoerRef.current?.focus();
+                          }}
+                          className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-left text-xs font-medium text-violet-800 hover:bg-violet-100 cursor-pointer"
+                        >
+                          {vb}
+                        </button>
+                      ))}
+                    </div>
+                    <ul className="mt-4 space-y-1.5 text-xs text-stone-500">
+                      <li><span className="font-semibold text-stone-700">➤ Wijs aan</span> — tik iets op je site aan (een tekst, een foto) en zeg wat ermee moet.</li>
+                      <li><span className="font-semibold text-stone-700">🖼 Foto</span> — nieuwe foto's meesturen, of kiezen uit alles wat al op je site stond.</li>
+                      <li><span className="font-semibold text-stone-700">🎨 Kleur</span> en <span className="font-semibold text-stone-700">SEO</span> — zelf aanpassen zonder te wachten op de AI.</li>
+                      <li><span className="font-semibold text-stone-700">↩︎ Fout gegaan?</span> Elke stap is terug te draaien, ook na publiceren.</li>
+                    </ul>
+                  </div>
                 )}
                 {berichten.map((m, i) => {
                   const { schoon, keuzes } =
