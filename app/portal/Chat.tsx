@@ -360,6 +360,8 @@ export default function Chat({
   const [balkOpen, setBalkOpen] = useState(true);
   // Mobiel: chat en site als twee volledige schermen (zoals een artifact)
   const [mobielWeergave, setMobielWeergave] = useState<"site" | "chat">("site");
+  // Mobiel: editor schermvullend; via ✕ terug naar de gewone pagina (met menu)
+  const [mobielVol, setMobielVol] = useState(true);
   // Mobiel aanwijzen in twee stappen: eerst tikken (randje), dan bevestigen
   const [aanwijsKandidaat, setAanwijsKandidaat] = useState<{ tag: string; tekst: string } | null>(null);
   // Schermvullend op desktop: chat als vast paneel naast het voorbeeld
@@ -923,7 +925,7 @@ export default function Chat({
     <div className="min-w-0">
       <div
         className={`bg-white overflow-hidden flex flex-col ${
-          volledigScherm || isMobiel
+          volledigScherm || (isMobiel && mobielVol)
             ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
@@ -939,7 +941,10 @@ export default function Chat({
             ).map(([sleutel, label]) => (
               <button
                 key={sleutel}
-                onClick={() => setMobielWeergave(sleutel)}
+                onClick={() => {
+                  setMobielWeergave(sleutel);
+                  setMobielVol(true);
+                }}
                 className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold cursor-pointer ${
                   mobielWeergave === sleutel
                     ? "bg-violet-700 text-white shadow"
@@ -949,13 +954,13 @@ export default function Chat({
                 {label}
               </button>
             ))}
-            <a
-              href="/portal"
-              aria-label="Terug naar het overzicht"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-stone-400"
+            <button
+              onClick={() => setMobielVol(false)}
+              aria-label="Editor verkleinen — terug naar de pagina"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-stone-400 cursor-pointer"
             >
               ✕
-            </a>
+            </button>
           </div>
         )}
 
@@ -1064,12 +1069,12 @@ export default function Chat({
           </div>
         </div>
 
-        <div className={mobielChat ? "flex min-h-0 flex-1 flex-col" : splitModus ? "flex flex-1 min-h-0" : isMobiel ? "flex min-h-0 flex-1 flex-col" : "contents"}>
+        <div className={mobielChat ? "flex min-h-0 flex-1 flex-col" : splitModus ? "flex flex-1 min-h-0" : isMobiel && mobielVol ? "flex min-h-0 flex-1 flex-col" : "contents"}>
         {/* Website-viewer */}
         <div
           ref={viewerRef}
           className={`relative ${mobielChat ? "hidden" : ""} ${
-            volledigScherm || isMobiel
+            volledigScherm || (isMobiel && mobielVol)
               ? "flex-1 min-h-0"
               : "h-[calc(100dvh-17rem)] sm:h-[calc(100dvh-20rem)] min-h-[24rem]"
           } ${
@@ -1228,7 +1233,10 @@ export default function Chat({
         )}
         {isMobiel && !mobielChat && !aanwijzen && (
           <button
-            onClick={() => setMobielWeergave("chat")}
+            onClick={() => {
+              setMobielWeergave("chat");
+              setMobielVol(true);
+            }}
             className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-white shadow-2xl cursor-pointer ${
               concept
                 ? "bg-amber-500 shadow-amber-400/50"
