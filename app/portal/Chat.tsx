@@ -132,6 +132,12 @@ export default function Chat({
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
+  // Grote schermen: standaard de gesplitste weergave (site links, gesprek
+  // rechts) — veel overzichtelijker. Kleinere laptops en iPads houden de
+  // ingebedde weergave, daar zou de site te smal worden.
+  useEffect(() => {
+    if (window.innerWidth >= 1280) setVolledigScherm(true);
+  }, []);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
   const fotoVervangRef = useRef(false);
   const [kleur, setKleur] = useState<string | null>(null);
@@ -1350,7 +1356,13 @@ export default function Chat({
                           : "bg-stone-100 text-stone-800 rounded-bl-sm"
                       }`}
                     >
-                      {schoon}
+                      {schoon.split(/(\*\*[^*]+\*\*)/g).map((deel, j) =>
+                        deel.startsWith("**") && deel.endsWith("**") ? (
+                          <strong key={j}>{deel.slice(2, -2)}</strong>
+                        ) : (
+                          <span key={j}>{deel}</span>
+                        )
+                      )}
                     </div>
                     {i === berichten.length - 1 &&
                       m.rol === "assistent" &&
