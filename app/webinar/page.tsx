@@ -40,8 +40,6 @@ export default async function Webinar() {
             het gewoon te typen.
           </p>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/stock/samenwerken.webp" alt="" aria-hidden className="mt-6 sm:mt-0 w-36 sm:w-44 shrink-0" />
       </div>
 
       <ul className="mt-8 grid gap-3 sm:grid-cols-3">

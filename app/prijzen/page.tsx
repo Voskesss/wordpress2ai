@@ -179,8 +179,6 @@ export default function Prijzen() {
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Maatwerk
           </h2>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/stock/groei.webp" alt="" aria-hidden className="hidden w-28 rounded-3xl sm:block" />
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-3">
           {[

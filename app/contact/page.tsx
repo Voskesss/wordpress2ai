@@ -55,8 +55,6 @@ export default async function Contact() {
             </p>
           </div>
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/stock/koffie.webp" alt="" aria-hidden className="mt-8 hidden w-44 rounded-3xl lg:block" />
       </div>
 
       <form
