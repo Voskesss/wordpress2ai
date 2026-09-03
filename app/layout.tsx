@@ -116,6 +116,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/wordpress-overzetten" className="hover:text-violet-600">WordPress overzetten</Link>
           <Link href="/wordpress-alternatief" className="hover:text-violet-600">WordPress-alternatief</Link>
           <Link href="/website-zonder-onderhoud" className="hover:text-violet-600">Website zonder onderhoud</Link>
+          <Link href="/website-zonder-cms" className="hover:text-violet-600">Website zonder CMS</Link>
           <Link href="/wordpress-website-traag" className="hover:text-violet-600">Trage WordPress-site</Link>
           <Link href="/wordpress-website-maken-met-ai" className="hover:text-violet-600">Website maken met AI</Link>
           <Link href="/wordpress-omzetten-naar-gewone-website" className="hover:text-violet-600">WordPress omzetten</Link>

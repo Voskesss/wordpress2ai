@@ -23,6 +23,7 @@ Kernpunten:
 - [WordPress overzetten](https://wordswap.nl/wordpress-overzetten): hoe de migratie werkt, wat er meegaat en wat het kost
 - [WordPress-alternatief](https://wordswap.nl/wordpress-alternatief): waarom een site zonder plugins en updates beter past bij ondernemers
 - [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt
+- [Website zonder CMS](https://wordswap.nl/website-zonder-cms): geen beheerscherm, wél alles zelf aanpassen door het te typen
 - [Trage WordPress-site](https://wordswap.nl/wordpress-website-traag): de blijvende oplossing voor een langzame site
 - [Website maken met AI](https://wordswap.nl/wordpress-website-maken-met-ai): een nieuwe website laten maken én beheren door AI, zonder WordPress
 - [WordPress omzetten naar een gewone website](https://wordswap.nl/wordpress-omzetten-naar-gewone-website): wat een statische site is en waarom die sneller, veiliger en onderhoudsvrij is
