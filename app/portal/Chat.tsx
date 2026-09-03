@@ -615,6 +615,33 @@ export default function Chat({
     }
   }
 
+  /** Achtergrond van de aangewezen foto weghalen — draait volledig in de
+   * browser (klein AI-model, geen kosten), daarna via de gewone vervang-flow. */
+  async function achtergrondWeg() {
+    const src = selectie?.html.match(/src=["']([^"']+)["']/)?.[1];
+    if (!src || bezig) return;
+    let pad = src.replace(/^https?:\/\/[^/]+/, "").split("?")[0].split("#")[0];
+    pad = pad.replace(/^\/preview\/\d+\//, "/").replace(/^\/+/, "");
+    setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser en duurt ±15 seconden...");
+    try {
+      const { removeBackground } = await import("@imgly/background-removal");
+      const bron = await fetch(`/site-weergave/${siteId}/${pad}`).then((r) => r.blob());
+      const uit = await removeBackground(bron);
+      const bestand = new File([uit], pad.split("/").pop()?.replace(/\.[^.]+$/, ".png") ?? "foto.png", {
+        type: "image/png",
+      });
+      setLaderTekst(null);
+      await fotoDirect(bestand);
+    } catch {
+      setLaderTekst(null);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: "De achtergrond weghalen lukte niet bij deze foto — probeer het nog eens, of stuur een andere foto." },
+      ]);
+      setChatOpen(true);
+    }
+  }
+
   async function fotoDirect(bestand: File) {
     const src = selectie?.html.match(/src=["']([^"']+)["']/)?.[1];
     if (!src) {
@@ -1502,6 +1529,15 @@ export default function Chat({
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
                   >
                     🖼️ Kies uit de fotobank
+                  </button>
+                )}
+                {selectie.tag === "img" && (
+                  <button
+                    onClick={achtergrondWeg}
+                    disabled={bezig}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    ✨ Achtergrond weghalen
                   </button>
                 )}
                 {selectie.tekst && selectie.tag !== "img" && zelfTekst === null && (

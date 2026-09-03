@@ -81,8 +81,13 @@ export async function POST(req: Request) {
 
     // Nieuwe foto in hetzelfde formaat en (maximaal) dezelfde breedte gieten
     const meta = await sharp(origineel).metadata().catch(() => null);
-    const ext = pad.split(".").pop()?.toLowerCase() ?? "webp";
-    let bewerking = sharp(Buffer.from(await bestand.arrayBuffer())).rotate();
+    const upload = Buffer.from(await bestand.arrayBuffer());
+    const uploadMeta = await sharp(upload).metadata().catch(() => null);
+    let ext = pad.split(".").pop()?.toLowerCase() ?? "webp";
+    // Doorzichtige aanlevering (bv. achtergrond weggehaald) past niet in jpg:
+    // dan slaan we op als webp, dat alfa wél ondersteunt.
+    if (uploadMeta?.hasAlpha && (ext === "jpg" || ext === "jpeg")) ext = "webp";
+    let bewerking = sharp(upload).rotate();
     if (meta?.width) bewerking = bewerking.resize({ width: meta.width, withoutEnlargement: true });
     const nieuw =
       ext === "png"
