@@ -381,6 +381,18 @@ export async function POST(req: Request) {
                     tekst: maker(block.input as Record<string, unknown>),
                   });
                 }
+                // Pagina die bewerkt wordt meesturen: het voorbeeld springt
+                // er live naartoe, zodat je ziet wáár de wijziging landt.
+                if (block.name === "Edit" || block.name === "Write") {
+                  const bestand = String((block.input as { file_path?: string }).file_path ?? "");
+                  const rel = werkmap && bestand.startsWith(werkmap)
+                    ? bestand.slice(werkmap.length).replace(/^\/+/, "")
+                    : bestand.replace(/^\/+/, "");
+                  if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
+                    const pad = rel === "index.html" ? "/" : "/" + rel.replace(/index\.html$/, "").replace(/\.html?$/, "/");
+                    stuur({ type: "bewerkt", pad });
+                  }
+                }
               }
             }
           }

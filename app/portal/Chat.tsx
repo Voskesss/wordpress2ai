@@ -401,6 +401,14 @@ export default function Chat({
           try {
             const event = JSON.parse(regel);
             if (event.type === "status") setStatusTekst(event.tekst);
+            if (event.type === "bewerkt" && typeof event.pad === "string") {
+              // Voorbeeld live meebewegen naar de pagina die bewerkt wordt
+              if (huidigeRef.current !== event.pad) {
+                huidigeRef.current = event.pad;
+                setHuidigePagina(event.pad);
+                herlaad(true);
+              }
+            }
             if (event.type === "klaar") klaar = event;
             if (!event.type && typeof event.error === "string") klaar = { reply: event.error };
           } catch {
