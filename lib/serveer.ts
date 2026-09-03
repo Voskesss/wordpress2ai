@@ -34,6 +34,12 @@ export async function haalSiteBestand(
     }
   );
   if (!res.ok) return null;
+  // Een map geeft bij GitHub een JSON-lijst terug in plaats van een bestand —
+  // dat mag nooit als "bestand" geserveerd worden (mobiel toont dan een
+  // download-prompt). Mappen herkennen we aan het content-type.
+  if ((res.headers.get("content-type") ?? "").includes("application/json") && !pad.split("/").pop()!.includes(".")) {
+    return null;
+  }
   return res.arrayBuffer();
 }
 
@@ -43,15 +49,17 @@ export async function vindSiteBestand(
   pad: string,
   branch?: string
 ): Promise<{ data: ArrayBuffer; pad: string } | null> {
-  let data = await haalSiteBestand(repo, pad, branch);
-  if (data) return { data, pad };
+  // Zonder extensie is het vrijwel altijd een pagina: probeer de
+  // paginavarianten eerst (scheelt ook een vergeefse map-aanvraag)
   if (!pad.split("/").pop()!.includes(".")) {
-    for (const variant of [`${pad}/index.html`, `${pad}.html`]) {
-      data = await haalSiteBestand(repo, variant, branch);
+    for (const variant of [`${pad}/index.html`, `${pad}.html`, pad]) {
+      const data = await haalSiteBestand(repo, variant, branch);
       if (data) return { data, pad: variant };
     }
+    return null;
   }
-  return null;
+  const data = await haalSiteBestand(repo, pad, branch);
+  return data ? { data, pad } : null;
 }
 
 /** Herschrijft HTML zodat hij binnen een portal-weergaveroute werkt. */
