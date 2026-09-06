@@ -57,13 +57,59 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  name: "WordSwap",
-  url: siteUrl,
-  description:
-    "Migratie van WordPress-websites naar snelle, onderhoudsvrije statische sites met AI-chat voor wijzigingen.",
-  areaServed: "NL",
-  priceRange: "€€",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organisatie`,
+      name: "WordSwap",
+      alternateName: "WordSwap — AI Backoffice",
+      url: siteUrl,
+      logo: `${siteUrl}/logo-mail.png`,
+      description:
+        "WordSwap is een Nederlandse dienst die WordPress-websites omzet naar snelle, veilige websites zonder onderhoud. De eigenaar past de site daarna aan door in gewone taal te typen wat er anders moet; een AI voert het uit en de eigenaar keurt het goed vóór publicatie.",
+      foundingDate: "2026",
+      founder: { "@type": "Person", name: "Jos Klijnhout", jobTitle: "Oprichter" },
+      parentOrganization: {
+        "@type": "Organization",
+        name: "AI Backoffice (J.K. Klijnhout Holding B.V.)",
+        identifier: "KvK 09190650",
+      },
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Lebretweg 72",
+        postalCode: "6861 ZZ",
+        addressLocality: "Oosterbeek",
+        addressCountry: "NL",
+      },
+      email: "info@wordswap.nl",
+      areaServed: { "@type": "Country", name: "Nederland" },
+      knowsLanguage: "nl",
+    },
+    {
+      "@type": "Service",
+      "@id": `${siteUrl}/#overstap`,
+      name: "WordPress-website overzetten naar een website zonder onderhoud",
+      serviceType: "Websitemigratie van WordPress naar statische website met AI-beheer",
+      provider: { "@id": `${siteUrl}/#organisatie` },
+      areaServed: "NL",
+      offers: [
+        { "@type": "Offer", name: "Overstap kleine site", price: "150", priceCurrency: "EUR", description: "Eenmalig, no cure no pay" },
+        { "@type": "Offer", name: "Overstap grote of complexe site", price: "650", priceCurrency: "EUR", description: "Eenmalig, no cure no pay" },
+        { "@type": "Offer", name: "AI-koppeling (beheer via chat)", price: "5", priceCurrency: "EUR", description: "€5 tot €20 per maand, afgestemd op gebruik; maandelijks opzegbaar" },
+      ],
+    },
+    {
+      "@type": "Service",
+      "@id": `${siteUrl}/#nieuwe-website`,
+      name: "Nieuwe website laten maken met AI-beheer",
+      provider: { "@id": `${siteUrl}/#organisatie` },
+      areaServed: "NL",
+      offers: [
+        { "@type": "Offer", name: "AI-ontwerp tot 8 pagina's", price: "250", priceCurrency: "EUR" },
+        { "@type": "Offer", name: "Ontwerp door een designer", price: "1750", priceCurrency: "EUR" },
+      ],
+    },
+  ],
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -110,6 +156,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </div>
           <nav className="flex flex-col gap-2 text-sm">
           <Link href="/hoe-het-werkt" className="hover:text-violet-600">Hoe het werkt</Link>
+          <Link href="/over-wordswap" className="hover:text-violet-600">Over WordSwap</Link>
+          <Link href="/wordswap-vs-wordpress" className="hover:text-violet-600">WordSwap vs. WordPress</Link>
           <Link href="/zelf-doen" className="hover:text-violet-600">Zelf doen</Link>
           <Link href="/prijzen" className="hover:text-violet-600">Prijzen</Link>
           <Link href="/nieuwe-website" className="hover:text-violet-600">Nieuwe website</Link>

@@ -11,9 +11,13 @@ Kernpunten:
 - Elke wijziging eerst als concept met preview; de eigenaar publiceert zelf
 - Geen lock-in: maandelijks opzegbaar, de klant kan altijd met eigen AI-tools verder
 
+Volledige informatie (feiten, prijzen, vergelijking, FAQ) in één document: https://wordswap.nl/llms-full.txt
+
 ## Pagina's
 
 - [Home](https://wordswap.nl/): wat WordSwap is en waarom het beter is dan zelf WordPress bijhouden
+- [Over WordSwap](https://wordswap.nl/over-wordswap): de feiten — wie (Jos Klijnhout, AI Backoffice, Oosterbeek, KvK 09190650), wat, sinds wanneer, prijzen, techniek
+- [WordSwap vs. WordPress](https://wordswap.nl/wordswap-vs-wordpress): eerlijke vergelijkingstabel op onderhoud, snelheid, veiligheid, kosten en aanpassen — inclusief wanneer WordPress beter past
 - [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): het migratieproces in stappen, de preview-flow en veelgestelde vragen
 - [Zelf doen](https://wordswap.nl/zelf-doen): complete stap-voor-stap-handleiding om je WordPress-site zélf om te zetten naar een statische site — transparant, inclusief valkuilen
 - [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
