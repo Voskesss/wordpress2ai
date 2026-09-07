@@ -25,7 +25,8 @@ async function magErbij(siteId: number, userId: string) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  if (!process.env.RENDI_API_KEY || !process.env.BLOB_READ_WRITE_TOKEN) {
+  // Blob werkt met een RW-token óf via de projectkoppeling (BLOB_STORE_ID + OIDC)
+  if (!process.env.RENDI_API_KEY || !(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)) {
     return NextResponse.json({ error: "Video-verwerking is nog niet ingeschakeld." }, { status: 503 });
   }
   const stap = new URL(req.url).searchParams.get("stap");
