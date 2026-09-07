@@ -96,6 +96,8 @@ export default function Chat({
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
   const [videoKlaar, setVideoKlaar] = useState<{ commandId: string; naam: string } | null>(null);
   const [videoBezig, setVideoBezig] = useState(false);
+  // Aanwijs-flow: na de upload automatisch "vervang de aangewezen video" sturen
+  const videoVervangRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const huidigeRef = useRef("/");
@@ -483,8 +485,18 @@ export default function Chat({
         }).then((r) => r.json() as Promise<{ klaar?: boolean; fout?: string; groottemb?: number }>);
         if (st.fout) throw new Error(st.fout);
         if (st.klaar) {
-          setVideoKlaar({ commandId: klaar.commandId, naam: bestand.name });
           setStatusTekst(null);
+          if (videoVervangRef.current) {
+            // Aangewezen video vervangen: geen vraag meer nodig, meteen door
+            videoVervangRef.current = false;
+            setVideoKlaar(null);
+            await verstuurMetVideo(
+              "Vervang de aangewezen video door de meegestuurde nieuwe video: zelfde plek, zelfde afspeel-instellingen (autoplay, muted, loop, playsinline) en gebruik de nieuwe poster. Laat het oude videobestand staan.",
+              klaar.commandId
+            );
+            return;
+          }
+          setVideoKlaar({ commandId: klaar.commandId, naam: bestand.name });
           setBerichten((b) => [
             ...b,
             {
@@ -504,6 +516,13 @@ export default function Chat({
     } finally {
       setVideoBezig(false);
     }
+  }
+
+  async function verstuurMetVideo(tekst: string, commandId: string) {
+    setVideoKlaar({ commandId, naam: "video" });
+    // volgende tick zodat de state erin zit vóór verstuur() hem leest
+    await new Promise((ok) => setTimeout(ok, 0));
+    await verstuur(tekst);
   }
 
   async function verstuur(overrideTekst?: unknown, overrideAfbeelding?: File) {
@@ -1713,7 +1732,9 @@ export default function Chat({
                   <span className="font-semibold">Aangewezen:</span>{" "}
                   {selectie.tag === "img"
                     ? `foto: ${selectie.tekst || "zonder omschrijving"}`
-                    : selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
+                    : selectie.tag === "video"
+                      ? "video"
+                      : selectie.tekst || `een ${selectie.tag}-onderdeel`}{" "}
                   <span className="text-violet-600">
                     ({paginaLabel(selectie.pad === "/" ? "index.html" : selectie.pad)})
                   </span>
@@ -1742,6 +1763,18 @@ export default function Chat({
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
                   >
                     🖼️ Kies uit de fotobank
+                  </button>
+                )}
+                {selectie.tag === "video" && (
+                  <button
+                    onClick={() => {
+                      videoVervangRef.current = true;
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={bezig || videoBezig}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    🎬 Vervang deze video
                   </button>
                 )}
                 {selectie.tag === "img" && (

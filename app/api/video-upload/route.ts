@@ -38,7 +38,13 @@ export async function POST(req: Request) {
     if (stap === "deel") {
       // Eén deel doorzetten naar de presigned URL van Rendi; ETag terug
       const url = new URL(req.url).searchParams.get("url") ?? "";
-      if (!/^https:\/\//.test(url)) return NextResponse.json({ error: "Ongeldige upload-URL" }, { status: 400 });
+      // Uitsluitend de presigned opslag-URL's van Rendi (Cloudflare R2) — onze
+      // server mag nooit als doorgeefluik naar willekeurige adressen dienen
+      let host = "";
+      try { host = new URL(url).host; } catch { host = ""; }
+      if (!/^https:\/\//.test(url) || !/\.r2\.cloudflarestorage\.com$/.test(host)) {
+        return NextResponse.json({ error: "Ongeldige upload-URL" }, { status: 400 });
+      }
       const data = await req.arrayBuffer();
       const up = await fetch(url, { method: "PUT", body: data, headers: { "Content-Length": String(data.byteLength) } });
       if (!up.ok) return NextResponse.json({ error: `Upload van een deel mislukte (${up.status})` }, { status: 502 });

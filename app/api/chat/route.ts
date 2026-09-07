@@ -326,7 +326,8 @@ export async function POST(req: Request) {
           const st = await rendiStatus(videoCommandId).catch(() => null);
           const v = st?.output_files?.out_1?.storage_url;
           if (!v) return null;
-          const naam = v.split("/").pop()?.split("?")[0] ?? `video-${Date.now().toString(36)}.mp4`;
+          const ruweNaam = v.split("/").pop()?.split("?")[0] ?? "";
+          const naam = /^[a-z0-9-]+\.mp4$/i.test(ruweNaam) ? ruweNaam : `video-${Date.now().toString(36)}.mp4`;
           const videoPad = `video/${naam}`;
           await mkdir(path.join(werkmap!, "video"), { recursive: true });
           await writeFile(path.join(werkmap!, videoPad), await haalBinair(v));
