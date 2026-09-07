@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   // Src → pad binnen de site (zonder domein, querystring of preview-prefix)
   let pad = bron.replace(/^https?:\/\/[^/]+/, "").split("?")[0].split("#")[0];
-  pad = pad.replace(/^\/preview\/\d+\//, "/").replace(/^\/+/, "");
+  pad = pad.replace(/^\/(?:preview|site-weergave)\/\d+\//, "/").replace(/^\/+/, "");
   if (!pad || pad.includes("..")) {
     return NextResponse.json({ error: "Ongeldig pad" }, { status: 400 });
   }

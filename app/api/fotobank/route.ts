@@ -128,7 +128,7 @@ export async function POST(req: Request) {
         .replace(/^https?:\/\/[^/]+/, "")
         .split("?")[0]
         .split("#")[0]
-        .replace(/^\/preview\/\d+\//, "/")
+        .replace(/^\/(?:preview|site-weergave)\/\d+\//, "/")
         .replace(/^\/+/, "");
       if (!schoon || schoon.includes("..") || schoon === pad) {
         return NextResponse.json({ error: "Ongeldige doelfoto" }, { status: 400 });

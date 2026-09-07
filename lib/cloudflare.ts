@@ -141,6 +141,12 @@ export async function deployMapNaarCloudflare(
             xml: "application/xml",
             txt: "text/plain",
             woff2: "font/woff2",
+            woff: "font/woff",
+            mp4: "video/mp4",
+            webm: "video/webm",
+            mp3: "audio/mpeg",
+            pdf: "application/pdf",
+            avif: "image/avif",
           }[ext] ?? "application/octet-stream";
         form.append(
           hash,

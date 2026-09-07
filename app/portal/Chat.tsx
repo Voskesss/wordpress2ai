@@ -399,7 +399,9 @@ export default function Chat({
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {
-        const pad = e.data.pad.replace(/^\/preview\/\d+/, "") || "/";
+        // Pad zonder het voorvoegsel van de preview- of directe weergave,
+        // anders belandt "/site-weergave/17/offerte" straks op het echte adres (404)
+        const pad = e.data.pad.replace(/^\/(?:preview|site-weergave)\/\d+/, "") || "/";
         setHuidigePagina(pad);
         huidigeRef.current = pad;
       }
@@ -417,7 +419,7 @@ export default function Chat({
       if (e.data?.type === "wp2ai-selectie") {
         setAanwijsKandidaat(null);
         setSelectie({
-          pad: String(e.data.pad ?? "/"),
+          pad: String(e.data.pad ?? "/").replace(/^\/(?:preview|site-weergave)\/\d+/, "") || "/",
           tag: String(e.data.tag ?? ""),
           tekst: String(e.data.tekst ?? ""),
           html: String(e.data.html ?? ""),

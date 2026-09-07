@@ -34,6 +34,18 @@
       ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "vandijk-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8796",
+        "-d",
+        "/private/tmp/claude-501/-Users-josklijnhout-wordpress2ai/3a8c6388-e394-46a0-a9a9-654466cf1b75/scratchpad/uitgevouwen"
+      ],
+      "port": 8796
     }
   ]
 }
