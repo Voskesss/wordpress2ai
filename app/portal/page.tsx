@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
+import { vanafLaatsteNieuwGesprek } from "@/lib/gesprek";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
@@ -70,7 +71,7 @@ export default async function Portal({
           : eq(messages.siteId, site.id)
       )
       .orderBy(messages.id);
-    historieMap[site.id] = rows
+    historieMap[site.id] = vanafLaatsteNieuwGesprek(rows)
       .slice(-30)
       .map((m) => ({ rol: m.rol, tekst: m.tekst }));
   }

@@ -233,7 +233,10 @@ export async function POST(req: Request) {
         : eq(messages.siteId, site.id)
     )
     .orderBy(messages.id)
-    .then((rows) => rows.slice(-12));
+    .then(async (rows) => {
+      const { vanafLaatsteNieuwGesprek } = await import("@/lib/gesprek");
+      return vanafLaatsteNieuwGesprek(rows).slice(-12);
+    });
 
   // Wijzigingslogboek: feitelijk geheugen van wat er eerder is gebeurd
   const logboek = await db

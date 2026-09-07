@@ -1383,6 +1383,28 @@ export default function Chat({
                 <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
                   Gesprek
                 </span>
+                <div className="flex items-center gap-1">
+                <button
+                  onClick={async () => {
+                    if (bezig) return;
+                    await fetch("/api/gesprek-nieuw", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ siteId }),
+                    }).catch(() => {});
+                    setBerichten([
+                      { rol: "assistent", tekst: "Nieuw gesprek — ik ben alles van hiervoor vergeten. Waar kan ik mee helpen?" },
+                    ]);
+                    setSelectie(null);
+                    setVideoKlaar(null);
+                    setAfbeeldingen([]);
+                  }}
+                  disabled={bezig}
+                  title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
+                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
+                >
+                  🧹 Nieuw gesprek
+                </button>
                 <button
                   onClick={() => setChatOpen(false)}
                   aria-label="Gesprek inklappen"
@@ -1393,6 +1415,7 @@ export default function Chat({
                     <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" transform="rotate(180 12 12)" />
                   </svg>
                 </button>
+                </div>
               </div>
               <div
                 ref={scrollRef}
@@ -2100,6 +2123,19 @@ export default function Chat({
                 ref={invoerRef}
                 value={invoer}
                 rows={1}
+                onPaste={(e) => {
+                  // Schermafdruk plakken (Cmd/Ctrl+V) = meteen als foto bijvoegen
+                  const items = Array.from(e.clipboardData?.items ?? []);
+                  const plaatjes = items
+                    .filter((it) => it.type.startsWith("image/"))
+                    .map((it) => it.getAsFile())
+                    .filter((f): f is File => Boolean(f));
+                  if (plaatjes.length > 0) {
+                    e.preventDefault();
+                    setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, 12));
+                    setHintWeg(true);
+                  }
+                }}
                 onChange={(e) => {
                   setInvoer(e.target.value);
                   if (e.target.value) setHintWeg(true);
