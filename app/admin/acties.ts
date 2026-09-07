@@ -631,3 +631,14 @@ export async function prospectMailOpslaan(formData: FormData) {
 }
 
 
+
+
+/** Video-tegoed van een site aanpassen (standaard 10 per site). */
+export async function bewaarVideoLimiet(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const limiet = Number(formData.get("limiet"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 0 || limiet > 10000) return;
+  await db.update(sites).set({ videoLimiet: limiet }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}

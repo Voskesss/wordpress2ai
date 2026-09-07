@@ -29,6 +29,9 @@ export const sites = pgTable("sites", {
   uitnodigingEmail: text("uitnodiging_email"),
   // Witlabel-mail: formulier-mails via de eigen mailserver van de klant (SMTP).
   // Wachtwoord versleuteld opgeslagen (AES, sleutel afgeleid van CRON_SECRET).
+  // Video-uploads via de chat: hoeveel al gebruikt en hoeveel er in het pakket zitten
+  videoUploads: integer("video_uploads").notNull().default(0),
+  videoLimiet: integer("video_limiet").notNull().default(10),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),

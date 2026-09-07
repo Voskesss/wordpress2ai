@@ -29,8 +29,19 @@ export async function POST(req: Request) {
       const { siteId, bestandsnaam, grootte } = (await req.json()) as {
         siteId: number; bestandsnaam: string; grootte: number;
       };
-      if (!(await magErbij(Number(siteId), userId))) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+      const site = await magErbij(Number(siteId), userId);
+      if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
       if (grootte > 500 * 1024 * 1024) return NextResponse.json({ error: "Video is te groot (max 500 MB)" }, { status: 400 });
+      // Tegoed: standaard 10 video's per site; meer regelt WordSwap (limiet in de admin)
+      if (site.videoUploads >= site.videoLimiet && !(await isBeheerder())) {
+        return NextResponse.json(
+          {
+            error: `Je hebt de ${site.videoLimiet} video's uit je pakket gebruikt. Meer video's? Vraag het even aan via de chat of stuur een mail naar info@wordswap.nl — dan zetten we je tegoed hoger.`,
+            limiet: true,
+          },
+          { status: 429 }
+        );
+      }
       const r = await rendiInitUpload(bestandsnaam.replace(/[^\w.-]+/g, "-"), grootte);
       return NextResponse.json(r);
     }
@@ -52,9 +63,13 @@ export async function POST(req: Request) {
     }
 
     if (stap === "klaar") {
-      const { fileId, parts, basisnaam } = (await req.json()) as {
-        fileId: string; parts: { part_number: number; etag: string }[]; basisnaam: string;
+      const { fileId, parts, basisnaam, siteId } = (await req.json()) as {
+        fileId: string; parts: { part_number: number; etag: string }[]; basisnaam: string; siteId?: number;
       };
+      const site = siteId ? await magErbij(Number(siteId), userId) : null;
+      if (site) {
+        await db.update(sites).set({ videoUploads: site.videoUploads + 1 }).where(eq(sites.id, site.id));
+      }
       const bestand = await rendiCompleteUpload(fileId, parts);
       const naam = (basisnaam || "video").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "video";
       const cmd = await rendiComprimeer(bestand.storage_url, `${naam}-v${Date.now().toString(36)}`);

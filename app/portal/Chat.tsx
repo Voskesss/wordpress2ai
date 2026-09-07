@@ -472,7 +472,7 @@ export default function Chat({
       const klaar = await fetch("/api/video-upload?stap=klaar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId: init.file_id, parts, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
+        body: JSON.stringify({ siteId, fileId: init.file_id, parts, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
       }).then((r) => r.json() as Promise<{ commandId?: string; error?: string }>);
       if (!klaar.commandId) throw new Error(klaar.error ?? "Comprimeren starten mislukte");
       // Pollen tot Rendi klaar is
