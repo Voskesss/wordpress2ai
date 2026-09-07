@@ -25,9 +25,10 @@ async function magErbij(siteId: number, userId: string) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  // Browser-uploads (client tokens) vereisen een Blob read-write-token; de
-  // OIDC-projectkoppeling volstaat alleen voor server-side uploads
-  if (!process.env.RENDI_API_KEY || !process.env.BLOB_READ_WRITE_TOKEN) {
+  // Europese Blob-store (Frankfurt): eigen prefix BLOBEU_, daarom geven we
+  // het token overal expliciet mee in plaats van op de standaardnaam te leunen
+  const blobToken = process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
+  if (!process.env.RENDI_API_KEY || !blobToken) {
     return NextResponse.json({ error: "Video-verwerking is nog niet ingeschakeld." }, { status: 503 });
   }
   const stap = new URL(req.url).searchParams.get("stap");
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       const uit = await handleUpload({
         body,
         request: req,
+        token: blobToken,
         onBeforeGenerateToken: async (_pad, clientPayload) => {
           const { siteId } = JSON.parse(clientPayload ?? "{}") as { siteId?: number };
           const site = await magErbij(Number(siteId), userId);
@@ -87,7 +89,7 @@ export async function POST(req: Request) {
       const klaar = s.status === "SUCCESS" && Boolean(video?.storage_url);
       if ((klaar || s.status === "FAILED") && blobUrl) {
         // Origineel opruimen: het gecomprimeerde resultaat staat bij Rendi
-        del(blobUrl).catch(() => {});
+        del(blobUrl, { token: blobToken }).catch(() => {});
       }
       return NextResponse.json({
         status: s.status,
