@@ -1349,9 +1349,9 @@ export default function Chat({
 
         {/* Vriendelijke lader tijdens klaarzetten/verversen */}
         {laderTekst && !oplevering && (
-          <div className="pointer-events-none absolute left-1/2 top-4 z-[25] -translate-x-1/2">
-            <div className="flex items-center gap-2.5 rounded-full bg-stone-900/85 px-5 py-2.5 text-sm font-medium text-white shadow-2xl backdrop-blur">
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <div className="pointer-events-none absolute inset-0 z-[25] flex items-center justify-center bg-stone-900/30 backdrop-blur-[1px]">
+            <div className="mx-4 flex max-w-md items-center gap-3 rounded-2xl bg-stone-900/90 px-6 py-4 text-sm font-medium text-white shadow-2xl">
+              <svg className="h-5 w-5 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
                 <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
               </svg>
