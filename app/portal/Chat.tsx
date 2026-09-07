@@ -1043,8 +1043,10 @@ export default function Chat({
       setChatOpen(true);
       if (res.ok) {
         setOngedaanKans(null);
-        herlaad(false);
-        wachtOpVerseVersie(false);
+        // Direct de teruggedraaide versie tonen (vers uit de bron) en stil
+        // doorwisselen naar het echte adres zodra dat is bijgetrokken —
+        // zelfde aanpak als bij wijzigen en publiceren
+        toonVersEnWisselStil(liveUrl);
       }
     } finally {
       setOngedaanBezig(false);
