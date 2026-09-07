@@ -90,7 +90,12 @@ export default function Chat({
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
-  const [bezig, setBezig] = useState(false);
+  const [bezig, setBezigState] = useState(false);
+  const bezigRef = useRef(false);
+  function setBezig(v: boolean) {
+    bezigRef.current = v;
+    setBezigState(v);
+  }
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
@@ -398,6 +403,19 @@ export default function Chat({
     return () => mq.removeEventListener("change", zet);
   }, []);
 
+  // Onafgemaakte videoverwerking (bv. na verversen of wachtrij) hervatten
+  useEffect(() => {
+    try {
+      const ruw = localStorage.getItem(`ws-video-${siteId}`);
+      if (!ruw) return;
+      const { commandId, naam, vervang, blobUrl } = JSON.parse(ruw) as {
+        commandId: string; naam: string; vervang: boolean; blobUrl: string | null;
+      };
+      if (commandId) volgVideo(commandId, naam ?? "video", false || Boolean(vervang), blobUrl ?? null);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteId]);
+
   // De site alvast ophalen zodra het portaal opent: de eerste chatvraag
   // hoeft dan niet meer op de download te wachten.
   useEffect(() => {
@@ -453,12 +471,95 @@ export default function Chat({
   /** Video uploaden in delen van 4 MB (via onze server naar Rendi) en laten
    * comprimeren; daarna staat het opdracht-id klaar om met het bericht mee te
    * sturen. Werkt ook voor grote telefoonvideo's. */
+  /** Wacht (op de achtergrond) tot Rendi klaar is met comprimeren en handel
+   * dan af: chip klaarzetten of, in de vervang-flow, direct versturen zodra
+   * de chat vrij is. Overleeft een verversing via localStorage. */
+  async function volgVideo(commandId: string, naam: string, vervang: boolean, blobUrl: string | null) {
+    try {
+      localStorage.setItem(
+        `ws-video-${siteId}`,
+        JSON.stringify({ commandId, naam, vervang, blobUrl })
+      );
+    } catch {}
+    const gestart = Date.now();
+    let inWachtrijGemeld = false;
+    // Ruim een kwartier de tijd: eerst elke 4 s, na 2 minuten elke 10 s
+    while (Date.now() - gestart < 15 * 60 * 1000) {
+      await new Promise((ok) => setTimeout(ok, Date.now() - gestart < 120_000 ? 4000 : 10_000));
+      let st: { klaar?: boolean; fout?: string; status?: string; groottemb?: number };
+      try {
+        st = await fetch("/api/video-upload?stap=status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ commandId, blobUrl: blobUrl ?? undefined }),
+        }).then((r) => r.json());
+      } catch {
+        continue; // netwerkhikje: gewoon nog eens proberen
+      }
+      if (st.fout) {
+        try { localStorage.removeItem(`ws-video-${siteId}`); } catch {}
+        setStatusTekst(null);
+        setVideoBezig(false);
+        setBerichten((b) => [...b, { rol: "assistent", tekst: `De video kon niet verwerkt worden: ${st.fout}` }]);
+        setChatOpen(true);
+        return;
+      }
+      if (st.status === "QUEUED" && Date.now() - gestart > 30_000 && !inWachtrijGemeld) {
+        inWachtrijGemeld = true;
+        setStatusTekst(null);
+        setVideoBezig(false);
+        setBerichten((b) => [
+          ...b,
+          {
+            rol: "assistent",
+            tekst: "Het is even druk bij de videoverwerker — je video staat in de wachtrij. Je kunt gewoon verder werken (of dit venster sluiten); ik meld me hier zodra hij klaar is.",
+          },
+        ]);
+        setChatOpen(true);
+      }
+      if (st.klaar) {
+        try { localStorage.removeItem(`ws-video-${siteId}`); } catch {}
+        setStatusTekst(null);
+        setVideoBezig(false);
+        if (vervang) {
+          // Wachten tot de chat vrij is, dan pas de vervang-opdracht sturen
+          while (bezigRef.current) await new Promise((ok) => setTimeout(ok, 1500));
+          await verstuurMetVideo(
+            "Vervang de aangewezen video door de meegestuurde nieuwe video: zelfde plek, zelfde afspeel-instellingen (autoplay, muted, loop, playsinline) en gebruik de nieuwe poster. Laat het oude videobestand staan.",
+            commandId
+          );
+          return;
+        }
+        setVideoKlaar({ commandId, naam });
+        setBerichten((b) => [
+          ...b,
+          {
+            rol: "assistent",
+            tekst: `Je video "${naam}" is klaar (gecomprimeerd tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
+          },
+        ]);
+        setChatOpen(true);
+        return;
+      }
+    }
+    try { localStorage.removeItem(`ws-video-${siteId}`); } catch {}
+    setStatusTekst(null);
+    setVideoBezig(false);
+    setBerichten((b) => [
+      ...b,
+      { rol: "assistent", tekst: "De videoverwerking duurt ongebruikelijk lang. Probeer het later nog eens — je tegoed is niet verbruikt als hij niet geplaatst is." },
+    ]);
+    setChatOpen(true);
+  }
+
   async function videoUploaden(bestand: File) {
     if (videoBezig) return;
     setVideoBezig(true);
     setVideoKlaar(null);
     setChatOpen(true);
     setBerichten((b) => [...b, { rol: "klant", tekst: `🎬 Video meegestuurd: ${bestand.name}` }]);
+    const vervang = videoVervangRef.current;
+    videoVervangRef.current = false;
     let blobUrl: string | null = null;
     try {
       setStatusTekst("Video uploaden... 0%");
@@ -477,41 +578,10 @@ export default function Chat({
         body: JSON.stringify({ siteId, blobUrl, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
       }).then((r) => r.json() as Promise<{ commandId?: string; error?: string }>);
       if (!klaar.commandId) throw new Error(klaar.error ?? "Comprimeren starten mislukte");
-      for (let poging = 0; poging < 60; poging++) {
-        await new Promise((ok) => setTimeout(ok, 4000));
-        const st = await fetch("/api/video-upload?stap=status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ commandId: klaar.commandId, blobUrl }),
-        }).then((r) => r.json() as Promise<{ klaar?: boolean; fout?: string; groottemb?: number }>);
-        if (st.fout) throw new Error(st.fout);
-        if (st.klaar) {
-          setStatusTekst(null);
-          if (videoVervangRef.current) {
-            videoVervangRef.current = false;
-            setVideoKlaar(null);
-            await verstuurMetVideo(
-              "Vervang de aangewezen video door de meegestuurde nieuwe video: zelfde plek, zelfde afspeel-instellingen (autoplay, muted, loop, playsinline) en gebruik de nieuwe poster. Laat het oude videobestand staan.",
-              klaar.commandId
-            );
-            return;
-          }
-          setVideoKlaar({ commandId: klaar.commandId, naam: bestand.name });
-          setBerichten((b) => [
-            ...b,
-            {
-              rol: "assistent",
-              tekst: `Je video "${bestand.name}" is klaar (gecomprimeerd tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
-            },
-          ]);
-          setChatOpen(true);
-          return;
-        }
-      }
-      throw new Error("Comprimeren duurde te lang — probeer het nog eens.");
+      await volgVideo(klaar.commandId, bestand.name, vervang, blobUrl);
     } catch (e) {
       setStatusTekst(null);
-      videoVervangRef.current = false;
+      setVideoBezig(false);
       const m = (e as Error).message ?? "";
       setBerichten((b) => [
         ...b,
@@ -521,8 +591,6 @@ export default function Chat({
         },
       ]);
       setChatOpen(true);
-    } finally {
-      setVideoBezig(false);
     }
   }
 
