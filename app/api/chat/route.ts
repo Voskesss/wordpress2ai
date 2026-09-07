@@ -295,9 +295,9 @@ export async function POST(req: Request) {
         const koudeStart = setTimeout(() => {
           stuur({
             type: "status",
-            tekst: "Ik pak eerst je hele website er even bij — de eerste keer duurt dat iets langer...",
+            tekst: "Ik haal de nieuwste versie van je site op...",
           });
-        }, 1500);
+        }, 2500);
         if (openConcept?.branch) {
           werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
         } else if (eigenBranch) {

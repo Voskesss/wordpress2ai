@@ -1725,27 +1725,29 @@ export default function Chat({
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar.</span>{" "}
-                {concept.paginas.length > 0 && (
-                  <span className="text-amber-800 hidden sm:inline">
-                    Aangepast:{" "}
-                    {concept.paginas.map((pad, i) => (
-                      <span key={pad + i}>
-                        {i > 0 && ", "}
-                        {/\.html?$/i.test(pad) ? (
+                {concept.paginas.length > 0 && (() => {
+                  const paginas = concept.paginas.filter((p) => /\.html?$/i.test(p));
+                  const overig = concept.paginas.length - paginas.length;
+                  return (
+                    <span className="text-amber-800 hidden sm:inline">
+                      Aangepast:{" "}
+                      {paginas.slice(0, 3).map((pad, i) => (
+                        <span key={pad + i}>
+                          {i > 0 && ", "}
                           <button
                             onClick={() => gaNaar(pad)}
                             className="font-semibold underline decoration-amber-400 hover:text-amber-950 cursor-pointer"
                           >
                             {paginaLabel(pad)}
                           </button>
-                        ) : (
-                          paginaLabel(pad)
-                        )}
-                      </span>
-                    ))}
-                    .
-                  </span>
-                )}{" "}
+                        </span>
+                      ))}
+                      {paginas.length > 3 && ` +${paginas.length - 3} pagina's`}
+                      {overig > 0 && `${paginas.length > 0 ? " en " : ""}${overig} bestand${overig === 1 ? "" : "en"}`}
+                      .
+                    </span>
+                  );
+                })()}{" "}
                 Tevreden?
               </p>
               <div className="flex gap-2 shrink-0">
