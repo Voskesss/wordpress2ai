@@ -450,44 +450,35 @@ export default function Chat({
     if (videoBezig) return;
     setVideoBezig(true);
     setVideoKlaar(null);
+    let blobUrl: string | null = null;
     try {
-      const init = await fetch("/api/video-upload?stap=init", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, bestandsnaam: bestand.name, grootte: bestand.size }),
-      }).then((r) => r.json() as Promise<{ file_id?: string; part_size?: number; upload_urls?: string[]; error?: string }>);
-      if (!init.file_id || !init.upload_urls || !init.part_size) throw new Error(init.error ?? "Upload starten mislukte");
-      const parts: { part_number: number; etag: string }[] = [];
-      for (let i = 0; i < init.upload_urls.length; i++) {
-        setStatusTekst(`Video uploaden... deel ${i + 1} van ${init.upload_urls.length}`);
-        const deel = bestand.slice(i * init.part_size, (i + 1) * init.part_size);
-        const r = await fetch(`/api/video-upload?stap=deel&url=${encodeURIComponent(init.upload_urls[i])}`, {
-          method: "POST",
-          body: deel,
-        }).then((r) => r.json() as Promise<{ etag?: string; error?: string }>);
-        if (!r.etag) throw new Error(r.error ?? "Upload van een deel mislukte");
-        parts.push({ part_number: i + 1, etag: r.etag });
-      }
+      setStatusTekst("Video uploaden... 0%");
+      const { upload } = await import("@vercel/blob/client");
+      const blob = await upload(bestand.name, bestand, {
+        access: "public",
+        handleUploadUrl: "/api/video-upload?stap=token",
+        clientPayload: JSON.stringify({ siteId }),
+        onUploadProgress: (p) => setStatusTekst(`Video uploaden... ${Math.round(p.percentage)}%`),
+      });
+      blobUrl = blob.url;
       setStatusTekst("Video wordt gecomprimeerd voor het web (±1 minuut)...");
       const klaar = await fetch("/api/video-upload?stap=klaar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, fileId: init.file_id, parts, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
+        body: JSON.stringify({ siteId, blobUrl, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
       }).then((r) => r.json() as Promise<{ commandId?: string; error?: string }>);
       if (!klaar.commandId) throw new Error(klaar.error ?? "Comprimeren starten mislukte");
-      // Pollen tot Rendi klaar is
       for (let poging = 0; poging < 60; poging++) {
         await new Promise((ok) => setTimeout(ok, 4000));
         const st = await fetch("/api/video-upload?stap=status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ commandId: klaar.commandId }),
+          body: JSON.stringify({ commandId: klaar.commandId, blobUrl }),
         }).then((r) => r.json() as Promise<{ klaar?: boolean; fout?: string; groottemb?: number }>);
         if (st.fout) throw new Error(st.fout);
         if (st.klaar) {
           setStatusTekst(null);
           if (videoVervangRef.current) {
-            // Aangewezen video vervangen: geen vraag meer nodig, meteen door
             videoVervangRef.current = false;
             setVideoKlaar(null);
             await verstuurMetVideo(
@@ -511,7 +502,15 @@ export default function Chat({
       throw new Error("Comprimeren duurde te lang — probeer het nog eens.");
     } catch (e) {
       setStatusTekst(null);
-      setBerichten((b) => [...b, { rol: "assistent", tekst: `De video kon niet verwerkt worden: ${(e as Error).message}` }]);
+      videoVervangRef.current = false;
+      const m = (e as Error).message ?? "";
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: /tegoed|pakket/.test(m) ? m : `De video kon niet verwerkt worden: ${m || "onbekende fout"}`,
+        },
+      ]);
       setChatOpen(true);
     } finally {
       setVideoBezig(false);
