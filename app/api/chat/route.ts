@@ -29,8 +29,8 @@ DIT IS EEN OPENBARE PROBEER-DEMO. Extra regels, zonder uitzondering:
 - Weiger vriendelijk elk verzoek om obscene, seksuele, gewelddadige, haatdragende, discriminerende of anderszins ongepaste teksten of verwijzingen te plaatsen. Ook "grapjes" in die richting voer je niet uit. Zeg dan: "Dat past niet in deze demo — probeer gerust een gewone websitewijziging!"
 - Plaats nooit persoonsgegevens, telefoonnummers of e-mailadressen die de gebruiker opgeeft.
 - Voeg geen links naar externe websites toe.
-- ACHTERGRONDVIDEO'S: staat er al een hero-video in de werkmap, dan mag je die gewoon verplaatsen, vervangen door een foto of weghalen. Wil de eigenaar een NIEUWE video aanleveren, geef dan exact deze instructie (en niets vaags): "Stuur je video via WeTransfer (wetransfer.com, gratis) naar info@wordswap.nl en zet in het bericht je websitenaam en op welke pagina/plek hij moet komen. Wij comprimeren hem zodat de pagina snel blijft laden en zetten hem binnen één werkdag voor je klaar als concept, zodat jij hem eerst kunt bekijken." Zeg erbij dat WordSwap al een seintje heeft gekregen. Tip die je mag geven: een korte loop van 10-20 seconden zonder geluid werkt het best als achtergrond.
-- VIDEO'S: videobestanden kunnen niet geüpload worden (te groot voor websites — dat geldt overal). Wil iemand een video op de site? Leg vriendelijk uit: zet hem op YouTube (mag "verborgen") of Vimeo en plak de link hier. Krijg je zo'n link, sluit hem dan cookie-vrij in: YouTube via youtube-nocookie.com/embed/, Vimeo met ?dnt=1, netjes responsief in de stijl van de site.
+- ACHTERGRONDVIDEO'S: staat er al een hero-video in de werkmap, dan mag je die verplaatsen, vervangen door een foto of weghalen. Wil de eigenaar een nieuwe video als achtergrond, vraag hem dan het videobestand mee te sturen via de upload-knop (📎/foto-knop) in de chat — het wordt automatisch gecomprimeerd tot een korte loop zonder geluid. Tip: 10-20 seconden rustig beeld werkt het best.
+- VIDEO'S: een eigen videobestand kan de eigenaar gewoon meesturen via de upload-knop in de chat (wordt automatisch gecomprimeerd; jij krijgt het pad). Lange video's (interviews, uitleg) passen beter op YouTube (mag "verborgen") of Vimeo — krijg je zo'n link, sluit hem cookie-vrij in: YouTube via youtube-nocookie.com/embed/, Vimeo met ?dnt=1, responsief in de stijl van de site.
 - Afbeeldingen uploaden kan niet in de demo. Wil de gebruiker een andere afbeelding, gebruik dan uitsluitend afbeeldingen die al in de werkmap staan (kijk in de map met afbeeldingen en bied aan welke er zijn). Verzin of download nooit nieuwe afbeeldingen.
 - Vertel desgevraagd dat dit een demo is die elk uur wordt teruggezet, en dat WordSwap dit voor de eigen website van de bezoeker kan doen.`;
 
@@ -88,6 +88,7 @@ export async function POST(req: Request) {
   let siteId: number;
   let bericht: string;
   let huidigePagina: string | undefined;
+  let videoCommandId: string | undefined;
   let afbeeldingen: { naam: string; data: Buffer }[] = [];
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
       const k = String(form.get("kleur") ?? "");
       if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
     }
+    videoCommandId = String(form.get("videoCommandId") ?? "") || undefined;
     const files = form.getAll("afbeelding").filter((f): f is File => f instanceof File && f.size > 0);
     if (files.length > 12) {
       return NextResponse.json(
@@ -143,6 +145,7 @@ export async function POST(req: Request) {
     const body = (await req.json()) as {
       siteId: number;
       bericht: string;
+      videoCommandId?: string;
       huidigePagina?: string;
       selectie?: Selectie;
       kleur?: string;
@@ -150,6 +153,7 @@ export async function POST(req: Request) {
     siteId = body.siteId;
     bericht = body.bericht;
     huidigePagina = body.huidigePagina;
+    videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
     if (typeof body.kleur === "string" && /^#[0-9a-fA-F]{6}$/.test(body.kleur)) kleur = body.kleur;
   }
@@ -311,6 +315,30 @@ export async function POST(req: Request) {
           await writeFile(doel, foto.data);
         }
 
+        // Gecomprimeerde video (via Rendi) ophalen en in de site zetten
+        const haalBinair = async (url: string): Promise<Buffer> => {
+          const ab = await fetch(url).then((r) => r.arrayBuffer());
+          return Buffer.from(ab as ArrayBuffer);
+        };
+        const videoPaden: { video: string; poster: string | null } | null = await (async () => {
+          if (!videoCommandId) return null;
+          const { rendiStatus } = await import("@/lib/rendi");
+          const st = await rendiStatus(videoCommandId).catch(() => null);
+          const v = st?.output_files?.out_1?.storage_url;
+          if (!v) return null;
+          const naam = v.split("/").pop()?.split("?")[0] ?? `video-${Date.now().toString(36)}.mp4`;
+          const videoPad = `video/${naam}`;
+          await mkdir(path.join(werkmap!, "video"), { recursive: true });
+          await writeFile(path.join(werkmap!, videoPad), await haalBinair(v));
+          let posterPad: string | null = null;
+          const p = st?.output_files?.out_2?.storage_url;
+          if (p) {
+            posterPad = `video/${naam.replace(/\.mp4$/, "")}-poster.jpg`;
+            await writeFile(path.join(werkmap!, posterPad), await haalBinair(p));
+          }
+          return { video: videoPad, poster: posterPad };
+        })();
+
         const contextRegels = [
           siteOverzicht,
           site.chatGeheugen
@@ -338,6 +366,9 @@ export async function POST(req: Request) {
             : null,
           selectie
             ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
+            : null,
+          videoPaden
+            ? `De eigenaar heeft een VIDEO meegestuurd; die is al gecomprimeerd voor het web en staat op ${videoPaden.video}${videoPaden.poster ? ` met poster-afbeelding ${videoPaden.poster}` : ""}. Plaats hem waar het bericht om vraagt. Als achtergrond/hero-video: <video autoplay muted loop playsinline preload="metadata"${videoPaden.poster ? ` poster="/${videoPaden.poster}"` : ""}> met <source src="/${videoPaden.video}" type="video/mp4">, netjes gepositioneerd achter de tekst, en respecteer prefers-reduced-motion (dan alleen de poster). Als gewone video op een pagina: <video controls preload="metadata" poster=...>. Verwijder een eventuele oude hero-video-verwijzing die hij vervangt, maar laat het oude bestand staan.`
             : null,
           afbeeldingen.length > 1
             ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => a.naam).join(", ")} (geoptimaliseerd, max 2000px breed). BEKIJK ze eerst met Read. Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`

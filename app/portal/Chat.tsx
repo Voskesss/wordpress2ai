@@ -93,6 +93,9 @@ export default function Chat({
   const [bezig, setBezig] = useState(false);
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
+  // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
+  const [videoKlaar, setVideoKlaar] = useState<{ commandId: string; naam: string } | null>(null);
+  const [videoBezig, setVideoBezig] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [huidigePagina, setHuidigePagina] = useState("/");
   const huidigeRef = useRef("/");
@@ -438,6 +441,71 @@ export default function Chat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [berichten, bezig, chatOpen]);
 
+  /** Video uploaden in delen van 4 MB (via onze server naar Rendi) en laten
+   * comprimeren; daarna staat het opdracht-id klaar om met het bericht mee te
+   * sturen. Werkt ook voor grote telefoonvideo's. */
+  async function videoUploaden(bestand: File) {
+    if (videoBezig) return;
+    setVideoBezig(true);
+    setVideoKlaar(null);
+    try {
+      const init = await fetch("/api/video-upload?stap=init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, bestandsnaam: bestand.name, grootte: bestand.size }),
+      }).then((r) => r.json() as Promise<{ file_id?: string; part_size?: number; upload_urls?: string[]; error?: string }>);
+      if (!init.file_id || !init.upload_urls || !init.part_size) throw new Error(init.error ?? "Upload starten mislukte");
+      const parts: { part_number: number; etag: string }[] = [];
+      for (let i = 0; i < init.upload_urls.length; i++) {
+        setStatusTekst(`Video uploaden... deel ${i + 1} van ${init.upload_urls.length}`);
+        const deel = bestand.slice(i * init.part_size, (i + 1) * init.part_size);
+        const r = await fetch(`/api/video-upload?stap=deel&url=${encodeURIComponent(init.upload_urls[i])}`, {
+          method: "POST",
+          body: deel,
+        }).then((r) => r.json() as Promise<{ etag?: string; error?: string }>);
+        if (!r.etag) throw new Error(r.error ?? "Upload van een deel mislukte");
+        parts.push({ part_number: i + 1, etag: r.etag });
+      }
+      setStatusTekst("Video wordt gecomprimeerd voor het web (±1 minuut)...");
+      const klaar = await fetch("/api/video-upload?stap=klaar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId: init.file_id, parts, basisnaam: bestand.name.replace(/\.[^.]+$/, "") }),
+      }).then((r) => r.json() as Promise<{ commandId?: string; error?: string }>);
+      if (!klaar.commandId) throw new Error(klaar.error ?? "Comprimeren starten mislukte");
+      // Pollen tot Rendi klaar is
+      for (let poging = 0; poging < 60; poging++) {
+        await new Promise((ok) => setTimeout(ok, 4000));
+        const st = await fetch("/api/video-upload?stap=status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ commandId: klaar.commandId }),
+        }).then((r) => r.json() as Promise<{ klaar?: boolean; fout?: string; groottemb?: number }>);
+        if (st.fout) throw new Error(st.fout);
+        if (st.klaar) {
+          setVideoKlaar({ commandId: klaar.commandId, naam: bestand.name });
+          setStatusTekst(null);
+          setBerichten((b) => [
+            ...b,
+            {
+              rol: "assistent",
+              tekst: `Je video "${bestand.name}" is klaar (gecomprimeerd tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
+            },
+          ]);
+          setChatOpen(true);
+          return;
+        }
+      }
+      throw new Error("Comprimeren duurde te lang — probeer het nog eens.");
+    } catch (e) {
+      setStatusTekst(null);
+      setBerichten((b) => [...b, { rol: "assistent", tekst: `De video kon niet verwerkt worden: ${(e as Error).message}` }]);
+      setChatOpen(true);
+    } finally {
+      setVideoBezig(false);
+    }
+  }
+
   async function verstuur(overrideTekst?: unknown, overrideAfbeelding?: File) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
     if (!tekst || bezig) return;
@@ -445,6 +513,8 @@ export default function Chat({
     setChatOpen(true);
     const teVersturen = overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
     setAfbeeldingen([]);
+    const meegestuurdeVideo = videoKlaar;
+    setVideoKlaar(null);
     const gekozen = selectie;
     setSelectie(null);
     const gekozenKleur = kleur;
@@ -465,6 +535,7 @@ export default function Chat({
         form.set("bericht", tekst);
         form.set("huidigePagina", huidigePagina);
         for (const f of teVersturen) form.append("afbeelding", f);
+        if (videoKlaar) form.set("videoCommandId", videoKlaar.commandId);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
         if (gekozenKleur) form.set("kleur", gekozenKleur);
         res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
@@ -479,6 +550,7 @@ export default function Chat({
             huidigePagina,
             selectie: gekozen ?? undefined,
             kleur: gekozenKleur ?? undefined,
+            videoCommandId: meegestuurdeVideo?.commandId,
           }),
         });
       }
@@ -1807,6 +1879,19 @@ export default function Chat({
                 : "border-stone-200"
             }`}
           >
+            {videoKlaar && (
+              <div className="mx-2 mt-1 mb-2 flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-800">
+                🎬 <span className="max-w-[12rem] truncate">{videoKlaar.naam}</span>
+                <span className="text-violet-500">— klaar, typ waar hij moet komen</span>
+                <button
+                  onClick={() => setVideoKlaar(null)}
+                  aria-label="Video verwijderen"
+                  className="ml-auto text-violet-400 hover:text-violet-800 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             {afbeeldingen.length > 0 && (
               <div className="mx-2 mt-1 mb-2 flex flex-wrap items-center gap-2">
                 {afbeeldingen.map((foto, fi) => (
@@ -1854,18 +1939,14 @@ export default function Chat({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/mp4,video/quicktime,video/webm"
                 multiple
                 className="hidden"
                 onChange={(e) => {
                   const alles = Array.from(e.target.files ?? []);
-                  // Videobestanden zijn te groot voor een website — vriendelijk uitleggen
-                  if (alles.some((f) => f.type.startsWith("video/"))) {
-                    setStatusTekst(
-                      "Video's kunnen niet als bestand op de site (te groot). Zet je video op YouTube of Vimeo en plak de link hier in de chat — dan zet ik hem netjes op de pagina."
-                    );
-                    setTimeout(() => setStatusTekst(null), 9000);
-                  }
+                  // Video: apart uploaden en comprimeren (via Rendi), daarna meesturen
+                  const video = alles.find((f) => f.type.startsWith("video/"));
+                  if (video) videoUploaden(video);
                   const bestanden = alles.filter((f) => !f.type.startsWith("video/"));
                   if (bestanden[0] && fotoVervangRef.current) {
                     // Foto-vervangen-flow: eerste bestand direct verwerken (zonder AI)
