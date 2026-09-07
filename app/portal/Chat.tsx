@@ -94,7 +94,14 @@ export default function Chat({
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
-  const [videoKlaar, setVideoKlaar] = useState<{ commandId: string; naam: string } | null>(null);
+  const [videoKlaar, setVideoKlaarState] = useState<{ commandId: string; naam: string } | null>(null);
+  // Ref ernaast: verstuur() wordt soms direct na het zetten aangeroepen en
+  // zou anders de oude (lege) state uit zijn closure lezen
+  const videoKlaarRef = useRef<{ commandId: string; naam: string } | null>(null);
+  function setVideoKlaar(v: { commandId: string; naam: string } | null) {
+    videoKlaarRef.current = v;
+    setVideoKlaarState(v);
+  }
   const [videoBezig, setVideoBezig] = useState(false);
   // Aanwijs-flow: na de upload automatisch "vervang de aangewezen video" sturen
   const videoVervangRef = useRef(false);
@@ -450,6 +457,8 @@ export default function Chat({
     if (videoBezig) return;
     setVideoBezig(true);
     setVideoKlaar(null);
+    setChatOpen(true);
+    setBerichten((b) => [...b, { rol: "klant", tekst: `🎬 Video meegestuurd: ${bestand.name}` }]);
     let blobUrl: string | null = null;
     try {
       setStatusTekst("Video uploaden... 0%");
@@ -519,8 +528,6 @@ export default function Chat({
 
   async function verstuurMetVideo(tekst: string, commandId: string) {
     setVideoKlaar({ commandId, naam: "video" });
-    // volgende tick zodat de state erin zit vóór verstuur() hem leest
-    await new Promise((ok) => setTimeout(ok, 0));
     await verstuur(tekst);
   }
 
@@ -531,7 +538,7 @@ export default function Chat({
     setChatOpen(true);
     const teVersturen = overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
     setAfbeeldingen([]);
-    const meegestuurdeVideo = videoKlaar;
+    const meegestuurdeVideo = videoKlaarRef.current;
     setVideoKlaar(null);
     const gekozen = selectie;
     setSelectie(null);
@@ -1515,7 +1522,7 @@ export default function Chat({
                   </div>
                   );
                 })}
-                {bezig && (
+                {(bezig || videoBezig) && (
                   <div className="flex w-fit items-center gap-3 rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-3">
                     <span className="flex items-center gap-1" aria-hidden>
                       {[0, 1, 2].map((i) => (
