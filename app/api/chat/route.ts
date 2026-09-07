@@ -280,10 +280,16 @@ export async function POST(req: Request) {
       try {
         stuur({
           type: "status",
-          tekst: openConcept
-            ? "Ik werk verder op het openstaande concept..."
-            : "Ik pak eerst je hele website er even bij — de eerste keer duurt dat iets langer...",
+          tekst: openConcept ? "Ik werk verder op het openstaande concept..." : "Momentje...",
         });
+        // Alleen bij een koude start (site nog niet in het geheugen) uitleggen
+        // waarom het even duurt — bij vervolgvragen is dit binnen een seconde klaar
+        const koudeStart = setTimeout(() => {
+          stuur({
+            type: "status",
+            tekst: "Ik pak eerst je hele website er even bij — de eerste keer duurt dat iets langer...",
+          });
+        }, 1500);
         if (openConcept?.branch) {
           werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
         } else if (eigenBranch) {
@@ -294,7 +300,7 @@ export async function POST(req: Request) {
         } else {
           werkmap = await laadWerkmap(site.githubRepo);
         }
-        stuur({ type: "status", tekst: "Je site staat klaar — ik ga aan de slag..." });
+        clearTimeout(koudeStart);
         const snapshot = await maakSnapshot(werkmap);
         const siteOverzicht = await maakSiteOverzicht(werkmap);
         tik("voorbereid");
