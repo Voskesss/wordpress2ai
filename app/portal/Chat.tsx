@@ -230,6 +230,15 @@ export default function Chat({
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
+  // Bericht dat tijdens een lopende AI-beurt is verstuurd: gaat automatisch
+  // de deur uit zodra de beurt klaar is
+  const wachtrijRef = useRef<{
+    tekst: string;
+    fotos: File[];
+    video: { commandId: string; naam: string } | null;
+    sel: Selectie | null;
+    kleur: string | null;
+  } | null>(null);
 
   /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
   function gaNaar(pad: string) {
@@ -599,23 +608,52 @@ export default function Chat({
     await verstuur(tekst);
   }
 
-  async function verstuur(overrideTekst?: unknown, overrideAfbeelding?: File) {
+  async function verstuur(
+    overrideTekst?: unknown,
+    overrideAfbeelding?: File,
+    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null }
+  ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
-    if (!tekst || bezig) return;
+    if (!tekst) return;
+    if (bezigRef.current && !uitWachtrij) {
+      // AI is nog bezig: bericht in de wachtrij zetten en meteen tonen
+      const q = wachtrijRef.current;
+      wachtrijRef.current = {
+        tekst: q ? `${q.tekst}\n${tekst}` : tekst,
+        fotos: [...(q?.fotos ?? []), ...(overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen)].slice(0, 12),
+        video: videoKlaarRef.current ?? q?.video ?? null,
+        sel: selectie ?? q?.sel ?? null,
+        kleur: kleur ?? q?.kleur ?? null,
+      };
+      setInvoer("");
+      setAfbeeldingen([]);
+      setVideoKlaar(null);
+      setSelectie(null);
+      setKleur(null);
+      setChatOpen(true);
+      setBerichten((b) => [
+        ...b,
+        { rol: "klant", tekst },
+        ...(q ? [] : [{ rol: "assistent" as const, tekst: "⏳ Ik maak eerst de vorige wijziging af — daarna pak ik dit meteen op." }]),
+      ]);
+      return;
+    }
     setInvoer("");
     setChatOpen(true);
-    const teVersturen = overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
+    const teVersturen = uitWachtrij ? uitWachtrij.fotos : overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
     setAfbeeldingen([]);
-    const meegestuurdeVideo = videoKlaarRef.current;
+    const meegestuurdeVideo = uitWachtrij ? uitWachtrij.video : videoKlaarRef.current;
     setVideoKlaar(null);
-    const gekozen = selectie;
+    const gekozen = uitWachtrij ? uitWachtrij.sel : selectie;
     setSelectie(null);
-    const gekozenKleur = kleur;
+    const gekozenKleur = uitWachtrij ? uitWachtrij.kleur : kleur;
     setKleur(null);
-    setBerichten((b) => [
-      ...b,
-      { rol: "klant", tekst: teVersturen.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
-    ]);
+    if (!uitWachtrij) {
+      setBerichten((b) => [
+        ...b,
+        { rol: "klant", tekst: teVersturen.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
+      ]);
+    }
     setBezig(true);
     setStatusTekst(teVersturen.length > 0 ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...` : null);
     const stopper = new AbortController();
@@ -727,6 +765,11 @@ export default function Chat({
     } finally {
       stopRef.current = null;
       setBezig(false);
+      const q = wachtrijRef.current;
+      if (q) {
+        wachtrijRef.current = null;
+        void verstuur(q.tekst, undefined, { fotos: q.fotos, video: q.video, sel: q.sel, kleur: q.kleur });
+      }
       setStatusTekst(null);
     }
   }
@@ -2243,11 +2286,10 @@ export default function Chat({
                 }}
                 placeholder={
                   bezig
-                    ? (statusTekst ?? "Momentje...")
+                    ? "De AI is bezig — typ alvast je volgende opdracht (Enter = klaarzetten)"
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
                 className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]`}
-                disabled={bezig}
               />
               <button
                 onClick={bezig ? stop : verstuur}
