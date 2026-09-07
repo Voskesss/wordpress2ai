@@ -14,6 +14,8 @@ import {
   bewaarSite,
   bewaarSmtp,
   bewaarVideoLimiet,
+  siteResetten,
+  sjabloonVastleggen,
   herstelVersie,
   koppelKlant,
   koppelNetlify,
@@ -490,6 +492,27 @@ export default async function KlantDetail({
             </table>
           </details>
         )}
+      </div>
+
+      {/* Sjabloon & reset (voor demo-/webinarsites) */}
+      <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/40 p-6">
+        <h2 className="font-display text-xl font-semibold">↺ Sjabloon &amp; reset</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Voor demo- en webinarsites: leg de huidige live-versie vast als sjabloon,
+          en zet de site na een demo met één klik terug naar precies die staat
+          (concepten en chatgeschiedenis worden gewist, live en werkversie opnieuw
+          neergezet). Gebruik dit niet bij echte klantsites.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <form action={sjabloonVastleggen}>
+            <input type="hidden" name="siteId" value={site.id} />
+            <ActieKnop label="📌 Huidige versie vastleggen als sjabloon" bezigLabel="Vastleggen..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+          </form>
+          <form action={siteResetten}>
+            <input type="hidden" name="siteId" value={site.id} />
+            <ActieKnop label="↺ Reset naar sjabloon" bezigLabel="Resetten... (±1 min)" className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 cursor-pointer" />
+          </form>
+        </div>
       </div>
 
       {/* Video-tegoed */}

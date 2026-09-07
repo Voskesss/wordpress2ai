@@ -642,3 +642,78 @@ export async function bewaarVideoLimiet(formData: FormData) {
   await db.update(sites).set({ videoLimiet: limiet }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+
+/** Sjabloon vastleggen: de huidige live-versie (main) wordt het punt waarnaar
+ * "Reset naar sjabloon" terugzet. Handig voor demo-/webinarsites. */
+export async function sjabloonVastleggen(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { gh, GITHUB_ORG } = await import("@/lib/github");
+  const main = (await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/main`)) as { object: { sha: string } };
+  const bestaat = await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/sjabloon`).then(() => true).catch(() => false);
+  if (bestaat) {
+    await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/sjabloon`, {
+      method: "PATCH",
+      body: JSON.stringify({ sha: main.object.sha, force: true }),
+    });
+  } else {
+    await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs`, {
+      method: "POST",
+      body: JSON.stringify({ ref: "refs/heads/sjabloon", sha: main.object.sha }),
+    });
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Site terugzetten naar het sjabloon: main = sjabloon, open concepten en
+ * chatgeschiedenis weg, live én werkversie opnieuw neergezet. */
+export async function siteResetten(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { gh, GITHUB_ORG, pushBestanden } = await import("@/lib/github");
+  const { laadWerkmap, ruimWerkmapOp, alleBestandenVan } = await import("@/lib/werkmap");
+  const { deployMapNaarCloudflare } = await import("@/lib/cloudflare");
+  const { readFile } = await import("node:fs/promises");
+  const path = (await import("node:path")).default;
+  const { changes, messages } = await import("@/db/schema");
+
+  let werkmap: string | null = null;
+  try {
+    werkmap = await laadWerkmap(site.githubRepo, "sjabloon");
+    const bestanden = await Promise.all(
+      (await alleBestandenVan(werkmap)).map(async (pad) => ({ pad, inhoud: await readFile(path.join(werkmap!, pad)) }))
+    );
+    await pushBestanden(site.githubRepo, bestanden, "Reset naar sjabloon (admin)");
+
+    // Open concept-branches en PR's opruimen
+    const prs = (await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/pulls?state=open`).catch(() => [])) as { number: number; head: { ref: string } }[];
+    for (const pr of prs) {
+      await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/pulls/${pr.number}`, { method: "PATCH", body: JSON.stringify({ state: "closed" }) }).catch(() => {});
+      await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/${pr.head.ref}`, { method: "DELETE" }).catch(() => {});
+    }
+    const refs = (await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/matching-refs/heads/`).catch(() => [])) as { ref: string }[];
+    for (const r of refs) {
+      const naam = r.ref.replace("refs/heads/", "");
+      if (naam.startsWith("wijziging-") || naam.startsWith("demo-")) {
+        await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/${naam}`, { method: "DELETE" }).catch(() => {});
+      }
+    }
+
+    await db.delete(changes).where(eq(changes.siteId, site.id));
+    await db.delete(messages).where(eq(messages.siteId, site.id));
+
+    await deployMapNaarCloudflare(werkmap, site.githubRepo);
+    const wv = `wv-${site.netlifySiteId ?? site.githubRepo}`;
+    await deployMapNaarCloudflare(werkmap, wv).catch((e) => console.error("Werkversie-reset mislukt:", e));
+  } finally {
+    if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+}
