@@ -525,7 +525,7 @@ export default function Chat({
           // Wachten tot de chat vrij is, dan pas de vervang-opdracht sturen
           while (bezigRef.current) await new Promise((ok) => setTimeout(ok, 1500));
           await verstuurMetVideo(
-            "Vervang de aangewezen video door de meegestuurde nieuwe video: zelfde plek, zelfde afspeel-instellingen (autoplay, muted, loop, playsinline) en gebruik de nieuwe poster. Laat het oude videobestand staan.",
+            "Vervang de aangewezen video door de meegestuurde nieuwe video, op precies dezelfde plek. Neem de weergave van de OUDE video exact over: had hij afspeelknoppen (controls), dan houdt de nieuwe die ook; was het een achtergrondloop (autoplay muted loop playsinline), dan dat. Verander verder niets aan de instellingen, gebruik wel de nieuwe poster. Laat het oude videobestand staan.",
             commandId
           );
           return;
@@ -2003,6 +2003,22 @@ export default function Chat({
 
           {/* Invoerbalk */}
           <div
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              const alles = Array.from(e.dataTransfer.files ?? []);
+              if (alles.length === 0) return;
+              e.preventDefault();
+              const video = alles.find((f) => f.type.startsWith("video/"));
+              if (video) videoUploaden(video);
+              const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
+              if (plaatjes.length > 0) {
+                setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, 12));
+                setHintWeg(true);
+                setChatOpen(true);
+              }
+            }}
             className={`${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
               toonHint
                 ? "border-violet-500 ring-4 ring-violet-300/50"
