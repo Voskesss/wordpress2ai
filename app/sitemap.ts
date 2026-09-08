@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/website-zonder-onderhoud",
     "/website-zonder-cms",
     "/website-koppelen-aan-ai",
+    "/wordpress-koppelen-aan-ai",
     "/over-wordswap",
     "/wordswap-vs-wordpress",
     "/eigen-ai-koppelen",
