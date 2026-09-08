@@ -212,6 +212,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   WordSwap vs. WordPress
                 </Link>
                 <Link href="/veiligheid">Veiligheid & controle</Link>
+                <Link href="/seo-behoud">SEO bij de overstap</Link>
                 <Link href="/eigen-ai-koppelen">Je eigen AI koppelen</Link>
                 <Link href="/zelf-doen">Zelf aan de slag</Link>
               </nav>
@@ -219,6 +220,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <h3>Een echt mens erachter</h3>
                 <Link href="/over-wordswap">Over WordSwap</Link>
                 <Link href="/contact">Gratis websitecheck</Link>
+                <Link href="/partners">Samenwerken</Link>
                 <Link href="/webinar">Gratis webinar</Link>
                 <Link href="/portal">Mijn website</Link>
               </nav>

@@ -4,15 +4,35 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Hoe het werkt",
   description:
-    "Van WordPress naar een onderhoudsvrije website: e-mail veiligstellen, content overnemen, SEO behouden, live zetten — en daarna alles aanpassen via chat.",
+    "Je bestaande WordPress-site zorgvuldig overzetten met URL’s, structuur en SEO-instellingen. Daarna zelf je website bijhouden met AI-chat.",
 };
 
 const stappen = [
-  { titel: "Eerst kijken we of het past", tekst: "Stuur je websiteadres. Jos bekijkt je pagina’s en functies en geeft je een duidelijke prijs. Bedrijfssites, blogs en formulieren passen goed. Webshops en ledenportalen zetten we niet over; externe boekingswidgets beoordelen we vooraf." },
-  { titel: "We nemen je website zorgvuldig over", tekst: "Je teksten, afbeeldingen en bestaande ontwerp vormen het uitgangspunt. We controleren ook je domein, e-mail en de adressen van je pagina’s. Als e-mailmigratie nodig is, bespreken we de aanvullende kosten vooraf." },
-  { titel: "Je ziet het resultaat vóór je beslist", tekst: "Bekijk de kopie en geef je feedback. Bijzondere functies kunnen anders werken; dat bespreken we met je. Niet tevreden met de kopie? Dan zie je kosteloos af van de overstap." },
-  { titel: "Na jouw akkoord zetten we alles klaar", tekst: "We koppelen je domein, controleren formulieren en richten eventuele doorverwijzingen in. Je paginatitels, beschrijvingen en sitemap gaan mee. Posities in Google zijn afhankelijk van meer factoren en kunnen we niet garanderen." },
-  { titel: "Vanaf nu vraag je het gewoon", tekst: "Je krijgt toegang tot je website-assistent. Beschrijf je wijziging, bekijk het voorbeeld en publiceer wanneer jij tevreden bent. Een vorige versie terugzetten kan ook." },
+  {
+    titel: "Eerst kijken we of het past",
+    tekst:
+      "Stuur je websiteadres. Jos bekijkt je pagina’s en functies en geeft je een duidelijke prijs. Bedrijfssites, blogs en formulieren passen goed. Webshops en ledenportalen zetten we niet over; externe boekingswidgets beoordelen we vooraf.",
+  },
+  {
+    titel: "We nemen je website zorgvuldig over",
+    tekst:
+      "Je teksten, afbeeldingen en bestaande ontwerp vormen het uitgangspunt. We controleren ook je domein, e-mail en de adressen van je pagina’s. Als e-mailmigratie nodig is, bespreken we de aanvullende kosten vooraf.",
+  },
+  {
+    titel: "Je ziet het resultaat vóór je beslist",
+    tekst:
+      "Bekijk de kopie en geef je feedback. Bijzondere functies kunnen anders werken; dat bespreken we met je. Niet tevreden met de kopie? Dan zie je kosteloos af van de overstap.",
+  },
+  {
+    titel: "Na jouw akkoord zetten we alles klaar",
+    tekst:
+      "We koppelen je domein, controleren formulieren en richten eventuele doorverwijzingen in. Je paginatitels, beschrijvingen en sitemap gaan mee. Posities in Google zijn afhankelijk van meer factoren en kunnen we niet garanderen.",
+  },
+  {
+    titel: "Vanaf nu vraag je het gewoon",
+    tekst:
+      "Je krijgt toegang tot je website-assistent. Beschrijf je wijziging, bekijk het voorbeeld en publiceer wanneer jij tevreden bent. Een vorige versie terugzetten kan ook.",
+  },
 ];
 
 const faq = [
@@ -39,10 +59,22 @@ const faq = [
 ];
 
 const previewStappen = [
-  ["Jij vraagt", "“Zet de openingstijden op de contactpagina: ma-vr 9:00-17:00.”"],
-  ["De AI zet het klaar", "Je krijgt binnen een minuut een link naar een concept-versie van je site — je echte site blijft onaangeroerd."],
-  ["Jij beoordeelt", "Goed zo? Eén klik op Publiceer. Niet goed? Typ gewoon wat er anders moet, het concept wordt bijgewerkt."],
-  ["Het staat live", "Na jouw akkoord staat de wijziging binnen twee minuten op je echte website."],
+  [
+    "Jij vraagt",
+    "“Zet de openingstijden op de contactpagina: ma-vr 9:00-17:00.”",
+  ],
+  [
+    "De AI zet het klaar",
+    "Je krijgt binnen een minuut een link naar een concept-versie van je site — je echte site blijft onaangeroerd.",
+  ],
+  [
+    "Jij beoordeelt",
+    "Goed zo? Eén klik op Publiceer. Niet goed? Typ gewoon wat er anders moet, het concept wordt bijgewerkt.",
+  ],
+  [
+    "Het staat live",
+    "Na jouw akkoord staat de wijziging binnen twee minuten op je echte website.",
+  ],
 ];
 
 export default function HoeHetWerkt() {
@@ -51,10 +83,13 @@ export default function HoeHetWerkt() {
       <div className="mx-auto max-w-3xl px-6 pt-20 pb-4 sm:flex sm:items-center sm:gap-8">
         <div className="min-w-0">
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-            Van overstappen naar eenvoudig aanpassen.
+            Eerst je website behouden. Daarna bijhouden met AI.
           </h1>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-            Wij verzorgen de overstap, jij houdt de regie. Je weet vooraf wat het kost en ziet het resultaat voordat je beslist. Daarna beheer je je website via chat.
+            Je bestaande website is het uitgangspunt: ontwerp, pagina-adressen,
+            structuur, titels en meta-informatie. Wij controleren de overname;
+            jij bekijkt het resultaat. Daarna houd je teksten, foto’s en
+            pagina’s zelf actueel met AI.
           </p>
         </div>
       </div>

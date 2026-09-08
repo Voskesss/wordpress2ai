@@ -13,7 +13,7 @@ const extra = [
   ],
   [
     "Wat betekent €5 tot €20 per maand?",
-    "Het maandbedrag hangt af van het afgesproken gebruik. We bespreken dat vooraf, tegelijk met de overstapprijs. Er geldt fair use van 30 wijzigingen per maand. Heb je meer nodig, dan bespreken we wat past.",
+    "Het maandbedrag hangt af van het afgesproken gebruik. We bespreken dat vooraf, tegelijk met de overstapprijs. Er geldt fair use van maximaal 30 nieuwe concepten per maand, met een aanvullende AI-gebruiksgrens. Heb je meer nodig, dan bespreken we wat past.",
   ],
   ["Welke kosten staan los van de koppeling?", aanbod.aanvullingen],
   [
@@ -89,7 +89,7 @@ export default function Prijzen() {
               "Wijzigingen aanvragen in gewone taal",
               "Eerst een voorbeeld, dan zelf publiceren",
               "Versiegeschiedenis om een eerdere versie terug te zetten",
-              "Fair use: 30 wijzigingen per maand",
+              "Fair use: maximaal 30 nieuwe concepten per maand, met een aanvullende AI-gebruiksgrens",
               "Maandelijks opzegbaar; je bestanden blijven van jou",
             ].map((x) => (
               <li key={x}>{x}</li>

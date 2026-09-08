@@ -1,18 +1,18 @@
 /** Shared public product facts; keep visible pages and machine-readable summaries aligned. */
 export const aanbod = {
   omschrijving:
-    "WordSwap zet bestaande WordPress-bedrijfswebsites over naar statische websites. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
+    "WordSwap zet bestaande WordPress-bedrijfswebsites over naar statische websites, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
   prijs:
     "Overstap €150–€650 eenmalig; daarna €5–€20 per maand voor hosting en de AI-koppeling. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
   inbegrepen:
-    "Ingebouwde AI-chat, hosting, SSL, domeinkoppeling en versiegeschiedenis. Fair use: 30 wijzigingen per maand. Maandelijks opzegbaar.",
+    "Ingebouwde AI-chat, hosting, SSL, domeinkoppeling en versiegeschiedenis. Fair use: maximaal 30 nieuwe concepten per maand; AI-gebruik is ook begrensd. Bij intensieve vervolgverzoeken bespreken we een passend gebruikspakket. Maandelijks opzegbaar.",
   aanvullingen:
     "Domeinregistratie of -verlenging en een e-mailabonnement staan los van de koppeling. E-mailmigratie, extra functies en maatwerk bespreken we apart. Formulierbevestigingen vanaf je eigen domein: optioneel €49 eenmalig exclusief btw.",
   geschikt:
     "Voor bedrijfswebsites met pagina’s, foto’s, blogs en contactformulieren. Geen migratie van webshops, ledenportalen of zelfstandige boekings- en cursusplatforms. Externe boekingswidgets beoordelen we per site.",
   ontwerp:
     "Je behoudt je domeinnaam. We nemen inhoud en ontwerp zo nauwkeurig mogelijk over; bijzondere functies en afwijkingen bespreken we vooraf. Je beoordeelt de kopie voordat je akkoord geeft. Zonder akkoord betaal je niet voor de omzetting.",
-  seo: "We controleren bestaande URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Zoekposities en vermeldingen in AI-antwoorden kunnen we niet garanderen.",
+  seo: "Bestaande URL’s en paginastructuur nemen we waar mogelijk exact over, net als paginatitels en meta-informatie. We vergelijken de oude en nieuwe inrichting, controleren de sitemap en richten bij afgesproken URL-wijzigingen passende doorverwijzingen in. Zoekposities en vermeldingen in AI-antwoorden kunnen we niet garanderen.",
   veiligheid:
     "De publieke website heeft geen WordPress-database, PHP of WordPress-plugins. Dat verkleint het aanvalsoppervlak. Het beheerportaal, accounts, hosting en formulieren blijven beveiliging nodig hebben. Geen website is risicovrij.",
   eigenAi:

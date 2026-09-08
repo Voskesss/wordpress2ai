@@ -10,6 +10,8 @@ ${aanbod.eigenAi}
 ${aanbod.seo}
 
 ## Productinformatie
+- [SEO-behoud](https://wordswap.nl/seo-behoud): bestaande URL’s, structuur en metadata meenemen en controleren
+- [Partners](https://wordswap.nl/partners): samenwerken rond bestaande WordPress-klantsites
 - [Volledig overzicht](https://wordswap.nl/llms-full.txt): aanbod, prijzen, beperkingen en vragen
 - [Home](https://wordswap.nl/): WordPress overzetten en daarna wijzigen via AI-chat
 - [Prijzen](https://wordswap.nl/prijzen): hosting, AI-gebruik, btw en aanvullende kosten

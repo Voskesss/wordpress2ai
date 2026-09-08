@@ -5,7 +5,7 @@ import Image from "next/image";
 import { aankoopVragen } from "@/lib/aanbod";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "WordPress overzetten en je website aanpassen via AI-chat",
+  title: "Je bestaande WordPress-site behouden. Verder met AI.",
   description:
     "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + €5–€20 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
@@ -32,24 +32,26 @@ export default function Home() {
       <section className="home-hero shell">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="status-dot" /> JE WORDPRESS-WEBSITE, MAKKELIJKER
-            BEHEREN.
+            <span className="status-dot" /> JE BESTAANDE WEBSITE. EEN
+            MAKKELIJKER VERVOLG.
           </p>
           <h1>
-            Wij zetten je
+            Je website blijft
             <br />
-            WordPress-site over.
+            herkenbaar.
             <br />
-            <em>Jij wijzigt hem via AI-chat.</em>
+            <em>Bijhouden doe je met AI.</em>
           </h1>
           <p className="hero-intro">
-            Je eigen website en domeinnaam, zonder WordPress-beheer. Typ wat je
-            wilt aanpassen. De AI zet het klaar, jij bekijkt het resultaat en
-            geeft akkoord.
+            Wij zetten je bestaande WordPress-website over, met je ontwerp,
+            pagina-adressen, structuur, titels en meta-informatie als
+            uitgangspunt. Daarna wijzig je teksten, foto’s en pagina’s gewoon
+            via de AI-chat.
           </p>
           <p className="hero-definition">
-            Voor bedrijfssites, blogs en formulieren. Wij regelen de overstap,
-            hosting en AI-chat. Jij houdt de controle over wat er live gaat.
+            Eerst nemen we zorgvuldig over wat je hebt opgebouwd. Daarna houd je
+            zelf je website actueel: voorstel bekijken, akkoord geven,
+            publiceren.
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
@@ -96,6 +98,54 @@ export default function Home() {
           <span>✓ Persoonlijk contact met Jos</span>
         </div>
       </div>
+      <section className="section-space shell" aria-labelledby="behoud-titel">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">OVERZETTEN ÉN BLIJVEN BIJHOUDEN</p>
+            <h2 id="behoud-titel">Verder met wat je al hebt opgebouwd.</h2>
+          </div>
+          <p>
+            Je huidige website is het vertrekpunt. De overstap en het dagelijkse
+            beheer zijn twee afzonderlijke stappen.
+          </p>
+        </div>
+        <div className="benefit-grid">
+          <article className="benefit">
+            <span className="number-tag">1</span>
+            <h3>Je bestaande website meenemen</h3>
+            <p>
+              We behouden bestaande URL’s en structuur waar mogelijk exact,
+              nemen titels en meta-informatie over en bespreken afwijkende
+              functies vooraf.
+            </p>
+          </article>
+          <article className="benefit">
+            <span className="number-tag">✓</span>
+            <h3>Controleren vóór de overstap</h3>
+            <p>
+              Oude en nieuwe pagina’s vergelijken, links en formulieren testen,
+              afwijkingen bespreken. Een gewijzigd adres krijgt een passende
+              doorverwijzing. Zoekposities blijven afhankelijk van meer
+              factoren.
+            </p>
+            <Link href="/seo-behoud" className="button-text">
+              Zo controleren we de overstap →
+            </Link>
+          </article>
+          <article className="benefit">
+            <span className="number-tag">2</span>
+            <h3>Zelf actueel houden met AI</h3>
+            <p>
+              Een nieuwe foto, andere openingstijden of een extra dienst? Je
+              vraagt het in gewone taal. Bekijk de wijziging op je eigen website
+              en publiceer als die klopt.
+            </p>
+            <Link href="/demo" className="button-text">
+              Bekijk het aanpassen →
+            </Link>
+          </article>
+        </div>
+      </section>
       <section className="section-space shell">
         <div className="section-heading">
           <div>
@@ -160,8 +210,9 @@ export default function Home() {
           <div>
             <strong>Dit neem je mee</strong>
             <p>
-              Je domeinnaam, teksten, foto’s en pagina’s. Je ontwerp nemen we zo
-              nauwkeurig mogelijk over.
+              Je domeinnaam, pagina-adressen, structuur, teksten, foto’s, titels
+              en meta-informatie. Je ontwerp nemen we zo nauwkeurig mogelijk
+              over.
             </p>
           </div>
           <div>
@@ -276,8 +327,9 @@ export default function Home() {
           </Link>
           <p className="fine-print">
             Grotere of complexe sites: tot circa €650. Alle bedragen excl. btw.
-            Fair use: 30 wijzigingen per maand. Domeinregistratie, e-mail en
-            extra maatwerk staan los van de koppeling.
+            Fair use: maximaal 30 nieuwe concepten per maand, binnen je
+            AI-gebruiksruimte. Domeinregistratie, e-mail en extra maatwerk staan
+            los van de koppeling.
           </p>
         </div>
       </section>
