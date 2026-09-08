@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
+import LeadForm from "./LeadForm";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  title: "Gratis WordPress-websitecheck: geschiktheid en prijs",
   description:
     "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We kijken gratis mee en je krijgt binnen één werkdag antwoord.",
 };
@@ -14,13 +15,15 @@ const inputStijl =
 export default async function Contact() {
   // Ingelogde bezoekers (bv. vanuit de demo): naam en e-mail alvast invullen
   const gebruiker = await currentUser().catch(() => null);
-  const vulNaam = [gebruiker?.firstName, gebruiker?.lastName].filter(Boolean).join(" ");
+  const vulNaam = [gebruiker?.firstName, gebruiker?.lastName]
+    .filter(Boolean)
+    .join(" ");
   const vulEmail = gebruiker?.emailAddresses?.[0]?.emailAddress ?? "";
   return (
     <div className="mx-auto max-w-5xl px-6 py-20 grid gap-14 lg:grid-cols-5">
       <div className="lg:col-span-2">
         <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-          Kan jouw website eenvoudiger?
+          Kan jouw WordPress-site mee?
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed">
           Stuur je websiteadres mee en we kijken gratis en vrijblijvend of je
@@ -29,9 +32,9 @@ export default async function Contact() {
         </p>
         <ul className="mt-8 space-y-3 text-stone-600">
           {[
-            "Gratis check van je huidige site",
-            "Duidelijke prijs vooraf, geen verrassingen",
-            "No cure, no pay: niet tevreden met de kopie, dan betaal je niets",
+            "Geschiktheid: welke pagina’s en functies kunnen mee?",
+            "Aandachtspunten: je domein, mail en SEO-structuur",
+            "Een voorstel met overstapprijs, maandbedrag en eventuele extra’s",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
               <span className="mt-1 text-violet-600 shrink-0">✓</span>
@@ -50,18 +53,14 @@ export default async function Contact() {
               className="h-[4.5rem] w-[4.5rem] rounded-full border-4 border-white object-cover shadow-md"
             />
             <p className="text-sm text-stone-600 leading-snug">
-              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf —
-              geen ticketsysteem, geen supportafdeling.
+              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf — geen
+              ticketsysteem, geen supportafdeling.
             </p>
           </div>
         )}
       </div>
 
-      <form
-        className="lg:col-span-3 reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm space-y-5"
-        action="/api/formulier"
-        method="POST"
-      >
+      <LeadForm>
         <input type="hidden" name="_site" value="wordswap" />
         <input type="hidden" name="_formulier" value="kennismaken" />
         <input type="hidden" name="_bedankt" value="/bedankt" />
@@ -73,19 +72,44 @@ export default async function Contact() {
           tabIndex={-1}
           autoComplete="off"
         />
-        <div><p className="eyebrow">GRATIS & VRIJBLIJVEND</p><h2 className="mt-2 text-2xl font-semibold tracking-tight">Begin met je website.</h2><p className="mt-2 text-sm text-stone-500">Je ontvangt een beoordeling en een prijs binnen één werkdag.</p></div>
+        <div>
+          <p className="eyebrow">GRATIS & VRIJBLIJVEND</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            Begin met je website.
+          </h2>
+          <p className="mt-2 text-sm text-stone-500">
+            Alleen je naam, e-mail en websiteadres zijn nodig. Je hoeft nog geen
+            toegang of wachtwoord te delen.
+          </p>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="naam" className="block text-sm font-semibold">
               Naam
             </label>
-            <input id="naam" name="naam" type="text" autoComplete="name" required defaultValue={vulNaam} className={inputStijl} />
+            <input
+              id="naam"
+              name="naam"
+              type="text"
+              autoComplete="name"
+              required
+              defaultValue={vulNaam}
+              className={inputStijl}
+            />
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-semibold">
               E-mailadres
             </label>
-            <input id="email" name="email" type="email" autoComplete="email" required defaultValue={vulEmail} className={inputStijl} />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              defaultValue={vulEmail}
+              className={inputStijl}
+            />
           </div>
         </div>
         <div>
@@ -95,6 +119,8 @@ export default async function Contact() {
           <input
             id="website"
             name="website"
+            required
+            autoComplete="url"
             type="text"
             inputMode="url"
             placeholder="bijv. www.mijnbedrijf.nl"
@@ -119,8 +145,15 @@ export default async function Contact() {
         >
           Vraag mijn gratis websitecheck aan ↗
         </button>
-        <p className="text-xs leading-relaxed text-stone-500">Met je gegevens beantwoorden we je aanvraag. Lees ons <a href="/privacy" className="underline">privacybeleid</a>. Geschikt voor bedrijfssites, blogs en formulieren. Webshops en ledenportalen zetten we niet over.</p>
-      </form>
+        <p className="text-xs leading-relaxed text-stone-500">
+          Met je gegevens beantwoorden we je aanvraag. Lees ons{" "}
+          <a href="/privacy" className="underline">
+            privacybeleid
+          </a>
+          . Geschikt voor bedrijfssites, blogs en formulieren. Webshops en
+          ledenportalen zetten we niet over.
+        </p>
+      </LeadForm>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { aanbod } from "@/lib/aanbod";
 
 export type LandingData = {
   slug: string;
@@ -31,7 +32,10 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
           {data.titel}
         </h1>
-        <p className="mt-5 text-lg text-stone-600 leading-relaxed">{data.intro}</p>
+        <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+          {data.intro}
+        </p>
+        <p className="mt-4 text-sm text-stone-500">{aanbod.prijs}</p>
         <div className="mt-7 flex flex-wrap gap-4">
           <Link
             href="/contact"
@@ -47,14 +51,17 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           </Link>
         </div>
         <p className="mt-4 text-sm font-semibold text-emerald-700">
-          ✓ No cure, no pay: niet tevreden met de kopie van je site, dan betaal je niets.
+          ✓ No cure, no pay: niet tevreden met de kopie van je site, dan betaal
+          je niets.
         </p>
       </div>
 
       <div className="mx-auto max-w-3xl px-6 pb-6 space-y-8">
         {data.blokken.map((b) => (
           <section key={b.kop}>
-            <h2 className="font-display text-2xl font-semibold tracking-tight">{b.kop}</h2>
+            <h2 className="font-display text-2xl font-semibold tracking-tight">
+              {b.kop}
+            </h2>
             <p className="mt-2.5 text-stone-600 leading-relaxed">{b.tekst}</p>
           </section>
         ))}
@@ -69,7 +76,9 @@ export default function SeoLanding({ data }: { data: LandingData }) {
             {data.faq.map((f) => (
               <div key={f.vraag}>
                 <h3 className="font-semibold text-lg">{f.vraag}</h3>
-                <p className="mt-1.5 text-stone-600 leading-relaxed">{f.antwoord}</p>
+                <p className="mt-1.5 text-stone-600 leading-relaxed">
+                  {f.antwoord}
+                </p>
               </div>
             ))}
           </div>
@@ -81,8 +90,8 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           Benieuwd wat het voor jouw site betekent?
         </h2>
         <p className="mt-3 text-stone-600">
-          Stuur je websiteadres en je krijgt binnen één werkdag een eerlijk antwoord
-          en een vaste prijs — vrijblijvend.
+          Stuur je websiteadres en je krijgt binnen één werkdag een eerlijk
+          antwoord en een vaste prijs — vrijblijvend.
         </p>
         <div className="mt-6 flex justify-center flex-wrap gap-4">
           <Link

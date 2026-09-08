@@ -108,7 +108,7 @@ export default function ProductPreview() {
       </div>
       <p className="demo-caption">
         Illustratie van de werkwijze.{" "}
-        <a href="/demo">Zelf de echte demo proberen →</a>
+        <a href="/demo#echte-demo">Zelf de echte demo proberen →</a>
       </p>
     </div>
   );

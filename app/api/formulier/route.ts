@@ -23,16 +23,23 @@ export async function POST(req: Request) {
       if (typeof v === "object" && v && "arrayBuffer" in v) {
         const bestand = v as File;
         if (!bestand.size) continue; // leeg uploadveld
-        const naam = (bestand.name || "bijlage").replace(/[^\w. -]+/g, "_").slice(0, 120);
+        const naam = (bestand.name || "bijlage")
+          .replace(/[^\w. -]+/g, "_")
+          .slice(0, 120);
         if (
           bijlagen.length < BIJLAGE_MAX_AANTAL &&
           bestand.size <= BIJLAGE_MAX_BYTES &&
           BIJLAGE_EXTENSIES.test(naam)
         ) {
-          bijlagen.push({ bestandsnaam: naam, inhoud: Buffer.from(await bestand.arrayBuffer()) });
-          velden[k] = `${naam} (${Math.round(bestand.size / 1024)} kB, meegestuurd als bijlage)`;
+          bijlagen.push({
+            bestandsnaam: naam,
+            inhoud: Buffer.from(await bestand.arrayBuffer()),
+          });
+          velden[k] =
+            `${naam} (${Math.round(bestand.size / 1024)} kB, meegestuurd als bijlage)`;
         } else {
-          velden[k] = `${naam} — geweigerd (te groot of geen toegestaan bestandstype)`;
+          velden[k] =
+            `${naam} — geweigerd (te groot of geen toegestaan bestandstype)`;
         }
       } else {
         velden[k] = String(v).slice(0, 2000);
@@ -44,6 +51,23 @@ export async function POST(req: Request) {
 
   const siteRepo = (velden._site ?? "").slice(0, 100);
   const honeypot = velden._extra ?? "";
+  // The first-party websitecheck requests JSON so it can show errors without losing input.
+  const websitecheckJson =
+    siteRepo === "wordswap" &&
+    velden._formulier === "kennismaken" &&
+    (req.headers.get("accept") ?? "").includes("application/json");
+  if (
+    websitecheckJson &&
+    (!velden.naam?.trim() ||
+      !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(velden.email ?? "") ||
+      !velden.website?.trim())
+  ) {
+    return NextResponse.json(
+      { error: "Vul je naam, e-mailadres en website in." },
+      { status: 400 },
+    );
+  }
+
   const formulier =
     (velden._formulier ?? "contact")
       .toLowerCase()
@@ -76,19 +100,33 @@ export async function POST(req: Request) {
       .where(
         and(
           eq(formulierInzendingen.siteRepo, siteRepo),
-          gte(formulierInzendingen.aangemaakt, uurGeleden)
-        )
+          gte(formulierInzendingen.aangemaakt, uurGeleden),
+        ),
       );
     binnenLimiet = Number(telling?.n ?? 0) < 30;
   }
 
   // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan of mailen
-  const echt = siteRepo && !honeypot && binnenLimiet && Object.keys(velden).length > 0;
+  const echt =
+    siteRepo && !honeypot && binnenLimiet && Object.keys(velden).length > 0;
+  if (websitecheckJson && !binnenLimiet)
+    return NextResponse.json(
+      { error: "Probeer het later opnieuw." },
+      { status: 429 },
+    );
   if (echt) {
+    let opgeslagen = true;
     await db
       .insert(formulierInzendingen)
       .values({ siteRepo, formulier, velden })
-      .catch(() => {});
+      .catch(() => {
+        opgeslagen = false;
+      });
+    if (websitecheckJson && !opgeslagen)
+      return NextResponse.json(
+        { error: "Opslaan is niet gelukt." },
+        { status: 503 },
+      );
 
     const siteNaam = site?.naam ?? "de website";
     const veldenHtml = Object.entries(velden)
@@ -97,19 +135,28 @@ export async function POST(req: Request) {
 
     // Bevestiging naar de invuller (als er een e-mailveld is ingevuld)
     const invullerEmail = Object.entries(velden).find(
-      ([k, v]) => /mail/i.test(k) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)
+      ([k, v]) => /mail/i.test(k) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v),
     )?.[1];
     // Webinar-inschrijving? Zoek de sessie op voor datum/link + agenda-bestand.
     let webinarInfo = "";
     if (formulier === "webinar" && velden.webinar) {
       const { webinars } = await import("@/db/schema");
-      const [w] = await db.select().from(webinars).where(eq(webinars.titel, velden.webinar));
+      const [w] = await db
+        .select()
+        .from(webinars)
+        .where(eq(webinars.titel, velden.webinar));
       if (w) {
         const wanneer = w.wanneer.toLocaleString("nl-NL", {
-          weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
         });
         webinarInfo = `<p><strong>Wanneer:</strong> ${ontsnap(wanneer)}</p>${
-          w.meetLink ? `<p><strong>Deelnamelink:</strong> <a href="${ontsnap(w.meetLink)}">${ontsnap(w.meetLink)}</a></p>` : "<p>De deelnamelink sturen we je kort van tevoren toe.</p>"
+          w.meetLink
+            ? `<p><strong>Deelnamelink:</strong> <a href="${ontsnap(w.meetLink)}">${ontsnap(w.meetLink)}</a></p>`
+            : "<p>De deelnamelink sturen we je kort van tevoren toe.</p>"
         }`;
       }
     }
@@ -148,6 +195,8 @@ export async function POST(req: Request) {
     }
   }
 
+  if (websitecheckJson) return NextResponse.json({ ok: true });
+
   // Eigen bedankt-pagina van de site? Daarheen doorsturen.
   if (bedanktPad && site?.domein) {
     return NextResponse.redirect(`https://${site.domein}${bedanktPad}`, 303);
@@ -155,6 +204,6 @@ export async function POST(req: Request) {
 
   return new Response(
     `<!DOCTYPE html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bedankt voor uw bericht</title><style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#fafaf9;color:#292524}main{text-align:center;padding:2rem}h1{font-size:1.6rem}a{color:#6d28d9}</style></head><body><main><h1>Bedankt voor uw bericht!</h1><p>We hebben uw bericht goed ontvangen en nemen zo snel mogelijk contact met u op.</p><p><a href="javascript:history.back()">← Terug naar de website</a></p></main></body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } }
+    { headers: { "Content-Type": "text/html; charset=utf-8" } },
   );
 }

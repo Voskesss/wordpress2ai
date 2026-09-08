@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { richtprijs, type ScanResultaat } from "@/lib/prospectscan";
+import { richtprijs, type ScanResultaat } from "@/lib/prospectscan-shared";
 
 /** Website scannen vanuit de admin: WordPress + verwaarlozing checken en
  * het resultaat met één klik in het prospect-formulier zetten. */

@@ -1,230 +1,166 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
+import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
-  title: "Prijzen",
-  description:
-    "Eenmalig €150 tot €650 voor de overstap van WordPress (afhankelijk van de grootte van je site), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op je gebruik. Geen lock-in: opzeggen of overstappen kan altijd.",
+  title: "Wat kost WordSwap? Overstap, AI-chat en hosting",
+  description: aanbod.prijs,
+  alternates: { canonical: "/prijzen" },
 };
-
-const overstap = [
-  "Complete migratie van je WordPress-site: omzetten, SEO-structuur controleren en domein koppelen",
-  "Je bestaande ontwerp en inhoud zo nauwkeurig mogelijk overgenomen. Bijzondere functies bespreken we vooraf. Je bekijkt de volledige kopie voordat je beslist.",
-  "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €4 p/m per mailbox, sluit je af bij een Nederlandse provider — daarna is die provider ook je aanspreekpunt voor mailvragen)",
-  "Optioneel: formulier-bevestigingen verstuurd vanaf je éigen domein (bijv. info@jouwbedrijf.nl) — eenmalig €49",
-  "Zorg voor je vindbaarheid: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
-  "Contactformulier standaard inbegrepen",
-  "No cure, no pay: eerst zie je de complete kopie van je site — niet tevreden, dan zie je er kosteloos vanaf en betaal je niets",
+const extra = [
+  [
+    "Heb ik nog een AI-abonnement nodig?",
+    "Nee. Voor de ingebouwde WordSwap-chat heb je geen eigen ChatGPT- of Claude-abonnement nodig. Je eigen assistent kan wel teksten voorbereiden. Een rechtstreekse koppeling vanuit die assistent is nog gepland.",
+  ],
+  [
+    "Wat betekent €5 tot €20 per maand?",
+    "Het maandbedrag hangt af van het afgesproken gebruik. We bespreken dat vooraf, tegelijk met de overstapprijs. Er geldt fair use van 30 wijzigingen per maand. Heb je meer nodig, dan bespreken we wat past.",
+  ],
+  ["Welke kosten staan los van de koppeling?", aanbod.aanvullingen],
+  [
+    "Welke hulp krijg ik?",
+    "Jos is je aanspreekpunt voor de overstap en vragen over WordSwap. Het maandbedrag is voor hosting en de AI-koppeling. Een nieuw ontwerp of extra functies vallen onder een aparte afspraak. Ondersteuning voor je e-mail loopt via je e-mailprovider.",
+  ],
+  [
+    "Wanneer betaal ik voor de overstap?",
+    "Je ziet eerst de kopie van je website. Pas na jouw akkoord is het afgesproken bedrag voor de omzetting verschuldigd. Zonder akkoord betaal je niet voor de omzetting. Extra diensten spreken we apart af.",
+  ],
+  [
+    "Zijn de bedragen inclusief btw?",
+    "Alle genoemde bedragen zijn exclusief btw, zoals vastgelegd in onze voorwaarden. De exacte prijs en btw staan in je offerte.",
+  ],
 ];
-
-const koppeling = [
-  "Onbeperkt vragen stellen in de chat; wijzigingen met preview vóór publicatie (fair use: 30 wijzigingen per maand)",
-  "Drie smaken: via ons account (alles-inbegrepen), met je eigen AI-account, of volledig zelfstandig met je eigen AI-tools op je eigen site (expert-optie) — wisselen kan altijd",
-  "Hosting, SSL-certificaat en domeinkoppeling geregeld (bij uitzonderlijk veel verkeer maken we aparte afspraken)",
-  "Complete versiegeschiedenis: elke eerdere versie van je site kan teruggezet worden",
-  "Maandelijks opzegbaar — geen lock-in, je neemt alles mee",
-];
-
-const vergelijk = [
-  ["Hosting", "€10 – €25 p/m", "Inbegrepen"],
-  ["Premium plugins & thema's", "€5 – €30 p/m", "Niet nodig"],
-  ["Onderhoud / updates", "Je eigen tijd, of €30+ p/m", "Niet nodig"],
-  ["Kleine aanpassing laten doen", "€50 – €90 per keer", "Inbegrepen (via chat)"],
-  ["WordPress-plugins bijwerken", "Zelf doen of uitbesteden", "Geen WordPress-plugins"],
-];
-
 export default function Prijzen() {
   return (
-    <>
-      <div className="mx-auto max-w-4xl px-6 pt-20">
-        <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-          Duidelijke prijzen. Meer rust.
+    <div className="marketing-home">
+      <section className="shell section-space pricing-heading">
+        <p className="eyebrow">DE PRIJS, ZONDER ZOEKWERK</p>
+        <h1>
+          Eenmalig overstappen.
+          <br />
+          <em>Daarna eenvoudig beheren.</em>
         </h1>
-        <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Eén keer betalen voor de overstap, daarna een laag maandbedrag dat
-          past bij hoe je de AI gebruikt. Geen verrassingen, geen kleine
-          lettertjes, geen lock-in.
+        <p className="section-intro">
+          Je totaal bestaat uit twee delen: de omzetting van je huidige website
+          en een maandbedrag voor hosting en de AI-chat. Alle bedragen zijn
+          exclusief btw.
         </p>
-      </div>
-
-      <div className="mx-auto max-w-4xl px-6 py-12 grid gap-6 sm:grid-cols-2">
-        <div className="reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
-          <h2 className="font-display text-xl font-semibold">De overstap</h2>
-          <p className="mt-3 font-display text-4xl font-semibold">
-            €150 – €650{" "}
-            <span className="text-base font-normal text-stone-500">eenmalig</span>
+      </section>
+      <section
+        className="shell pricing-pair"
+        aria-label="De twee delen van je prijs"
+      >
+        <article className="price-card">
+          <p className="eyebrow">1. JE WORDPRESS-WEBSITE OVERZETTEN</p>
+          <h2>
+            €150–€650 <small>eenmalig</small>
+          </h2>
+          <p>
+            Van een kleine bedrijfssite tot een grotere website met meer
+            pagina’s of bijzondere onderdelen. Je ontvangt vooraf een prijs voor
+            jouw site.
           </p>
-          <p className="mt-2 text-sm text-stone-500">
-            €150 voor een kleine website, tot ± €650 voor een grote of complexe
-            site (veel pagina&apos;s, blog, bijzondere functies). Je weet het
-            bedrag vooraf — geen verrassingen achteraf. Let op: webshops en ledenportalen
-            met inlog kunnen we niet overzetten — gewone bedrijfssites, ook
-            met blog, juist wél; een bestaand boekings- of afsprakensysteem
-            nemen we gewoon mee en maatwerk is bespreekbaar.
-          </p>
-          <ul className="mt-6 space-y-3 text-stone-600">
-            {overstap.map((punt) => (
-              <li key={punt} className="flex gap-3">
-                <span className="mt-1 text-violet-600 shrink-0">✓</span>
-                {punt}
-              </li>
+          <ul className="check-list">
+            {[
+              "Inhoud en ontwerp zo nauwkeurig mogelijk overgenomen",
+              "Domeinkoppeling en contactformulier",
+              "URL’s, paginatitels, beschrijvingen en sitemap gecontroleerd",
+              "Een complete kopie bekijken vóór je akkoord geeft",
+            ].map((x) => (
+              <li key={x}>{x}</li>
             ))}
           </ul>
-          <Link
-            href="/contact"
-            className="lift mt-7 inline-block rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-violet-600"
-          >
-            Vraag een vrijblijvende offerte aan →
-          </Link>
-        </div>
-        <div className="reveal rounded-xl border-2 border-violet-600 bg-violet-50/40 p-8">
-          <h2 className="font-display text-xl font-semibold">De AI-koppeling</h2>
-          <p className="mt-3 font-display text-4xl font-semibold">
-            vanaf €5{" "}
-            <span className="text-base font-normal text-stone-500">per maand</span>
+          <p className="price-reassurance">
+            Niet tevreden met de kopie? Zonder akkoord betaal je niet voor de
+            omzetting.
           </p>
-          <p className="mt-2 text-sm text-stone-500">
-            Afgestemd op je gebruik: vanaf €5 per maand als je zelden iets
-            verandert, tot €20 als de AI veel voor je werkt. We kijken er
-            samen naar — nooit betalen voor wat je niet gebruikt.
+        </article>
+        <article className="price-card recurring-card">
+          <p className="eyebrow">2. HOSTING EN INGEBOUWDE AI-CHAT</p>
+          <h2>
+            €5–€20 <small>per maand</small>
+          </h2>
+          <p>
+            Afhankelijk van het gebruik dat we vooraf met je afspreken. Je hoeft
+            voor deze chat geen eigen AI-abonnement af te sluiten.
           </p>
-          <ul className="mt-6 space-y-3 text-stone-600">
-            {koppeling.map((punt) => (
-              <li key={punt} className="flex gap-3">
-                <span className="mt-1 text-violet-600 shrink-0">✓</span>
-                {punt}
-              </li>
+          <ul className="check-list">
+            {[
+              "Hosting, SSL en domeinkoppeling inbegrepen",
+              "Wijzigingen aanvragen in gewone taal",
+              "Eerst een voorbeeld, dan zelf publiceren",
+              "Versiegeschiedenis om een eerdere versie terug te zetten",
+              "Fair use: 30 wijzigingen per maand",
+              "Maandelijks opzegbaar; je bestanden blijven van jou",
+            ].map((x) => (
+              <li key={x}>{x}</li>
             ))}
           </ul>
-          <Link
-            href="/demo"
-            className="lift mt-7 inline-block rounded-full border-2 border-violet-600 px-6 py-3 font-semibold text-violet-700 hover:bg-violet-100"
-          >
-            Probeer de demo gratis →
-          </Link>
-        </div>
+        </article>
+      </section>
+      <div className="shell pricing-next">
+        <Link href="/contact" className="button-primary">
+          Wat kost het voor mijn website? ↗
+        </Link>
+        <p>Gratis websitecheck · Vooraf een schriftelijke prijs · Excl. btw</p>
       </div>
-
-      {/* Liever een nieuwe website */}
-      <div className="mx-auto max-w-4xl px-6 pb-12">
-        <div className="reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-8">
-          <div>
-            <h2 className="font-display text-xl font-semibold">
-              Toch liever een heel nieuwe website? Dat kan ook.
-            </h2>
-            <p className="mt-2 text-stone-600 leading-relaxed">
-              Geen zin om je oude site mee te nemen? We ontwerpen een frisse
-              nieuwe website — mét dezelfde AI-koppeling erachter. Vanaf{" "}
-              <strong>€250</strong> voor een AI-ontwerp (tot 8 pagina&apos;s;
-              grotere sites €400 – €650), of <strong>€1.750</strong> met een
-              designer erbij.
-            </p>
-          </div>
-          <Link
-            href="/nieuwe-website"
-            className="lift mt-5 sm:mt-0 inline-block shrink-0 rounded-full border-2 border-violet-300 bg-white px-6 py-3 font-semibold text-violet-700 hover:bg-violet-50"
-          >
-            Bekijk nieuwe website →
-          </Link>
-        </div>
-      </div>
-
-      {/* Vergelijking */}
-      <div className="bg-[#eff3e8] border-y border-stone-200">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="font-display text-3xl font-semibold tracking-tight">
-            Wat kost je WordPress-site je nu eigenlijk?
+      <section className="shell section-space faq-layout">
+        <div>
+          <p className="eyebrow">DIT WIL JE OOK WETEN</p>
+          <h2>
+            Wat zit erin?
+            <br />
+            Wat staat er los van?
           </h2>
-          <p className="mt-4 text-stone-600 leading-relaxed max-w-2xl">
-            De meeste ondernemers zijn zich er niet van bewust wat er elke maand
-            wegvloeit naar hun website. Zet het eens naast elkaar:
-          </p>
-          <div className="reveal mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
-            <table className="w-full text-left text-sm sm:text-base">
-              <thead>
-                <tr className="border-b border-stone-200 text-stone-500">
-                  <th className="p-4 font-medium"></th>
-                  <th className="p-4 font-medium">Nu met WordPress</th>
-                  <th className="p-4 font-medium text-violet-700">
-                    Met WordSwap
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {vergelijk.map(([wat, oud, nieuw]) => (
-                  <tr key={wat} className="border-b border-stone-100 last:border-0">
-                    <td className="p-4 font-semibold text-stone-800">{wat}</td>
-                    <td className="p-4 text-stone-600">{oud}</td>
-                    <td className="p-4 font-medium text-violet-700">{nieuw}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-4 text-sm text-stone-500">
-            Bedragen zijn indicatief. Bij WordSwap betaal je €5 – €20 p/m voor
-            de AI-koppeling (afgestemd op je gebruik); alleen je
-            e-mailabonnement (vanaf ± €4 p/m per mailbox; aliassen zoals
-            info@ en naam@ op één mailbox zijn meestal gratis) loopt apart
-            bij je e-mailprovider. Wij helpen eenmalig bij de
-            e-mailoverstap, maar zijn geen e-mailprovider: voor
-            mailproblemen daarna is je e-mailprovider het aanspreekpunt.
+          <p>
+            Een laag bedrag is pas duidelijk als je ook weet wat je ervoor
+            krijgt.
           </p>
         </div>
-      </div>
-
-      {/* Maatwerk */}
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        <div className="flex items-center justify-between gap-6">
-          <h2 className="font-display text-3xl font-semibold tracking-tight">
-            Maatwerk
-          </h2>
-        </div>
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {[
-            [
-              "Grotere sites",
-              "Kleine site ± €150, grote of complexe site tot ± €650. Nóg groter of heel bijzonder? Dan krijg je vooraf een eerlijke offerte.",
-            ],
-            [
-              "Extra functies",
-              "Een prijscalculator, offerte-aanvrager, boekingssysteem of specifiek formulier op je site? Altijd bespreekbaar. Doordat de AI het bouwwerk doet, kost dit een fractie van wat een webbouwer er vroeger voor rekende.",
-            ],
-            [
-              "Nieuw design",
-              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €250, ontwerp door een designer vanaf €1750.",
-              "/nieuwe-website",
-              "Bekijk nieuwe website →",
-            ],
-          ].map(([kop, tekst, href, linkTekst]) => (
-            <div
-              key={kop}
-              className="reveal rounded-xl border border-stone-200 bg-white p-7 shadow-sm flex flex-col"
-            >
-              <h3 className="font-display text-lg font-semibold">{kop}</h3>
-              <p className="mt-2 text-stone-600 leading-relaxed text-sm">
-                {tekst}
-              </p>
-              {href && (
-                <Link
-                  href={href}
-                  className="mt-auto pt-4 inline-block text-sm font-semibold text-violet-700 hover:text-violet-900"
-                >
-                  {linkTekst}
-                </Link>
-              )}
-            </div>
+        <div className="faq-list">
+          {extra.map(([q, a]) => (
+            <details key={q}>
+              <summary>
+                {q}
+                <span>+</span>
+              </summary>
+              <p>{a}</p>
+            </details>
           ))}
         </div>
-        <div className="mt-12">
-          <Link
-            href="/contact"
-            className="lift inline-block rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
-          >
-            Vraag een vrijblijvende offerte aan
+      </section>
+      <section className="shell cost-example">
+        <div>
+          <p className="eyebrow">EEN REKENVOORBEELD</p>
+          <h2>Wat kost het eerste jaar?</h2>
+          <p>
+            Stel: jouw overstap kost €150 en je spreekt €10 per maand af. Dan
+            betaal je €150 + 12 × €10 ={" "}
+            <strong>€270 excl. btw in het eerste jaar</strong>. Daarna €120 per
+            jaar bij hetzelfde maandbedrag.
+          </p>
+          <p className="fine-print">
+            Dit is een voorbeeld, geen apart pakket of klantresultaat.
+            Domeinregistratie, e-mail en eventueel maatwerk komen er apart bij.
+            Vergelijk met je eigen facturen; een besparing verschilt per
+            situatie.
+          </p>
+        </div>
+        <div>
+          <h3>Liever een nieuwe website?</h3>
+          <p>
+            AI-ontwerp vanaf €250 (tot 8 pagina’s), €400 tot 20 pagina’s en €650
+            voor grotere sites. Een ontwerp door een designer vanaf €1.750.
+            Daarna dezelfde maandelijkse koppeling.
+          </p>
+          <Link className="button-text" href="/nieuwe-website">
+            Bekijk de mogelijkheden →
           </Link>
         </div>
+      </section>
+      <div className="shell new-site-note">
+        <Link href="/voorwaarden">Lees de voorwaarden</Link> ·{" "}
+        <Link href="/contact">Stel je vraag aan Jos</Link>
       </div>
-    </>
+    </div>
   );
 }

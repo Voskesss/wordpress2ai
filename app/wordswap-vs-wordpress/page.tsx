@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 
 const rijen: [string, string, string][] = [
   ["Aanpassen van teksten en foto's", "Inloggen, beheerscherm, juiste blok vinden, opslaan", "Typen wat er anders moet in een chat; voorbeeld bekijken; publiceren"],
-  ["Onderhoud", "Updates van WordPress, thema en plugins; back-ups; onderhoudscontract", "Geen — er draait niets dat bijgewerkt moet worden"],
-  ["Snelheid", "Afhankelijk van hosting en plugins; vaak 2–5 seconden laadtijd", "Statische bestanden op het Cloudflare-netwerk; laadt vrijwel direct"],
-  ["Veiligheid", "Inlogscherm, database en plugins zijn doelwit; gehackte sites komen veel voor", "Geen inlog, geen database, geen plugins: niets te hacken"],
-  ["Kosten per maand", "Hosting €10–25, premium plugins €5–30, onderhoud €30+, webbouwer voor wijzigingen", "€5–€20 voor de AI-koppeling, verder niets"],
+  ["Onderhoud", "Updates van WordPress, thema en plugins; back-ups; onderhoudscontract", "Geen WordPress-onderhoud op de publieke site; hosting en beheer blijven nodig"],
+  ["Snelheid", "Afhankelijk van hosting en plugins; prestaties verschillen per site", "Statische bestanden op het Cloudflare-netwerk; laadtijd hangt ook af van media en externe scripts"],
+  ["Veiligheid", "Inlogscherm, database en plugins zijn doelwit; gehackte sites komen veel voor", "Geen WordPress-inlog, database of plugins op de publieke site; beheer blijft beveiliging nodig hebben"],
+  ["Kosten per maand", "Hosting €10–25, premium plugins €5–30, onderhoud €30+, webbouwer voor wijzigingen", "€5–€20 excl. btw voor hosting en AI-chat; domein, e-mail en maatwerk apart"],
   ["Eenmalige kosten", "Bouw door een bureau €1.500–€5.000+", "Overstap €150–€650 (no cure no pay); nieuwe site vanaf €250"],
-  ["Vindbaarheid (SEO)", "Goed, mits plugins en snelheid op orde", "Zelfde titels, omschrijvingen en adressen; sneller, dus vaak beter"],
+  ["Vindbaarheid (SEO)", "Goed, mits plugins en snelheid op orde", "SEO-structuur gecontroleerd; geen garantie op zoekposities"],
   ["Webshop / ledenportaal", "Ja (WooCommerce, ledenplugins)", "Nee — daarvoor is een draaiend systeem nodig"],
   ["Eigendom en vertrek", "Site is van jou, maar verhuizen vraagt technische hulp", "Gewone web-bestanden die je zo meeneemt; maandelijks opzegbaar"],
   ["Wie doet het werk", "Jij, of je webbouwer per wijziging", "Jij typt, de AI voert uit; jij keurt goed"],
@@ -23,8 +23,8 @@ const rijen: [string, string, string][] = [
 
 const faq: [string, string][] = [
   ["Wanneer is WordPress wél de betere keuze?", "Bij een webshop, een ledenomgeving met inlog, een boekingssysteem met live agenda of een cursusplatform. Die hebben een draaiend systeem nodig. Ook als je een team hebt dat dagelijks tientallen redactionele artikelen plaatst en gehecht is aan de WordPress-editor."],
-  ["Verlies ik mijn Google-posities bij de overstap?", "Nee. WordSwap neemt paginatitels, meta-omschrijvingen en de sitemap letterlijk over, en elk oud adres verwijst met een 301 door naar de nieuwe plek. In de praktijk stijgen posities eerder, omdat de site veel sneller wordt."],
-  ["Kan ik terug naar WordPress?", "Ja. Je site bestaat uit gewone web-bestanden en al je teksten en foto's blijven van jou. Er is geen lock-in en het abonnement is maandelijks opzegbaar."],
+  ["Verlies ik mijn Google-posities bij de overstap?", "We controleren URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Google-posities kunnen veranderen; we garanderen geen behoud of stijging."],
+  ["Kan ik terug naar WordPress?", "Je bestanden en inhoud blijven van jou en het abonnement is maandelijks opzegbaar. Terug naar WordPress kan, maar vraagt een nieuwe inrichting; het is geen automatische terugzetknop."],
   ["Is een website zonder WordPress niet beperkt?", "Voor een bedrijfssite niet: pagina's, blog, foto's, formulieren en vindbaarheid werken allemaal. Het enige dat verdwijnt is het beheerscherm — en de updates."],
 ];
 
@@ -40,8 +40,7 @@ export default function Vergelijking() {
       <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">WordSwap vs. WordPress</h1>
       <p className="mt-5 max-w-2xl text-lg text-stone-600 leading-relaxed">
         Een eerlijke vergelijking — inclusief de gevallen waarin WordPress gewoon
-        de betere keuze is. WordPress is een systeem dat je website bij elk
-        bezoek opbouwt en dat jij onderhoudt; WordSwap maakt van je site platte,
+        de betere keuze is. WordPress is een systeem dat je website beheert en dat onderhoud vraagt; WordSwap maakt van je site platte,
         snelle bestanden en laat een AI het beheer doen op jouw aanwijzing.
       </p>
 

@@ -26,7 +26,7 @@ export default function Pagina() {
           {
             kop: "Hoe WordSwap je website aan AI koppelt",
             tekst:
-              "Wij zetten je site eerst om naar snelle, platte web-bestanden zonder draaiende machine — geen database, geen plug-ins, niets dat gehackt of geüpdatet hoeft te worden. Daaraan koppelen we een AI die je site kent: elke pagina, elke tekst, elke foto. Vanaf dat moment beheer je je website via een chat. De AI voert de wijziging uit in de stijl van je site, jij beoordeelt het voorbeeld en publiceert. Niet goed? Typ wat er anders moet, of ga terug naar een eerdere versie.",
+              "Wij zetten je site eerst om naar snelle, platte web-bestanden zonder draaiende machine — geen database, geen plug-ins, minder WordPress-onderdelen om te beveiligen. Daaraan koppelen we een AI die je site kent: elke pagina, elke tekst, elke foto. Vanaf dat moment beheer je je website via een chat. De AI voert de wijziging uit in de stijl van je site, jij beoordeelt het voorbeeld en publiceert. Niet goed? Typ wat er anders moet, of ga terug naar een eerdere versie.",
           },
           {
             kop: "Wat je er in de praktijk mee doet",
@@ -36,14 +36,14 @@ export default function Pagina() {
           {
             kop: "Veilig gekoppeld",
             tekst:
-              "De AI kan uitsluitend bij de bestanden van jouw site — niet bij je e-mail, je klantgegevens of het internet. Elke wijziging is een concept dat jij goedkeurt, en van elke versie blijft een kopie bewaard. Omdat je site geen draaiend systeem meer is, valt er bovendien niets te hacken: de meest voorkomende reden dat WordPress-sites gekaapt worden bestaat simpelweg niet meer.",
+              "De AI kan uitsluitend bij de bestanden van jouw site voor het uitvoeren van je wijzigingen. Elke wijziging is een concept dat jij goedkeurt, en van elke versie blijft een kopie bewaard. De publieke website heeft geen WordPress-plugins of database. Accounts, formulieren en hosting blijven beveiliging nodig hebben.",
           },
         ],
         faq: [
           {
             vraag: "Kan ik mijn huidige WordPress-site aan AI koppelen zonder over te stappen?",
             antwoord:
-              "Met een plug-in kan dat, maar dan houd je alle nadelen van WordPress (updates, plug-ins, beveiliging, traagheid). Wij zetten je site daarom eerst om naar een versie zonder onderhoud en koppelen de AI daaraan — een 1-op-1 kopie, no cure no pay, vanaf €150.",
+              "Met een plug-in kan dat, maar dan houd je alle nadelen van WordPress (updates, plug-ins, beveiliging, traagheid). Wij zetten je site daarom eerst om naar een versie zonder onderhoud en koppelen de AI daaraan — een zo getrouw mogelijke kopie, no cure no pay, vanaf €150.",
           },
           {
             vraag: "Is dit een chatbot voor mijn bezoekers?",
@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Wat kost een website die aan AI gekoppeld is?",
             antwoord:
-              "Eenmalig €150 tot €650 voor de overstap (afhankelijk van de grootte), daarna €5 tot €20 per maand voor de AI-koppeling — afgestemd op hoe vaak je iets wijzigt. Geen hosting, geen plug-ins, geen onderhoudscontract meer.",
+              "Eenmalig €150 tot €650 voor de overstap (afhankelijk van de grootte), daarna €5 tot €20 per maand voor de AI-koppeling — afgestemd op hoe vaak je iets wijzigt. Hosting is inbegrepen in de koppeling; je publieke site gebruikt geen WordPress-plugins meer.",
           },
         ],
       }}

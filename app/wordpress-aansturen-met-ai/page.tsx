@@ -36,7 +36,7 @@ export default function Pagina() {
           {
             kop: "De overstap vanaf WordPress",
             tekst:
-              "Je huidige WordPress-site zetten we 1-op-1 over (95%-kopie, no cure no pay, vanaf €150) en vanaf dat moment stuur je hem aan via AI. Geen updates, geen hosting-gedoe, geen beheerschermen — alleen nog een chat die doet wat je zegt.",
+              "Je huidige WordPress-site zetten we zorgvuldig over (no cure no pay, vanaf €150 excl. btw) en vanaf dat moment stuur je hem aan via AI. Geen updates, geen hosting-gedoe, geen beheerschermen — alleen nog een chat die doet wat je zegt.",
           },
         ],
         faq: [

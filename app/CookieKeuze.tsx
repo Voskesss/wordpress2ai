@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import MarketingEvents from "./MarketingEvents";
 
 const SLEUTEL = "ws-cookie-keuze"; // "ja" of "nee"
 
@@ -35,6 +36,7 @@ export default function CookieKeuze() {
     <>
       {keuze === "ja" && (
         <>
+          <MarketingEvents />
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-S0169SZ52B"
             strategy="afterInteractive"
@@ -51,7 +53,8 @@ gtag('config', 'G-S0169SZ52B', { anonymize_ip: true });`}
         <div className="fixed bottom-4 left-4 right-4 z-[70] mx-auto max-w-xl rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xl sm:left-auto sm:right-6 sm:mx-0">
           <p className="text-sm text-zinc-700">
             Mogen we anoniem meten hoe de site gebruikt wordt? Dat helpt ons hem
-            te verbeteren. Zeg je nee, dan plaatsen we geen enkele cookie.
+            te verbeteren. Zeg je nee, dan gebruiken we geen analytische
+            cookies.
           </p>
           <div className="mt-3 flex gap-2">
             <button

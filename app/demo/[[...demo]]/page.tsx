@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ProductPreview from "../../ProductPreview";
 import { SignUp } from "@clerk/nextjs";
 import { Show } from "@clerk/nextjs";
 
@@ -33,15 +34,36 @@ const stappen = [
 export default function DemoPagina() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
-      <div className="grid items-start gap-12 lg:grid-cols-2">
+      <section className="demo-intro-grid">
+        <div>
+          <p className="eyebrow">EERST KIJKEN, DAN ZELF PROBEREN</p>
+          <h1 className="font-display text-4xl sm:text-5xl font-semibold">
+            Zo pas je een website aan via chat.
+          </h1>
+          <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+            Kies een voorbeeld, bekijk wat er verandert en keur het goed. Dit
+            interactieve voorbeeld werkt zonder account. Het laat de stappen
+            zien; er draait hier geen echte AI en er wordt geen website
+            gepubliceerd.
+          </p>
+          <a href="#echte-demo" className="button-primary mt-6">
+            Zelf een echte wijziging vragen ↓
+          </a>
+        </div>
+        <ProductPreview />
+      </section>
+      <div
+        id="echte-demo"
+        className="grid items-start gap-12 lg:grid-cols-2 scroll-mt-32"
+      >
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
             Gratis proberen — geen betaalgegevens nodig
           </p>
-          <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
+          <h2 className="font-display mt-3 text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.08]">
             Pas zelf een echte website aan.{" "}
             <span className="text-violet-700">Door het te typen.</span>
-          </h1>
+          </h2>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-xl">
             Wij hebben een demo-website klaargezet: Bakkerij Jansen. Jij krijgt
             er de AI-beheerder bij — dezelfde die onze klanten gebruiken. Vraag
@@ -65,10 +87,13 @@ export default function DemoPagina() {
           </div>
 
           <p className="mt-8 rounded-2xl border border-stone-200 bg-[#f6f1e7] px-5 py-4 text-sm text-stone-600 leading-relaxed">
-            De demo-site wordt elk uur teruggezet, dus je kunt niets kapotmaken.
-            Je kunt maximaal 10 wijzigingen per dag doorgeven. Wil je dit voor
-            je eigen website?{" "}
-            <Link href="/contact" className="font-semibold text-violet-700 underline">
+            De demo-site wordt elk uur teruggezet, zodat je in een oefenomgeving
+            werkt. Je kunt maximaal 10 wijzigingen per dag doorgeven. Wil je dit
+            voor je eigen website?{" "}
+            <Link
+              href="/contact"
+              className="font-semibold text-violet-700 underline"
+            >
               Neem contact op
             </Link>{" "}
             — wij zetten hem over vanaf €150.

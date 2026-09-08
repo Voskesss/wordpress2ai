@@ -36,7 +36,7 @@ export default function Pagina() {
           {
             kop: "Heb je al een WordPress-site?",
             tekst:
-              "Dan hoef je niet opnieuw te beginnen: we kunnen je bestaande site ook 1-op-1 overzetten naar dezelfde techniek, mét behoud van je vindbaarheid in Google. Zie de pagina over WordPress overzetten — of vraag de gratis check aan, dan adviseren we wat in jouw geval slimmer is: overzetten of opnieuw ontwerpen.",
+              "Dan hoef je niet opnieuw te beginnen: we kunnen je bestaande site ook zorgvuldig overzetten naar dezelfde techniek, met controle van je SEO-structuur. Zie de pagina over WordPress overzetten — of vraag de gratis check aan, dan adviseren we wat in jouw geval slimmer is: overzetten of opnieuw ontwerpen.",
           },
         ],
         faq: [

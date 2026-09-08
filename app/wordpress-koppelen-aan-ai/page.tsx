@@ -26,7 +26,7 @@ export default function Pagina() {
           {
             kop: "Route 2: WordPress loslaten, de AI wordt je beheerder",
             tekst:
-              "WordSwap zet je site om naar platte, razendsnelle web-bestanden — een 1-op-1 kopie, inclusief je vindbaarheid in Google. Daaraan koppelen we een AI die je hele site kent. Vanaf dat moment beheer je alles via een chat: \"zet de zomeropeningstijden erop\", \"voeg een pagina toe over dakisolatie\", \"vervang deze foto\". Elke wijziging zie je eerst als voorbeeld en publiceer je zelf; elke eerdere versie blijft terug te zetten. Geen updates, geen plug-ins, niets te hacken.",
+              "WordSwap zet je site om naar platte, razendsnelle web-bestanden — een zorgvuldige kopie, met controle van je SEO-structuur. Daaraan koppelen we een AI die je hele site kent. Vanaf dat moment beheer je alles via een chat: \"zet de zomeropeningstijden erop\", \"voeg een pagina toe over dakisolatie\", \"vervang deze foto\". Elke wijziging zie je eerst als voorbeeld en publiceer je zelf; elke eerdere versie blijft terug te zetten. Geen updates, geen plug-ins, minder WordPress-aanvalsoppervlak.",
           },
           {
             kop: "Ook je éigen AI kan erop",
@@ -48,12 +48,12 @@ export default function Pagina() {
           {
             vraag: "Verlies ik mijn content of Google-posities bij het omzetten?",
             antwoord:
-              "Nee. Alle teksten, foto's en pagina's gaan mee, paginatitels en omschrijvingen worden letterlijk overgenomen, en elk oud adres verwijst met een 301 door. Door de hogere snelheid stijgen posities eerder.",
+              "We nemen je inhoud over en controleren de SEO-structuur en doorverwijzingen. Google-posities kunnen we niet garanderen.",
           },
           {
             vraag: "Wat kost een WordPress-site die aan AI gekoppeld is?",
             antwoord:
-              "Bij WordSwap: eenmalig €150 tot €650 voor de overstap (naar grootte), daarna €5 tot €20 per maand voor de AI-koppeling. Vergelijk dat met hosting plus premium plug-ins plus een AI-plug-in-abonnement — je bent vrijwel altijd goedkoper uit.",
+              "Bij WordSwap: eenmalig €150 tot €650 voor de overstap (naar grootte), daarna €5 tot €20 per maand voor de AI-koppeling. Vergelijk dat met hosting plus premium plug-ins plus een AI-plug-in-abonnement — vergelijk dit met je huidige facturen.",
           },
           {
             vraag: "Doet de AI ooit iets zonder mijn toestemming?",

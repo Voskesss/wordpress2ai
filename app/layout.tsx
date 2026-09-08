@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { aanbod } from "@/lib/aanbod";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,11 +26,10 @@ const siteUrl = "https://wordswap.nl";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WordSwap — Een website die doet wat je zegt",
+    default: "WordSwap — WordPress overzetten en beheren via AI-chat",
     template: "%s | WordSwap",
   },
-  description:
-    "Wij zetten je WordPress-site om naar een snelle, veilige site zonder onderhoud. Wijzigingen geef je daarna gewoon door in gewone taal — de AI voert ze uit, jij keurt ze goed.",
+  description: aanbod.omschrijving,
   keywords: [
     "WordPress overzetten",
     "statische website",
@@ -43,9 +43,8 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: siteUrl,
     siteName: "WordSwap",
-    title: "WordSwap — Een website die doet wat je zegt",
-    description:
-      "Weg met plugin-updates en hosting-gedoe. Eén keer overzetten, daarna wijzig je alles via AI-chat.",
+    title: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    description: aanbod.omschrijving,
   },
   robots: { index: true, follow: true },
 };

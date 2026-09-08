@@ -1,48 +1,34 @@
+import { aanbod } from "@/lib/aanbod";
 export const dynamic = "force-static";
+const inhoud = `# WordSwap
 
-const INHOUD = `# WordSwap
+> ${aanbod.omschrijving}
 
-> WordSwap zet WordPress-websites om naar snelle, veilige websites zonder onderhoud. Wijzigingen geeft de eigenaar daarna door in gewone taal — de AI voert ze uit, de eigenaar keurt ze goed vóór publicatie. Voor Nederlandse ondernemers met een brochure-site (schilders, advocaten, fysiotherapeuten en vergelijkbare lokale bedrijven).
+${aanbod.prijs}
+${aanbod.geschikt}
+${aanbod.eigenAi}
+${aanbod.seo}
 
-Kernpunten:
-- Eenmalige migratie €150 tot €650 (naar grootte van de site, no cure no pay), daarna €5 tot €20 per maand voor de AI-koppeling, afgestemd op gebruik
-- Geen plugin-updates, geen hosting-gedoe, niets te hacken; contactformulier inbegrepen; e-mailmigratie als aanvulling mogelijk
-- SEO blijft behouden: URL's, paginatitels, meta descriptions en redirects worden 1-op-1 overgenomen
-- Elke wijziging eerst als concept met preview; de eigenaar publiceert zelf
-- Geen lock-in: maandelijks opzegbaar, de klant kan altijd met eigen AI-tools verder
+## Productinformatie
+- [Volledig overzicht](https://wordswap.nl/llms-full.txt): aanbod, prijzen, beperkingen en vragen
+- [Home](https://wordswap.nl/): WordPress overzetten en daarna wijzigen via AI-chat
+- [Prijzen](https://wordswap.nl/prijzen): hosting, AI-gebruik, btw en aanvullende kosten
+- [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): van websitecheck tot goedgekeurde overstap
+- [Eigen AI](https://wordswap.nl/eigen-ai-koppelen): ingebouwde chat, teksten voorbereiden, expert-route en geplande koppeling
+- [Vergelijking](https://wordswap.nl/wordswap-vs-wordpress): wanneer WordSwap en wanneer WordPress past
+- [Demo](https://wordswap.nl/demo): gesimuleerd voorbeeld zonder account; echte AI-demo met account
+- [Nieuwe website](https://wordswap.nl/nieuwe-website): nieuw ontwerp als aanvullende dienst
 
-Volledige informatie (feiten, prijzen, vergelijking, FAQ) in één document: https://wordswap.nl/llms-full.txt
-
-## Pagina's
-
-- [Home](https://wordswap.nl/): wat WordSwap is en waarom het beter is dan zelf WordPress bijhouden
-- [Over WordSwap](https://wordswap.nl/over-wordswap): de feiten — wie (Jos Klijnhout, AI Backoffice, Oosterbeek, KvK 09190650), wat, sinds wanneer, prijzen, techniek
-- [WordSwap vs. WordPress](https://wordswap.nl/wordswap-vs-wordpress): eerlijke vergelijkingstabel op onderhoud, snelheid, veiligheid, kosten en aanpassen — inclusief wanneer WordPress beter past
-- [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): het migratieproces in stappen, de preview-flow en veelgestelde vragen
-- [Zelf doen](https://wordswap.nl/zelf-doen): complete stap-voor-stap-handleiding om je WordPress-site zélf om te zetten naar een statische site — transparant, inclusief valkuilen en een gratis downloadbare Claude-skill (https://wordswap.nl/downloads/wordpress-migratie-skill.md)
-- [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
-- [Contact](https://wordswap.nl/contact): gratis site-check aanvragen, antwoord binnen één werkdag
-- [Demo](https://wordswap.nl/demo): gratis proberen hoe je een website aanpast door het te typen
-- [Nieuwe website](https://wordswap.nl/nieuwe-website): compleet nieuwe site laten maken — AI-ontwerp vanaf €250 of ontwerp door een designer
-- [WordPress overzetten](https://wordswap.nl/wordpress-overzetten): hoe de migratie werkt, wat er meegaat en wat het kost
-- [WordPress-alternatief](https://wordswap.nl/wordpress-alternatief): waarom een site zonder plugins en updates beter past bij ondernemers
-- [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt
-- [Website zonder CMS](https://wordswap.nl/website-zonder-cms): geen beheerscherm, wél alles zelf aanpassen door het te typen
-- [Website koppelen aan AI](https://wordswap.nl/website-koppelen-aan-ai): geen plug-in of chatbot, maar een AI die je hele site beheert
-- [WordPress koppelen aan AI](https://wordswap.nl/wordpress-koppelen-aan-ai): AI-plug-ins eerlijk vergeleken met de betere route — de site omzetten en volledig door AI laten beheren
-- [Koppel je eigen AI](https://wordswap.nl/eigen-ai-koppelen): drie routes — de ingebouwde chat, je eigen assistent laten meedenken, of als expert met eigen AI-tools rechtstreeks op de bestanden werken
-- [Trage WordPress-site](https://wordswap.nl/wordpress-website-traag): de blijvende oplossing voor een langzame site
-- [Website maken met AI](https://wordswap.nl/wordpress-website-maken-met-ai): een nieuwe website laten maken én beheren door AI, zonder WordPress
-- [WordPress omzetten naar een gewone website](https://wordswap.nl/wordpress-omzetten-naar-gewone-website): wat een statische site is en waarom die sneller, veiliger en onderhoudsvrij is
-- [Website aansturen met AI](https://wordswap.nl/wordpress-aansturen-met-ai): de complete site beheren via AI-chat, met goedkeuring en versiebeheer
-- [Snel & AI-vriendelijk](https://wordswap.nl/wordpress-omzetten-snel-en-ai-vriendelijk): WordPress omzetten naar een snelle site die ook door AI-zoekmachines goed gelezen wordt (SSR-HTML, structured data, llms.txt, AI-crawlers welkom)
-- [Veiligheid](https://wordswap.nl/veiligheid): waarom statische WordSwap-sites vrijwel niet te hacken zijn — vergelijking met WordPress, SSL, versiebeheer
-
-Uitzonderingen: webshops (WooCommerce), ledenportalen met inlog, boekingssystemen met live agenda en cursusplatforms kunnen niet worden overgezet.
+## Vertrouwen en contact
+- [Over WordSwap](https://wordswap.nl/over-wordswap): Jos Klijnhout, AI Backoffice, KvK 09190650, Oosterbeek
+- [Veiligheid](https://wordswap.nl/veiligheid): risico’s, accounts, hosting en goedkeuring
+- [Zelf doen](https://wordswap.nl/zelf-doen): technische handleiding
+- [Contact](https://wordswap.nl/contact): gratis geschiktheidscheck en prijsvoorstel
+- [Voorwaarden](https://wordswap.nl/voorwaarden): afspraken, prijzen en eigendom
+- [Sitemap](https://wordswap.nl/sitemap.xml): alle openbare pagina’s
 `;
-
 export function GET() {
-  return new Response(INHOUD, {
+  return new Response(inhoud, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

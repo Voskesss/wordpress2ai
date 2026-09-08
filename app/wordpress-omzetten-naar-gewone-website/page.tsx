@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een gewone website",
   description:
-    "WordPress omzetten naar een gewone (statische) HTML-website: sneller, veiliger, geen onderhoud. Vanaf €150, SEO blijft behouden, no cure no pay.",
+    "WordPress omzetten naar een gewone (statische) HTML-website: sneller, veiliger, geen onderhoud. Vanaf €150, SEO-structuur zorgvuldig meegenomen, no cure no pay.",
   alternates: { canonical: "/wordpress-omzetten-naar-gewone-website" },
 };
 
@@ -29,9 +29,9 @@ export default function Pagina() {
               "Vroeger was dat het nadeel van statische sites: voor elke wijziging had je een webbouwer nodig. Dat lossen wij op met AI: je typt in een chat wat er anders moet — \"ander telefoonnummer\", \"nieuwe pagina over dakisolatie\" — en de AI voert het uit. Jij bekijkt het voorbeeld en keurt het goed. Makkelijker dan WordPress ooit was.",
           },
           {
-            kop: "De omzetting: een 95%-kopie",
+            kop: "De omzetting: een zo getrouw mogelijke kopie",
             tekst:
-              "We bouwen je bestaande site na als een kopie: zelfde design, zelfde teksten, zelfde URL's, zelfde formulieren. In 2 van de 3 gevallen exact; bijzondere plugins of sliders zijn soms lastiger, maar ook die zetten we zo identiek mogelijk over. Je beoordeelt de complete kopie vóórdat je betaalt — niet tevreden, dan betaal je niets.",
+              "We bouwen je bestaande site na als een kopie: zelfde design, zelfde teksten, zelfde URL's, zelfde formulieren. Bijzondere plugins of sliders kunnen anders werken; dat bespreken we vooraf. Je beoordeelt de complete kopie vóórdat je betaalt — niet tevreden, dan betaal je niets.",
           },
           {
             kop: "Wat je bespaart",
@@ -43,7 +43,7 @@ export default function Pagina() {
           {
             vraag: "Verlies ik mijn Google-posities bij het omzetten?",
             antwoord:
-              "Nee. Alle URL's, paginatitels en meta-omschrijvingen worden letterlijk overgenomen en we melden de site aan bij Google Search Console. Omdat de site sneller wordt, is het effect op je vindbaarheid eerder positief.",
+              "We controleren URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Zoekposities kunnen we niet garanderen.",
           },
           {
             vraag: "Kan mijn blog mee?",
@@ -58,7 +58,7 @@ export default function Pagina() {
           {
             vraag: "Wat kan er níet omgezet worden?",
             antwoord:
-              "Webshops en ledenportalen met inlog — die hebben een draaiend systeem nodig. Gewone bedrijfssites, ook met blog en formulieren, juist wél. Een bestaand boekings- of afsprakensysteem (agenda-widget) nemen we gewoon mee, en maatwerk is bespreekbaar. Twijfel je? De check is gratis.",
+              "Webshops en ledenportalen met inlog — die hebben een draaiend systeem nodig. Gewone bedrijfssites, ook met blog en formulieren, juist wél. Een bestaand boekings- of afsprakensysteem (agenda-widget) beoordelen we vooraf per site, en maatwerk is bespreekbaar. Twijfel je? De check is gratis.",
           },
         ],
       }}

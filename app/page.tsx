@@ -2,54 +2,61 @@ import Link from "next/link";
 import ProductPreview from "./ProductPreview";
 import { josFoto } from "@/lib/persoonlijk";
 import Image from "next/image";
-const faq = [
-  [
-    "Kan mijn WordPress-site worden overgezet?",
-    "Bedrijfswebsites met pagina’s, foto’s, een blog en contactformulieren passen goed. Webshops en ledenportalen zetten we niet over. Externe boekingswidgets bekijken we per site. Met de gratis websitecheck weet je wat er voor jouw website mogelijk is.",
-  ],
-  [
-    "Blijft mijn website eruitzien zoals nu?",
-    "We nemen je bestaande ontwerp en inhoud zo nauwkeurig mogelijk over. Bij bijzondere plugins of functies bespreken we vooraf wat mogelijk is. Je bekijkt de kopie voordat je beslist. Niet tevreden? Dan betaal je niets.",
-  ],
-  [
-    "Wat gebeurt er met mijn domein, e-mail en Google?",
-    "Je behoudt je domeinnaam. We controleren je e-mail, nemen paginatitels en beschrijvingen mee en richten waar nodig doorverwijzingen in. E-mailmigratie is een aanvullende dienst. Posities in Google kunnen we niet garanderen.",
-  ],
-  [
-    "Moet ik verstand hebben van AI?",
-    "Nee. Je beschrijft wat je wilt aanpassen, bekijkt het voorstel en keurt het goed. Je hoeft geen code te schrijven. Wil je je eigen AI-account gebruiken? Dat kan ook.",
-  ],
-  [
-    "Kan ik weer weg als ik dat wil?",
-    "Ja. De maandelijkse koppeling is opzegbaar en je websitebestanden blijven van jou. Je kunt ze meenemen naar een andere aanbieder.",
-  ],
-];
+import { aankoopVragen } from "@/lib/aanbod";
+import type { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "WordPress overzetten en je website aanpassen via AI-chat",
+  description:
+    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + €5–€20 per maand, excl. btw. Gratis websitecheck.",
+  alternates: { canonical: "/" },
+};
+const faq = aankoopVragen;
 export default function Home() {
   const foto = josFoto();
   return (
     <div className="marketing-home">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faq.map(([name, text]) => ({
+              "@type": "Question",
+              name,
+              acceptedAnswer: { "@type": "Answer", text },
+            })),
+          }),
+        }}
+      />
       <section className="home-hero shell">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="status-dot" /> VOOR ONDERNEMERS MET WEL IETS BETERS
-            TE DOEN.
+            <span className="status-dot" /> JE WORDPRESS-WEBSITE, MAKKELIJKER
+            BEHEREN.
           </p>
           <h1>
-            Je website blijft.
+            Wij zetten je
             <br />
-            Het gedoe <em>verdwijnt.</em>
+            WordPress-site over.
+            <br />
+            <em>Jij wijzigt hem via AI-chat.</em>
           </h1>
           <p className="hero-intro">
-            Een nieuwe foto? Andere openingstijden? Vraag het gewoon. Wij zetten
-            je WordPress-site over, zodat jij weer verder kunt met waar je goed
-            in bent.
+            Je eigen website en domeinnaam, zonder WordPress-beheer. Typ wat je
+            wilt aanpassen. De AI zet het klaar, jij bekijkt het resultaat en
+            geeft akkoord.
+          </p>
+          <p className="hero-definition">
+            Voor bedrijfssites, blogs en formulieren. Wij regelen de overstap,
+            hosting en AI-chat. Jij houdt de controle over wat er live gaat.
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
               Laat mijn website checken <span>↗</span>
             </Link>
-            <Link className="button-text" href="/demo">
-              Probeer de demo <span>→</span>
+            <Link className="button-text" href="#zo-werkt-aanpassen">
+              Bekijk hoe het werkt <span>→</span>
             </Link>
           </div>
           <p className="hero-assurance">
@@ -71,9 +78,10 @@ export default function Home() {
             <span>
               Daarna <strong>€5–€20 / maand</strong>
             </span>
+            <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
           </div>
         </div>
-        <div className="hero-product">
+        <div className="hero-product" id="zo-werkt-aanpassen">
           <p className="hand-note">
             Ja, zo makkelijk mag het zijn. <span aria-hidden="true">↘</span>
           </p>
@@ -83,7 +91,7 @@ export default function Home() {
       <div className="trust-strip">
         <div className="shell">
           <span>✓ Eerst bekijken, dan beslissen</span>
-          <span>✓ Je eigen domein en ontwerp</span>
+          <span>✓ Je eigen domein · ontwerp zorgvuldig overgenomen</span>
           <span>✓ Maandelijks opzegbaar</span>
           <span>✓ Persoonlijk contact met Jos</span>
         </div>
@@ -107,18 +115,18 @@ export default function Home() {
           {[
             [
               "01",
-              "Zeg wat je wilt wijzigen",
-              "Geen blokken zoeken of je webbouwer mailen. Typ je vraag in gewone taal en de AI zet je wijziging klaar.",
+              "Een tekstje wijzigen. Weer wachten.",
+              "Je openingstijden zijn veranderd, maar je website nog niet. In WordSwap geef je de wijziging zelf door in de chat. Je bekijkt het voorstel en publiceert wanneer het klopt.",
             ],
             [
               "02",
-              "Geen WordPress-onderhoud",
-              "Je website heeft geen WordPress-plugins of database meer. Hosting en SSL regelen we bij je koppeling.",
+              "Die update doe ik morgen wel.",
+              "Je weet niet of een plugin-update iets stukmaakt. Na de overstap heeft je publieke website geen WordPress-plugins meer. Hosting en SSL regelen wij.",
             ],
             [
               "03",
-              "Jij houdt de controle",
-              "Bekijk elke wijziging eerst als voorbeeld. Pas na jouw akkoord gaat die live. Een eerdere versie terugzetten kan ook.",
+              "Ik durf er zelf niet aan te komen.",
+              "Je hoeft geen blokken te verplaatsen of code te begrijpen. Iedere AI-wijziging verschijnt eerst als voorbeeld. Een eerdere versie terugzetten kan ook.",
             ],
           ].map(([n, t, d]) => (
             <article className="benefit" key={n}>
@@ -129,6 +137,67 @@ export default function Home() {
               <p>{d}</p>
             </article>
           ))}
+        </div>
+      </section>
+      <section className="shell fit-section">
+        <div>
+          <p className="eyebrow">WAT VERANDERT ER NU EIGENLIJK?</p>
+          <h2>
+            Je bedrijf blijft herkenbaar.
+            <br />
+            Het beheer wordt anders.
+          </h2>
+          <p>
+            We verkopen je geen nieuw ontwerp als je huidige website nog goed
+            is. We bouwen je bestaande site opnieuw op, zodat je die via de
+            WordSwap-chat kunt beheren.
+          </p>
+          <Link href="/wordswap-vs-wordpress" className="button-text">
+            Vergelijk WordSwap met WordPress →
+          </Link>
+        </div>
+        <div className="change-ledger">
+          <div>
+            <strong>Dit neem je mee</strong>
+            <p>
+              Je domeinnaam, teksten, foto’s en pagina’s. Je ontwerp nemen we zo
+              nauwkeurig mogelijk over.
+            </p>
+          </div>
+          <div>
+            <strong>Dit regelen wij</strong>
+            <p>
+              De omzetting, hosting, SSL, contactformulier en controle van de
+              SEO-structuur.
+            </p>
+          </div>
+          <div>
+            <strong>Dit doe jij voortaan</strong>
+            <p>
+              Een wijziging vragen → het voorbeeld bekijken → zelf publiceren.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section className="shell decision-section">
+        <div className="fit-yes">
+          <p className="eyebrow">DIT PAST GOED</p>
+          <h3>Een website die je bedrijf laat zien.</h3>
+          <p>
+            Diensten, een over-ons-pagina, projecten, nieuws en een
+            contactformulier. Bijvoorbeeld voor een adviseur, schilder, praktijk
+            of bakker.
+          </p>
+        </div>
+        <div className="fit-check">
+          <p className="eyebrow">DIT BEKIJKEN WE EERST</p>
+          <h3>Je site doet meer dan informeren.</h3>
+          <p>
+            Webshops en ledenportalen zetten we niet over. Externe
+            boekingswidgets bekijken we per site. Werkt je huidige oplossing
+            goed en heb je weinig beheerwerk? Dan hoeft overstappen niet de
+            beste keuze te zijn.
+          </p>
         </div>
       </section>
       <section className="process-section">
@@ -206,8 +275,9 @@ export default function Home() {
             Ontvang een prijs voor mijn site ↗
           </Link>
           <p className="fine-print">
-            Grotere of complexe sites: tot circa €650. Aanvullingen zoals
-            e-mailmigratie spreken we apart af.
+            Grotere of complexe sites: tot circa €650. Alle bedragen excl. btw.
+            Fair use: 30 wijzigingen per maand. Domeinregistratie, e-mail en
+            extra maatwerk staan los van de koppeling.
           </p>
         </div>
       </section>
@@ -286,8 +356,8 @@ export default function Home() {
             ook eenvoudiger kan?
           </h2>
           <p>
-            Stuur je websiteadres. Je krijgt een eerlijk advies en een
-            duidelijke prijs.
+            Je krijgt antwoord op drie vragen: kan mijn site mee, wat vraagt
+            aandacht en wat kost het? Binnen één werkdag, persoonlijk van Jos.
           </p>
           <Link className="button-primary" href="/contact">
             Laat mijn website gratis checken ↗

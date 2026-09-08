@@ -16,7 +16,7 @@ export default function Pagina() {
         label: "Snel & AI-vriendelijk",
         titel: "Hoe zet ik mijn WordPress-website om naar een snellere, AI-vriendelijke website?",
         intro:
-          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Die laadt vrijwel direct én is perfect leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een 1-op-1 kopie van je site, sneller en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
+          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Die laadtijd hangt ook af van media en externe scripts én is perfect leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een zo getrouw mogelijke kopie van je site, sneller en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
         blokken: [
           {
             kop: "Waarom is een statische site sneller én AI-vriendelijker?",
@@ -63,7 +63,7 @@ export default function Pagina() {
           {
             vraag: "Verlies ik mijn Google-posities?",
             antwoord:
-              "Nee — alle URL's, paginatitels en meta-omschrijvingen worden letterlijk overgenomen en de site wordt aangemeld bij Google Search Console. Omdat de site sneller wordt, is het effect eerder positief.",
+              "We controleren URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Zoekposities kunnen we niet garanderen.",
           },
         ],
       }}

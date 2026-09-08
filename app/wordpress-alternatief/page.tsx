@@ -1,12 +1,42 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-
-export const metadata: Metadata = {
-  title: "Hét alternatief voor WordPress: een website zonder onderhoud",
-  description: "Klaar met plugin-updates, trage hosting en gedoe? WordSwap is het WordPress-alternatief voor ondernemers: zelfde site, geen onderhoud, aanpassen via chat.",
-  alternates: { canonical: "/wordpress-alternatief" },
-};
-
-export default function Pagina() {
-  return <SeoLanding data={{"slug": "wordpress-alternatief", "label": "WordPress-alternatief", "titel": "Op zoek naar een alternatief voor WordPress?", "intro": "WordPress is fantastisch — als je er een hobby van wilt maken. Voor ondernemers die gewoon een goede website willen hébben, is het vooral onderhoud: updates, plugins, back-ups, beveiliging, hosting. WordSwap is het alternatief: je bestaande site, exact overgezet, maar dan als razendsnelle website zonder techniek om bij te houden. Aanpassen doe je door het te typen.", "blokken": [{"kop": "Waarom ondernemers WordPress ontgroeien", "tekst": "Een gemiddelde WordPress-site draait op tientallen plugins die elkaar in de weg zitten, wekelijks updates vragen en bij elke update iets kunnen breken. Ondertussen betaal je hosting, premium plugins en af en toe een webbouwer voor een wijziging van twee zinnen. De site is nooit áf — hij vraagt permanent aandacht."}, {"kop": "Wat WordSwap anders doet", "tekst": "Wij zetten je site om naar platte, supersnelle web-bestanden zonder database en zonder plugins. Er valt letterlijk niets te hacken of te updaten. En in plaats van een ingewikkeld beheerscherm krijg je een chat: je typt wat er anders moet, ziet het resultaat als voorbeeld, en zegt \"ja\" — dan staat het live."}, {"kop": "Ook AI in WordPress zelf?", "tekst": "WordPress krijgt ook AI-hulpjes, maar die werken ín de machine — de updates, plugins en risico's blijven bestaan. Wij halen de machine zelf weg. De AI is niet een assistent in je CMS; hij ís je websitebeheerder. De rust is het product."}, {"kop": "Voor wie het is (en voor wie niet)", "tekst": "Gemaakt voor ondernemers en kleine teams (1-5 medewerkers) met een bedrijfssite, eventueel met blog en formulieren. Webshops en ledenportalen met inlog passen er niet in — dat zeggen we liever eerlijk vooraf. Een extern boekings- of afsprakensysteem nemen we wél gewoon mee, en maatwerk is bespreekbaar."}], "faq": [{"vraag": "Moet ik mijn website opnieuw laten bouwen?", "antwoord": "Nee. We zetten je bestaande site over als een 95%-kopie — je bezoekers merken er niets van. Een compleet nieuw ontwerp kan óók (vanaf €250), maar hoeft niet."}, {"vraag": "Wat als ik terug wil naar WordPress?", "antwoord": "Er is geen lock-in: het abonnement is maandelijks opzegbaar en je site en content blijven van jou. Je kunt altijd weg — al is nog niemand teruggegaan naar plugin-updates."}, {"vraag": "Kan ik zelf nog bloggen?", "antwoord": "Ja, makkelijker dan ooit: typ je bericht in de chat (of spreek hem in), foto erbij, klaar. De AI zet hem in jouw huisstijl op de site en helpt desgewenst met schrijven."}, {"vraag": "Wat kost het?", "antwoord": "Eenmalig €150–€650 voor de overstap (no cure, no pay) en daarna €5–€20 per maand, afgestemd op je gebruik. Vergelijk dat met hosting + plugins + onderhoudscontract van een gemiddelde WordPress-site."}]}} />;
-}
+import { aanbod } from "@/lib/aanbod";
+export const metadata: Metadata = {"title": "Een WordPress-alternatief voor ondernemers die zelf willen aanpassen.", "description": "WordPress is flexibel. Maar als je vooral teksten, foto’s en diensten actueel wilt houden, kan het beheer meer werk zijn dan je wilt. WordSwap vervangt WordPress door een statische website die je via een ingebouwde AI-chat beheert.", "alternates": {"canonical": "/wordpress-alternatief"}};
+export default function Pagina(){ return <SeoLanding data={{
+  "label": "WordPress-alternatief",
+  "titel": "Een WordPress-alternatief voor ondernemers die zelf willen aanpassen.",
+  "intro": "WordPress is flexibel. Maar als je vooral teksten, foto’s en diensten actueel wilt houden, kan het beheer meer werk zijn dan je wilt. WordSwap vervangt WordPress door een statische website die je via een ingebouwde AI-chat beheert.",
+  "blokken": [
+    {
+      "kop": "Wat wordt anders?",
+      "tekst": aanbod.omschrijving
+    },
+    {
+      "kop": "Wanneer is overstappen zinvol?",
+      "tekst": "Als je regelmatig kleine wijzigingen uitstelt, afhankelijk bent van een webbouwer of af wilt van WordPress-updates. Werkt je huidige site goed en past het beheer bij je? Dan is overstappen niet vanzelfsprekend nodig."
+    },
+    {
+      "kop": "Wanneer blijf je liever bij WordPress?",
+      "tekst": "Voor een webshop, ledenomgeving of complexe redactionele workflow kan WordPress beter passen. Externe widgets bekijken we vooraf; niet iedere plugin is één op één te vervangen."
+    },
+    {
+      "kop": "Vergelijk je totale kosten",
+      "tekst": aanbod.prijs
+    }
+  ],
+  "slug": "wordpress-alternatief",
+  "faq": [
+    {
+      "vraag": "Wat kost de overstap?",
+      "antwoord": aanbod.prijs
+    },
+    {
+      "vraag": "Kan mijn website mee?",
+      "antwoord": aanbod.geschikt
+    },
+    {
+      "vraag": "Kan ik mijn eigen AI gebruiken?",
+      "antwoord": aanbod.eigenAi
+    }
+  ]
+}} />; }
