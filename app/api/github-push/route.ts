@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
+import { waitUntil } from "@vercel/functions";
 import { deployRepoNaarCloudflare } from "@/lib/cloudflare";
 
 export const maxDuration = 300;
@@ -47,11 +48,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, genegeerd: "site niet online" });
   }
 
-  // Concept-branches van de chat pushen ook via de API maar alleen main deployt;
-  // de werkversie gaat mee zodat portal-preview en live gelijk blijven.
-  await deployRepoNaarCloudflare(repo, site.netlifySiteId);
-  await deployRepoNaarCloudflare(repo, `wv-${site.netlifySiteId}`).catch((e) =>
-    console.error("Werkversie-deploy mislukt:", e)
+  // GitHub wacht maar 10 seconden op antwoord; de deploy duurt langer.
+  // Dus: direct bevestigen en de deploy op de achtergrond afmaken (waitUntil
+  // houdt de functie levend tot het werk klaar is).
+  waitUntil(
+    (async () => {
+      await deployRepoNaarCloudflare(repo, site.netlifySiteId!);
+      await deployRepoNaarCloudflare(repo, `wv-${site.netlifySiteId}`).catch((e) =>
+        console.error("Werkversie-deploy mislukt:", e)
+      );
+      console.log(`Webhook-deploy klaar: ${repo}`);
+    })().catch((e) => console.error(`Webhook-deploy mislukt (${repo}):`, e))
   );
-  return NextResponse.json({ ok: true, gedeployed: site.netlifySiteId });
+  return NextResponse.json({ ok: true, deploy: "gestart", site: site.netlifySiteId });
 }
