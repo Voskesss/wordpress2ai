@@ -142,6 +142,33 @@ export default function ZelfDoen() {
         </ol>
       </div>
 
+      <div className="mx-auto max-w-3xl px-6 pb-12">
+        <div className="rounded-3xl border-2 border-violet-200 bg-violet-50/50 p-8">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            📦 Download onze migratie-skill voor Claude
+          </h2>
+          <p className="mt-3 text-stone-600 leading-relaxed">
+            Dit is geen samenvatting maar ons échte draaiboek: dezelfde regels
+            die wij aan onze eigen AI meegeven bij klantmigraties — van
+            SEO-manifest en 301-controle tot de valkuilen met lazy-loading en
+            de 404-pagina. Zet het bestand in je project als{" "}
+            <code className="rounded bg-white px-1.5 py-0.5 text-sm">.claude/skills/wordpress-migreren/SKILL.md</code>{" "}
+            en Claude Code werkt ermee alsof hij bij ons in dienst is.
+          </p>
+          <a
+            href="/downloads/wordpress-migratie-skill.md"
+            download
+            className="lift mt-5 inline-block rounded-full bg-violet-700 px-6 py-3 font-semibold text-white hover:bg-violet-600"
+          >
+            Download de skill (gratis, markdown)
+          </a>
+          <p className="mt-3 text-xs text-stone-400">
+            Vrij te gebruiken. Kom je er halverwege achter dat je dit liever
+            uitbesteedt — je weet ons te vinden, no cure no pay.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-[#f6f1e7] border-y border-stone-200">
         <div className="mx-auto max-w-3xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">

@@ -19,7 +19,7 @@ Volledige informatie (feiten, prijzen, vergelijking, FAQ) in één document: htt
 - [Over WordSwap](https://wordswap.nl/over-wordswap): de feiten — wie (Jos Klijnhout, AI Backoffice, Oosterbeek, KvK 09190650), wat, sinds wanneer, prijzen, techniek
 - [WordSwap vs. WordPress](https://wordswap.nl/wordswap-vs-wordpress): eerlijke vergelijkingstabel op onderhoud, snelheid, veiligheid, kosten en aanpassen — inclusief wanneer WordPress beter past
 - [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): het migratieproces in stappen, de preview-flow en veelgestelde vragen
-- [Zelf doen](https://wordswap.nl/zelf-doen): complete stap-voor-stap-handleiding om je WordPress-site zélf om te zetten naar een statische site — transparant, inclusief valkuilen
+- [Zelf doen](https://wordswap.nl/zelf-doen): complete stap-voor-stap-handleiding om je WordPress-site zélf om te zetten naar een statische site — transparant, inclusief valkuilen en een gratis downloadbare Claude-skill (https://wordswap.nl/downloads/wordpress-migratie-skill.md)
 - [Prijzen](https://wordswap.nl/prijzen): de eenmalige overstap, het maandabonnement en maatwerk
 - [Contact](https://wordswap.nl/contact): gratis site-check aanvragen, antwoord binnen één werkdag
 - [Demo](https://wordswap.nl/demo): gratis proberen hoe je een website aanpast door het te typen
