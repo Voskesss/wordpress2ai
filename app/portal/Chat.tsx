@@ -108,6 +108,8 @@ export default function Chat({
     setVideoKlaarState(v);
   }
   const [videoBezig, setVideoBezig] = useState(false);
+  // Werkbalk rustig houden: extra gereedschap pas na een klik op ⋯
+  const [meerOpties, setMeerOpties] = useState(false);
   // Aanwijs-flow: na de upload automatisch "vervang de aangewezen video" sturen
   const videoVervangRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -410,6 +412,22 @@ export default function Chat({
     if (mq.matches) setBalkOpen(false);
     mq.addEventListener("change", zet);
     return () => mq.removeEventListener("change", zet);
+  }, []);
+
+  // Voorbeeldopdracht uit het demo-welkomscherm klaarzetten in de invoerbalk
+  useEffect(() => {
+    function opStart(e: Event) {
+      const tekst = (e as CustomEvent<string>).detail;
+      if (!tekst) return;
+      setInvoer(tekst);
+      setHintWeg(true);
+      setMobielWeergave("chat");
+      setMobielVol(true);
+      setTimeout(() => invoerRef.current?.focus(), 100);
+    }
+    window.addEventListener("wp2ai-startopdracht", opStart);
+    return () => window.removeEventListener("wp2ai-startopdracht", opStart);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Onafgemaakte videoverwerking (bv. na verversen of wachtrij) hervatten
@@ -1506,6 +1524,7 @@ export default function Chat({
                 <button
                   onClick={async () => {
                     if (bezig) return;
+                    if (!window.confirm("Nieuw gesprek beginnen? De AI vergeet dan wat jullie eerder bespraken. Je website verandert hier NIET door — alles blijft staan.")) return;
                     await fetch("/api/gesprek-nieuw", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -2185,6 +2204,20 @@ export default function Chat({
                 </svg>
               </button>
               </Tip>
+              {!meerOpties && (
+                <Tip tekst="Meer gereedschap: inspreken, kleur kiezen, fotobank en SEO">
+                <button
+                  onClick={() => setMeerOpties(true)}
+                  aria-label="Meer opties"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 cursor-pointer"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <circle cx="5" cy="12" r="1.8" fill="currentColor" /><circle cx="12" cy="12" r="1.8" fill="currentColor" /><circle cx="19" cy="12" r="1.8" fill="currentColor" />
+                  </svg>
+                </button>
+                </Tip>
+              )}
+              {meerOpties && (<>
               {spraakKan && (
                 <Tip tekst={luistert ? "Klik om te stoppen met luisteren" : "Spreek je wijziging in"}>
                 <button
@@ -2256,6 +2289,7 @@ export default function Chat({
                 <span className="text-xs font-bold tracking-tight">SEO</span>
               </button>
               </Tip>
+              </>)}
               <textarea
                 ref={invoerRef}
                 value={invoer}

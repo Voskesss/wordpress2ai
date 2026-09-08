@@ -102,3 +102,11 @@ body {
   }
   .msg { opacity: 1; }
 }
+
+/* Toetsenbord-navigatie: altijd een duidelijke focusring, ook waar de
+   standaard outline is uitgezet met focus:outline-none */
+:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-radius: 6px;
+}

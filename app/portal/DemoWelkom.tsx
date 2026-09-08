@@ -74,7 +74,16 @@ export default function DemoWelkom() {
           site groot naast de chat.
         </p>
         <button
-          onClick={sluit}
+          onClick={() => {
+            sluit();
+            // Veilige eerste opdracht alvast klaarzetten in de invoerbalk:
+            // de bezoeker hoeft alleen nog op versturen te drukken
+            window.dispatchEvent(
+              new CustomEvent("wp2ai-startopdracht", {
+                detail: "Zet de openingstijden op zaterdag op 08:00 tot 16:00",
+              })
+            );
+          }}
           className="lift mt-5 w-full rounded-full bg-violet-700 px-6 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
         >
           Leuk, ik ga het proberen →
