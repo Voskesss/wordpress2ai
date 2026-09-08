@@ -104,7 +104,7 @@ export default function Veiligheid() {
         </p>
       </div>
 
-      <div className="bg-[#f6f1e7] border-y border-stone-200">
+      <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-3xl px-6 py-14">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Veelgestelde vragen over veiligheid
@@ -127,7 +127,7 @@ export default function Veiligheid() {
         <div className="mt-6 flex justify-center flex-wrap gap-4">
           <Link
             href="/contact"
-            className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Vraag de gratis site-check aan →
           </Link>

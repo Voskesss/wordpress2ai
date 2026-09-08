@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 const overstap = [
   "Complete migratie van je WordPress-site: omzetten, SEO-structuur controleren en domein koppelen",
-  "Een 95%-kopie van je huidige site: in 2 van de 3 gevallen zetten we álles exact over. Speciale plugins, hero-video's of sliders zijn soms lastiger — maar ook die zetten we zo identiek mogelijk over. En wat er nu kapot is (dode links, afbeeldingen die niet laden, een formulier dat niets doet) repareren we bij de overstap gewoon mee — zonder er een nieuw ontwerp van te maken",
+  "Je bestaande ontwerp en inhoud zo nauwkeurig mogelijk overgenomen. Bijzondere functies bespreken we vooraf. Je bekijkt de volledige kopie voordat je beslist.",
   "E-mailmigratie mogelijk als aanvulling (meerprijs; het e-mailabonnement zelf, vanaf ± €4 p/m per mailbox, sluit je af bij een Nederlandse provider — daarna is die provider ook je aanspreekpunt voor mailvragen)",
   "Optioneel: formulier-bevestigingen verstuurd vanaf je éigen domein (bijv. info@jouwbedrijf.nl) — eenmalig €49",
-  "Behoud van je vindbaarheid in Google: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
+  "Zorg voor je vindbaarheid: doorverwijzingen, sitemap en aanmelding bij Google Search Console",
   "Contactformulier standaard inbegrepen",
   "No cure, no pay: eerst zie je de complete kopie van je site — niet tevreden, dan zie je er kosteloos vanaf en betaal je niets",
 ];
@@ -30,7 +30,7 @@ const vergelijk = [
   ["Premium plugins & thema's", "€5 – €30 p/m", "Niet nodig"],
   ["Onderhoud / updates", "Je eigen tijd, of €30+ p/m", "Niet nodig"],
   ["Kleine aanpassing laten doen", "€50 – €90 per keer", "Inbegrepen (via chat)"],
-  ["Beveiligingsrisico", "Doorlopend", "Vrijwel geen"],
+  ["WordPress-plugins bijwerken", "Zelf doen of uitbesteden", "Geen WordPress-plugins"],
 ];
 
 export default function Prijzen() {
@@ -38,7 +38,7 @@ export default function Prijzen() {
     <>
       <div className="mx-auto max-w-4xl px-6 pt-20">
         <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-          Prijzen
+          Duidelijke prijzen. Meer rust.
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
           Eén keer betalen voor de overstap, daarna een laag maandbedrag dat
@@ -48,7 +48,7 @@ export default function Prijzen() {
       </div>
 
       <div className="mx-auto max-w-4xl px-6 py-12 grid gap-6 sm:grid-cols-2">
-        <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+        <div className="reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
           <h2 className="font-display text-xl font-semibold">De overstap</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
             €150 – €650{" "}
@@ -72,12 +72,12 @@ export default function Prijzen() {
           </ul>
           <Link
             href="/contact"
-            className="lift mt-7 inline-block rounded-full bg-violet-700 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift mt-7 inline-block rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Vraag een vrijblijvende offerte aan →
           </Link>
         </div>
-        <div className="reveal rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
+        <div className="reveal rounded-xl border-2 border-violet-600 bg-violet-50/40 p-8">
           <h2 className="font-display text-xl font-semibold">De AI-koppeling</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
             vanaf €5{" "}
@@ -107,7 +107,7 @@ export default function Prijzen() {
 
       {/* Liever een nieuwe website */}
       <div className="mx-auto max-w-4xl px-6 pb-12">
-        <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-8">
+        <div className="reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-8">
           <div>
             <h2 className="font-display text-xl font-semibold">
               Toch liever een heel nieuwe website? Dat kan ook.
@@ -130,7 +130,7 @@ export default function Prijzen() {
       </div>
 
       {/* Vergelijking */}
-      <div className="bg-[#f6f1e7] border-y border-stone-200">
+      <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-4xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Wat kost je WordPress-site je nu eigenlijk?
@@ -192,14 +192,14 @@ export default function Prijzen() {
             ],
             [
               "Nieuw design",
-              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €650, ontwerp door een designer vanaf €1750.",
+              "Wil je een frisse uitstraling of een compleet nieuwe site? AI-ontwerp vanaf €250, ontwerp door een designer vanaf €1750.",
               "/nieuwe-website",
               "Bekijk nieuwe website →",
             ],
           ].map(([kop, tekst, href, linkTekst]) => (
             <div
               key={kop}
-              className="reveal rounded-3xl border border-stone-200 bg-white p-7 shadow-sm flex flex-col"
+              className="reveal rounded-xl border border-stone-200 bg-white p-7 shadow-sm flex flex-col"
             >
               <h3 className="font-display text-lg font-semibold">{kop}</h3>
               <p className="mt-2 text-stone-600 leading-relaxed text-sm">
@@ -219,7 +219,7 @@ export default function Prijzen() {
         <div className="mt-12">
           <Link
             href="/contact"
-            className="lift inline-block rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift inline-block rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Vraag een vrijblijvende offerte aan
           </Link>

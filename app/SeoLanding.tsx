@@ -35,13 +35,13 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         <div className="mt-7 flex flex-wrap gap-4">
           <Link
             href="/contact"
-            className="lift rounded-full bg-violet-700 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Gratis site-check aanvragen →
           </Link>
           <Link
             href="/demo"
-            className="lift rounded-full border-2 border-violet-300 bg-white px-6 py-3 font-semibold text-violet-700"
+            className="lift rounded-lg border-2 border-violet-300 bg-white px-6 py-3 font-semibold text-violet-700"
           >
             Probeer de demo
           </Link>
@@ -60,7 +60,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         ))}
       </div>
 
-      <div className="bg-[#f6f1e7] border-y border-stone-200 mt-10">
+      <div className="bg-[#eff3e8] border-y border-stone-200 mt-10">
         <div className="mx-auto max-w-3xl px-6 py-14">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Veelgestelde vragen
@@ -87,13 +87,13 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         <div className="mt-6 flex justify-center flex-wrap gap-4">
           <Link
             href="/contact"
-            className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Vraag de gratis check aan →
           </Link>
           <Link
             href="/prijzen"
-            className="lift rounded-full border-2 border-stone-200 bg-white px-7 py-3.5 font-semibold"
+            className="lift rounded-lg border-2 border-stone-200 bg-white px-7 py-3.5 font-semibold"
           >
             Bekijk de prijzen
           </Link>

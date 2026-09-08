@@ -1,361 +1,311 @@
 import Link from "next/link";
-import { josFoto, josVideoEmbed } from "@/lib/persoonlijk";
-import Logo from "./Logo";
-
-const herkenbaar = [
-  {
-    kop: "Wéér een plugin-update",
-    tekst:
-      "Elke week meldingen: updaten, updaten, updaten. En durf je het niet? Dan ligt je site open voor hackers.",
-  },
-  {
-    kop: "Betalen voor elke aanpassing",
-    tekst:
-      "Een tekstje wijzigen? Je webbouwer mailen, wachten, en een factuur ontvangen. Voor twee zinnen.",
-  },
-  {
-    kop: "Dure hosting die maar doorloopt",
-    tekst:
-      "Elke maand betalen, of je site nu iets doet of stilstaat. Plus losse abonnementen voor plugins.",
-  },
-  {
-    kop: "Zelf klooien in WordPress",
-    tekst:
-      "Inloggen, zoeken waar dat blokje ook alweer zat, per ongeluk iets slopen... en dan maar hopen.",
-  },
+import ProductPreview from "./ProductPreview";
+import { josFoto } from "@/lib/persoonlijk";
+import Image from "next/image";
+const faq = [
+  [
+    "Kan mijn WordPress-site worden overgezet?",
+    "Bedrijfswebsites met pagina’s, foto’s, een blog en contactformulieren passen goed. Webshops en ledenportalen zetten we niet over. Externe boekingswidgets bekijken we per site. Met de gratis websitecheck weet je wat er voor jouw website mogelijk is.",
+  ],
+  [
+    "Blijft mijn website eruitzien zoals nu?",
+    "We nemen je bestaande ontwerp en inhoud zo nauwkeurig mogelijk over. Bij bijzondere plugins of functies bespreken we vooraf wat mogelijk is. Je bekijkt de kopie voordat je beslist. Niet tevreden? Dan betaal je niets.",
+  ],
+  [
+    "Wat gebeurt er met mijn domein, e-mail en Google?",
+    "Je behoudt je domeinnaam. We controleren je e-mail, nemen paginatitels en beschrijvingen mee en richten waar nodig doorverwijzingen in. E-mailmigratie is een aanvullende dienst. Posities in Google kunnen we niet garanderen.",
+  ],
+  [
+    "Moet ik verstand hebben van AI?",
+    "Nee. Je beschrijft wat je wilt aanpassen, bekijkt het voorstel en keurt het goed. Je hoeft geen code te schrijven. Wil je je eigen AI-account gebruiken? Dat kan ook.",
+  ],
+  [
+    "Kan ik weer weg als ik dat wil?",
+    "Ja. De maandelijkse koppeling is opzegbaar en je websitebestanden blijven van jou. Je kunt ze meenemen naar een andere aanbieder.",
+  ],
 ];
-
-const voordelen = [
-  {
-    kop: "Typ het, en het staat erop",
-    tekst: "Wijziging nodig? Gewoon vragen in de chat. In 1 minuut geregeld.",
-  },
-  {
-    kop: "Nooit meer updates",
-    tekst: "Geen plugins, geen lekken, niets te onderhouden. Klaar is klaar.",
-  },
-  {
-    kop: "Bloedsnel & goed voor Google",
-    tekst: "Je nieuwe site laadt direct. Google beloont dat met betere posities.",
-  },
-  {
-    kop: "Eerst zien, dan live",
-    tekst: "Elke wijziging eerst als preview. Pas na jouw akkoord staat het erop.",
-  },
-  {
-    kop: "Geen lock-in",
-    tekst: "Maandelijks opzegbaar. Je site en je AI-account blijven van jou.",
-  },
-  {
-    kop: "Bloggen vanaf je telefoon",
-    tekst:
-      "Nieuwtje delen? Typ het in de chat, foto erbij, klaar. Geen CMS meer nodig — de AI helpt zelfs met schrijven.",
-  },
-  {
-    kop: "Beschermd tegen spam en hackers",
-    tekst:
-      "Niets te hacken, en je contactformulier is standaard beveiligd tegen spam-robots.",
-  },
-  {
-    kop: "Eindelijk rust",
-    tekst: "Je website is gewoon áf. Jij kunt weer ondernemen.",
-  },
-];
-
 export default function Home() {
+  const foto = josFoto();
   return (
-    <>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-24 grid items-center gap-14 lg:grid-cols-2">
-          <div className="min-w-0">
-            <h1 className="font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.06]">
-              Een website die{" "}
-              <span className="text-violet-700">doet wat je zegt</span>
-            </h1>
-            <p className="font-display mt-5 text-xl sm:text-2xl font-semibold text-stone-800">
-              Hét betere alternatief voor je WordPress-website — wij zetten hem
-              over, jij hebt er geen onderhoud meer aan.
-            </p>
-            <p className="mt-6 text-lg text-stone-600 max-w-xl leading-relaxed">
-              Nooit meer zelf in WordPress duiken of je webbouwer bellen. Vanaf
-              nu geef je een wijziging gewoon dóór — &ldquo;nieuw
-              telefoonnummer op de contactpagina&rdquo;, &ldquo;andere foto op
-              de homepage&rdquo;, &ldquo;voeg een pagina toe over
-              dakisolatie&rdquo; — en de AI voert het uit. Waar het ook staat,
-              wat het ook is.
-            </p>
-            <p className="mt-4 text-lg text-stone-800 max-w-xl leading-relaxed font-medium">
-              Jij hoeft niet te weten hoe je website werkt. De AI zet elke
-              wijziging voor je klaar, jij bekijkt het resultaat — en als je
-              tevreden bent zeg je &ldquo;ja&rdquo;. Meer is het niet.
-            </p>
-            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              No cure, no pay — niet tevreden met de kopie? Dan betaal je niets.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-4">
-              <Link
-                href="/contact"
-                className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
-              >
-                Ja, verlos me van het gedoe →
-              </Link>
-              <Link
-                href="/demo"
-                className="lift rounded-full border-2 border-violet-300 bg-white px-7 py-3.5 font-semibold text-violet-700"
-              >
-                Probeer de demo gratis
-              </Link>
-              <Link
-                href="/hoe-het-werkt"
-                className="lift rounded-full border-2 border-stone-200 bg-white px-7 py-3.5 font-semibold"
-              >
-                Hoe het werkt
-              </Link>
-            </div>
+    <div className="marketing-home">
+      <section className="home-hero shell">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="status-dot" /> VOOR ONDERNEMERS MET WEL IETS BETERS
+            TE DOEN.
+          </p>
+          <h1>
+            Je website blijft.
+            <br />
+            Het gedoe <em>verdwijnt.</em>
+          </h1>
+          <p className="hero-intro">
+            Een nieuwe foto? Andere openingstijden? Vraag het gewoon. Wij zetten
+            je WordPress-site over, zodat jij weer verder kunt met waar je goed
+            in bent.
+          </p>
+          <div className="button-row">
+            <Link className="button-primary" href="/contact">
+              Laat mijn website checken <span>↗</span>
+            </Link>
+            <Link className="button-text" href="/demo">
+              Probeer de demo <span>→</span>
+            </Link>
           </div>
-          <div className="float-card min-w-0 text-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/stock/hero-bakker.webp" alt="Een ondernemer geeft een duim omhoog naast zijn website, met de WordSwap-chat ernaast" className="mx-auto max-h-[32rem] w-auto max-w-full rounded-3xl shadow-xl" />
-            <div className="mt-6 flex justify-center sm:scale-125">
-              <Logo />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Van → naar */}
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="reveal grid items-stretch gap-4 sm:grid-cols-[1fr_auto_1fr]">
-          <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">
-              Wat je nu hebt
-            </p>
-            <h2 className="font-display mt-2 text-2xl font-semibold">
-              WordPress-website
-            </h2>
-            <p className="mt-3 text-stone-600 leading-relaxed">
-              Zelf inloggen en klikken in een ingewikkeld systeem. Plugins en
-              updates bijhouden. Hosting betalen. Of voor elke aanpassing je
-              webbouwer inschakelen.
-            </p>
-          </div>
-          <div className="flex items-center justify-center">
-            <span className="font-display text-4xl text-violet-700 rotate-90 sm:rotate-0">
-              →
+          <p className="hero-assurance">
+            Gratis en vrijblijvend · Antwoord binnen één werkdag
+          </p>
+          <Link href="/over-wordswap" className="hero-person">
+            {foto && (
+              <Image src={foto} alt="Jos Klijnhout" width={52} height={52} />
+            )}
+            <span>
+              <strong>Hoi, ik ben Jos.</strong> Ik kijk persoonlijk met je mee.
+            </span>
+            <span aria-hidden="true">↗</span>
+          </Link>
+          <div className="hero-price">
+            <span>
+              Overstappen vanaf <strong>€150 eenmalig</strong>
+            </span>
+            <span>
+              Daarna <strong>€5–€20 / maand</strong>
             </span>
           </div>
-          <div className="rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
-            <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-              Wat je krijgt
-            </p>
-            <h2 className="font-display mt-2 text-2xl font-semibold">
-              Een website met een eigen AI-beheerder
+        </div>
+        <div className="hero-product">
+          <p className="hand-note">
+            Ja, zo makkelijk mag het zijn. <span aria-hidden="true">↘</span>
+          </p>
+          <ProductPreview />
+        </div>
+      </section>
+      <div className="trust-strip">
+        <div className="shell">
+          <span>✓ Eerst bekijken, dan beslissen</span>
+          <span>✓ Je eigen domein en ontwerp</span>
+          <span>✓ Maandelijks opzegbaar</span>
+          <span>✓ Persoonlijk contact met Jos</span>
+        </div>
+      </div>
+      <section className="section-space shell">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">JE WEBSITE KAN SIMPELER</p>
+            <h2>
+              Je hebt al een vak.
+              <br />
+              Websitebeheer hoeft daar niet bij.
             </h2>
-            <p className="mt-3 text-stone-600 leading-relaxed">
-              Dezelfde site — wij zetten hem als 95%-kopie over, meestal
-              exact. Maar dan zonder onderhoud. Wil je iets veranderd
-              hebben? Je geeft het gewoon door, in gewone taal. De AI zoekt
-              zelf uit waar het staat en past het aan. Jij bekijkt het
-              resultaat en zegt &ldquo;ja&rdquo; — dan staat het live.
-            </p>
           </div>
-        </div>
-      </section>
-
-      {/* Het probleem */}
-      <section className="bg-[#f6f1e7] border-y border-stone-200">
-        <div className="mx-auto max-w-6xl px-6 py-24">
-          <h2 className="font-display reveal text-center text-4xl sm:text-5xl font-semibold tracking-tight">
-            Herken je dit?
-          </h2>
-          <p className="reveal mt-5 text-center text-lg text-stone-600 max-w-2xl mx-auto">
-            Een WordPress-site is nooit af. Hij blijft tijd, geld en energie
-            kosten zolang hij bestaat.
-          </p>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            {herkenbaar.map((item) => (
-              <div
-                key={item.kop}
-                className="reveal lift rounded-3xl bg-white border border-stone-200 p-8 shadow-sm"
-              >
-                <h3 className="text-xl font-bold">{item.kop}</h3>
-                <p className="mt-2 text-stone-600">{item.tekst}</p>
-              </div>
-            ))}
-          </div>
-          <p className="font-display reveal mt-14 text-center text-2xl sm:text-3xl font-semibold">
-            Het kan anders. <span className="text-violet-700">Véél anders.</span>
+          <p>
+            Of je nu tuinen aanlegt, mensen adviseert of elke ochtend de oven
+            aanzet: je website moet meewerken. En niet je avond opslokken.
           </p>
         </div>
-      </section>
-
-      {/* De oplossing */}
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <h2 className="font-display reveal text-center text-4xl sm:text-5xl font-semibold tracking-tight">
-          Zo werkt je website <span className="text-violet-700">vanaf nu</span>
-        </h2>
-        <p className="reveal mt-5 text-center text-lg text-stone-600 max-w-2xl mx-auto">
-          We zetten je site één keer over naar een moderne, veilige omgeving.
-          Daarna is aanpassen net zo makkelijk als een appje sturen.
-        </p>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {voordelen.map((v) => (
-            <div
-              key={v.kop}
-              className="reveal lift rounded-3xl border border-stone-200 bg-white p-8 shadow-sm"
-            >
-              <h3 className="text-lg font-bold">{v.kop}</h3>
-              <p className="mt-2 text-stone-600 leading-relaxed">{v.tekst}</p>
-            </div>
+        <div className="benefit-grid">
+          {[
+            [
+              "01",
+              "Zeg wat je wilt wijzigen",
+              "Geen blokken zoeken of je webbouwer mailen. Typ je vraag in gewone taal en de AI zet je wijziging klaar.",
+            ],
+            [
+              "02",
+              "Geen WordPress-onderhoud",
+              "Je website heeft geen WordPress-plugins of database meer. Hosting en SSL regelen we bij je koppeling.",
+            ],
+            [
+              "03",
+              "Jij houdt de controle",
+              "Bekijk elke wijziging eerst als voorbeeld. Pas na jouw akkoord gaat die live. Een eerdere versie terugzetten kan ook.",
+            ],
+          ].map(([n, t, d]) => (
+            <article className="benefit" key={n}>
+              <span className="number-tag">
+                {n === "01" ? "↗" : n === "02" ? "☀" : "✓"}
+              </span>
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </article>
           ))}
         </div>
-        <div className="reveal mt-8 rounded-3xl border-2 border-violet-200 bg-violet-50/50 p-8 sm:flex items-center justify-between gap-8">
-          <div>
-            <h3 className="font-display text-2xl font-semibold">
-              Wil je méér dan tekst en foto&apos;s?
-            </h3>
-            <p className="mt-2 text-stone-600 leading-relaxed max-w-2xl">
-              Een prijscalculator, een offerte-aanvrager, een boekingsformulier
-              — extra functies op je website zijn altijd bespreekbaar. En
-              doordat de AI het bouwwerk doet, kost dat een fractie van wat
-              maatwerk vroeger kostte.
-            </p>
-          </div>
-          <Link
-            href="/contact"
-            className="lift mt-5 sm:mt-0 inline-block shrink-0 rounded-full border-2 border-violet-600 px-6 py-3 font-semibold text-violet-700 hover:bg-violet-100"
-          >
-            Vraag ernaar
-          </Link>
-        </div>
       </section>
-
-      {/* WordPress heeft toch ook AI? */}
-      <section className="bg-[#f6f1e7] border-y border-stone-200">
-        <div className="mx-auto max-w-3xl px-6 py-20">
-          <h2 className="font-display reveal text-3xl sm:text-4xl font-semibold tracking-tight">
-            &ldquo;Maar WordPress heeft toch ook AI?&rdquo;
-          </h2>
-          <p className="reveal mt-5 text-stone-700 leading-relaxed text-lg">
-            Klopt — en het wordt steeds beter. WordPress.com heeft sinds begin
-            2026 een ingebouwde AI-assistent die teksten schrijft en je layout
-            aanpast, Jetpack AI helpt in de editor, en sommige hosters hebben
-            AI-hulpjes die zelfs plugins updaten.
-          </p>
-          <p className="reveal mt-4 text-stone-700 leading-relaxed text-lg">
-            Maar al die AI&apos;s werken <em>ín</em> de WordPress-machine — en
-            die machine zelf blijft draaien: updates, plugins, hosting,
-            back-ups en beveiligingsrisico&apos;s verdwijnen er niet door.
-            De slimste assistent van WordPress.com werkt bovendien alleen op
-            wordpress.com-abonnementen, niet op de eigen hosting waar de
-            meeste ondernemers zitten. En wijzigingen gaan er direct live —
-            zonder concept dat jij eerst goedkeurt.
-          </p>
-          <p className="reveal mt-4 text-stone-800 leading-relaxed text-lg font-medium">
-            Wij doen het andersom: wij halen de machine zelf weg. Geen
-            onderhoud, geen updates, niets te hacken — en elke wijziging zie
-            je eerst als concept voordat hij live gaat. De AI is niet een
-            hulpje in je CMS; hij ís je websitebeheerder. De rust is het
-            product.
-          </p>
-        </div>
-      </section>
-
-      {/* Nieuwe website (extra dienst) */}
-      <section className="mx-auto max-w-3xl px-6 py-24">
-        <div className="reveal rounded-3xl border border-stone-200 bg-white p-10 shadow-sm text-center">
-          <h2 className="font-display text-2xl sm:text-3xl font-semibold">
-            Liever een héle nieuwe website?
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-stone-600 leading-relaxed">
-            Kan ook. AI-ontwerp vanaf €250, of een uniek ontwerp door een
-            designer — altijd met de AI-beheerder erbij.
-          </p>
-          <Link
-            href="/nieuwe-website"
-            className="lift mt-6 inline-block rounded-full border-2 border-violet-600 px-7 py-3 font-semibold text-violet-700 hover:bg-violet-50"
-          >
-            Lees meer →
-          </Link>
-        </div>
-      </section>
-
-      {/* Persoonlijke noot — met echt gezicht zodra public/team/jos.webp bestaat */}
-      <section className="mx-auto max-w-3xl px-6 pb-24">
-        <div className="reveal rounded-3xl border border-violet-100 bg-violet-50/60 p-10">
-          {josFoto() && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={josFoto()!}
-              alt="Jos Klijnhout, oprichter van WordSwap"
-              width={112}
-              height={112}
-              className="mb-6 h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg"
-            />
-          )}
-          <p className="font-display text-2xl leading-snug text-stone-800">
-            &ldquo;Ik heb te veel ondernemers gezien die &apos;s avonds nog
-            zaten te worstelen met hun website, die niet durfden te klikken uit
-            angst iets kapot te maken, of elke maand betaalden voor iets dat
-            stilstond. Dat kan zoveel simpeler. Jij runt je bedrijf — je
-            website moet gewoon meewerken.&rdquo;
-          </p>
-          <p className="mt-6 font-semibold text-violet-700">
-            — Jos Klijnhout, oprichter WordSwap
-          </p>
-          {josVideoEmbed() && (
-            <div className="mt-8 overflow-hidden rounded-2xl shadow-lg" style={{ aspectRatio: "16/9" }}>
-              <iframe
-                src={josVideoEmbed()!}
-                title="Kennismaken met Jos van WordSwap"
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+      <section className="process-section">
+        <div className="shell section-space">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">DE OVERSTAP, ZONDER OMWEGEN</p>
+              <h2>
+                Wij regelen de verhuizing.
+                <br />
+                Jij kijkt of het klopt.
+              </h2>
             </div>
-          )}
-          <p className="mt-6 text-stone-600 leading-relaxed">
-            En gaat er tóch een keer iets fout? Dan geef je het gewoon door en
-            zet de AI het weer goed. Van elke versie van je website wordt
-            automatisch een back-up bewaard — je kunt altijd terug naar hoe het
-            was.
-          </p>
-        </div>
-      </section>
-
-      {/* Prijs-teaser + CTA */}
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="reveal rounded-[2.5rem] bg-violet-700 px-8 py-16 text-center text-white shadow-xl shadow-violet-200">
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-            Eén keer overstappen.
-            <br />
-            Voor altijd rust.
-          </h2>
-          <p className="mt-5 text-lg text-violet-100 max-w-xl mx-auto">
-            Eenmalig vanaf €150 voor de overstap (omzetten, SEO-behoud en
-            domeinkoppeling), daarna €5 tot €20 per maand voor de AI-koppeling —
-            afgestemd op hoe vaak je iets wijzigt.
-            E-mailmigratie kan er als aanvulling bij. Reken maar na: dat is al
-            snel minder dan wat je nu kwijt bent aan hosting en plugins.
-          </p>
-          <div className="mt-9 flex justify-center flex-wrap gap-4">
-            <Link
-              href="/contact"
-              className="lift rounded-full bg-white px-7 py-3.5 font-semibold text-violet-700"
-            >
-              Vrijblijvend kennismaken
+            <Link href="/hoe-het-werkt" className="button-text">
+              Zo pakken we het aan →
             </Link>
-            <Link
-              href="/prijzen"
-              className="lift rounded-full border-2 border-violet-400 px-7 py-3.5 font-semibold text-white hover:border-white"
-            >
-              Alle prijzen
-            </Link>
+          </div>
+          <div className="steps-grid">
+            {[
+              [
+                "1",
+                "Stuur je website",
+                "Jos bekijkt of je site geschikt is. Je krijgt een duidelijke prijs en weet vooraf wat er meegaat.",
+              ],
+              [
+                "2",
+                "Bekijk je nieuwe versie",
+                "We zetten je website over en laten je het resultaat zien. Niet tevreden met de kopie? Dan betaal je niets.",
+              ],
+              [
+                "3",
+                "Akkoord? We zetten hem live",
+                "We koppelen je domein, controleren de overstap en helpen je op weg met aanpassen via chat.",
+              ],
+            ].map(([n, t, d]) => (
+              <article key={n}>
+                <span className="step-number">{n}</span>
+                <h3>{t}</h3>
+                <p>{d}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
-    </>
+      <section className="section-space shell price-story">
+        <div>
+          <p className="eyebrow">KLEINE KOSTEN. GROOT VERSCHIL.</p>
+          <h2>
+            Meer grip op je website.
+            <br />
+            Ook op de kosten.
+          </h2>
+          <p className="section-intro">
+            Eenmalig overzetten. Daarna een maandbedrag voor hosting en de
+            AI-koppeling. Je weet vooraf waar je aan toe bent.
+          </p>
+          <Link className="button-text" href="/prijzen">
+            Bekijk wat inbegrepen is →
+          </Link>
+        </div>
+        <div className="price-card">
+          <span className="eyebrow">JE BESTAANDE WEBSITE OVERZETTEN</span>
+          <div className="price-amount">
+            <span>vanaf</span> €150<small>eenmalig</small>
+          </div>
+          <div className="price-month">
+            Daarna <strong>€5–€20 per maand</strong>, afhankelijk van gebruik.
+          </div>
+          <ul className="check-list">
+            <li>Je ontwerp en inhoud zorgvuldig overgenomen</li>
+            <li>Domeinkoppeling en SEO-structuur gecontroleerd</li>
+            <li>Wijzigingen eerst bekijken, dan publiceren</li>
+          </ul>
+          <Link className="button-primary" href="/contact">
+            Ontvang een prijs voor mijn site ↗
+          </Link>
+          <p className="fine-print">
+            Grotere of complexe sites: tot circa €650. Aanvullingen zoals
+            e-mailmigratie spreken we apart af.
+          </p>
+        </div>
+      </section>
+      <section className="shell founder-section">
+        <div className="founder-mark">
+          {foto ? (
+            <Image
+              src={foto}
+              alt="Jos Klijnhout, oprichter van WordSwap"
+              width={160}
+              height={160}
+              className="founder-photo"
+            />
+          ) : (
+            <span>
+              Hallo,
+              <br />
+              ik ben Jos.
+            </span>
+          )}
+          <p>
+            JOS KLIJNHOUT
+            <br />
+            <span>Oprichter van WordSwap</span>
+          </p>
+        </div>
+        <div>
+          <p className="eyebrow">TECHNIEK MAG PERSOONLIJK ZIJN</p>
+          <h2>
+            Je praat met slimme techniek.
+            <br />
+            En gewoon met mij.
+          </h2>
+          <p>
+            Ik heb te veel ondernemers gezien die ’s avonds nog met hun website
+            zaten te worstelen. Of hun webbouwer moesten bellen voor twee zinnen
+            tekst. Dat kan eenvoudiger. Ik help je met de overstap en kijk met
+            je mee. Je hoeft het niet allemaal zelf te weten.
+          </p>
+          <Link className="button-text" href="/over-wordswap">
+            Maak kennis met WordSwap →
+          </Link>
+        </div>
+      </section>
+      <section className="section-space shell faq-layout">
+        <div>
+          <p className="eyebrow">GOED OM TE WETEN</p>
+          <h2>Nog even dit.</h2>
+          <p>
+            Een overstap maak je niet elke dag.
+            <br />
+            Stel gerust je vragen.
+          </p>
+          <Link href="/contact" className="button-text">
+            Neem contact op →
+          </Link>
+        </div>
+        <div className="faq-list">
+          {faq.map(([q, a]) => (
+            <details key={q}>
+              <summary>
+                {q}
+                <span>+</span>
+              </summary>
+              <p>{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+      <section className="shell">
+        <div className="closing-cta">
+          <p className="eyebrow">DE EERSTE STAP IS ZO GEZET</p>
+          <h2>
+            Benieuwd of jouw website
+            <br />
+            ook eenvoudiger kan?
+          </h2>
+          <p>
+            Stuur je websiteadres. Je krijgt een eerlijk advies en een
+            duidelijke prijs.
+          </p>
+          <Link className="button-primary" href="/contact">
+            Laat mijn website gratis checken ↗
+          </Link>
+          <small>Geen verplichtingen. Wel duidelijkheid.</small>
+          <Image
+            src="/mascotte/zwaaiend.webp"
+            alt=""
+            width={170}
+            height={288}
+            className="closing-mascot"
+          />
+        </div>
+      </section>
+      <div className="new-site-note shell">
+        Nog geen website, of toe aan een nieuw ontwerp?{" "}
+        <Link href="/nieuwe-website">Een nieuwe website vanaf €250 →</Link>
+      </div>
+    </div>
   );
 }

@@ -29,7 +29,7 @@ export default function Bedankt() {
       <div className="mt-9 flex justify-center flex-wrap gap-4">
         <Link
           href="/demo"
-          className="lift rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+          className="lift rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
         >
           Probeer alvast de demo
         </Link>

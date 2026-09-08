@@ -5,17 +5,12 @@ import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
-import { Geist, Fraunces, EB_Garamond } from "next/font/google";
+import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const garamond = EB_Garamond({
-  variable: "--font-garamond",
   subsets: ["latin"],
 });
 
@@ -68,7 +63,11 @@ const jsonLd = {
       description:
         "WordSwap is een Nederlandse dienst die WordPress-websites omzet naar snelle, veilige websites zonder onderhoud. De eigenaar past de site daarna aan door in gewone taal te typen wat er anders moet; een AI voert het uit en de eigenaar keurt het goed vóór publicatie.",
       foundingDate: "2026",
-      founder: { "@type": "Person", name: "Jos Klijnhout", jobTitle: "Oprichter" },
+      founder: {
+        "@type": "Person",
+        name: "Jos Klijnhout",
+        jobTitle: "Oprichter",
+      },
       parentOrganization: {
         "@type": "Organization",
         name: "AI Backoffice (J.K. Klijnhout Holding B.V.)",
@@ -89,13 +88,33 @@ const jsonLd = {
       "@type": "Service",
       "@id": `${siteUrl}/#overstap`,
       name: "WordPress-website overzetten naar een website zonder onderhoud",
-      serviceType: "Websitemigratie van WordPress naar statische website met AI-beheer",
+      serviceType:
+        "Websitemigratie van WordPress naar statische website met AI-beheer",
       provider: { "@id": `${siteUrl}/#organisatie` },
       areaServed: "NL",
       offers: [
-        { "@type": "Offer", name: "Overstap kleine site", price: "150", priceCurrency: "EUR", description: "Eenmalig, no cure no pay" },
-        { "@type": "Offer", name: "Overstap grote of complexe site", price: "650", priceCurrency: "EUR", description: "Eenmalig, no cure no pay" },
-        { "@type": "Offer", name: "AI-koppeling (beheer via chat)", price: "5", priceCurrency: "EUR", description: "€5 tot €20 per maand, afgestemd op gebruik; maandelijks opzegbaar" },
+        {
+          "@type": "Offer",
+          name: "Overstap kleine site",
+          price: "150",
+          priceCurrency: "EUR",
+          description: "Eenmalig, no cure no pay",
+        },
+        {
+          "@type": "Offer",
+          name: "Overstap grote of complexe site",
+          price: "650",
+          priceCurrency: "EUR",
+          description: "Eenmalig, no cure no pay",
+        },
+        {
+          "@type": "Offer",
+          name: "AI-koppeling (beheer via chat)",
+          price: "5",
+          priceCurrency: "EUR",
+          description:
+            "€5 tot €20 per maand, afgestemd op gebruik; maandelijks opzegbaar",
+        },
       ],
     },
     {
@@ -105,8 +124,18 @@ const jsonLd = {
       provider: { "@id": `${siteUrl}/#organisatie` },
       areaServed: "NL",
       offers: [
-        { "@type": "Offer", name: "AI-ontwerp tot 8 pagina's", price: "250", priceCurrency: "EUR" },
-        { "@type": "Offer", name: "Ontwerp door een designer", price: "1750", priceCurrency: "EUR" },
+        {
+          "@type": "Offer",
+          name: "AI-ontwerp tot 8 pagina's",
+          price: "250",
+          priceCurrency: "EUR",
+        },
+        {
+          "@type": "Offer",
+          name: "Ontwerp door een designer",
+          price: "1750",
+          priceCurrency: "EUR",
+        },
       ],
     },
   ],
@@ -116,77 +145,124 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
   const isAdmin = user?.publicMetadata?.role === "admin";
   // Alles wat niet de echte productie-omgeving is, krijgt een duidelijke DEV-balk
-  const isDev = process.env.VERCEL_ENV !== "production";
+  const isDev =
+    process.env.NODE_ENV !== "production" ||
+    process.env.VERCEL_ENV !== "production";
   return (
     <html
       lang="nl"
-      className={`${geistSans.variable} ${fraunces.variable} ${garamond.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-zinc-900 font-[family-name:var(--font-geist-sans)]">
+      <body className="min-h-full flex flex-col text-zinc-900 font-[family-name:var(--font-geist-sans)]">
+        <a
+          href="#inhoud"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-10 focus:left-4 focus:z-[100] focus:bg-white focus:p-3"
+        >
+          Naar de inhoud
+        </a>
         {/* Analytics laadt pas na expliciete toestemming (zie CookieKeuze) */}
         {!isDev && <CookieKeuze />}
         <ClerkProvider localization={nlNL}>
           <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
           {isDev && (
-            <div className="sticky top-0 z-[60] bg-amber-400 text-amber-950 text-center text-xs font-bold uppercase tracking-widest py-1.5">
-              ⚠ Dev-omgeving — testversie, niet de echte site
+            <div className="sticky top-0 z-[60] bg-amber-400 text-amber-950 text-center text-[9px] sm:text-xs font-bold uppercase tracking-widest h-7 flex items-center justify-center px-2">
+              ⚠ Dev-omgeving — niet de live website
             </div>
           )}
-          <header className={`sticky ${isDev ? "top-7" : "top-0"} z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-lg`}>
-          <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
-          <Link href="/" aria-label="WordSwap home">
-          <Logo klein />
-          </Link>
-          <HeaderNav isAdmin={isAdmin} />
-          </div>
+          <header
+            className={`sticky ${isDev ? "top-7" : "top-0"} z-50 site-header`}
+          >
+            <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
+              <Link href="/" aria-label="WordSwap home">
+                <Logo klein />
+              </Link>
+              <HeaderNav isAdmin={isAdmin} />
+            </div>
           </header>
-          <main className="flex-1">{children}</main>
-          <footer className="border-t border-zinc-200 bg-zinc-50 text-zinc-500">
-          <div className="mx-auto max-w-6xl px-6 py-12">
-          <div className="flex flex-col sm:flex-row justify-between gap-8">
-          <div>
-          <p className="text-lg"><Logo klein /></p>
-          <p className="mt-2 text-sm max-w-xs">
-          Van WordPress-stress naar rust. Eén keer overzetten, daarna
-          aanpassen door het gewoon te vragen.
-          </p>
-          </div>
-          <nav className="flex flex-col gap-2 text-sm">
-          <Link href="/hoe-het-werkt" className="hover:text-violet-600">Hoe het werkt</Link>
-          <Link href="/over-wordswap" className="hover:text-violet-600">Over WordSwap</Link>
-          <Link href="/wordswap-vs-wordpress" className="hover:text-violet-600">WordSwap vs. WordPress</Link>
-          <Link href="/zelf-doen" className="hover:text-violet-600">Zelf doen</Link>
-          <Link href="/prijzen" className="hover:text-violet-600">Prijzen</Link>
-          <Link href="/nieuwe-website" className="hover:text-violet-600">Nieuwe website</Link>
-          <Link href="/wordpress-overzetten" className="hover:text-violet-600">WordPress overzetten</Link>
-          <Link href="/wordpress-alternatief" className="hover:text-violet-600">WordPress-alternatief</Link>
-          <Link href="/website-zonder-onderhoud" className="hover:text-violet-600">Website zonder onderhoud</Link>
-          <Link href="/website-zonder-cms" className="hover:text-violet-600">Website zonder CMS</Link>
-          <Link href="/wordpress-website-traag" className="hover:text-violet-600">Trage WordPress-site</Link>
-          <Link href="/wordpress-website-maken-met-ai" className="hover:text-violet-600">Website maken met AI</Link>
-          <Link href="/wordpress-omzetten-naar-gewone-website" className="hover:text-violet-600">WordPress omzetten</Link>
-          <Link href="/wordpress-aansturen-met-ai" className="hover:text-violet-600">Website aansturen met AI</Link>
-          <Link href="/website-koppelen-aan-ai" className="hover:text-violet-600">Website koppelen aan AI</Link>
-          <Link href="/wordpress-koppelen-aan-ai" className="hover:text-violet-600">WordPress koppelen aan AI</Link>
-          <Link href="/eigen-ai-koppelen" className="hover:text-violet-600">Koppel je eigen AI</Link>
-          <Link href="/wordpress-omzetten-snel-en-ai-vriendelijk" className="hover:text-violet-600">Snel &amp; AI-vriendelijk</Link>
-          <Link href="/veiligheid" className="hover:text-violet-600">Veiligheid</Link>
-          <Link href="/webinar" className="hover:text-violet-600">Gratis webinar</Link>
-          <Link href="/contact" className="hover:text-violet-600">Contact</Link>
-          <Link href="/privacy" className="hover:text-violet-600">Privacy</Link>
-          <Link href="/voorwaarden" className="hover:text-violet-600">Algemene voorwaarden</Link>
-          </nav>
-          </div>
-          <p className="mt-10 pt-6 border-t border-zinc-200 text-xs">
-          © {new Date().getFullYear()} WordSwap · van WordPress naar een website die doet wat je zegt
-          </p>
-          <p className="mt-2 text-xs text-zinc-400">
-          WordSwap is een dienst van AI Backoffice (J.K. Klijnhout Holding B.V.) · KvK 09190650 · Lebretweg 72, 6861 ZZ Oosterbeek · info@aibackoffice.nl
-          </p>
-          </div>
+          <main id="inhoud" className="flex-1">
+            {children}
+          </main>
+          <footer className="site-footer">
+            <div className="shell footer-grid">
+              <div>
+                <Link href="/" aria-label="WordSwap home">
+                  <Logo klein />
+                </Link>
+                <p>
+                  Je website blijft. Het gedoe verdwijnt.
+                  <br />
+                  Persoonlijk geregeld vanuit Oosterbeek.
+                </p>
+                <p>
+                  <a href="mailto:info@wordswap.nl">info@wordswap.nl ↗</a>
+                </p>
+              </div>
+              <nav aria-label="Ontdek WordSwap">
+                <h3>Ontdek WordSwap</h3>
+                <Link href="/hoe-het-werkt">Hoe het werkt</Link>
+                <Link href="/prijzen">Prijzen</Link>
+                <Link href="/demo">Probeer de demo</Link>
+                <Link href="/nieuwe-website">Nieuwe website</Link>
+              </nav>
+              <nav aria-label="Meer weten">
+                <h3>Goed om te weten</h3>
+                <Link href="/wordswap-vs-wordpress">
+                  WordSwap vs. WordPress
+                </Link>
+                <Link href="/veiligheid">Veiligheid & controle</Link>
+                <Link href="/eigen-ai-koppelen">Je eigen AI koppelen</Link>
+                <Link href="/zelf-doen">Zelf aan de slag</Link>
+              </nav>
+              <nav aria-label="Over ons">
+                <h3>Een echt mens erachter</h3>
+                <Link href="/over-wordswap">Over WordSwap</Link>
+                <Link href="/contact">Gratis websitecheck</Link>
+                <Link href="/webinar">Gratis webinar</Link>
+                <Link href="/portal">Mijn website</Link>
+              </nav>
+            </div>
+            <details className="shell footer-resources">
+              <summary>Meer over eenvoudiger websitebeheer</summary>
+              <nav>
+                {[
+                  ["wordpress-overzetten", "WordPress overzetten"],
+                  ["wordpress-alternatief", "WordPress-alternatief"],
+                  ["website-zonder-onderhoud", "Zonder onderhoud"],
+                  ["website-zonder-cms", "Zonder CMS"],
+                  ["wordpress-website-traag", "Trage website"],
+                  ["wordpress-website-maken-met-ai", "Website maken met AI"],
+                  [
+                    "wordpress-omzetten-naar-gewone-website",
+                    "WordPress omzetten",
+                  ],
+                  ["wordpress-aansturen-met-ai", "Aansturen met AI"],
+                  ["website-koppelen-aan-ai", "Website koppelen aan AI"],
+                  ["wordpress-koppelen-aan-ai", "WordPress en AI"],
+                  [
+                    "wordpress-omzetten-snel-en-ai-vriendelijk",
+                    "Snel & AI-vriendelijk",
+                  ],
+                ].map(([slug, label]) => (
+                  <Link key={slug} href={`/${slug}`}>
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </details>
+            <div className="shell footer-bottom">
+              <span>
+                © {new Date().getFullYear()} WordSwap · AI Backoffice · KvK
+                09190650
+              </span>
+              <span>
+                <Link href="/privacy">Privacy</Link> ·{" "}
+                <Link href="/voorwaarden">Voorwaarden</Link> · Oosterbeek,
+                Nederland
+              </span>
+            </div>
           </footer>
         </ClerkProvider>
       </body>

@@ -36,13 +36,13 @@ export default function NieuweWebsite() {
     <>
       <div className="mx-auto max-w-4xl px-6 pt-20">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          Extra dienst — naast de WordPress-overstap
+          EEN FRISSE START
         </p>
         <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
-          Liever een héle nieuwe website? Kan ook.
+          Een nieuwe website. Klaar voor jouw plannen.
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Nog geen website, of is je huidige site niet meer te redden? Wij
+          Nog geen website, of toe aan een nieuwe uitstraling? Wij
           bouwen hem opnieuw — snel, zonder WordPress, en altijd met de
           AI-beheerder erbij zodat je hem daarna zelf kunt aanpassen door het
           gewoon te typen.
@@ -51,7 +51,7 @@ export default function NieuweWebsite() {
 
       {/* Twee smaken */}
       <div className="mx-auto max-w-4xl px-6 py-12 grid gap-6 sm:grid-cols-2">
-        <div className="reveal rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-8">
+        <div className="reveal rounded-xl border-2 border-violet-600 bg-violet-50/40 p-8">
           <h2 className="font-display text-xl font-semibold">AI-ontwerp</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
             vanaf €250{" "}
@@ -79,7 +79,7 @@ export default function NieuweWebsite() {
             ))}
           </ul>
         </div>
-        <div className="reveal rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+        <div className="reveal rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
           <h2 className="font-display text-xl font-semibold">
             Ontwerp door een designer
           </h2>
@@ -126,7 +126,7 @@ export default function NieuweWebsite() {
         <div className="mt-6 grid gap-6 sm:grid-cols-3">
           {stappen.map((s) => (
             <div key={s.nr} className="reveal">
-              <span className="font-display flex h-10 w-10 items-center justify-center rounded-full bg-violet-700 text-white font-semibold">
+              <span className="font-display flex h-10 w-10 items-center justify-center rounded-lg bg-violet-700 text-white font-semibold">
                 {s.nr}
               </span>
               <h3 className="mt-3 font-semibold">{s.kop}</h3>
@@ -139,7 +139,7 @@ export default function NieuweWebsite() {
       </div>
 
       {/* Intake */}
-      <div className="bg-[#f6f1e7] border-y border-stone-200">
+      <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-2xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Start de intake
@@ -151,7 +151,7 @@ export default function NieuweWebsite() {
           <form
             method="POST"
             action="/api/formulier"
-            className="mt-8 space-y-4 rounded-3xl border border-stone-200 bg-white p-7 shadow-sm"
+            className="mt-8 space-y-4 rounded-xl border border-stone-200 bg-white p-7 shadow-sm"
           >
             <input type="hidden" name="_site" value="wordswap" />
             <input type="hidden" name="_formulier" value="nieuwe-website" />
@@ -195,7 +195,7 @@ export default function NieuweWebsite() {
             </label>
             <button
               type="submit"
-              className="lift rounded-full bg-violet-700 px-7 py-3 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600 cursor-pointer"
+              className="lift rounded-lg bg-violet-700 px-7 py-3 font-semibold text-white shadow-sm hover:bg-violet-600 cursor-pointer"
             >
               Verstuur intake →
             </button>

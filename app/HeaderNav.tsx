@@ -8,8 +8,7 @@ const links = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
   { href: "/demo", label: "Demo" },
-  { href: "/webinar", label: "Webinar" },
-  { href: "/contact", label: "Contact" },
+  { href: "/over-wordswap", label: "Over ons" },
 ];
 
 export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
@@ -18,7 +17,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
       {/* Desktop */}
-      <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
+      <nav className="hidden lg:flex items-center gap-3 text-sm font-medium">
         {links.map((item) => (
           <Link
             key={item.href}
@@ -30,9 +29,9 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
         ))}
         <Link
           href="/contact"
-          className="rounded-full bg-violet-600 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
+          className="rounded-lg bg-violet-700 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
         >
-          Kennismaken
+          Gratis websitecheck ↗
         </Link>
         <Show when="signed-out">
           <SignInButton mode="modal">
@@ -61,7 +60,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
       </nav>
 
       {/* Mobiel */}
-      <div className="flex sm:hidden items-center gap-3">
+      <div className="flex lg:hidden items-center gap-3">
         <Show when="signed-in">
           <UserButton />
         </Show>
@@ -92,7 +91,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-20 z-50 sm:hidden border-b border-zinc-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-20 z-50 lg:hidden border-b border-zinc-200 bg-white shadow-lg">
           <nav className="flex flex-col p-4 gap-1 text-base font-medium">
             {links.map((item) => (
               <Link
@@ -132,9 +131,9 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
             <Link
               href="/contact"
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-violet-600 px-4 py-3 text-center text-white"
+              className="mt-2 rounded-lg bg-violet-700 px-4 py-3 text-center text-white"
             >
-              Kennismaken
+              Gratis websitecheck ↗
             </Link>
           </nav>
         </div>

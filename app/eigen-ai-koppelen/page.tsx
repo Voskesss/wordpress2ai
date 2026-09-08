@@ -46,10 +46,10 @@ export default function EigenAiKoppelen() {
 
       <div className="mt-10 space-y-5">
         {routes.map((r) => (
-          <div key={r.kop} className="rounded-3xl border border-stone-200 bg-white p-7">
+          <div key={r.kop} className="rounded-xl border border-stone-200 bg-white p-7">
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="font-display text-xl font-semibold">{r.kop}</h2>
-              <span className="rounded-full bg-violet-50 border border-violet-200 px-3 py-1 text-xs font-medium text-violet-700">
+              <span className="rounded-lg bg-violet-50 border border-violet-200 px-3 py-1 text-xs font-medium text-violet-700">
                 {r.badge}
               </span>
             </div>
@@ -58,7 +58,7 @@ export default function EigenAiKoppelen() {
         ))}
       </div>
 
-      <div className="mt-10 rounded-3xl bg-violet-700 p-8 text-white">
+      <div className="mt-10 rounded-xl bg-violet-700 p-8 text-white">
         <h2 className="font-display text-2xl font-semibold">Waarom dit bij ons kan</h2>
         <p className="mt-3 leading-relaxed text-violet-100">
           Omdat een WordSwap-site geen draaiend systeem is maar platte, snelle

@@ -8,55 +8,25 @@ export const metadata: Metadata = {
 };
 
 const stappen = [
-  {
-    titel: "We kijken samen naar je huidige site",
-    tekst:
-      "In een korte kennismaking lopen we door je website: welke pagina's heb je, wat moet er mee, wat mag weg? Je krijgt meteen duidelijkheid over de prijs — geen verrassingen achteraf.",
-  },
-  {
-    titel: "E-mail checken en veiligstellen",
-    tekst:
-      "We checken eerst waar je e-mail draait. Zit die bij je oude WordPress-hosting in het pakket, dan verhuizen we die eerst naar een aparte e-mailprovider, zodat je mail blijft werken als de oude hosting stopt. Draait je mail al ergens anders (zoals Microsoft 365 of Google Workspace)? Dan hoeft hier niets te gebeuren.",
-  },
-  {
-    titel: "We nemen al je content over",
-    tekst:
-      "Alle teksten, pagina's en afbeeldingen halen we uit je WordPress-site. Het enige dat we van jou nodig hebben is even toegang: je maakt in WordPress een export (twee klikken — we sturen je een korte uitleg, of je geeft ons tijdelijk een inlog en wij doen het). Verder hoef je niets aan te leveren. Ook je contactformulier bouwen we mee, dat zit gewoon in de prijs.",
-  },
-  {
-    titel: "Je vindbaarheid in Google blijft behouden",
-    tekst:
-      "We leggen je huidige adressen (URL's) vast en zorgen dat ze blijven werken of netjes doorverwijzen. Je sitemap, paginatitels en beschrijvingen nemen we mee. Zo raak je je positie in Google niet kwijt — vaak word je zelfs beter vindbaar, omdat de nieuwe site veel sneller laadt.",
-  },
-  {
-    titel: "We bouwen je site opnieuw — sneller en veiliger",
-    tekst:
-      "Je site wordt opnieuw opgebouwd als moderne, razendsnelle website — een 95%-kopie van wat je nu hebt. In 2 van de 3 gevallen kunnen we alles exact overzetten; soms zijn speciale plugins, hero-video's of sliders wat lastiger, maar wij doen er alles aan om zelfs die identiek over te zetten. Het grote verschil zit onder de motorkap: geen plugins, geen database, niets dat gehackt of geüpdatet moet worden. Niet alles past in deze aanpak: webshops (zoals WooCommerce), ledenportalen met inlog, boekings-/reserveringssystemen met live agenda en cursusplatforms kunnen we niet overzetten — die hebben een draaiende machine nodig. Gewone bedrijfssites met pagina's, blog, foto's en formulieren — verreweg de meeste sites van ondernemers en kleine teams — juist wél. En het is no cure, no pay: je ziet eerst de complete kopie, en alleen als jij tevreden bent betaal je — anders zie je er kosteloos vanaf.",
-  },
-  {
-    titel: "Live zetten en nauwkeurig controleren",
-    tekst:
-      "We zetten je domeinnaam om, dienen de nieuwe sitemap in bij Google en houden de eerste weken in de gaten of alles goed doorkomt. Pas als alles klopt, zeggen we de oude hosting op.",
-  },
-  {
-    titel: "Vanaf nu: aanpassen via chat",
-    tekst:
-      "Je krijgt toegang tot je eigen omgeving met een chat. Typ wat je wilt — “zet ons nieuwe telefoonnummer op de contactpagina”, “vervang de foto op de homepage” — en de AI zet het voor je klaar.",
-  },
+  { titel: "Eerst kijken we of het past", tekst: "Stuur je websiteadres. Jos bekijkt je pagina’s en functies en geeft je een duidelijke prijs. Bedrijfssites, blogs en formulieren passen goed. Webshops en ledenportalen zetten we niet over; externe boekingswidgets beoordelen we vooraf." },
+  { titel: "We nemen je website zorgvuldig over", tekst: "Je teksten, afbeeldingen en bestaande ontwerp vormen het uitgangspunt. We controleren ook je domein, e-mail en de adressen van je pagina’s. Als e-mailmigratie nodig is, bespreken we de aanvullende kosten vooraf." },
+  { titel: "Je ziet het resultaat vóór je beslist", tekst: "Bekijk de kopie en geef je feedback. Bijzondere functies kunnen anders werken; dat bespreken we met je. Niet tevreden met de kopie? Dan zie je kosteloos af van de overstap." },
+  { titel: "Na jouw akkoord zetten we alles klaar", tekst: "We koppelen je domein, controleren formulieren en richten eventuele doorverwijzingen in. Je paginatitels, beschrijvingen en sitemap gaan mee. Posities in Google zijn afhankelijk van meer factoren en kunnen we niet garanderen." },
+  { titel: "Vanaf nu vraag je het gewoon", tekst: "Je krijgt toegang tot je website-assistent. Beschrijf je wijziging, bekijk het voorbeeld en publiceer wanneer jij tevreden bent. Een vorige versie terugzetten kan ook." },
 ];
 
 const faq = [
   [
     "Kan de AI mijn site per ongeluk slopen?",
-    "Nee. De AI werkt altijd eerst in een concept-versie. Jij ziet het resultaat vóórdat het live gaat, en alleen jij kunt publiceren. Bovendien bewaren we de complete geschiedenis van je site — elke eerdere versie kan altijd worden teruggezet.",
+    "De AI kan fouten maken. Daarom werkt die altijd eerst in een concept-versie. Jij ziet het resultaat vóórdat het live gaat, en alleen jij kunt publiceren. Bovendien bewaren we de complete geschiedenis van je site — elke eerdere versie kan altijd worden teruggezet.",
   ],
   [
     "Wat gebeurt er met mijn positie in Google?",
-    "Die nemen we serieus mee in de overstap: alle bestaande adressen blijven werken of verwijzen netjes door, en we melden de nieuwe site aan bij Google. Doordat je site veel sneller wordt, verbetert je vindbaarheid vaak juist.",
+    "Die nemen we serieus mee in de overstap: alle bestaande adressen blijven werken of verwijzen netjes door, en we melden de nieuwe site aan bij Google. Je positie in Google kunnen we niet garanderen.",
   ],
   [
     "Ik heb een formulier / boekingssysteem / webshop op mijn site",
-    "Een contactformulier zit standaard in de overstap, en een bestaand boekings- of afsprakensysteem nemen we gewoon mee. Voor ander maatwerk maken we een aparte offerte. Webshops en ledenportalen met inlog zetten we niet over.",
+    "Een contactformulier zit standaard in de overstap, en externe boekingswidgets bekijken we per site. Voor ander maatwerk maken we een aparte offerte. Webshops en ledenportalen met inlog zetten we niet over.",
   ],
   [
     "Kan ik nog zelf bij mijn site?",
@@ -81,12 +51,10 @@ export default function HoeHetWerkt() {
       <div className="mx-auto max-w-3xl px-6 pt-20 pb-4 sm:flex sm:items-center sm:gap-8">
         <div className="min-w-0">
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-            Hoe het werkt
+            Van overstappen naar eenvoudig aanpassen.
           </h1>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-            Eén zorgvuldige overstap, daarna nooit meer onderhoud. We nemen je
-            hele site over — inclusief e-mail en je vindbaarheid in Google — en
-            jij houdt de regie. Zo pakken we het aan:
+            Wij verzorgen de overstap, jij houdt de regie. Je weet vooraf wat het kost en ziet het resultaat voordat je beslist. Daarna beheer je je website via chat.
           </p>
         </div>
       </div>
@@ -95,7 +63,7 @@ export default function HoeHetWerkt() {
         <ol className="space-y-10">
           {stappen.map((stap, i) => (
             <li key={stap.titel} className="reveal flex gap-5">
-              <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-700 text-white font-semibold text-lg">
+              <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-700 text-white font-semibold text-lg">
                 {i + 1}
               </span>
               <div>
@@ -111,7 +79,7 @@ export default function HoeHetWerkt() {
         </ol>
       </div>
 
-      <div className="bg-[#f6f1e7] border-y border-stone-200">
+      <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-3xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Eerst zien, dan live
@@ -155,9 +123,9 @@ export default function HoeHetWerkt() {
         <div className="mt-12">
           <Link
             href="/contact"
-            className="lift inline-block rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift inline-block rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
-            Vrijblijvend kennismaken
+            Laat mijn website gratis checken
           </Link>
         </div>
       </div>

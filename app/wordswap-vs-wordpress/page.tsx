@@ -45,7 +45,7 @@ export default function Vergelijking() {
         snelle bestanden en laat een AI het beheer doen op jouw aanwijzing.
       </p>
 
-      <div className="mt-10 overflow-x-auto rounded-3xl border border-stone-200 bg-white">
+      <div className="mt-10 overflow-x-auto rounded-xl border border-stone-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-stone-50 text-left">
             <tr>
@@ -77,7 +77,7 @@ export default function Vergelijking() {
       </div>
 
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/contact" className="rounded-full bg-violet-700 px-6 py-3 font-semibold text-white hover:bg-violet-600">Gratis site-check</Link>
+        <Link href="/contact" className="rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white hover:bg-violet-600">Gratis site-check</Link>
         <Link href="/demo" className="rounded-full border border-stone-300 px-6 py-3 font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700">Probeer de demo</Link>
       </div>
     </div>

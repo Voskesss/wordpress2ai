@@ -92,7 +92,7 @@ export default async function Webinar() {
           </div>
           <a
             href="#inschrijven"
-            className="lift mt-8 inline-block rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+            className="lift mt-8 inline-block rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
             Meld je gratis aan
           </a>
@@ -111,7 +111,7 @@ export default async function Webinar() {
         ))}
       </ul>
 
-      <div id="inschrijven" className="mx-auto mt-10 max-w-3xl scroll-mt-24 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+      <div id="inschrijven" className="mx-auto mt-10 max-w-3xl scroll-mt-24 rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
         {komende.length === 0 ? (
           <div className="text-center">
             <h2 className="font-display text-2xl font-semibold">
@@ -173,7 +173,7 @@ export default async function Webinar() {
 
               <button
                 type="submit"
-                className="lift w-full rounded-full bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+                className="lift w-full rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
               >
                 Ja, ik doe mee — reserveer mijn plek
               </button>

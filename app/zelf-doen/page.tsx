@@ -112,7 +112,7 @@ export default function ZelfDoen() {
         <ol className="space-y-10">
           {stappen.map((stap, i) => (
             <li key={stap.titel} className="reveal flex gap-5">
-              <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-700 text-white font-semibold text-lg">
+              <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-700 text-white font-semibold text-lg">
                 {i + 1}
               </span>
               <div className="min-w-0">
@@ -143,7 +143,7 @@ export default function ZelfDoen() {
       </div>
 
       <div className="mx-auto max-w-3xl px-6 pb-12">
-        <div className="rounded-3xl border-2 border-violet-200 bg-violet-50/50 p-8">
+        <div className="rounded-xl border-2 border-violet-200 bg-violet-50/50 p-8">
           <h2 className="font-display text-2xl font-semibold tracking-tight">
             📦 Download onze migratie-skill voor Claude
           </h2>
@@ -158,7 +158,7 @@ export default function ZelfDoen() {
           <a
             href="/downloads/wordpress-migratie-skill.md"
             download
-            className="lift mt-5 inline-block rounded-full bg-violet-700 px-6 py-3 font-semibold text-white hover:bg-violet-600"
+            className="lift mt-5 inline-block rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white hover:bg-violet-600"
           >
             Download de skill (gratis, markdown)
           </a>
@@ -169,7 +169,7 @@ export default function ZelfDoen() {
         </div>
       </div>
 
-      <div className="bg-[#f6f1e7] border-y border-stone-200">
+      <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-3xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">
             Eerlijk opgeteld
@@ -193,7 +193,7 @@ export default function ZelfDoen() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/contact"
-              className="rounded-full bg-violet-700 px-6 py-3 text-white font-semibold hover:bg-violet-600"
+              className="rounded-lg bg-violet-700 px-6 py-3 text-white font-semibold hover:bg-violet-600"
             >
               Toch liever laten doen
             </Link>
