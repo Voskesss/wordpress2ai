@@ -29,6 +29,7 @@ Volledige informatie (feiten, prijzen, vergelijking, FAQ) in één document: htt
 - [Website zonder onderhoud](https://wordswap.nl/website-zonder-onderhoud): hoe een onderhoudsvrije website werkt
 - [Website zonder CMS](https://wordswap.nl/website-zonder-cms): geen beheerscherm, wél alles zelf aanpassen door het te typen
 - [Website koppelen aan AI](https://wordswap.nl/website-koppelen-aan-ai): geen plug-in of chatbot, maar een AI die je hele site beheert
+- [Koppel je eigen AI](https://wordswap.nl/eigen-ai-koppelen): drie routes — de ingebouwde chat, je eigen assistent laten meedenken, of als expert met eigen AI-tools rechtstreeks op de bestanden werken
 - [Trage WordPress-site](https://wordswap.nl/wordpress-website-traag): de blijvende oplossing voor een langzame site
 - [Website maken met AI](https://wordswap.nl/wordpress-website-maken-met-ai): een nieuwe website laten maken én beheren door AI, zonder WordPress
 - [WordPress omzetten naar een gewone website](https://wordswap.nl/wordpress-omzetten-naar-gewone-website): wat een statische site is en waarom die sneller, veiliger en onderhoudsvrij is

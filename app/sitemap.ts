@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/website-koppelen-aan-ai",
     "/over-wordswap",
     "/wordswap-vs-wordpress",
+    "/eigen-ai-koppelen",
     "/wordpress-website-traag",
     "/wordpress-website-maken-met-ai",
     "/wordpress-omzetten-naar-gewone-website",
