@@ -32,6 +32,8 @@ export const sites = pgTable("sites", {
   // Video-uploads via de chat: hoeveel al gebruikt en hoeveel er in het pakket zitten
   videoUploads: integer("video_uploads").notNull().default(0),
   videoLimiet: integer("video_limiet").notNull().default(10),
+  // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de admin.
+  aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(5),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),

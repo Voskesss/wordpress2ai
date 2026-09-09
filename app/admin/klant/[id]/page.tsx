@@ -16,6 +16,7 @@ import {
   bewaarSite,
   bewaarSmtp,
   bewaarVideoLimiet,
+  bewaarAiBudget,
   siteResetten,
   sjabloonVastleggen,
   herstelVersie,
@@ -532,6 +533,25 @@ export default async function KlantDetail({
           <label className="block text-sm font-semibold">
             Limiet
             <input name="limiet" type="number" min={0} defaultValue={site.videoLimiet} className={`${invoerStijl} w-28`} />
+          </label>
+          <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+      </div>
+
+      {/* AI-maandbudget */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">🤖 AI-maandbudget</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Deze maand verbruikt: <strong>{usd(kostenDezeMaand)}</strong> van maximaal{" "}
+          <strong>${site.aiMaandbudgetUsd}</strong>. Loopt de klant hier tegenaan,
+          dan zegt de chat dat de AI-gebruiksruimte op is en verwijst hij naar jou.
+          Verhoog het budget hier (hele dollars).
+        </p>
+        <form action={bewaarAiBudget} className="mt-3 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            Budget ($/maand)
+            <input name="budget" type="number" min={1} max={1000} defaultValue={site.aiMaandbudgetUsd} className={`${invoerStijl} w-28`} />
           </label>
           <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>

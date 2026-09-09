@@ -644,6 +644,16 @@ export async function bewaarVideoLimiet(formData: FormData) {
 }
 
 
+export async function bewaarAiBudget(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const budget = Number(formData.get("budget"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(budget) || budget < 1 || budget > 1000) return;
+  await db.update(sites).set({ aiMaandbudgetUsd: budget }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+
 /** Sjabloon vastleggen: de huidige live-versie (main) wordt het punt waarnaar
  * "Reset naar sjabloon" terugzet. Handig voor demo-/webinarsites. */
 export async function sjabloonVastleggen(formData: FormData) {

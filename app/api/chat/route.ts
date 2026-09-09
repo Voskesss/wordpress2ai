@@ -278,7 +278,7 @@ export async function POST(req: Request) {
     }
 
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
-    const monthlyBudgetUsd = site.isDemo ? 1 : 5;
+    const monthlyBudgetUsd = site.isDemo ? 1 : site.aiMaandbudgetUsd;
     if (
       !(await reserveAiBudget(scope, requestBudgetUsd, monthlyBudgetUsd, maand))
     ) {
