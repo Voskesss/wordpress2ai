@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { josFoto } from "@/lib/persoonlijk";
 
 export default function PersoonlijkBlok({ hero = false }: { hero?: boolean }) {
+  const foto = josFoto();
   return (
     <aside
       className={
@@ -8,6 +10,12 @@ export default function PersoonlijkBlok({ hero = false }: { hero?: boolean }) {
       }
       aria-label="Je aanspreekpunt bij WordSwap"
     >
+      {foto && (
+        <div className="personal-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={foto} alt="Jos Klijnhout, oprichter van WordSwap" />
+        </div>
+      )}
       <div className="personal-caption">
         <div>
           <strong>Jos Klijnhout</strong>
