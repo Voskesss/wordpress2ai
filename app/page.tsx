@@ -1,7 +1,6 @@
+import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import ProductPreview from "./ProductPreview";
-import { josFoto } from "@/lib/persoonlijk";
-import Image from "next/image";
 import { aankoopVragen } from "@/lib/aanbod";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
 };
 const faq = aankoopVragen;
 export default function Home() {
-  const foto = josFoto();
   return (
     <div className="marketing-home">
       <script
@@ -32,26 +30,23 @@ export default function Home() {
       <section className="home-hero shell">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="status-dot" /> JE BESTAANDE WEBSITE. EEN
-            MAKKELIJKER VERVOLG.
+            <span className="status-dot" /> WORDPRESS OVERZETTEN. VERDER MET AI.
           </p>
           <h1>
-            Je website blijft
+            Je WordPress-site.
             <br />
-            herkenbaar.
-            <br />
-            <em>Bijhouden doe je met AI.</em>
+            <em>
+              Straks bij te houden
+              <br className="hero-desktop-break" /> met AI.
+            </em>
           </h1>
           <p className="hero-intro">
-            Wij zetten je bestaande WordPress-website over, met je ontwerp,
-            pagina-adressen, structuur, titels en meta-informatie als
-            uitgangspunt. Daarna wijzig je teksten, foto’s en pagina’s gewoon
-            via de AI-chat.
+            Wij zetten je bestaande website over en nemen je ontwerp,
+            pagina-adressen en SEO-instellingen zorgvuldig mee.
           </p>
           <p className="hero-definition">
-            Eerst nemen we zorgvuldig over wat je hebt opgebouwd. Daarna houd je
-            zelf je website actueel: voorstel bekijken, akkoord geven,
-            publiceren.
+            Daarna pas je teksten en foto’s aan door te vertellen wat je wilt.
+            Eerst bekijken. Dan pas live. Met persoonlijke hulp van Jos.
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
@@ -64,15 +59,6 @@ export default function Home() {
           <p className="hero-assurance">
             Gratis en vrijblijvend · Antwoord binnen één werkdag
           </p>
-          <Link href="/over-wordswap" className="hero-person">
-            {foto && (
-              <Image src={foto} alt="Jos Klijnhout" width={52} height={52} />
-            )}
-            <span>
-              <strong>Hoi, ik ben Jos.</strong> Ik kijk persoonlijk met je mee.
-            </span>
-            <span aria-hidden="true">↗</span>
-          </Link>
           <div className="hero-price">
             <span>
               Overstappen vanaf <strong>€150 eenmalig</strong>
@@ -83,12 +69,7 @@ export default function Home() {
             <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
           </div>
         </div>
-        <div className="hero-product" id="zo-werkt-aanpassen">
-          <p className="hand-note">
-            Ja, zo makkelijk mag het zijn. <span aria-hidden="true">↘</span>
-          </p>
-          <ProductPreview />
-        </div>
+        <OverstapVisual />
       </section>
       <div className="trust-strip">
         <div className="shell">
@@ -333,23 +314,37 @@ export default function Home() {
           </p>
         </div>
       </section>
+      <section
+        className="shell service-demo section-space"
+        id="zo-werkt-aanpassen"
+      >
+        <div>
+          <p className="eyebrow">ALS DE OVERSTAP GEREGELD IS</p>
+          <h2>
+            Een nieuwe foto.
+            <br />
+            Andere openingstijden.
+            <br />
+            Dat regel je voortaan zelf.
+          </h2>
+          <p className="section-intro">
+            Je hoeft voor een kleine aanpassing niet opnieuw je website te leren
+            bouwen. Geef je wijziging door in de chat, bekijk het voorstel en
+            publiceer wanneer het klopt.
+          </p>
+          <Link href="/demo" className="button-text">
+            Bekijk hoe het bijhouden werkt →
+          </Link>
+        </div>
+        <ProductPreview />
+      </section>
       <section className="shell founder-section">
         <div className="founder-mark">
-          {foto ? (
-            <Image
-              src={foto}
-              alt="Jos Klijnhout, oprichter van WordSwap"
-              width={160}
-              height={160}
-              className="founder-photo"
-            />
-          ) : (
-            <span>
-              Hallo,
-              <br />
-              ik ben Jos.
-            </span>
-          )}
+          <span>
+            Gewoon
+            <br />
+            persoonlijk.
+          </span>
           <p>
             JOS KLIJNHOUT
             <br />
@@ -359,15 +354,15 @@ export default function Home() {
         <div>
           <p className="eyebrow">TECHNIEK MAG PERSOONLIJK ZIJN</p>
           <h2>
-            Je praat met slimme techniek.
+            Je website is belangrijk.
             <br />
-            En gewoon met mij.
+            Daar mag je iemand bij kennen.
           </h2>
           <p>
-            Ik heb te veel ondernemers gezien die ’s avonds nog met hun website
-            zaten te worstelen. Of hun webbouwer moesten bellen voor twee zinnen
-            tekst. Dat kan eenvoudiger. Ik help je met de overstap en kijk met
-            je mee. Je hoeft het niet allemaal zelf te weten.
+            Je wilt bezig zijn met je bedrijf. Een tekst aanpassen of je
+            openingstijden bijwerken moet daarom eenvoudig zijn. Ik help je met
+            de overstap en kijk met je mee. Je hoeft het niet allemaal zelf te
+            weten.
           </p>
           <Link className="button-text" href="/over-wordswap">
             Maak kennis met WordSwap →
@@ -415,13 +410,6 @@ export default function Home() {
             Laat mijn website gratis checken ↗
           </Link>
           <small>Geen verplichtingen. Wel duidelijkheid.</small>
-          <Image
-            src="/mascotte/zwaaiend.webp"
-            alt=""
-            width={170}
-            height={288}
-            className="closing-mascot"
-          />
         </div>
       </section>
       <div className="new-site-note shell">

@@ -31,7 +31,7 @@ export default function Pagina() {
           {
             kop: "En daarna wijzig je alles via chat",
             tekst:
-              "Dit is het echte verschil: na de oplevering blijf je de AI gewoon opdrachten geven. Nieuwe pagina, andere openingstijden, een actiebanner — je typt het, bekijkt het voorbeeld en keurt het goed. Elke wijziging wordt als versie bewaard, dus terugdraaien kan altijd.",
+              "Dit is het echte verschil: na de oplevering blijf je de AI gewoon opdrachten geven. Nieuwe pagina, andere openingstijden, een actiebanner — je typt het, bekijkt het voorbeeld en keurt het goed. Elke wijziging wordt als versie bewaard, dus een eerdere versie herstellen is mogelijk.",
           },
           {
             kop: "Heb je al een WordPress-site?",

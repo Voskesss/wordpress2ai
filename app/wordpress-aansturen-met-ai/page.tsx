@@ -48,7 +48,7 @@ export default function Pagina() {
           {
             vraag: "Wat als de AI iets verkeerd doet?",
             antwoord:
-              "Niets gaat live zonder jouw akkoord — je ziet elke wijziging eerst als voorbeeld. En elke gepubliceerde versie wordt bewaard, dus terugdraaien kan altijd, met één opdracht.",
+              "Niets gaat live zonder jouw akkoord — je ziet elke wijziging eerst als voorbeeld. En elke gepubliceerde versie wordt bewaard, dus een eerdere versie herstellen is mogelijk. We controleren of het herstel ook goed is gepubliceerd.",
           },
           {
             vraag: "Moet ik hiervoor mijn WordPress-site opgeven?",

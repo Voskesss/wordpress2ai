@@ -16,12 +16,12 @@ export default function Pagina() {
         label: "WordPress omzetten",
         titel: "WordPress omzetten naar een gewone website — zo simpel als het klinkt",
         intro:
-          "De meeste bedrijfssites gebruiken misschien 5% van wat WordPress kan, maar betalen wel 100% van de prijs: hosting, updates, beveiligingsrisico's en traagheid. Door je site om te zetten naar een gewone, statische website houd je precies dezelfde site over — alleen dan snel, veilig en zonder onderhoud.",
+          "Een eenvoudige bedrijfssite heeft niet altijd alle mogelijkheden van WordPress nodig. We nemen je bestaande ontwerp, inhoud, pagina-adressen en SEO-inrichting zorgvuldig over naar een statische website. WordPress- en plugin-updates vervallen; je inhoud, formulieren en hosting blijven aandacht nodig hebben.",
         blokken: [
           {
             kop: "Wat is een 'gewone' website eigenlijk?",
             tekst:
-              "Kant-en-klare HTML-pagina's, zonder database of beheersysteem eronder. Bij elk bezoek wordt gewoon de pagina zelf geladen — er hoeft niets berekend of opgebouwd te worden. Daardoor laadt zo'n site vrijwel direct, kan er niets gehackt worden (er draait niets om te hacken) en is er letterlijk geen onderhoud.",
+              "Kant-en-klare HTML-pagina's, zonder database of beheersysteem eronder. Bij elk bezoek wordt gewoon de pagina zelf geladen — er hoeft niets berekend of opgebouwd te worden. Dat kan de laadtijd verbeteren en neemt kwetsbaarheden in WordPress en plug-ins weg. Hosting, toegang en formulieren moeten nog steeds goed beveiligd worden.",
           },
           {
             kop: "Maar hoe wijzig ik dan nog iets?",

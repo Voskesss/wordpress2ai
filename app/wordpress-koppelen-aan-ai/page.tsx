@@ -31,7 +31,7 @@ export default function Pagina() {
           {
             kop: "Ook je éigen AI kan erop",
             tekst:
-              "Gebruik je zelf ChatGPT of Claude? Laat die je teksten bedenken en plak ze in de chat — of vraag als expert rechtstreekse toegang tot de bestanden van je site en werk met je eigen AI-tools; elke wijziging die je doorzet staat binnen een minuut live. Er is geen lock-in: je site is en blijft van jou.",
+              "Gebruik je zelf ChatGPT of Claude? Laat die je teksten bedenken en plak ze in de chat — of vraag als expert rechtstreekse toegang tot de bestanden van je site en werk met je eigen AI-tools; publicatie verloopt dan via de afgesproken technische route, buiten de standaard goedkeuring in het portaal. Er is geen lock-in: je site is en blijft van jou.",
           },
           {
             kop: "Wanneer een plug-in tóch de juiste keuze is",

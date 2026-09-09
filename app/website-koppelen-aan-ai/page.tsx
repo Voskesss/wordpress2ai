@@ -43,12 +43,12 @@ export default function Pagina() {
           {
             vraag: "Kan ik mijn huidige WordPress-site aan AI koppelen zonder over te stappen?",
             antwoord:
-              "Met een plug-in kan dat, maar dan houd je alle nadelen van WordPress (updates, plug-ins, beveiliging, traagheid). Wij zetten je site daarom eerst om naar een versie zonder onderhoud en koppelen de AI daaraan — een zo getrouw mogelijke kopie, no cure no pay, vanaf €150.",
+              "Met een plug-in kan dat, maar dan houd je alle nadelen van WordPress (updates, plug-ins, beveiliging, traagheid). Wij zetten je site daarom eerst om naar een versie zonder WordPress-beheer en koppelen de AI daaraan — een zo getrouw mogelijke kopie, no cure no pay, vanaf €150.",
           },
           {
             vraag: "Is dit een chatbot voor mijn bezoekers?",
             antwoord:
-              "Nee — dit is een AI voor jóú, om je site mee te beheren. Bezoekers merken alleen dat je site sneller is en altijd actueel. (Een bezoekers-chatbot kan er los van worden toegevoegd als je dat wilt.)",
+              "Nee — dit is een AI voor jóú, om je site mee te beheren. Bezoekers gebruiken je website zoals ze gewend zijn. Jij bepaalt welke inhoud je bijwerkt. (Een bezoekers-chatbot kan er los van worden toegevoegd als je dat wilt.)",
           },
           {
             vraag: "Wat als de AI iets verkeerd doet?",
