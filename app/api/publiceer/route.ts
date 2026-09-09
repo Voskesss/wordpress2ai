@@ -1,102 +1,137 @@
 import { auth } from "@clerk/nextjs/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
-import { mergeBranchInMain, mergePullRequest, verwijderBranch } from "@/lib/github";
-import { deployRepoNaarCloudflare } from "@/lib/cloudflare";
+import {
+  gh,
+  GITHUB_ORG,
+  mergeBranchInMain,
+  mergePullRequest,
+  verwijderBranch,
+} from "@/lib/github";
+import {
+  deployRepoNaarCloudflare,
+  deployRepoNaarCloudflareRef,
+} from "@/lib/cloudflare";
+import { claimOperation, operationScope } from "@/lib/operation-guards";
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-
-  const { changeId } = (await req.json()) as { changeId: number };
-
-  const [rij] = await db
-    .select({ change: changes, site: sites })
-    .from(changes)
-    .innerJoin(sites, eq(changes.siteId, sites.id))
-    .where(eq(changes.id, changeId));
-
-  if (!rij) {
-    // Concept bestaat niet meer — bij de demo betekent dat: de uurlijkse reset
-    // heeft het net gewist. Duidelijk melden i.p.v. een vage fout.
+  if (!userId)
+    return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+  const body = await req.json().catch(() => null);
+  const changeId = body?.changeId;
+  if (!Number.isSafeInteger(changeId) || changeId <= 0)
+    return NextResponse.json({ error: "Ongeldig concept" }, { status: 400 });
+  const read = async () =>
+    (
+      await db
+        .select({ change: changes, site: sites })
+        .from(changes)
+        .innerJoin(sites, eq(changes.siteId, sites.id))
+        .where(eq(changes.id, changeId))
+    )[0];
+  const initial = await read();
+  if (!initial)
+    return NextResponse.json(
+      { melding: "Dit concept bestaat niet meer." },
+      { status: 410 },
+    );
+  if (
+    initial.site.isDemo
+      ? initial.change.clerkUserId !== userId
+      : initial.site.clerkUserId !== userId && !(await isBeheerder())
+  )
+    return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  const release = await claimOperation(operationScope(initial.site, userId));
+  if (!release)
     return NextResponse.json(
       {
-        error: "verlopen",
         melding:
-          "Dit concept bestaat niet meer. De demo-site wordt elk uur automatisch teruggezet en dat is net gebeurd — je wijziging is daarbij gewist. Vraag hem gerust opnieuw!",
+          "Er wordt al aan deze website gewerkt. Probeer het over een moment opnieuw.",
       },
-      { status: 410 }
+      { status: 409 },
     );
-  }
-  if (!rij.site.isDemo && rij.site.clerkUserId !== userId && !(await isBeheerder())) {
-    return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
-  }
-  if (rij.change.status !== "concept") {
-    return NextResponse.json({ error: "Al verwerkt" }, { status: 400 });
-  }
-  if (!rij.change.prNumber && !rij.change.branch) {
-    return NextResponse.json({ error: "Geen concept aanwezig" }, { status: 400 });
-  }
-
-  if (rij.site.isDemo) {
-    // Demo: publiceren zet de sandbox-branch op de PERSOONLIJKE live-site van
-    // deze gebruiker — de gedeelde demo blijft onaangeroerd en niemand anders
-    // ziet het. De uurlijkse reset ruimt alles op.
-    const { demoLiveWorker } = await import("@/lib/demo");
-    const { deployRepoNaarCloudflareRef } = await import("@/lib/cloudflare");
-    await deployRepoNaarCloudflareRef(
-      rij.site.githubRepo,
-      demoLiveWorker(rij.site.githubRepo, rij.change.clerkUserId ?? userId),
-      rij.change.branch
-    ).catch((e) => console.error("Demo-live-deploy mislukt:", e));
+  try {
+    // Re-read after acquiring the shared edit/publish lock.
+    const rij = await read();
+    if (!rij)
+      return NextResponse.json(
+        { melding: "Dit concept bestaat niet meer." },
+        { status: 410 },
+      );
+    if (rij.change.status === "gepubliceerd")
+      return NextResponse.json({ ok: true });
+    if (!["concept", "publicatie_mislukt"].includes(rij.change.status))
+      return NextResponse.json({ error: "Al verwerkt" }, { status: 409 });
+    if (!rij.change.branch)
+      return NextResponse.json(
+        { error: "Geen concept aanwezig" },
+        { status: 400 },
+      );
+    if (
+      ["gepauzeerd", "opgezegd"].includes(rij.site.status) &&
+      !(await isBeheerder())
+    )
+      return NextResponse.json({ error: "Site niet actief" }, { status: 403 });
+    if (rij.site.isDemo) {
+      const { demoLiveWorker } = await import("@/lib/demo");
+      await deployRepoNaarCloudflareRef(
+        rij.site.githubRepo,
+        demoLiveWorker(rij.site.githubRepo, userId),
+        rij.change.branch,
+      );
+    } else {
+      if (!rij.site.netlifySiteId)
+        return NextResponse.json(
+          {
+            melding:
+              "De publicatiebestemming ontbreekt. Neem contact op met Jos; je concept blijft bewaard.",
+          },
+          { status: 503 },
+        );
+      if (rij.change.status === "concept") {
+        if (rij.change.prNumber) {
+          const pr = (await gh(
+            `/repos/${GITHUB_ORG}/${rij.site.githubRepo}/pulls/${rij.change.prNumber}`,
+          )) as { merged?: boolean };
+          if (!pr.merged)
+            await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
+        } else await mergeBranchInMain(rij.site.githubRepo, rij.change.branch);
+        // Durable checkpoint: retry deployment without merging/re-editing this concept.
+        await db
+          .update(changes)
+          .set({ status: "publicatie_mislukt" })
+          .where(eq(changes.id, changeId));
+      }
+      await deployRepoNaarCloudflare(
+        rij.site.githubRepo,
+        rij.site.netlifySiteId,
+      );
+    }
     await db
       .update(changes)
       .set({ status: "gepubliceerd" })
-      .where(eq(changes.id, rij.change.id));
-    return NextResponse.json({ ok: true });
-  }
-
-  try {
-    if (rij.change.prNumber) {
-      // Oudere concepten hebben nog een pull request
-      await mergePullRequest(rij.site.githubRepo, rij.change.prNumber);
-    } else {
-      await mergeBranchInMain(rij.site.githubRepo, rij.change.branch);
-    }
-  } catch (e) {
-    if (rij.site.isDemo) {
-      // De reset heeft de branch/PR net gesloten
-      try {
-        await db
-          .update(changes)
-          .set({ status: "afgewezen" })
-          .where(eq(changes.id, rij.change.id));
-      } catch {}
-      return NextResponse.json(
-        {
-          error: "verlopen",
-          melding:
-            "Publiceren lukte niet meer: de demo-site is net automatisch teruggezet (dat gebeurt elk uur) en je wijziging is daarbij gewist. Vraag hem gerust opnieuw!",
-        },
-        { status: 410 }
+      .where(eq(changes.id, changeId));
+    // Cleanup cannot turn a successful publication into an apparent failure.
+    if (!rij.site.isDemo)
+      await verwijderBranch(rij.site.githubRepo, rij.change.branch).catch((e) =>
+        console.error("Branch opruimen na publicatie:", e),
       );
-    }
-    throw e;
-  }
-  await verwijderBranch(rij.site.githubRepo, rij.change.branch);
-  if (rij.site.netlifySiteId) {
-    // Live zetten: bestanden direct naar Cloudflare (gratis, geen wachtrij)
-    await deployRepoNaarCloudflare(rij.site.githubRepo, rij.site.netlifySiteId).catch(
-      (e) => console.error("Deploy na publiceren mislukt:", e)
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("Publicatie niet bevestigd:", e);
+    return NextResponse.json(
+      {
+        melding:
+          "Publiceren is niet bevestigd. Je wijziging blijft bewaard. Klik opnieuw op Publiceer om het af te ronden; blijft dit gebeuren, neem contact op met Jos.",
+      },
+      { status: 503 },
     );
+  } finally {
+    await release().catch((e) => console.error("Publicatieslot vrijgeven:", e));
   }
-  await db
-    .update(changes)
-    .set({ status: "gepubliceerd" })
-    .where(eq(changes.id, rij.change.id));
-
-  return NextResponse.json({ ok: true });
 }

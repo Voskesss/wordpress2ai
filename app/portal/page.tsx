@@ -1,3 +1,5 @@
+import HerstelMelding from "./HerstelMelding";
+import { createPreviewAccess } from "@/lib/preview-access";
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -29,7 +31,7 @@ export default async function Portal({
   const { currentUser } = await import("@clerk/nextjs/server");
   const gebruiker = await currentUser();
   const emails = (gebruiker?.emailAddresses ?? []).map((e) =>
-    e.emailAddress.toLowerCase()
+    e.emailAddress.toLowerCase(),
   );
   if (emails.length > 0) {
     const { inArray, isNull } = await import("drizzle-orm");
@@ -45,7 +47,9 @@ export default async function Portal({
     .from(sites)
     .where(or(eq(sites.clerkUserId, userId), eq(sites.isDemo, true)));
   // Echte klanten zien hun eigen site(s), niet ook nog de probeer-demo
-  const heeftEigenSite = mijnSites.some((s) => !s.isDemo && s.clerkUserId === userId);
+  const heeftEigenSite = mijnSites.some(
+    (s) => !s.isDemo && s.clerkUserId === userId,
+  );
 
   // Meerdere websites? Eén tegelijk tonen, met een keuzebalk erboven.
   // Standaard de eigen site (niet de demo), anders de eerste.
@@ -54,6 +58,7 @@ export default async function Portal({
     mijnSites.find((s) => s.id === gekozenId) ??
     mijnSites.find((s) => !s.isDemo && s.clerkUserId === userId) ??
     mijnSites[0];
+  const herstelMap: Record<number, number> = {};
   const getoondeSites = getoondeSite ? [getoondeSite] : [];
   if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
 
@@ -68,7 +73,7 @@ export default async function Portal({
       .where(
         site.isDemo
           ? and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId))
-          : eq(messages.siteId, site.id)
+          : eq(messages.siteId, site.id),
       )
       .orderBy(messages.id);
     historieMap[site.id] = vanafLaatsteNieuwGesprek(rows)
@@ -94,20 +99,22 @@ export default async function Portal({
       .where(
         site.isDemo
           ? and(eq(changes.siteId, site.id), eq(changes.clerkUserId, userId))
-          : eq(changes.siteId, site.id)
+          : eq(changes.siteId, site.id),
       )
       .orderBy(changes.id);
+    const herstel = rows.find((c) => c.status === "herstel_mislukt");
+    if (herstel) herstelMap[site.id] = herstel.id;
     const laatsteConcept = rows
       .filter(
         (c) =>
-          c.status === "concept" &&
+          (c.status === "concept" || c.status === "publicatie_mislukt") &&
           // Demo: concepten van vóór de sandbox-ombouw negeren
-          (!site.isDemo || c.branch.startsWith("demo-"))
+          (!site.isDemo || c.branch.startsWith("demo-")),
       )
       .at(-1);
     if (site.isDemo)
       demoHeeftWijzigingen[site.id] = rows.some(
-        (c) => c.branch.startsWith("demo-") && c.status === "gepubliceerd"
+        (c) => c.branch.startsWith("demo-") && c.status === "gepubliceerd",
       );
     if (laatsteConcept) {
       openConceptMap[site.id] = {
@@ -123,7 +130,9 @@ export default async function Portal({
 
   return (
     <div className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
-      {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && <DemoWelkom />}
+      {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && (
+        <DemoWelkom />
+      )}
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         {mijnSites.length > 1 ? "Mijn websites" : "Mijn website"}
       </h1>
@@ -139,7 +148,9 @@ export default async function Portal({
                   : "border border-stone-300 text-stone-600 hover:border-violet-400 hover:text-violet-700"
               }`}
             >
-              {s.isDemo && s.clerkUserId !== userId ? "🧪 Probeer-demo" : s.naam}
+              {s.isDemo && s.clerkUserId !== userId
+                ? "🧪 Probeer-demo"
+                : s.naam}
             </a>
           ))}
         </div>
@@ -147,9 +158,8 @@ export default async function Portal({
       {mijnSites.length === 0 ? (
         <div className="mt-8 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <p className="text-stone-600 leading-relaxed">
-            Je omgeving wordt nog voor je klaargezet. Zodra je website
-            gekoppeld is, kun je hier wijzigingen doorgeven. Vragen? Mail ons
-            gerust.
+            Je omgeving wordt nog voor je klaargezet. Zodra je website gekoppeld
+            is, kun je hier wijzigingen doorgeven. Vragen? Mail ons gerust.
           </p>
         </div>
       ) : (
@@ -173,8 +183,12 @@ export default async function Portal({
                 </span>
               </div>
               <div className="mt-6">
+                {herstelMap[site.id] && (
+                  <HerstelMelding changeId={herstelMap[site.id]} />
+                )}
                 <Chat
                   siteId={site.id}
+                  previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}
                   liveUrl={
                     site.isDemo && demoHeeftWijzigingen[site.id]

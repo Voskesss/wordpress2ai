@@ -1,11 +1,8 @@
-import { and, desc, eq } from "drizzle-orm";
+import { verifyPreviewAccess } from "@/lib/preview-access";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, sites } from "@/db/schema";
-import {
-  SITE_MIME,
-  herschrijfHtml,
-  vindSiteBestand,
-} from "@/lib/serveer";
+import { SITE_MIME, herschrijfHtml, vindSiteBestand } from "@/lib/serveer";
 import { PAGINA_MELDER } from "@/lib/cloudflare";
 
 /**
@@ -14,23 +11,29 @@ import { PAGINA_MELDER } from "@/lib/cloudflare";
  */
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ siteId: string; pad?: string[] }> }
+  { params }: { params: Promise<{ siteId: string; pad?: string[] }> },
 ) {
   const { siteId, pad: padDelen } = await params;
-  const id = Number(siteId);
-  if (!Number.isInteger(id)) return new Response("Ongeldig", { status: 400 });
-
-  // Bewust zonder login: de gesandboxte weergave kan geen cookies meesturen
-  // (ook niet bij doorklikken). Deze route serveert uitsluitend
-  // site-bestanden — content die live staat of op publiceren wacht — nooit
-  // portal- of klantgegevens. noindex + no-store houden hem privé genoeg.
+  const access = verifyPreviewAccess(siteId);
+  if (!access)
+    return new Response(
+      "Voorbeeld verlopen of niet toegankelijk. Herlaad het portaal.",
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
+  const id = access.siteId;
   const [site] = await db.select().from(sites).where(eq(sites.id, id));
   if (!site) return new Response("Niet gevonden", { status: 404 });
 
   const [openConcept] = await db
     .select()
     .from(changes)
-    .where(and(eq(changes.siteId, id), eq(changes.status, "concept")))
+    .where(
+      and(
+        eq(changes.siteId, id),
+        inArray(changes.status, ["concept", "publicatie_mislukt"]),
+        site.isDemo ? eq(changes.clerkUserId, access.userId) : undefined,
+      ),
+    )
     .orderBy(desc(changes.id));
 
   let pad = (padDelen ?? []).join("/") || "index.html";
@@ -39,7 +42,7 @@ export async function GET(
   const gevonden = await vindSiteBestand(
     site.githubRepo,
     pad,
-    openConcept?.branch
+    openConcept?.branch,
   );
   if (!gevonden) return new Response("Pagina niet gevonden", { status: 404 });
 
@@ -49,19 +52,29 @@ export async function GET(
   if (ext === "html" || ext === "htm") {
     let ruw = new TextDecoder().decode(gevonden.data);
     // Centrale onderdelen (delen/*.html) invoegen op de markers
-    const markers = [...new Set([...ruw.matchAll(/<!--\s*invoeg:([a-z0-9-]+)\s*-->/gi)].map((m) => m[1].toLowerCase()))];
+    const markers = [
+      ...new Set(
+        [...ruw.matchAll(/<!--\s*invoeg:([a-z0-9-]+)\s*-->/gi)].map((m) =>
+          m[1].toLowerCase(),
+        ),
+      ),
+    ];
     if (markers.length > 0) {
       const { vouwUit } = await import("@/lib/delen");
       const delen = new Map<string, string>();
       await Promise.all(
         markers.map(async (naam) => {
-          const deel = await vindSiteBestand(site.githubRepo, `delen/${naam}.html`, openConcept?.branch);
+          const deel = await vindSiteBestand(
+            site.githubRepo,
+            `delen/${naam}.html`,
+            openConcept?.branch,
+          );
           if (deel) delen.set(naam, new TextDecoder().decode(deel.data));
-        })
+        }),
       );
       ruw = vouwUit(ruw, delen);
     }
-    let html = herschrijfHtml(ruw, `/site-weergave/${id}`, gevonden.pad);
+    let html = herschrijfHtml(ruw, `/site-weergave/${siteId}`, gevonden.pad);
     // Zelfde meldscript als op de gedeployde versie: aanwijzen en
     // paginadetectie werken dan ook in deze directe weergave.
     html = html.includes("</body>")
@@ -70,9 +83,11 @@ export async function GET(
     return new Response(html, {
       headers: {
         "Content-Type": mime,
-        "Content-Security-Policy": "sandbox allow-scripts allow-forms allow-popups",
+        "Content-Security-Policy":
+          "sandbox allow-scripts allow-forms allow-popups",
         "X-Robots-Tag": "noindex",
         "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
       },
     });
   }

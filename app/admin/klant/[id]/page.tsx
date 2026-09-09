@@ -1,3 +1,5 @@
+import HerstelMelding from "@/app/portal/HerstelMelding";
+import { createPreviewAccess } from "@/lib/preview-access";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -92,7 +94,8 @@ export default async function KlantDetail({
     .then((rows) =>
       rows.slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
     );
-  const openConcept = laatsteChanges.find((c) => c.status === "concept");
+  const herstel = laatsteChanges.find((c) => c.status === "herstel_mislukt");
+  const openConcept = laatsteChanges.find((c) => c.status === "concept" || c.status === "publicatie_mislukt");
 
   const { aiKosten } = await import("@/db/schema");
   const kostenRijen = await db
@@ -237,8 +240,10 @@ export default async function KlantDetail({
         <h2 className="font-display text-xl font-semibold mb-3">
           Beheer via chat
         </h2>
+        {herstel && <HerstelMelding changeId={herstel.id} />}
         <Chat
           siteId={site.id}
+          previewAccess={createPreviewAccess(site.id, admin.id)}
           historie={chatHistorie}
           liveUrl={site.domein}
           werkversieUrl={

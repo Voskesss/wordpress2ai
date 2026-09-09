@@ -97,7 +97,7 @@ export default async function Admin() {
       return {
         site,
         wijzigingen: verbruik?.wijzigingen ?? 0,
-        openConcepten: alleChanges.filter((c) => c.status === "concept").length,
+        openConcepten: alleChanges.filter((c) => c.status === "concept" || c.status === "publicatie_mislukt").length,
         aiMicroUsd: kosten.reduce((s, r) => s + r.kostenMicroUsd, 0),
       };
     })

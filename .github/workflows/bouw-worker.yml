@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: bouw-worker-${{ github.run_id }}
+  group: bouw-worker
   cancel-in-progress: false
 
 jobs:

@@ -62,7 +62,13 @@ export const changes = pgTable("changes", {
   prNumber: integer("pr_number"),
   previewUrl: text("preview_url"),
   status: text("status", {
-    enum: ["concept", "gepubliceerd", "afgewezen"],
+    enum: [
+      "concept",
+      "publicatie_mislukt",
+      "herstel_mislukt",
+      "gepubliceerd",
+      "afgewezen",
+    ],
   })
     .notNull()
     .default("concept"),

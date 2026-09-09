@@ -75,6 +75,7 @@ function Tip({ tekst, children }: { tekst: string; children: ReactNode }) {
 
 export default function Chat({
   siteId,
+  previewAccess,
   historie,
   liveUrl,
   werkversieUrl,
@@ -82,6 +83,7 @@ export default function Chat({
   suggesties,
 }: {
   siteId: number;
+  previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
   werkversieUrl?: string | null;
@@ -277,7 +279,7 @@ export default function Chat({
       ? `https://${werkversieUrl}/`
       : liveUrl
         ? `https://${liveUrl}/`
-        : `/site-weergave/${siteId}/`;
+        : `/site-weergave/${previewAccess}/`;
   }
   const [iframeSrc, setIframeSrc] = useState(() => basisVoor(Boolean(openConcept)));
 
@@ -302,7 +304,7 @@ export default function Chat({
     }
     const oudeStempel = stempelRef.current;
     // 1. Direct de verse inhoud tonen
-    setIframeSrc(`/site-weergave/${siteId}/${pad}`);
+    setIframeSrc(`/site-weergave/${previewAccess}/${pad}`);
     setReloadTeller((t) => t + 1);
     setLaderTekst(null);
     // 2. Achter de schermen wachten tot Cloudflare vers is, dan stil wisselen
@@ -340,7 +342,7 @@ export default function Chat({
    * klantdomeinen wisselen we na een ruime vaste wachttijd. */
   function toonVersEnWisselStil(doelHost: string | null | undefined) {
     const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
-    setIframeSrc(`/site-weergave/${siteId}/${pad}`);
+    setIframeSrc(`/site-weergave/${previewAccess}/${pad}`);
     setReloadTeller((t) => t + 1);
     setLaderTekst(null);
     if (!doelHost) return;
@@ -458,7 +460,7 @@ export default function Chat({
       if (e.data?.type === "wp2ai-pagina" && typeof e.data.pad === "string") {
         // Pad zonder het voorvoegsel van de preview- of directe weergave,
         // anders belandt "/site-weergave/17/offerte" straks op het echte adres (404)
-        const pad = e.data.pad.replace(/^\/(?:preview|site-weergave)\/\d+/, "") || "/";
+        const pad = e.data.pad.replace(/^\/(?:preview|site-weergave)\/[^/]+/, "") || "/";
         setHuidigePagina(pad);
         huidigeRef.current = pad;
       }
@@ -476,7 +478,7 @@ export default function Chat({
       if (e.data?.type === "wp2ai-selectie") {
         setAanwijsKandidaat(null);
         setSelectie({
-          pad: String(e.data.pad ?? "/").replace(/^\/(?:preview|site-weergave)\/\d+/, "") || "/",
+          pad: String(e.data.pad ?? "/").replace(/^\/(?:preview|site-weergave)\/[^/]+/, "") || "/",
           tag: String(e.data.tag ?? ""),
           tekst: String(e.data.tekst ?? ""),
           html: String(e.data.html ?? ""),
@@ -878,7 +880,7 @@ export default function Chat({
     setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser en duurt ±15 seconden...");
     try {
       const { removeBackground } = await import("@imgly/background-removal");
-      const bron = await fetch(`/site-weergave/${siteId}/${pad}`).then((r) => r.blob());
+      const bron = await fetch(`/site-weergave/${previewAccess}/${pad}`).then((r) => r.blob());
       const uit = await removeBackground(bron);
       const bestand = new File([uit], pad.split("/").pop()?.replace(/\.[^.]+$/, ".png") ?? "foto.png", {
         type: "image/png",
@@ -1113,7 +1115,12 @@ export default function Chat({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ changeId: concept.changeId }),
-    });
+    }).catch(() => null);
+    if (!res) {
+      setBerichten((b) => [...b, { rol: "assistent", tekst: "De verbinding viel weg. Je concept blijft beschikbaar. Controleer de status of probeer opnieuw." }]);
+      setConceptActie(null);
+      return;
+    }
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { melding?: string };
       setBerichten((b) => [
@@ -1126,7 +1133,7 @@ export default function Chat({
         },
       ]);
       setChatOpen(true);
-      if (data.melding) {
+      if (res.status === 410) {
         // Concept bestaat niet meer (bv. demo-reset): opruimen en terug naar live
         setConcept(null);
         herlaad(false);

@@ -21,6 +21,7 @@ async function claimJob() {
            OR (status = 'bezig' AND bijgewerkt < now() - interval '15 minutes')
         ORDER BY id
         LIMIT 1
+        FOR UPDATE SKIP LOCKED
       )`
     )
     .returning();

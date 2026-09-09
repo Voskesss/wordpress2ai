@@ -89,6 +89,7 @@ export async function gh(
       }
       throw new Error(`GitHub ${init.method ?? "GET"} ${path}: ${res.status} ${body.slice(0, 300)}`);
     }
+    if (res.status === 204) return null;
     return init.raw ? res.text() : res.json();
   }
 }
