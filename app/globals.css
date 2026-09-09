@@ -1651,3 +1651,15 @@ main p {
   .hero-desktop-break { display: none; }
   .transfer-visual { padding: 18px; }
 }
+
+.verhaal-section { display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: 56px; padding-block: 64px; }
+.verhaal-beeld { margin: 0; min-width: 0; }
+.verhaal-beeld img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.verhaal-beeld figcaption { margin-top: 8px; font-size: 10px; color: #777a72; }
+.verhaal-copy h2 { font-size: clamp(28px, 3vw, 40px); line-height: 1.16; letter-spacing: -.035em; margin: 18px 0; }
+.verhaal-copy > p:not(.eyebrow) { font-size: 17px; line-height: 1.8; color: #566054; margin-bottom: 24px; }
+.verhaal-wide { max-width: 920px; padding-bottom: 20px; }
+@media(max-width: 767px) {
+  .verhaal-section { grid-template-columns: 1fr; gap: 24px; padding-block: 38px; }
+  .verhaal-copy > p:not(.eyebrow) { font-size: 16px; }
+}

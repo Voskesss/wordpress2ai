@@ -1,3 +1,4 @@
+import VerhaalBeeld from "../VerhaalBeeld";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -114,6 +115,21 @@ export default function HoeHetWerkt() {
         </ol>
       </div>
 
+      <section className="shell verhaal-section">
+        <VerhaalBeeld onderwerp="productfoto-maken" />
+        <div className="verhaal-copy">
+          <p className="eyebrow">VAN EIGEN FOTO NAAR JE WEBSITE</p>
+          <h2>Laat zien wat er nieuw is.</h2>
+          <p>
+            Maak een foto van je werk, stuur hem mee in de chat en vertel waar
+            hij moet komen. Bijvoorbeeld: “Vervang de foto op de homepage door
+            deze.” Bekijk het resultaat voordat je publiceert.
+          </p>
+          <Link href="/demo" className="button-primary">
+            Probeer het aanpassen →
+          </Link>
+        </div>
+      </section>
       <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-3xl px-6 py-16">
           <h2 className="font-display text-3xl font-semibold tracking-tight">

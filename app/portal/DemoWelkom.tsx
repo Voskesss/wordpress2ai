@@ -37,7 +37,7 @@ export default function DemoWelkom() {
     [
       "3",
       "Publiceer zelf",
-      "Tevreden? Eén klik op Publiceer en de wijziging staat op de demo-site. Zo werkt het straks ook met jóuw website.",
+      "Tevreden? Klik op Publiceer en wacht op de bevestiging. De wijziging staat dan op de demo-site. Zo werkt het straks ook met jóuw website.",
     ],
   ];
 

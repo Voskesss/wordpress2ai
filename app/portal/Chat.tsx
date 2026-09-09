@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import Fotobank from "./Fotobank";
+import ChatHulp from "./ChatHulp";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -121,7 +122,7 @@ export default function Chat({
   const [chatOpen, setChatOpen] = useState(false);
   // Aandachttrekker voor nieuwe gebruikers; verdwijnt zodra er getypt wordt.
   const [hintWeg, setHintWeg] = useState(false);
-  const toonHint = !hintWeg && berichten.length === 0 && !bezig && !chatOpen;
+  const toonHint = !hintWeg && berichten.length === 0 && !bezig && !chatOpen && !concept;
   const [reloadTeller, setReloadTeller] = useState(0);
   const [conceptActie, setConceptActie] = useState<string | null>(null);
   const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
@@ -1431,7 +1432,7 @@ export default function Chat({
                 </div>
               )}
               <p className="mt-3 text-xs text-stone-400">
-                Tevreden? Publiceer hem daarna met de knop onderin.
+                Controleer het voorbeeld vóór je publiceert. Publiceer hem daarna met de knop onderin.
               </p>
             </div>
           </div>
@@ -1511,14 +1512,7 @@ export default function Chat({
                   "relative z-10 mx-auto w-[min(96%,44rem)] lg:w-[min(94%,52rem)] xl:w-[min(92%,62rem)] 2xl:w-[min(90%,72rem)] pb-3"
           }
         >
-          {mobielChat && concept && (
-            <button
-              onClick={() => setMobielWeergave("site")}
-              className="mb-2 w-full rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 cursor-pointer"
-            >
-              👀 Bekijk de wijziging op je site →
-            </button>
-          )}
+          <ChatHulp />
           <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
           {(chatOpen || splitModus || mobielChat) && (
@@ -1599,7 +1593,7 @@ export default function Chat({
                       <li><span className="font-semibold text-stone-700">➤ Wijs aan</span> — tik iets op je site aan (een tekst, een foto) en zeg wat ermee moet.</li>
                       <li><span className="font-semibold text-stone-700">🖼 Foto</span> — nieuwe foto's meesturen, of kiezen uit alles wat al op je site stond.</li>
                       <li><span className="font-semibold text-stone-700">🎨 Kleur</span> en <span className="font-semibold text-stone-700">SEO</span> — zelf aanpassen zonder te wachten op de AI.</li>
-                      <li><span className="font-semibold text-stone-700">↩︎ Fout gegaan?</span> Elke stap is terug te draaien, ook na publiceren.</li>
+                      <li><span className="font-semibold text-stone-700">↩︎ Fout gegaan?</span> Gebruik “Stap terug” voor je laatste conceptwijziging. Na publicatie kun je de vorige versie herstellen.</li>
                     </ul>
                   </div>
                 )}
@@ -1752,7 +1746,7 @@ export default function Chat({
           {concept && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
-                <span className="font-semibold">Concept klaar.</span>{" "}
+                <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
                 {concept.paginas.length > 0 && (() => {
                   const paginas = concept.paginas.filter((p) => /\.html?$/i.test(p));
                   const overig = concept.paginas.length - paginas.length;
@@ -1776,9 +1770,9 @@ export default function Chat({
                     </span>
                   );
                 })()}{" "}
-                Tevreden?
+                Controleer het voorbeeld vóór je publiceert.
               </p>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => conceptVerwerken("publiceer")}
                   disabled={conceptActie !== null}
@@ -1791,7 +1785,7 @@ export default function Chat({
                     onClick={() => setMobielWeergave("site")}
                     className="flex items-center gap-1 rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
                   >
-                    👀 Bekijk
+                    👀 Bekijk concept
                   </button>
                 ) : (
                   <Tip tekst="Bekijk het complete voorbeeld in een nieuw tabblad">
@@ -1804,7 +1798,7 @@ export default function Chat({
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <path d="M14 4h6v6M20 4L10 14M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      Bekijk
+                      Bekijk concept
                     </a>
                   </Tip>
                 )}
@@ -1822,7 +1816,7 @@ export default function Chat({
                   disabled={conceptActie !== null}
                   className="rounded-full px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 cursor-pointer"
                 >
-                  {conceptActie === "verwerp" ? "Bezig..." : "Verwijder"}
+                  {conceptActie === "verwerp" ? "Bezig..." : "Concept weggooien"}
                 </button>
               </div>
             </div>
@@ -1859,7 +1853,7 @@ export default function Chat({
             <div className="pointer-events-none mb-2 flex flex-col items-center">
               <div className="rounded-2xl bg-violet-700 px-5 py-3 text-white shadow-2xl">
                 <p className="font-semibold">
-                  Hier praat je met je website
+                  Wat wil je op je website veranderen?
                 </p>
                 <p className="mt-0.5 text-sm text-violet-100">
                   Typ wat je veranderd wilt hebben — bijvoorbeeld:
@@ -2299,6 +2293,7 @@ export default function Chat({
               </>)}
               <textarea
                 ref={invoerRef}
+                aria-label="Beschrijf wat je op je website wilt aanpassen"
                 value={invoer}
                 rows={1}
                 onPaste={(e) => {
@@ -2339,7 +2334,7 @@ export default function Chat({
               <button
                 onClick={bezig ? stop : verstuur}
                 aria-label={bezig ? "Stop de wijziging" : "Verstuur"}
-                title={bezig ? "Stop — er wordt dan niets gewijzigd" : "Verstuur"}
+                title={bezig ? "Stop de lopende opdracht" : "Verstuur je wijzigingsverzoek"}
                 className={`${smalleBalk ? "ml-auto" : ""} shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${
                   bezig ? "bg-red-600 hover:bg-red-500" : "bg-violet-700 hover:bg-violet-600"
                 }`}
@@ -2391,6 +2386,7 @@ export default function Chat({
                       key={s}
                       onClick={() => {
                         setInvoer(s);
+                        invoerRef.current?.focus();
                         setSuggestiesOpen(false);
                       }}
                       className="rounded-full border border-violet-300 bg-white/95 px-4 py-1.5 text-sm font-medium text-violet-800 shadow-lg backdrop-blur hover:bg-violet-50 cursor-pointer"

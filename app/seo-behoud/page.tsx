@@ -1,3 +1,4 @@
+import VerhaalBeeld from "../VerhaalBeeld";
 import type { Metadata } from "next";
 import Link from "next/link";
 export const metadata: Metadata = {
@@ -43,6 +44,9 @@ export default function SeoBehoud() {
           Laat mijn website beoordelen →
         </Link>
       </section>
+      <div className="shell verhaal-wide">
+        <VerhaalBeeld onderwerp="website-controleren" />
+      </div>
       <section className="shell section-space">
         <div className="section-heading">
           <h2>Dit controleren we bij de overstap.</h2>

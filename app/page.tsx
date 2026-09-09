@@ -1,3 +1,4 @@
+import VerhaalBeeld from "./VerhaalBeeld";
 import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import ProductPreview from "./ProductPreview";
@@ -35,9 +36,7 @@ export default function Home() {
           <h1>
             Van WordPress naar
             <br />
-            <em>
-              een website die je bijhoudt met AI.
-            </em>
+            <em>een website die je bijhoudt met AI.</em>
           </h1>
           <p className="hero-intro">
             Je nieuwe website draait zonder WordPress. We nemen je bestaande
@@ -78,6 +77,27 @@ export default function Home() {
           <span>✓ Persoonlijk contact met Jos</span>
         </div>
       </div>
+      <section className="shell verhaal-section">
+        <VerhaalBeeld onderwerp="ondernemer" />
+        <div className="verhaal-copy">
+          <p className="eyebrow">JE BEDRIJF VERANDERT. JE WEBSITE OOK.</p>
+          <h2>
+            Een nieuwe dienst.
+            <br />
+            Andere openingstijden.
+            <br />
+            Zo weer bijgewerkt.
+          </h2>
+          <p>
+            Na de overstap hoef je WordPress niet meer te openen. Vertel de AI
+            wat er op je website anders moet. Je bekijkt de wijziging en zet hem
+            zelf live.
+          </p>
+          <Link href="#zo-werkt-aanpassen" className="button-text">
+            Bekijk een voorbeeld →
+          </Link>
+        </div>
+      </section>
       <section className="section-space shell" aria-labelledby="behoud-titel">
         <div className="section-heading">
           <div>
@@ -340,9 +360,9 @@ export default function Home() {
       <section className="shell founder-section">
         <div className="founder-mark">
           <span>
-            Gewoon
+            Hulp bij
             <br />
-            persoonlijk.
+            je overstap.
           </span>
           <p>
             JOS KLIJNHOUT
@@ -352,19 +372,14 @@ export default function Home() {
         </div>
         <div>
           <p className="eyebrow">TECHNIEK MAG PERSOONLIJK ZIJN</p>
-          <h2>
-            Je website is belangrijk.
-            <br />
-            Daar mag je iemand bij kennen.
-          </h2>
+          <h2>Je stapt over met hulp van Jos.</h2>
           <p>
-            Je wilt bezig zijn met je bedrijf. Een tekst aanpassen of je
-            openingstijden bijwerken moet daarom eenvoudig zijn. Ik help je met
-            de overstap en kijk met je mee. Je hoeft het niet allemaal zelf te
-            weten.
+            Ik zet je WordPress-website over en controleer samen met jou het
+            resultaat. Daarna pas je zelf je website aan met AI. Heb je een
+            vraag? Dan kun je rechtstreeks bij mij terecht.
           </p>
-          <Link className="button-text" href="/over-wordswap">
-            Maak kennis met WordSwap →
+          <Link className="button-text" href="/contact">
+            Neem contact op met Jos →
           </Link>
         </div>
       </section>
