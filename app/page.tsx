@@ -33,16 +33,15 @@ export default function Home() {
             <span className="status-dot" /> WORDPRESS OVERZETTEN. VERDER MET AI.
           </p>
           <h1>
-            Je WordPress-site.
+            Van WordPress naar
             <br />
             <em>
-              Straks bij te houden
-              <br className="hero-desktop-break" /> met AI.
+              een website die je bijhoudt met AI.
             </em>
           </h1>
           <p className="hero-intro">
-            Wij zetten je bestaande website over en nemen je ontwerp,
-            pagina-adressen en SEO-instellingen zorgvuldig mee.
+            Je nieuwe website draait zonder WordPress. We nemen je bestaande
+            ontwerp, inhoud, pagina-adressen en SEO-instellingen zorgvuldig mee.
           </p>
           <p className="hero-definition">
             Daarna pas je teksten en foto’s aan door te vertellen wat je wilt.
