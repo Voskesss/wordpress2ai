@@ -25,7 +25,7 @@ const stappen = [
   },
   {
     nr: "3",
-    kop: "Bekijk het en zeg “ja”",
+    kop: "Bekijk het en klik op Publiceer",
     tekst:
       "De AI zet de wijziging voor je klaar. Jij bekijkt het resultaat en publiceert hem zelf. Precies zoals onze klanten dat doen.",
   },
@@ -118,13 +118,12 @@ export default function DemoPagina() {
             </div>
           </Show>
           <Show when="signed-out">
-            <div className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
+            <div data-demo-step="signup" className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
               <h2 className="font-display text-xl font-semibold text-center">
                 Start de demo
               </h2>
               <p className="mt-1 mb-4 text-center text-sm text-stone-500">
-                Account aanmaken duurt 30 seconden — daarna zit je meteen in de
-                chat.
+                Maak een gratis account om zelf een wijziging te proberen. Je e-mailadres wordt gecontroleerd; daarna open je de chat.
               </p>
               <div className="flex justify-center">
                 <SignUp

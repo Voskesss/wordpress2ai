@@ -6,9 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node tests/publiceren.cjs && node tests/agent-boundary.cjs && node tests/preview-access.cjs && node tests/websitecheck.cjs && node tests/marketing-consent.cjs",
+    "test": "node tests/publiceren.cjs && node tests/agent-boundary.cjs && node tests/preview-access.cjs && node tests/websitecheck.cjs && node tests/marketing-consent.cjs && node tests/chat-response.cjs && node tests/nieuw-gesprek.cjs",
     "test:seo": "node tests/seo-vergelijk.cjs",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test:chat-ui": "node tests/chat-recovery.cjs && node tests/demo-funnel.cjs"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.245",

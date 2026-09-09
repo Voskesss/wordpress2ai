@@ -238,7 +238,11 @@ export async function POST(req: Request) {
       );
     // Demo: geen foto-uploads en een daglimiet per gebruiker
     if (site.isDemo) {
-      afbeeldingen = [];
+      if (afbeeldingen.length > 0) {
+        return NextResponse.json({
+          reply: "In de demo kun je geen foto meesturen met een chatopdracht. Wijs een bestaande foto aan en kies Vervang deze foto. Bij je eigen website kun je wel foto’s meesturen in de chat.",
+        }, { status: 403 });
+      }
       const vandaag = new Date();
       vandaag.setHours(0, 0, 0, 0);
       const { gte } = await import("drizzle-orm");
@@ -257,7 +261,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           reply:
             "Je hebt het maximum van de demo voor vandaag bereikt (10 berichten). Enthousiast geworden? Neem contact op — dan zetten we jouw échte site over.",
-        });
+        }, { status: 429 });
       }
     }
 
@@ -270,7 +274,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         reply:
           "Je hebt deze maand het maximale aantal wijzigingen bereikt. Neem contact met ons op als je meer nodig hebt.",
-      });
+      }, { status: 429 });
     }
 
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
@@ -837,7 +841,8 @@ export async function POST(req: Request) {
           console.error(e);
           stuur({
             type: "klaar",
-            reply: "Er ging iets mis, probeer het opnieuw.",
+            reply: "De wijziging is niet bevestigd. Controleer eerst of er een concept is opgeslagen.",
+            failed: true,
             previewUrl: null,
             changeId: null,
           });

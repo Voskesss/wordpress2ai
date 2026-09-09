@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import Fotobank from "./Fotobank";
 import ChatHulp from "./ChatHulp";
+import { readChatResponse } from "@/lib/chat-response";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -93,6 +94,11 @@ export default function Chat({
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   const [invoer, setInvoer] = useState("");
+  const [nieuwBezig, setNieuwBezig] = useState(false);
+  const nieuwBezigRef = useRef(false);
+  const [herstelFout, setHerstelFout] = useState<{ soort: "gesprek" | "bericht" | "publiceer" | "verwerp"; tekst: string } | null>(null);
+  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; pagina: string } | null>(null);
+
   const [bezig, setBezigState] = useState(false);
   const bezigRef = useRef(false);
   function setBezig(v: boolean) {
@@ -421,7 +427,7 @@ export default function Chat({
   useEffect(() => {
     function opStart(e: Event) {
       const tekst = (e as CustomEvent<string>).detail;
-      if (!tekst) return;
+      if (!tekst || nieuwBezigRef.current || conceptActie) return;
       setInvoer(tekst);
       setHintWeg(true);
       setMobielWeergave("chat");
@@ -659,6 +665,7 @@ export default function Chat({
       ]);
       return;
     }
+    setHerstelFout(null);
     setInvoer("");
     setChatOpen(true);
     const teVersturen = uitWachtrij ? uitWachtrij.fotos : overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
@@ -677,6 +684,8 @@ export default function Chat({
     }
     setBezig(true);
     setStatusTekst(teVersturen.length > 0 ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...` : null);
+    const opdracht = { tekst, fotos: teVersturen, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, pagina: huidigePagina };
+    let gelukt = false;
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
@@ -687,7 +696,7 @@ export default function Chat({
         form.set("bericht", tekst);
         form.set("huidigePagina", huidigePagina);
         for (const f of teVersturen) form.append("afbeelding", f);
-        if (videoKlaar) form.set("videoCommandId", videoKlaar.commandId);
+        if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
         if (gekozenKleur) form.set("kleur", gekozenKleur);
         res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
@@ -706,50 +715,21 @@ export default function Chat({
           }),
         });
       }
-      if (!res.body) throw new Error("geen stream");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let klaar: {
-        reply?: string;
-        previewUrl?: string | null;
-        changeId?: number | null;
-        bestanden?: string[];
-        prompt?: string;
-      } | null = null;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const regels = buffer.split("\n");
-        buffer = regels.pop() ?? "";
-        for (const regel of regels) {
-          if (!regel.trim()) continue;
-          try {
-            const event = JSON.parse(regel);
-            if (event.type === "status") setStatusTekst(event.tekst);
-            if (event.type === "tekst-live" && typeof event.zoek === "string") {
-              iframeRef.current?.contentWindow?.postMessage(
-                { type: "wp2ai-tekst-live", zoek: event.zoek, vervang: event.vervang },
-                "*"
-              );
-            }
-            if (event.type === "bewerkt" && typeof event.pad === "string") {
-              // Voorbeeld live meebewegen naar de pagina die bewerkt wordt
-              if (huidigeRef.current !== event.pad) {
-                huidigeRef.current = event.pad;
-                setHuidigePagina(event.pad);
-                herlaad(true);
-              }
-            }
-            if (event.type === "klaar") klaar = event;
-            if (!event.type && typeof event.error === "string") klaar = { reply: event.error };
-          } catch {
-            // halve regel
-          }
+      const data = await readChatResponse(res, (event) => {
+        if (event.type === "status" && typeof event.tekst === "string") setStatusTekst(event.tekst);
+        if (event.type === "tekst-live" && typeof event.zoek === "string") {
+          iframeRef.current?.contentWindow?.postMessage(
+            { type: "wp2ai-tekst-live", zoek: event.zoek, vervang: event.vervang }, "*"
+          );
         }
-      }
-      const data = klaar ?? {};
+        if (event.type === "bewerkt" && typeof event.pad === "string" && huidigeRef.current !== event.pad) {
+          huidigeRef.current = event.pad;
+          setHuidigePagina(event.pad);
+          herlaad(true);
+        }
+      });
+      gelukt = true;
+      mislukteOpdracht.current = null;
       setBerichten((b) => [
         ...b,
         {
@@ -773,21 +753,19 @@ export default function Chat({
         // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
         setChatOpen(false);
       }
-    } catch {
-      setBerichten((b) => [
-        ...b,
-        {
-          rol: "assistent",
-          tekst: stopper.signal.aborted
-            ? "Gestopt — er is niets gewijzigd. Geef gerust een nieuwe opdracht."
-            : "Er ging iets mis, probeer het opnieuw.",
-        },
-      ]);
+    } catch (error) {
+      mislukteOpdracht.current = opdracht;
+      const melding = stopper.signal.aborted
+        ? "De opdracht is gestopt. We kunnen niet bevestigen of er al een concept is opgeslagen."
+        : error instanceof Error && !(error instanceof TypeError) ? error.message : "De verbinding viel weg.";
+      setHerstelFout({ soort: "bericht", tekst: melding + " Controleer eerst je websitevoorbeeld. Je kunt de opdracht hieronder terugzetten om hem zelf opnieuw te versturen." });
+      setChatOpen(true);
+      setBerichten((b) => [...b, { rol: "assistent", tekst: melding }]);
     } finally {
       stopRef.current = null;
       setBezig(false);
       const q = wachtrijRef.current;
-      if (q) {
+      if (q && gelukt) {
         wachtrijRef.current = null;
         void verstuur(q.tekst, undefined, { fotos: q.fotos, video: q.video, sel: q.sel, kleur: q.kleur });
       }
@@ -1051,7 +1029,7 @@ export default function Chat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ changeId: ongedaanKans }),
       });
-      const data = (await res.json().catch(() => ({}))) as { melding?: string };
+      const data = (await res.json().catch(() => ({}))) as { melding?: string; error?: string };
       setBerichten((b) => [
         ...b,
         {
@@ -1109,8 +1087,51 @@ export default function Chat({
     }
   }
 
+  async function nieuwGesprek() {
+    if (bezigRef.current || nieuwBezigRef.current || conceptActie) return;
+    if (!window.confirm("Nieuw gesprek beginnen? De AI vergeet dan het eerdere gesprek. Je website en open concept blijven behouden.")) return;
+    nieuwBezigRef.current = true;
+    setNieuwBezig(true);
+    setHerstelFout(null);
+    try {
+      const res = await fetch("/api/gesprek-nieuw", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok !== true) throw new Error(data.error ?? "Nieuw gesprek starten is niet bevestigd.");
+      setBerichten([{ rol: "assistent", tekst: "Je nieuwe gesprek is gestart. Je website en eventuele concept zijn behouden. Wat wil je aanpassen?" }]);
+      setSelectie(null);
+      setVideoKlaar(null);
+      setAfbeeldingen([]);
+      wachtrijRef.current = null;
+      mislukteOpdracht.current = null;
+    } catch (error) {
+      setHerstelFout({ soort: "gesprek", tekst: (error instanceof Error && !(error instanceof TypeError) ? error.message : "De verbinding viel weg.") + " Je gesprek blijft hier zichtbaar. Probeer opnieuw of herlaad de pagina om de opgeslagen status te controleren." });
+    } finally {
+      nieuwBezigRef.current = false;
+      setNieuwBezig(false);
+    }
+  }
+
+  function zetOpdrachtTerug() {
+    const opdracht = mislukteOpdracht.current;
+    if (!opdracht) return;
+    if ((invoer.trim() || afbeeldingen.length || videoKlaarRef.current) && !window.confirm("Je huidige invoer vervangen door de bewaarde opdracht?")) return;
+    setInvoer(opdracht.tekst);
+    setAfbeeldingen(opdracht.fotos);
+    setVideoKlaar(opdracht.video);
+    setSelectie(opdracht.sel);
+    setKleur(opdracht.kleur);
+    setHuidigePagina(opdracht.pagina);
+    huidigeRef.current = opdracht.pagina;
+    setHerstelFout(null);
+    invoerRef.current?.focus();
+  }
+
   async function conceptVerwerken(actie: "publiceer" | "verwerp") {
-    if (!concept || conceptActie) return;
+    if (!concept || conceptActie || bezigRef.current || nieuwBezigRef.current) return;
+    setHerstelFout(null);
     setConceptActie(actie);
     const res = await fetch(`/api/${actie}`, {
       method: "POST",
@@ -1119,11 +1140,14 @@ export default function Chat({
     }).catch(() => null);
     if (!res) {
       setBerichten((b) => [...b, { rol: "assistent", tekst: "De verbinding viel weg. Je concept blijft beschikbaar. Controleer de status of probeer opnieuw." }]);
+      setHerstelFout({ soort: actie, tekst: "Geen bevestiging ontvangen. Controleer de opgeslagen status of probeer dezelfde actie opnieuw. Je concept blijft hier beschikbaar." });
+      setChatOpen(true);
       setConceptActie(null);
       return;
     }
     if (!res.ok) {
-      const data = (await res.json().catch(() => ({}))) as { melding?: string };
+      const data = (await res.json().catch(() => ({}))) as { melding?: string; error?: string };
+      setHerstelFout({ soort: actie, tekst: data.melding ?? data.error ?? "Deze actie is niet bevestigd. Controleer de status of probeer opnieuw." });
       setBerichten((b) => [
         ...b,
         {
@@ -1136,6 +1160,7 @@ export default function Chat({
       setChatOpen(true);
       if (res.status === 410) {
         // Concept bestaat niet meer (bv. demo-reset): opruimen en terug naar live
+        setHerstelFout(null);
         setConcept(null);
         herlaad(false);
       }
@@ -1513,6 +1538,27 @@ export default function Chat({
           }
         >
           <ChatHulp />
+          {herstelFout && (
+            <div role="alert" className="mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-950">
+              <p>{herstelFout.tekst}</p>
+              {herstelFout.soort === "bericht" && wachtrijRef.current && <p className="mt-1">Je vervolgopdracht wacht tot een opdracht weer succesvol is afgerond.</p>}
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" disabled={bezig || nieuwBezig || conceptActie !== null}
+                  className="rounded-lg bg-red-900 px-3 py-2 font-semibold text-white disabled:opacity-50"
+                  onClick={() => {
+                    if (herstelFout.soort === "gesprek") void nieuwGesprek();
+                    else if (herstelFout.soort === "bericht") zetOpdrachtTerug();
+                    else void conceptVerwerken(herstelFout.soort);
+                  }}>
+                  {herstelFout.soort === "bericht" ? "Opdracht terugzetten" : "Opnieuw proberen"}
+                </button>
+                <button type="button" className="underline" onClick={() => {
+                  if ((mislukteOpdracht.current || invoer.trim() || afbeeldingen.length || videoKlaarRef.current || wachtrijRef.current) && !window.confirm("Herlaad om opgeslagen wijzigingen te controleren. Bewaarde invoer en bijlagen op dit scherm gaan dan verloren. Doorgaan?")) return;
+                  window.location.reload();
+                }}>Opgeslagen status bekijken</button>
+              </div>
+            </div>
+          )}
           <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
           {(chatOpen || splitModus || mobielChat) && (
@@ -1523,26 +1569,12 @@ export default function Chat({
                 </span>
                 <div className="flex items-center gap-1">
                 <button
-                  onClick={async () => {
-                    if (bezig) return;
-                    if (!window.confirm("Nieuw gesprek beginnen? De AI vergeet dan wat jullie eerder bespraken. Je website verandert hier NIET door — alles blijft staan.")) return;
-                    await fetch("/api/gesprek-nieuw", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ siteId }),
-                    }).catch(() => {});
-                    setBerichten([
-                      { rol: "assistent", tekst: "Nieuw gesprek — ik ben alles van hiervoor vergeten. Waar kan ik mee helpen?" },
-                    ]);
-                    setSelectie(null);
-                    setVideoKlaar(null);
-                    setAfbeeldingen([]);
-                  }}
-                  disabled={bezig}
+                  onClick={nieuwGesprek}
+                  disabled={bezig || nieuwBezig || conceptActie !== null}
                   title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
                   className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
                 >
-                  🧹 Nieuw gesprek
+                  {nieuwBezig ? "Gesprek starten..." : "🧹 Nieuw gesprek"}
                 </button>
                 <button
                   onClick={() => setChatOpen(false)}
@@ -1775,7 +1807,7 @@ export default function Chat({
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => conceptVerwerken("publiceer")}
-                  disabled={conceptActie !== null}
+                  disabled={conceptActie !== null || bezig || nieuwBezig}
                   className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
                 >
                   {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
@@ -1813,7 +1845,7 @@ export default function Chat({
                 </Tip>
                 <button
                   onClick={() => conceptVerwerken("verwerp")}
-                  disabled={conceptActie !== null}
+                  disabled={conceptActie !== null || bezig || nieuwBezig}
                   className="rounded-full px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 cursor-pointer"
                 >
                   {conceptActie === "verwerp" ? "Bezig..." : "Concept weggooien"}
@@ -2333,6 +2365,7 @@ export default function Chat({
               />
               <button
                 onClick={bezig ? stop : verstuur}
+                disabled={nieuwBezig || conceptActie !== null}
                 aria-label={bezig ? "Stop de wijziging" : "Verstuur"}
                 title={bezig ? "Stop de lopende opdracht" : "Verstuur je wijzigingsverzoek"}
                 className={`${smalleBalk ? "ml-auto" : ""} shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${

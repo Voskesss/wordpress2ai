@@ -129,7 +129,7 @@ export default async function Portal({
   }
 
   return (
-    <div className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
+    <div data-demo-step={mijnSites.some((s) => s.isDemo) ? "portal" : undefined} className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
       {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && (
         <DemoWelkom />
       )}
