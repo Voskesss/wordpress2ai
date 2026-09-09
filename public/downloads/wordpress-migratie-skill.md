@@ -40,6 +40,17 @@ Bouw platte HTML met één eigen stylesheet. De regels:
 - Ontdo content van shortcodes, inline styles en wrapper-divs; behoud teksten en kopstructuur.
 - Blogberichten: ook een overzichtspagina met links.
 - Genereer `sitemap.xml`, `robots.txt` en (aanrader) `llms.txt` met per pagina één feitelijke zin.
+- Afbeeldingen: behoud de oorspronkelijke bestandsnamen én alt-teksten — beide
+  tellen mee voor Google Afbeeldingen. Mist een alt-tekst op de oude site,
+  schrijf er dan een korte feitelijke bij (wat er op de foto staat).
+- Structured data (JSON-LD): plugins als Yoast zetten bedrijfsgegevens,
+  openingstijden en reviews als `application/ld+json` in de oude HTML — dat zit
+  NIET in de WordPress-export. Bekijk de bron-HTML van de live site, neem de
+  relevante blokken over en werk adressen/URL's bij naar het nieuwe domein.
+- `og:image` per pagina overnemen (het deelplaatje voor WhatsApp/LinkedIn);
+  minimaal één site-brede fallback instellen.
+- Interne links ín teksten (bijv. een blog die naar /diensten linkt) meteen naar
+  het juiste nieuwe pad laten wijzen — niet op de redirects leunen.
 
 **Ontwerp**
 - Neem het ontwerp óver, bouw het niet na uit de oude code: bestudeer screenshots

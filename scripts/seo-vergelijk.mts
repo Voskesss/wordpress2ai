@@ -33,6 +33,7 @@ type Entry = {
   xRobots: string;
   headings: string[];
   links: string[];
+  images: string[];
   structured: string[];
   metadata: Record<string, string>;
   error?: string;
@@ -69,6 +70,10 @@ async function capture(path: string): Promise<Entry> {
     ),
     links: Array.from(document.querySelectorAll("a[href]")).map(
       (e) => e.getAttribute("href") ?? "",
+    ),
+    // Bestandsnaam + alt-tekst: beide tellen mee voor Google Afbeeldingen.
+    images: Array.from(document.querySelectorAll("img")).map(
+      (e) => `${e.getAttribute("src") ?? ""} | alt: ${e.getAttribute("alt") ?? "(ontbreekt)"}`,
     ),
     metadata: Object.fromEntries(
       Array.from(document.querySelectorAll("meta[name],meta[property]"))
@@ -131,6 +136,7 @@ try {
             "xRobots",
             "headings",
             "links",
+            "images",
             "structured",
             "metadata",
           ] as const

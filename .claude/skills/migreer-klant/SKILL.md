@@ -32,6 +32,10 @@ Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + 
 - Elke bronpagina op EXACT haar URL-pad: "/over-ons/" → `over-ons/index.html`, "/" → `index.html`. Titel als `<title>`, samenvatting (of eerste zinnen) als meta description; zie ook `seo-manifest.json`. Canonical/og-tags met placeholder-domein `https://VERVANG.nl`.
 - Ontdo de content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \25BE) en wrapper-divs; behoud teksten, koppen (h1/h2-structuur) en opbouw.
 - Berichten (type post): ook een blogoverzicht op `blog/index.html` met links, als er berichten zijn.
+- Afbeeldingen: oorspronkelijke bestandsnamen én alt-teksten behouden (Google Afbeeldingen); ontbreekt een alt, schrijf een korte feitelijke.
+- Structured data (JSON-LD) uit de bron-HTML van de LIVE site overnemen (Yoast zet bedrijfsgegevens/openingstijden/reviews als `application/ld+json` — zit niet in de WXR-export); adressen bijwerken naar het nieuwe domein.
+- `og:image` per pagina overnemen + één site-brede fallback (deelplaatje WhatsApp/LinkedIn).
+- Interne links ín teksten direct naar het juiste nieuwe pad — niet op redirects leunen.
 - Genereer `sitemap.xml`, `robots.txt`, `_headers` (X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Strict-Transport-Security: max-age=31536000; includeSubDomains) en `llms.txt` (markdown: "# Bedrijfsnaam", blockquote met feitelijke beschrijving, "## Pagina's"-lijst met per pagina één zin; niets verzinnen).
 - **CUSTOM POST TYPES**: diensten, teamleden, vacatures, projecten zitten vaak NIET in de export (het voorbereid-script meldt ze als overgeslagen). Haal die pagina's van de live site (curl + tekst extraheren) en bouw ze wél — anders missen er pagina's.
 
