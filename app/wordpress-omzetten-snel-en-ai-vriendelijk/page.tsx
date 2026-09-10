@@ -16,12 +16,12 @@ export default function Pagina() {
         label: "Snel & AI-vriendelijk",
         titel: "Hoe zet ik mijn WordPress-website om naar een snellere, AI-vriendelijke website?",
         intro:
-          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Die laadtijd hangt ook af van media en externe scripts én is perfect leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een zo getrouw mogelijke kopie van je site, sneller en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
+          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Snel voor bezoekers, en goed leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een zo getrouw mogelijke kopie van je site, snel en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
         blokken: [
           {
             kop: "Waarom is een statische site sneller én AI-vriendelijker?",
             tekst:
-              "WordPress bouwt elke pagina op het moment dat iemand hem opvraagt: database-verzoeken, plugins, thema-code — dat kost tijd. Een statische site ís al gebouwd; de server hoeft hem alleen te versturen. Voor bezoekers scheelt dat seconden. Voor AI-bots scheelt het nog meer: die lezen vaak geen JavaScript uit en haken af bij trage antwoorden. Een statische site levert de complete inhoud direct als schone HTML — precies wat een taalmodel nodig heeft om je bedrijf te begrijpen en te citeren.",
+              "Eerlijk is eerlijk: een goed onderhouden WordPress-site met caching kan ook snel zijn. Het verschil zit erin dat een statische site die snelheid niet hoeft te verdienen — er is geen database, geen plugin-code en geen cache die je moet instellen, bijhouden of die op het verkeerde moment verlopen is. Elke pagina staat kant-en-klaar op een wereldwijd netwerk, altijd even snel. In de praktijk zien we bovendien dat veel WordPress-sites van kleine bedrijven níét goed gecachet zijn, of vertraagd worden door een stapel plugins. Voor AI-bots komt er iets bij: beveiligings-plugins blokkeren of misleiden AI-crawlers regelmatig zonder dat de eigenaar het weet — dat zien we terug als we sites scannen. Een statische site levert de complete inhoud als schone HTML, zonder poortwachters ertussen: precies wat een taalmodel nodig heeft om je bedrijf te begrijpen en te citeren.",
           },
           {
             kop: "Zo word je genoemd in ChatGPT, Claude en Perplexity",
@@ -36,7 +36,7 @@ export default function Pagina() {
           {
             kop: "Wat levert het op?",
             tekst:
-              "Laadtijden van seconden naar milliseconden (en snelheid is een rankingfactor bij Google), geen onderhoud of beveiligingsrisico's meer, lagere maandlasten — en een steeds belangrijker voordeel: als klanten aan een AI-assistent vragen om een bedrijf zoals het jouwe, is een goed leesbare site het verschil tussen genoemd worden of onzichtbaar zijn. Steeds meer mensen zoeken via AI in plaats van via Google; wie daar nu leesbaar is, pakt die stroom als eerste.",
+              "Een site die altijd snel is zonder dat je er iets voor hoeft te doen (en snelheid is een rankingfactor bij Google), geen updates of plugin-onderhoud meer en een veel kleiner aanvalsoppervlak, lagere maandlasten — en een steeds belangrijker voordeel: als klanten aan een AI-assistent vragen om een bedrijf zoals het jouwe, is een goed leesbare site het verschil tussen genoemd worden of onzichtbaar zijn. Steeds meer mensen zoeken via AI in plaats van via Google; wie daar nu leesbaar is, pakt die stroom als eerste.",
           },
         ],
         faq: [
