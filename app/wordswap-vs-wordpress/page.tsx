@@ -23,7 +23,7 @@ const rijen: [string, string, string][] = [
 
 const faq: [string, string][] = [
   ["Wanneer is WordPress wél de betere keuze?", "Bij een webshop, een ledenomgeving met inlog, een boekingssysteem met live agenda of een cursusplatform. Die hebben een draaiend systeem nodig. Ook als je een team hebt dat dagelijks tientallen redactionele artikelen plaatst en gehecht is aan de WordPress-editor."],
-  ["Verlies ik mijn Google-posities bij de overstap?", "We controleren URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Google-posities kunnen veranderen; we garanderen geen behoud of stijging."],
+  ["Verlies ik mijn Google-posities bij de overstap?", "We nemen alles mee wat je vindbaarheid bepaalt — adressen, paginatitels, beschrijvingen, doorverwijzingen en sitemap — en vergelijken elke pagina na de overstap met het origineel. Daar stopt het niet: we kijken actief mee met je vindbaarheid en zien we verbetering mogelijk, dan stellen we die voor. Ook je zichtbaarheid in AI-chatbots zoals ChatGPT, Copilot en Claude nemen we daarin mee. Zoekposities garanderen kan niemand — wie dat wel doet, kun je beter wantrouwen."],
   ["Kan ik terug naar WordPress?", "Je bestanden en inhoud blijven van jou en het abonnement is maandelijks opzegbaar. Terug naar WordPress kan, maar vraagt een nieuwe inrichting; het is geen automatische terugzetknop."],
   ["Is een website zonder WordPress niet beperkt?", "Voor een bedrijfssite niet: pagina's, blog, foto's, formulieren en vindbaarheid werken allemaal. Het enige dat verdwijnt is het beheerscherm — en de updates."],
 ];

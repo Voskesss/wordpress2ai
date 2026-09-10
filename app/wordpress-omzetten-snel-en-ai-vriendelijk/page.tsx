@@ -63,7 +63,7 @@ export default function Pagina() {
           {
             vraag: "Verlies ik mijn Google-posities?",
             antwoord:
-              "We controleren URL’s, paginatitels, beschrijvingen en sitemap en richten waar nodig doorverwijzingen in. Zoekposities kunnen we niet garanderen.",
+              "We nemen alles mee wat je vindbaarheid bepaalt — adressen, paginatitels, beschrijvingen, doorverwijzingen en sitemap — en vergelijken elke pagina na de overstap met het origineel. Daar stopt het niet: we kijken actief mee met je vindbaarheid en zien we verbetering mogelijk, dan stellen we die voor. Ook je zichtbaarheid in AI-chatbots zoals ChatGPT, Copilot en Claude nemen we daarin mee. Zoekposities garanderen kan niemand — wie dat wel doet, kun je beter wantrouwen.",
           },
         ],
       }}

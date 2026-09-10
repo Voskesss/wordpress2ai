@@ -93,6 +93,15 @@ export default function SeoBehoud() {
             </p>
           </div>
           <div>
+            <strong>Meekijken en verbeteren</strong>
+            <p>
+              Vindbaarheid is waar Jos zelf graag induikt. Zien we na de
+              overstap verbetering mogelijk — in Google óf in AI-chatbots zoals
+              ChatGPT, Copilot en Claude — dan stellen we die concreet voor.
+              Behouden is de basis, beter worden is het doel.
+            </p>
+          </div>
+          <div>
             <strong>Daarna: bijhouden met AI</strong>
             <p>
               De website blijft herkenbaar. Jij vraagt om een tekst, foto of
