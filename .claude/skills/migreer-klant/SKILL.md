@@ -7,6 +7,21 @@ description: Migreer een WordPress-site naar een statische WordSwap-klantsite, v
 
 Jos geeft een WordPress-export (XML, evt. .gz) en een korte repo-naam (kebab-case, max 40 tekens). Aanwijzingen van Jos ("laat Actueel weg") gaan vóór alle onderstaande regels.
 
+## Snelmodus: VOORPROEFJE (alleen homepage, zonder export)
+
+Zegt Jos "maak een voorproefje van <url>" (voor een lead uit de advertentie of outreach), dan geldt NIET het stappenplan hieronder, maar deze lichte route — doel: binnen ~30 minuten een echte link die de lead kan bekijken. Er is géén WordPress-export; je werkt vanaf de live site.
+
+1. Haal de live homepage op (Playwright: gerenderde HTML + screenshot desktop/mobiel + computed styles van de kernonderdelen). Download alleen de afbeeldingen die op de homepage staan, naar webp.
+2. Bouw één schone statische homepage in `~/wordswap-klanten/proef-<naam>/` — zelfde ontwerp en teksten als het origineel (de herkenbaarheids-eis geldt onverkort), platte HTML + één stijl.css, geen WordPress-sporen.
+3. Voorproefje-regels:
+   - Bovenaan een smalle, nette balk: "Voorproefje door WordSwap — je echte website is niet aangepast. Zo zou hij eruitzien zonder WordPress."
+   - Interne links naar andere pagina's werken niet in het voorproefje: laat ze staan maar laat ze scrollen naar een klein blok onderaan: "In de echte overstap gaan al je pagina's mee."
+   - Formulieren tonen maar niet werkend; knop met dezelfde melding.
+   - `<meta name="robots" content="noindex">` — dit mag nooit gaan concurreren met de echte site van de lead.
+4. Deploy als worker `proef-<naam>` (zelfde deploy-route als klantsites, subdomein aanzetten) en geef Jos de link `https://proef-<naam>.wordswap.workers.dev`. GEEN site-registratie in de database, geen GitHub-repo nodig.
+5. Meld aan Jos: de link, wat er meegenomen is, en eventuele aandachtspunten voor de echte migratie (embeds, webshop-signalen, rare opbouw). Jos beoordeelt vóór de lead de link krijgt.
+6. Opruimen: voorproefjes die ouder zijn dan een maand mogen weg (worker verwijderen + map weggooien) zodra Jos dat vraagt.
+
 ## Stap 0 — Leerpunten lezen (verplicht)
 
 Lees EERST `.claude/skills/migreer-klant/LEERPUNTEN.md` — de lessen uit eerdere migraties. En andersom: **leer je tijdens deze migratie iets nieuws** (een valkuil, een plugin-patroon, een betere aanpak), dan voeg je dat DIRECT toe aan LEERPUNTEN.md, meld je het aan Jos, en commit je het mee. Zo wordt elke migratie beter dan de vorige.
