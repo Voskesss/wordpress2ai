@@ -57,12 +57,12 @@ export default function DemoPagina() {
         className="grid items-start gap-12 lg:grid-cols-2 scroll-mt-32"
       >
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-[#31956B]">
             Gratis proberen — geen betaalgegevens nodig
           </p>
           <h2 className="font-display mt-3 text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.08]">
             Pas zelf een echte website aan.{" "}
-            <span className="text-violet-700">Door het te typen.</span>
+            <span className="text-[#245747]">Door het te typen.</span>
           </h2>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-xl">
             Wij hebben een demo-website klaargezet: Bakkerij Jansen. Jij krijgt
@@ -75,7 +75,7 @@ export default function DemoPagina() {
           <div className="mt-8 space-y-4">
             {stappen.map((s) => (
               <div key={s.nr} className="flex gap-4">
-                <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-700 text-white font-semibold">
+                <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#244b3d] text-white font-semibold">
                   {s.nr}
                 </span>
                 <div>
@@ -92,7 +92,7 @@ export default function DemoPagina() {
             voor je eigen website?{" "}
             <Link
               href="/contact"
-              className="font-semibold text-violet-700 underline"
+              className="font-semibold text-[#245747] underline"
             >
               Neem contact op
             </Link>{" "}
@@ -102,7 +102,7 @@ export default function DemoPagina() {
 
         <div className="lg:sticky lg:top-24">
           <Show when="signed-in">
-            <div className="rounded-3xl border-2 border-violet-600 bg-white p-8 shadow-sm text-center">
+            <div className="rounded-3xl border-2 border-[#31956B] bg-white p-8 shadow-sm text-center">
               <h2 className="font-display text-2xl font-semibold">
                 Je bent al ingelogd
               </h2>
@@ -111,7 +111,7 @@ export default function DemoPagina() {
               </p>
               <Link
                 href="/portal"
-                className="lift mt-6 inline-block rounded-full bg-violet-700 px-8 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
+                className="lift mt-6 inline-block rounded-full bg-[#244b3d] px-8 py-3.5 font-semibold text-white shadow-lg shadow-[#d8e4d2] hover:bg-[#2f5d4b]"
               >
                 Open de demo →
               </Link>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const inputStijl =
-  "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-100";
+  "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-[#31956B] focus:outline-none focus:ring-2 focus:ring-[#e3eedd]";
 
 export default async function Contact() {
   // Ingelogde bezoekers (bv. vanuit de demo): naam en e-mail alvast invullen
@@ -37,7 +37,7 @@ export default async function Contact() {
             "Een voorstel met overstapprijs, maandbedrag en eventuele extra’s",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
-              <span className="mt-1 text-violet-600 shrink-0">✓</span>
+              <span className="mt-1 text-[#31956B] shrink-0">✓</span>
               {punt}
             </li>
           ))}
@@ -141,7 +141,7 @@ export default async function Contact() {
         </div>
         <button
           type="submit"
-          className="lift rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
+          className="lift rounded-lg bg-[#244b3d] px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-[#2f5d4b]"
         >
           Vraag mijn gratis websitecheck aan ↗
         </button>

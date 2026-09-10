@@ -30,7 +30,7 @@ export default function LeadForm({ children }: { children: ReactNode }) {
   if (state === "success")
     return (
       <section
-        className="lg:col-span-3 rounded-xl border border-violet-200 bg-violet-50 p-8"
+        className="lg:col-span-3 rounded-xl border border-[#dde7d9] bg-[#eff3e8] p-8"
         role="status"
       >
         <p className="eyebrow">JE AANVRAAG IS ONTVANGEN</p>
