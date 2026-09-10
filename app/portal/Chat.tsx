@@ -106,6 +106,8 @@ export default function Chat({
     setBezigState(v);
   }
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
+  // Antwoord dat woord voor woord binnenstroomt (native agent): live tonen
+  const [liveTekst, setLiveTekst] = useState<string | null>(null);
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
   const [videoKlaar, setVideoKlaarState] = useState<{ commandId: string; naam: string } | null>(null);
@@ -716,7 +718,14 @@ export default function Chat({
         });
       }
       const data = await readChatResponse(res, (event) => {
-        if (event.type === "status" && typeof event.tekst === "string") setStatusTekst(event.tekst);
+        if (event.type === "status" && typeof event.tekst === "string") {
+          setStatusTekst(event.tekst);
+          // Nieuwe werkstap: de tussentekst hoort bij de vorige stap
+          setLiveTekst(null);
+        }
+        if (event.type === "tekst-delta" && typeof event.tekst === "string") {
+          setLiveTekst((t) => (t ?? "") + event.tekst);
+        }
         if (event.type === "tekst-live" && typeof event.zoek === "string") {
           iframeRef.current?.contentWindow?.postMessage(
             { type: "wp2ai-tekst-live", zoek: event.zoek, vervang: event.vervang }, "*"
@@ -764,6 +773,7 @@ export default function Chat({
     } finally {
       stopRef.current = null;
       setBezig(false);
+      setLiveTekst(null);
       const q = wachtrijRef.current;
       if (q && gelukt) {
         wachtrijRef.current = null;
@@ -1687,7 +1697,19 @@ export default function Chat({
                   </div>
                   );
                 })}
-                {(bezig || videoBezig) && (
+                {bezig && liveTekst && (
+                  <div className="w-fit max-w-[90%] rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-2.5 text-sm whitespace-pre-wrap break-words text-stone-800">
+                    {liveTekst.split(/(\*\*[^*]+\*\*)/g).map((deel, j) =>
+                      deel.startsWith("**") && deel.endsWith("**") ? (
+                        <strong key={j}>{deel.slice(2, -2)}</strong>
+                      ) : (
+                        <span key={j}>{deel}</span>
+                      )
+                    )}
+                    <span className="ml-1 inline-block h-3.5 w-0.5 animate-pulse bg-violet-500 align-middle" aria-hidden />
+                  </div>
+                )}
+                {(bezig || videoBezig) && !liveTekst && (
                   <div className="flex w-fit items-center gap-3 rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-3">
                     <span className="flex items-center gap-1" aria-hidden>
                       {[0, 1, 2].map((i) => (

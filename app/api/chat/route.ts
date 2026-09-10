@@ -4,13 +4,8 @@ import {
   reserveAiBudget,
   settleAiBudget,
 } from "@/lib/operation-guards";
-import {
-  agentEnvironment,
-  siteToolBoundary,
-  siteTools,
-  assertNoSymlinks,
-} from "@/lib/agent-boundary";
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import { assertNoSymlinks } from "@/lib/agent-boundary";
+import { draaiChatAgent } from "@/lib/chat-agent";
 import { auth } from "@clerk/nextjs/server";
 import sharp from "sharp";
 import { and, eq, sql, inArray } from "drizzle-orm";
@@ -57,9 +52,9 @@ function systeemPrompt(
 
 Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
-- ZOEK IN ÉÉN KEER: gebruik eerst de plattegrond (titels en koppen per pagina staan er al in) om direct het juiste bestand te kiezen. Moet je toch tekst zoeken, doe dan één Grep met een kort letterlijk fragment over de hele map — nooit meerdere zoekrondes achter elkaar met variaties.
+- ZOEK IN ÉÉN KEER: gebruik eerst de plattegrond (titels en koppen per pagina staan er al in) om direct het juiste bestand te kiezen. Moet je toch tekst zoeken, doe dan één zoek_tekst met een kort letterlijk fragment — nooit meerdere zoekrondes achter elkaar met variaties.
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
-- KLEINE INGREPEN: wijzig bestanden met gerichte Edit-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met Write — dat is traag en foutgevoelig. Write gebruik je alleen voor gloednieuwe bestanden.
+- KLEINE INGREPEN: wijzig bestanden met gerichte bewerk_bestand-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met schrijf_bestand — dat is traag en foutgevoelig. schrijf_bestand gebruik je alleen voor gloednieuwe bestanden.
 - KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
 - WEES EEN ECHTE WEBDESIGNER: bij een verzoek om iets NIEUWS of GROOTS (een blog, een nieuwe pagina, een extra sectie, een ander menu) bouw je niet blind — je doet eerst een concreet voorstel en stelt alleen de één of twee vragen die nodig zijn om het goed te doen. Voorbeeld bij "ik wil een blog": moet er een menu-item bij komen en waar in het menu? Zal ik alvast een eerste blogbericht schrijven en waarover dan? Wil je reacties/nieuwsbrief erbij of gewoon artikelen? Stel de vragen kort en concreet (geen verhoor), doe zelf een voorstel per vraag ("ik zou hem tussen Over ons en Contact zetten — goed?") en bouw daarna in één keer het geheel. KLEINE wijzigingen (tekst, kleur, foto, openingstijd) voer je gewoon direct uit zonder vragen. Twijfelgeval? Eén verduidelijkende vraag, niet meer.
 - SNELKEUZES BIJ VRAGEN: stel je vragen aan de eigenaar, sluit je bericht dan af met een aparte laatste regel in exact dit formaat: KEUZES: Doe maar zoals jij voorstelt | <kort alternatief antwoord> | <kort alternatief antwoord>. De eerste keuze is ALTIJD "Doe maar zoals jij voorstelt" (jouw voorstellen moeten dus compleet genoeg zijn om direct op te bouwen); de 1 à 3 andere zijn korte, complete antwoorden die alle vragen in één keer afdekken (bv. "Wel menu-item, maar geen voorbeeldvacature"). Maximaal 4 keuzes, elk maximaal 8 woorden. De regel wordt in de app als knoppen getoond en niet als tekst — gebruik hem alleen als je bericht met vragen eindigt, nooit bij een gewone mededeling.
@@ -68,7 +63,7 @@ Werkwijze:
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
 - Het WEBADRES VAN DE HOMEPAGE (/) wijzig je nooit — ook niet op verzoek. Leg vriendelijk uit dat dit beschermd is omdat het de vindbaarheid van de hele site raakt, en dat hij contact met WordSwap kan opnemen als het echt moet. Titel en omschrijving van de homepage aanpassen mag wel gewoon.
-- VRAAGT de eigenaar wél om een andere paginatitel, omschrijving of webadres? Voer dat dan gewoon uit — het is zijn site. Bij een gewijzigd WEBADRES doe je ALTIJD deze vier dingen in één keer, anders raakt hij bezoekers en Google-posities kwijt: (1) de pagina op het nieuwe adres zetten; (2) in het bestand _redirects in de wortel een regel toevoegen "oud-pad nieuw-pad 301" (bestand aanmaken als het er nog niet is, bestaande regels laten staan); (3) ALLE interne links naar het oude adres bijwerken — menu en footer in delen/, knoppen en links in teksten (zoek ze met Grep); (4) het oude adres ook in sitemap.xml vervangen door het nieuwe, als die bestaat. Meld daarna in gewone taal: het oude adres blijft werken en stuurt automatisch door, de bestaande verwijzing blijft daardoor bruikbaar. Garandeer geen zoekposities.
+- VRAAGT de eigenaar wél om een andere paginatitel, omschrijving of webadres? Voer dat dan gewoon uit — het is zijn site. Bij een gewijzigd WEBADRES doe je ALTIJD deze vier dingen in één keer, anders raakt hij bezoekers en Google-posities kwijt: (1) de pagina op het nieuwe adres zetten; (2) in het bestand _redirects in de wortel een regel toevoegen "oud-pad nieuw-pad 301" (bestand aanmaken als het er nog niet is, bestaande regels laten staan); (3) ALLE interne links naar het oude adres bijwerken — menu en footer in delen/, knoppen en links in teksten (zoek ze met zoek_tekst); (4) het oude adres ook in sitemap.xml vervangen door het nieuwe, als die bestaat. Meld daarna in gewone taal: het oude adres blijft werken en stuurt automatisch door, de bestaande verwijzing blijft daardoor bruikbaar. Garandeer geen zoekposities.
 - Wijzigingen komen in een concept-versie; de eigenaar keurt ze daarna goed. Sluit af met maximaal drie korte zinnen: wat je hebt aangepast, op welke pagina de eigenaar moet kijken en wat de volgende stap is. Zeg dat het een concept is, nog niet live. Laat de eigenaar het voorbeeld controleren en daarna op Publiceer klikken. Zeg nooit dat iets al live staat; publiceren gebeurt via de knop, niet door alleen "ja" te typen.
 - Is het bericht gewoon een groet of een vraag zonder wijzigingsverzoek ("hoi", "hoor je mij?", "wat kun je allemaal?")? Antwoord dan direct kort en vriendelijk, zonder bestanden te lezen of iets aan te passen — gewoon een normaal gesprek.
 - Kun je iets niet, zeg dat eerlijk en stel een vervolgvraag.
@@ -83,11 +78,11 @@ const STATUS_PER_TOOL: Record<
   string,
   (input: Record<string, unknown>) => string
 > = {
-  Read: (i) => `Ik lees ${paginaNaam(String(i.file_path ?? ""))}...`,
-  Glob: () => "Ik kijk welke pagina's je site heeft...",
-  Grep: () => "Ik zoek waar het staat...",
-  Edit: (i) => `Ik pas ${paginaNaam(String(i.file_path ?? ""))} aan...`,
-  Write: (i) => `Ik werk ${paginaNaam(String(i.file_path ?? ""))} bij...`,
+  lees_bestand: (i) => `Ik lees ${paginaNaam(String(i.pad ?? ""))}...`,
+  lijst_bestanden: () => "Ik kijk welke pagina's je site heeft...",
+  zoek_tekst: () => "Ik zoek waar het staat...",
+  bewerk_bestand: (i) => `Ik pas ${paginaNaam(String(i.pad ?? ""))} aan...`,
+  schrijf_bestand: (i) => `Ik werk ${paginaNaam(String(i.pad ?? ""))} bij...`,
 };
 
 function paginaNaam(pad: string) {
@@ -473,9 +468,9 @@ export async function POST(req: Request) {
               ? `De eigenaar heeft een VIDEO meegestuurd; die is al gecomprimeerd voor het web en staat op ${videoPaden.video}${videoPaden.poster ? ` met poster-afbeelding ${videoPaden.poster}` : ""}. Plaats hem waar het bericht om vraagt. Als achtergrond/hero-video: <video autoplay muted loop playsinline preload="metadata"${videoPaden.poster ? ` poster="/${videoPaden.poster}"` : ""}> met <source src="/${videoPaden.video}" type="video/mp4">, netjes gepositioneerd achter de tekst, en respecteer prefers-reduced-motion (dan alleen de poster). Als gewone video op een pagina: <video controls preload="metadata" poster=...>. Verwijder een eventuele oude hero-video-verwijzing die hij vervangt, maar laat het oude bestand staan.`
               : null,
             afbeeldingen.length > 1
-              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => a.naam).join(", ")} (geoptimaliseerd, max 2000px breed). BEKIJK ze eerst met Read. Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
+              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => a.naam).join(", ")} (geoptimaliseerd, max 2000px breed). BEKIJK ze eerst met lees_bestand. Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
               : afbeeldingen.length === 1
-                ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met Read. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
+                ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met lees_bestand. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
                 : null,
             openConcept
               ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
@@ -484,137 +479,91 @@ export async function POST(req: Request) {
           ].filter(Boolean);
 
           await assertNoSymlinks(werkmap);
-          await mkdir(`${werkmap}-runtime`, { recursive: true });
           let reply = "";
-          let budgetSettled = false;
           let limietBereikt = false;
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
           try {
-            for await (const message of query({
-              prompt: contextRegels.join("\n\n"),
-              options: {
-                cwd: werkmap,
-                abortController: stopper,
-                // Demo: klein snel model — prospects moeten direct resultaat zien.
-                // Klantsites: Sonnet voor de hoogste kwaliteit.
-                model: site.isDemo
-                  ? "claude-haiku-4-5-20251001"
-                  : "claude-sonnet-5",
-                systemPrompt: systeemPrompt(
-                  site.naam,
-                  site.richtlijnen,
-                  site.isDemo,
-                  site.githubRepo,
-                ),
-                tools: siteTools,
-                allowedTools: siteTools,
-                permissionMode: "default",
-                settingSources: [],
-                hooks: { PreToolUse: [{ hooks: [siteToolBoundary(werkmap)] }] },
-                maxBudgetUsd: requestBudgetUsd,
-                maxTurns: 40,
-                env: agentEnvironment(`${werkmap}-runtime`),
+            const uitkomst = await draaiChatAgent({
+              werkmap,
+              // Demo: klein snel model — prospects moeten direct resultaat zien.
+              // Klantsites: Sonnet voor de hoogste kwaliteit.
+              model: site.isDemo
+                ? "claude-haiku-4-5-20251001"
+                : "claude-sonnet-5",
+              systeem: systeemPrompt(
+                site.naam,
+                site.richtlijnen,
+                site.isDemo,
+                site.githubRepo,
+              ),
+              opdracht: contextRegels.join("\n\n"),
+              budgetUsd: requestBudgetUsd,
+              signal: stopper.signal,
+              opGebeurtenis: (g) => {
+                if (g.soort === "tekst") {
+                  stuur({ type: "tekst-delta", tekst: g.delta });
+                  return;
+                }
+                const maker = STATUS_PER_TOOL[g.naam];
+                if (maker) stuur({ type: "status", tekst: maker(g.invoer) });
+                if (g.naam === "bewerk_bestand" || g.naam === "schrijf_bestand") {
+                  const rel = String(g.invoer.pad ?? "").replace(/^\/+/, "");
+                  // Pagina die bewerkt wordt meesturen: het voorbeeld springt
+                  // er live naartoe, zodat je ziet wáár de wijziging landt.
+                  if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
+                    const pad =
+                      rel === "index.html"
+                        ? "/"
+                        : "/" +
+                          rel
+                            .replace(/index\.html$/, "")
+                            .replace(/\.html?$/, "/");
+                    stuur({ type: "bewerkt", pad });
+                  }
+                  // Realtime: de tekstwijziging alvast in het voorbeeld laten
+                  // zien (de echte versie volgt zodra de deploy klaar is)
+                  if (g.naam === "bewerk_bestand") {
+                    const kaal = (t: string) =>
+                      t
+                        .replace(/<[^>]+>/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim();
+                    const zoek = kaal(String(g.invoer.zoek ?? ""));
+                    const vervang = kaal(String(g.invoer.vervang ?? ""));
+                    if (
+                      zoek.length >= 8 &&
+                      zoek.length <= 400 &&
+                      vervang.length <= 600 &&
+                      zoek !== vervang
+                    ) {
+                      stuur({ type: "tekst-live", zoek, vervang });
+                    }
+                  }
+                }
               },
-            })) {
-              if (message.type === "assistant") {
-                for (const block of message.message.content) {
-                  if (block.type === "tool_use") {
-                    const maker = STATUS_PER_TOOL[block.name];
-                    if (maker) {
-                      stuur({
-                        type: "status",
-                        tekst: maker(block.input as Record<string, unknown>),
-                      });
-                    }
-                    // Pagina die bewerkt wordt meesturen: het voorbeeld springt
-                    // er live naartoe, zodat je ziet wáár de wijziging landt.
-                    if (block.name === "Edit" || block.name === "Write") {
-                      const bestand = String(
-                        (block.input as { file_path?: string }).file_path ?? "",
-                      );
-                      const rel =
-                        werkmap && bestand.startsWith(werkmap)
-                          ? bestand.slice(werkmap.length).replace(/^\/+/, "")
-                          : bestand.replace(/^\/+/, "");
-                      if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
-                        const pad =
-                          rel === "index.html"
-                            ? "/"
-                            : "/" +
-                              rel
-                                .replace(/index\.html$/, "")
-                                .replace(/\.html?$/, "/");
-                        stuur({ type: "bewerkt", pad });
-                      }
-                      // Realtime: de tekstwijziging alvast in het voorbeeld laten
-                      // zien (de echte versie volgt zodra de deploy klaar is)
-                      if (block.name === "Edit") {
-                        const inp = block.input as {
-                          old_string?: string;
-                          new_string?: string;
-                        };
-                        const kaal = (t: string) =>
-                          t
-                            .replace(/<[^>]+>/g, " ")
-                            .replace(/\s+/g, " ")
-                            .trim();
-                        const zoek = kaal(String(inp.old_string ?? ""));
-                        const vervang = kaal(String(inp.new_string ?? ""));
-                        if (
-                          zoek.length >= 8 &&
-                          zoek.length <= 400 &&
-                          vervang.length <= 600 &&
-                          zoek !== vervang
-                        ) {
-                          stuur({ type: "tekst-live", zoek, vervang });
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              if (message.type === "result") {
-                if (message.subtype === "success") reply = message.result;
-                else limietBereikt = true;
-                const u = (
-                  message as {
-                    usage?: {
-                      input_tokens?: number;
-                      output_tokens?: number;
-                      cache_creation_input_tokens?: number;
-                      cache_read_input_tokens?: number;
-                    };
-                  }
-                ).usage;
-                const kosten = (message as { total_cost_usd?: number })
-                  .total_cost_usd;
-                if (!budgetSettled && typeof kosten === "number") {
-                  await settleAiBudget(scope, maand, requestBudgetUsd, kosten);
-                  budgetSettled = true;
-                }
-                const { registreerAiKosten } = await import("@/lib/kosten");
-                await registreerAiKosten(site.id, "chat", {
-                  tokensIn:
-                    (u?.input_tokens ?? 0) +
-                    (u?.cache_creation_input_tokens ?? 0) +
-                    (u?.cache_read_input_tokens ?? 0),
-                  tokensUit: u?.output_tokens ?? 0,
-                  kostenUsd: kosten ?? 0,
-                }).catch((e) => console.error("Kostenregistratie mislukt:", e));
-              }
-            }
+            });
+            reply = uitkomst.reply;
+            limietBereikt = uitkomst.limietBereikt;
+            await settleAiBudget(
+              scope,
+              maand,
+              requestBudgetUsd,
+              uitkomst.kostenUsd,
+            );
+            const { registreerAiKosten } = await import("@/lib/kosten");
+            await registreerAiKosten(site.id, "chat", {
+              tokensIn: uitkomst.tokensIn,
+              tokensUit: uitkomst.tokensUit,
+              kostenUsd: uitkomst.kostenUsd,
+            }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           } catch (e) {
             if (stopper.signal.aborted) {
               // Gestopt door de eigenaar: niets opslaan, geen concept maken
               return;
             }
-            // Bij de beurtlimiet gooien we het al gedane werk niet weg:
-            // wat af is wordt hieronder gewoon als concept klaargezet.
-            if (/maximum number of turns/i.test(String(e)))
-              limietBereikt = true;
-            else throw e;
+            throw e;
           }
           if (stopper.signal.aborted) return;
           tik("ai");
@@ -849,10 +798,6 @@ export async function POST(req: Request) {
         } finally {
           if (werkmap) {
             await ruimWerkmapOp(werkmap).catch(() => {});
-            await rm(`${werkmap}-runtime`, {
-              recursive: true,
-              force: true,
-            }).catch(() => {});
           }
           await release().catch((e) =>
             console.error("Bewerkingsslot vrijgeven:", e),
