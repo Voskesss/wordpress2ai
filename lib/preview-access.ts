@@ -1,4 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+// Een werkdag geldig: het portaal geeft de toegang bij het laden mee en
+// vernieuwt hem niet tussendoor — na verloop breekt het voorbeeldvenster.
+const GELDIG_S = 12 * 3600;
 function signature(payload: string) {
   const key = process.env.PREVIEW_SIGNING_SECRET ?? process.env.CRON_SECRET;
   if (!key) throw new Error("Preview-signingsleutel ontbreekt");
@@ -12,7 +15,7 @@ export function createPreviewAccess(
   userId: string,
   now = Date.now(),
 ) {
-  const payload = `${siteId}~${Math.floor(now / 1000) + 3600}~${Buffer.from(userId).toString("base64url")}`;
+  const payload = `${siteId}~${Math.floor(now / 1000) + GELDIG_S}~${Buffer.from(userId).toString("base64url")}`;
   return `${payload}~${signature(payload)}`;
 }
 export function verifyPreviewAccess(value: string, now = Date.now()) {
@@ -26,7 +29,7 @@ export function verifyPreviewAccess(value: string, now = Date.now()) {
     id <= 0 ||
     !Number.isSafeInteger(expiry) ||
     expiry <= now / 1000 ||
-    expiry > now / 1000 + 3600
+    expiry > now / 1000 + GELDIG_S + 120 // marge voor klokverschil tussen servers
   )
     return null;
   const expected = Buffer.from(signature(parts.slice(0, 3).join("~")));

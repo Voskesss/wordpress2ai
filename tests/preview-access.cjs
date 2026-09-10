@@ -23,7 +23,7 @@ const os = require("node:os");
       userId: "user-demo",
     });
     assert.equal(verifyPreviewAccess(token.replace("17~", "18~"), now), null);
-    assert.equal(verifyPreviewAccess(token, now + 3600001), null);
+    assert.equal(verifyPreviewAccess(token, now + 12 * 3600001), null);
     assert.equal(verifyPreviewAccess("17", now), null);
     assert.equal(verifyPreviewAccess(token + "x", now), null);
     console.log("Preview signature, expiry and tampering checks passed.");
