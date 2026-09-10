@@ -190,7 +190,7 @@ export default function Home() {
         </div>
       </section>
       <section className="shell beeld-band" aria-hidden="true">
-        <VerhaalBeeld onderwerp="website-controleren" />
+        <VerhaalBeeld onderwerp="productfoto-maken" />
       </section>
       <section className="shell fit-section">
         <div>

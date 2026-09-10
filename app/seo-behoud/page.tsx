@@ -45,7 +45,7 @@ export default function SeoBehoud() {
         </Link>
       </section>
       <div className="shell verhaal-wide">
-        <VerhaalBeeld onderwerp="website-controleren" />
+        <VerhaalBeeld onderwerp="websitebeheer" />
       </div>
       <section className="shell section-space">
         <div className="section-heading">

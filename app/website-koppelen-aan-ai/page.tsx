@@ -48,7 +48,7 @@ export default function Pagina() {
           {
             vraag: "Is dit een chatbot voor mijn bezoekers?",
             antwoord:
-              "Nee — dit is een AI voor jóú, om je site mee te beheren. Bezoekers gebruiken je website zoals ze gewend zijn. Jij bepaalt welke inhoud je bijwerkt. (Een bezoekers-chatbot kan er los van worden toegevoegd als je dat wilt.)",
+              "De ingebouwde AI is voor jóú, om je site mee te beheren — bezoekers gebruiken je website zoals ze gewend zijn. Wil je daarnaast een chatbot óp je site voor bezoekersvragen? Die kunnen we toevoegen; in je klantomgeving kun je daar nu al bedrijfsdocumenten voor klaarzetten.",
           },
           {
             vraag: "Wat als de AI iets verkeerd doet?",

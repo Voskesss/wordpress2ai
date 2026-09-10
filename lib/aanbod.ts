@@ -21,7 +21,7 @@ export const aanbod = {
 export const aankoopVragen = [
   [
     "Is WordSwap een chatbot voor mijn bezoekers?",
-    "De AI-chat is voor jou als eigenaar. Je geeft er wijzigingen mee door aan je website. Je bezoekers gebruiken je website zoals ze gewend zijn.",
+    "De ingebouwde AI-chat is voor jou als eigenaar: daarmee pas je je website aan. Wil je daarnaast een chatbot óp je website die vragen van bezoekers beantwoordt? Dat kunnen we toevoegen — in je klantomgeving kun je nu al documenten over je bedrijf klaarzetten waar die chatbot straks uit put.",
   ],
   ["Past mijn website bij WordSwap?", aanbod.geschikt],
   ["Blijven mijn ontwerp en domeinnaam behouden?", aanbod.ontwerp],

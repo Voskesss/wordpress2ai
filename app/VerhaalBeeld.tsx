@@ -1,10 +1,9 @@
 import Image from "next/image";
 
-type Onderwerp = "ondernemer" | "website-controleren" | "productfoto-maken";
+type Onderwerp = "ondernemer" | "websitebeheer" | "productfoto-maken";
 const omschrijvingen: Record<Onderwerp, string> = {
   ondernemer: "Ondernemer werkt aan haar website in een atelier",
-  "website-controleren":
-    "Twee mensen vergelijken een website met een controlelijst",
+  websitebeheer: "Ondernemer werkt geconcentreerd aan haar website",
   "productfoto-maken":
     "Bloemist maakt een nieuwe productfoto voor haar website",
 };
