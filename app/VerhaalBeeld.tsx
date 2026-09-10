@@ -1,9 +1,11 @@
 import Image from "next/image";
 
-type Onderwerp = "ondernemer" | "websitebeheer";
+type Onderwerp = "ondernemer" | "websitebeheer" | "meubelmaker-lamp";
 const omschrijvingen: Record<Onderwerp, string> = {
   ondernemer: "Ondernemer werkt aan haar website in een atelier",
   websitebeheer: "Ondernemer werkt geconcentreerd aan haar website",
+  "meubelmaker-lamp":
+    "Meubelmaker fotografeert zijn nieuwe houten lamp voor zijn website",
 };
 
 export default function VerhaalBeeld({ onderwerp }: { onderwerp: Onderwerp }) {

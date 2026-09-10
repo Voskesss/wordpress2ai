@@ -189,6 +189,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+      <section className="shell beeld-band" aria-hidden="true">
+        <VerhaalBeeld onderwerp="meubelmaker-lamp" />
+      </section>
       <section className="shell fit-section">
         <div>
           <p className="eyebrow">WAT VERANDERT ER NU EIGENLIJK?</p>

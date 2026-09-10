@@ -116,7 +116,7 @@ export default function HoeHetWerkt() {
       </div>
 
       <section className="shell verhaal-section">
-        <VerhaalBeeld onderwerp="ondernemer" />
+        <VerhaalBeeld onderwerp="meubelmaker-lamp" />
         <div className="verhaal-copy">
           <p className="eyebrow">VAN EIGEN FOTO NAAR JE WEBSITE</p>
           <h2>Laat zien wat er nieuw is.</h2>
