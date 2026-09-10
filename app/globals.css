@@ -1663,3 +1663,16 @@ main p {
   .verhaal-section { grid-template-columns: 1fr; gap: 24px; padding-block: 38px; }
   .verhaal-copy > p:not(.eyebrow) { font-size: 16px; }
 }
+
+/* === Meer ritme op de homepage === */
+/* Donkergroene stappenplan-baan: rustpunt halverwege de pagina */
+.process-section { background: #244b3d; border-color: #1d3f33; }
+.process-section .eyebrow { color: #a9c6a4; }
+.process-section h2, .process-section .steps-grid h3 { color: #f9faf1; }
+.process-section .section-intro, .process-section .steps-grid p { color: #cfdcc6; }
+.process-section .button-text { color: #eaf2da; }
+.process-section .step-number { background: #f9faf1; color: #244b3d; border-color: #f9faf1; }
+/* Brede illustratie als visuele adempauze */
+.beeld-band { padding-block: 10px 55px; }
+.beeld-band .verhaal-beeld img { aspect-ratio: 5 / 2; object-fit: cover; object-position: center 35%; }
+@media (max-width: 767px) { .beeld-band { padding-bottom: 30px; } .beeld-band .verhaal-beeld img { aspect-ratio: 3 / 2; } }
