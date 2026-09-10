@@ -10,6 +10,8 @@ type Bericht = {
   rol: "klant" | "assistent";
   tekst: string;
   metVerversTip?: boolean;
+  /** Commentaar tijdens het werken ("Ik ga eerst kijken...") — blijft staan, iets gedempt */
+  tussenstap?: boolean;
 };
 
 type Concept = {
@@ -720,8 +722,17 @@ export default function Chat({
       const data = await readChatResponse(res, (event) => {
         if (event.type === "status" && typeof event.tekst === "string") {
           setStatusTekst(event.tekst);
-          // Nieuwe werkstap: de tussentekst hoort bij de vorige stap
-          setLiveTekst(null);
+          // Nieuwe werkstap: het commentaar tot nu toe blijft staan als
+          // tussenbericht (net als in een echt gesprek), de stroom gaat verder
+          setLiveTekst((t) => {
+            if (t && t.trim()) {
+              setBerichten((b) => [
+                ...b,
+                { rol: "assistent", tekst: t.trim(), tussenstap: true },
+              ]);
+            }
+            return null;
+          });
         }
         if (event.type === "tekst-delta" && typeof event.tekst === "string") {
           setLiveTekst((t) => (t ?? "") + event.tekst);
@@ -1647,10 +1658,12 @@ export default function Chat({
                   return (
                   <div key={i}>
                     <div
-                      className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
+                      className={`w-fit max-w-[90%] rounded-2xl px-4 py-2.5 whitespace-pre-wrap break-words ${
                         m.rol === "klant"
-                          ? "ml-auto bg-violet-600 text-white rounded-br-sm"
-                          : "bg-stone-100 text-stone-800 rounded-bl-sm"
+                          ? "ml-auto bg-violet-600 text-white rounded-br-sm text-sm"
+                          : m.tussenstap
+                            ? "bg-stone-50 text-stone-500 rounded-bl-sm text-[13px]"
+                            : "bg-stone-100 text-stone-800 rounded-bl-sm text-sm"
                       }`}
                     >
                       {schoon.split(/(\*\*[^*]+\*\*)/g).map((deel, j) =>
