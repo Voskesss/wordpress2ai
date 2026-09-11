@@ -218,6 +218,16 @@ export const prospectMails = pgTable("prospect_mails", {
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
 
+// Verzonden losse mails uit de admin-Mailer: zodat Jos kan terugzien wat er
+// precies is verstuurd (aan wie, wanneer, welke tekst)
+export const verzondenMails = pgTable("verzonden_mails", {
+  id: serial("id").primaryKey(),
+  aan: text("aan").notNull(),
+  onderwerp: text("onderwerp").notNull(),
+  tekst: text("tekst").notNull(),
+  verzonden: timestamp("verzonden").notNull().defaultNow(),
+});
+
 // Webinars: door Jos ingeplande sessies waar bezoekers zich voor inschrijven
 export const webinars = pgTable("webinars", {
   id: serial("id").primaryKey(),

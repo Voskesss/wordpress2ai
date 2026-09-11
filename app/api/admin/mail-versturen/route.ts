@@ -28,11 +28,25 @@ export async function POST(req: Request) {
       subject: onderwerp.trim(),
       html: losseMailNaarHtml(tekst.trim()),
       reply_to: ["jos@wordswap.nl"],
+      // Kopie voor Jos zelf (komt via de doorsturing in zijn eigen inbox)
+      bcc: ["jos@wordswap.nl"],
     }),
   });
   if (!res.ok) {
     console.error("Losse mail mislukt:", await res.text());
     return NextResponse.json({ error: "Versturen mislukte — probeer het zo nog eens." }, { status: 502 });
+  }
+  // Vastleggen wat er verzonden is (mag nooit het versturen zelf laten falen)
+  try {
+    const { db } = await import("@/db");
+    const { verzondenMails } = await import("@/db/schema");
+    await db.insert(verzondenMails).values({
+      aan: aan.trim(),
+      onderwerp: onderwerp.trim(),
+      tekst: tekst.trim(),
+    });
+  } catch (e) {
+    console.error("Verzonden mail niet kunnen vastleggen:", e);
   }
   return NextResponse.json({ ok: true });
 }
