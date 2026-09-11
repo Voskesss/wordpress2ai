@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function Mailer({
   searchParams,
 }: {
-  searchParams: Promise<{ aan?: string; onderwerp?: string; tekst?: string }>;
+  searchParams: Promise<{ aan?: string; onderwerp?: string; tekst?: string; demo?: string }>;
 }) {
   await requireAdmin();
   const p = await searchParams;
@@ -72,6 +72,7 @@ export default async function Mailer({
         beginAan={p.aan ?? ""}
         beginOnderwerp={p.onderwerp ?? ""}
         beginTekst={p.tekst ?? ""}
+        beginDemo={p.demo !== "0"}
       />
 
       <h2 className="font-display mt-14 text-2xl font-semibold">📬 Verzonden</h2>

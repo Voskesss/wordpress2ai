@@ -48,6 +48,7 @@ export default function LeadVak() {
       aan: email.trim() || r.email || "",
       onderwerp: m.onderwerp,
       tekst: m.tekst,
+      demo: "0", // een lead zit al in gesprek — geen demo-knop die afleidt
     });
     return `/admin/mailer?${q.toString()}`;
   }

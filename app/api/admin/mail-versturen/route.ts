@@ -8,10 +8,11 @@ export async function POST(req: Request) {
   if (user?.publicMetadata?.role !== "admin") {
     return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
   }
-  const { aan, onderwerp, tekst } = (await req.json()) as {
+  const { aan, onderwerp, tekst, metDemo } = (await req.json()) as {
     aan: string;
     onderwerp: string;
     tekst: string;
+    metDemo?: boolean;
   };
   if (!aan?.includes("@") || !onderwerp?.trim() || !tekst?.trim()) {
     return NextResponse.json({ error: "Vul ontvanger, onderwerp en tekst in." }, { status: 400 });
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       from: "Jos Klijnhout | WordSwap <jos@wordswap.nl>",
       to: [aan.trim()],
       subject: onderwerp.trim(),
-      html: losseMailNaarHtml(tekst.trim()),
+      html: losseMailNaarHtml(tekst.trim(), metDemo !== false),
       reply_to: ["jos@wordswap.nl"],
       // Kopie voor Jos zelf (komt via de doorsturing in zijn eigen inbox)
       bcc: ["jos@wordswap.nl"],

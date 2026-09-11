@@ -9,10 +9,12 @@ export default function MailerVak({
   beginAan = "",
   beginOnderwerp = "",
   beginTekst = "",
+  beginDemo = true,
 }: {
   beginAan?: string;
   beginOnderwerp?: string;
   beginTekst?: string;
+  beginDemo?: boolean;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [bezig, setBezig] = useState(false);
@@ -20,6 +22,7 @@ export default function MailerVak({
   const [sleutel, setSleutel] = useState(0); // reset van de bewerker na verzenden
   // Voorvulling (bv. opvolgmail vanuit de scanner) geldt tot de eerste verzending
   const [begin, setBegin] = useState({ aan: beginAan, onderwerp: beginOnderwerp, tekst: beginTekst });
+  const [metDemo, setMetDemo] = useState(beginDemo);
 
   async function verstuur(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +37,7 @@ export default function MailerVak({
       const res = await fetch("/api/admin/mail-versturen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aan, onderwerp, tekst }),
+        body: JSON.stringify({ aan, onderwerp, tekst, metDemo }),
       });
       const uit = (await res.json()) as { ok?: boolean; error?: string };
       if (uit.ok) {
@@ -82,10 +85,21 @@ export default function MailerVak({
             <span className="text-stone-300"> · </span>
             <span className="text-stone-500">jos@wordswap.nl</span>
           </p>
-          <span className="mt-3.5 inline-block rounded-full bg-[#244b3d] px-5 py-2 text-[13px] font-semibold text-white">
-            Probeer de demo — pas een site aan door te typen
-          </span>
+          {metDemo && (
+            <span className="mt-3.5 inline-block rounded-full bg-[#244b3d] px-5 py-2 text-[13px] font-semibold text-white">
+              Probeer de demo — pas een site aan door te typen
+            </span>
+          )}
         </div>
+        <label className="mt-3 flex items-center gap-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            checked={metDemo}
+            onChange={(e) => setMetDemo(e.target.checked)}
+            className="h-4 w-4 accent-[#31956B]"
+          />
+          Demo-knop onder de mail (goed voor koude outreach; bij een lead vaak beter uit)
+        </label>
       </div>
       {melding && (
         <p className={`text-sm font-medium ${melding.goed ? "text-emerald-700" : "text-red-600"}`}>

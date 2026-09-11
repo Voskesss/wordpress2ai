@@ -3,8 +3,16 @@ const stijl = `font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;li
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-/** De vaste handtekening onder losse mails vanuit jos@wordswap.nl. */
-export const HANDTEKENING = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%;max-width:560px;font-family:-apple-system,'Segoe UI',sans-serif">
+const DEMO_KNOP = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px"><tr>
+<td style="border-radius:999px;background:#244b3d">
+<a href="https://wordswap.nl/demo" style="display:inline-block;padding:9px 22px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px">Probeer de demo — pas een site aan door te typen</a>
+</td></tr></table>`;
+
+/** De vaste handtekening onder losse mails vanuit jos@wordswap.nl. De
+ * demo-knop is optioneel: goed voor koude outreach, maar bij een warme lead
+ * leidt hij af van het echte vervolg (bellen of "laat maar zien"). */
+export function handtekening(metDemo = true): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%;max-width:560px;font-family:-apple-system,'Segoe UI',sans-serif">
 <tr><td style="border-top:3px solid #31956B;padding-top:18px">
 <img src="https://www.wordswap.nl/logo-mail-groen.png" height="40" alt="WordSwap" style="display:block;height:40px;width:auto">
 <p style="margin:12px 0 0;font-size:16px;font-weight:700;color:#1c1917">Jos Klijnhout</p>
@@ -14,14 +22,15 @@ export const HANDTEKENING = `<table role="presentation" cellpadding="0" cellspac
 <span style="color:#d6d3d1">&nbsp;·&nbsp;</span>
 <a href="mailto:jos@wordswap.nl" style="color:#78716c;text-decoration:none">jos@wordswap.nl</a>
 </p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px"><tr>
-<td style="border-radius:999px;background:#244b3d">
-<a href="https://wordswap.nl/demo" style="display:inline-block;padding:9px 22px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px">Probeer de demo — pas een site aan door te typen</a>
-</td></tr></table>
+${metDemo ? DEMO_KNOP : ""}
 </td></tr></table>`;
+}
+
+/** Bestaande naam behouden voor de outreach-mails (altijd mét demo-knop). */
+export const HANDTEKENING = handtekening(true);
 
 /** Platte tekst → nette HTML-mail met handtekening; links worden klikbaar. */
-export function losseMailNaarHtml(tekst: string): string {
+export function losseMailNaarHtml(tekst: string, metDemo = true): string {
   const alineas = tekst
     .split(/\n\s*\n/)
     .map((a) => a.trim())
@@ -36,5 +45,5 @@ export function losseMailNaarHtml(tekst: string): string {
       return `<p>${met.replace(/\n/g, "<br>")}</p>`;
     })
     .join("\n");
-  return `<div style="${stijl}">\n${alineas}\n<p style="margin-top:24px">Met vriendelijke groet,</p>\n${HANDTEKENING}</div>`;
+  return `<div style="${stijl}">\n${alineas}\n<p style="margin-top:24px">Met vriendelijke groet,</p>\n${handtekening(metDemo)}</div>`;
 }
