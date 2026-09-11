@@ -95,8 +95,10 @@ export default function MailBewerker({
       {fout && <p className="text-xs text-red-600">{fout}</p>}
       <p className="text-[11px] text-stone-400">
         Geef zo vaak aanwijzingen als je wilt — elke keer wordt de tekst
-        hierboven bijgewerkt. Zelf tikken kan ook gewoon. Groet en afmeldknop
-        komen er automatisch onder. Vergeet niet op te slaan als hij goed is.
+        hierboven bijgewerkt. Zelf tikken kan ook gewoon.{" "}
+        {los
+          ? "Groet en handtekening komen er automatisch onder."
+          : "Groet, handtekening en afmeldknop komen er automatisch onder. Vergeet niet op te slaan als hij goed is."}
       </p>
     </div>
   );
