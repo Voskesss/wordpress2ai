@@ -71,17 +71,17 @@ export default function MailerVak({
         <p className="text-xs font-semibold text-stone-500">
           Dit komt er automatisch onder:
         </p>
-        <div className="mt-2 border-t-[3px] border-violet-700 pt-4">
+        <div className="mt-2 border-t-[3px] border-[#31956B] pt-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-mail.png" alt="WordSwap" className="h-10 w-auto" />
           <p className="mt-3 text-[16px] font-bold text-stone-900">Jos Klijnhout</p>
           <p className="text-[13px] text-stone-600">websites zonder onderhoud — aanpassen door het te typen</p>
           <p className="mt-0.5 text-[13px]">
-            <span className="font-semibold text-violet-700">wordswap.nl</span>
+            <span className="font-semibold text-[#245747]">wordswap.nl</span>
             <span className="text-stone-300"> · </span>
             <span className="text-stone-500">jos@wordswap.nl</span>
           </p>
-          <span className="mt-3.5 inline-block rounded-full bg-violet-700 px-5 py-2 text-[13px] font-semibold text-white">
+          <span className="mt-3.5 inline-block rounded-full bg-[#244b3d] px-5 py-2 text-[13px] font-semibold text-white">
             Probeer de demo — pas een site aan door te typen
           </span>
         </div>

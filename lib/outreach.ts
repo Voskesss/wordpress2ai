@@ -120,8 +120,8 @@ ${groet}${afmeldRegel(p)}</div>`,
     html: `<div style="${stijl}">
 <p>Hallo,</p>
 <p>Dit is mijn laatste berichtje — ik ga je niet blijven mailen. Speelt het nu niet bij ${ontsnap(p.bedrijf)}: helemaal prima.</p>
-<p>Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: <a href="https://wordswap.nl" style="color:#6d28d9">wordswap.nl</a>.</p>
-<p>Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: <a href="https://wordswap.nl/webinar" style="color:#6d28d9">wordswap.nl/webinar</a>.</p>
+<p>Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: <a href="https://wordswap.nl" style="color:#245747">wordswap.nl</a>.</p>
+<p>Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: <a href="https://wordswap.nl/webinar" style="color:#245747">wordswap.nl/webinar</a>.</p>
 <p>Veel succes met de zaak!</p>
 ${groet}${afmeldRegel(p)}</div>`,
   };
@@ -160,10 +160,10 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
     .map((a) => {
       // Getypte links klikbaar maken (https://... of wordswap.nl/...)
       const met = ontsnap(a)
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#6d28d9">$1</a>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#245747">$1</a>')
         .replace(
           /(^|[\s(])((?:www\.)?wordswap\.nl(?:\/[\w\-\/]*)?)/g,
-          '$1<a href="https://$2" style="color:#6d28d9">$2</a>'
+          '$1<a href="https://$2" style="color:#245747">$2</a>'
         );
       return `<p>${met.replace(/\n/g, "<br>")}</p>`;
     })
