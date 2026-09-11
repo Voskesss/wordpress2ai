@@ -2,6 +2,20 @@
 
 import { useState } from "react";
 import { richtprijs, type ScanResultaat } from "@/lib/prospectscan-shared";
+import { maakOpvolgmail } from "@/lib/opvolgmail";
+
+/** Opent de Mailer met een kant-en-klare opvolgmail (websitecheck-leads):
+ * bevindingen in klanttaal + richtprijs + voorproefje-aanbod. Jos leest na
+ * en verstuurt zelf. */
+function opvolgmailUrl(r: ScanResultaat) {
+  const m = maakOpvolgmail(r);
+  const q = new URLSearchParams({
+    aan: r.email ?? "",
+    onderwerp: m.onderwerp,
+    tekst: m.tekst,
+  });
+  return `/admin/mailer?${q.toString()}`;
+}
 
 /** Website scannen vanuit de admin: WordPress + verwaarlozing checken en
  * het resultaat met één klik in het prospect-formulier zetten. */
@@ -256,14 +270,22 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
                   <> E-mail gevonden: <strong>{resultaat.email}</strong>.</>
                 )}
               </p>
-              {resultaat.platform && !resultaat.platform.includes("maatwerk") && (
-                <button
-                  onClick={() => vulMet(resultaat)}
-                  className="mt-2 rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <a
+                  href={opvolgmailUrl(resultaat)}
+                  className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600"
                 >
-                  → Toch in het formulier zetten
-                </button>
-              )}
+                  ✉️ Opvolgmail klaarzetten
+                </a>
+                {resultaat.platform && !resultaat.platform.includes("maatwerk") && (
+                  <button
+                    onClick={() => vulMet(resultaat)}
+                    className="rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+                  >
+                    → Toch in het formulier zetten
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <>
@@ -288,15 +310,23 @@ export default function ScanVak({ bestaandeDomeinen = [] }: { bestaandeDomeinen?
                   ))}
                 </ul>
               )}
-              <button
-                onClick={vulFormulier}
-                className="mt-3 rounded-full border border-violet-400 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
-              >
-                ↓ Zet in het prospect-formulier
-              </button>
-              <span className="ml-2 text-xs text-stone-400">
-                (vult website + observatie in — daarna ✨-knop voor nette tekst)
-              </span>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <a
+                  href={opvolgmailUrl(resultaat)}
+                  className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600"
+                >
+                  ✉️ Opvolgmail klaarzetten
+                </a>
+                <button
+                  onClick={vulFormulier}
+                  className="rounded-full border border-violet-400 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+                >
+                  ↓ Zet in het prospect-formulier
+                </button>
+                <span className="text-xs text-stone-400">
+                  (opvolgmail = check-uitkomst + voorproefje-aanbod, jij leest na en verstuurt)
+                </span>
+              </div>
             </>
           )}
         </div>

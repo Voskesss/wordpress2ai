@@ -8,8 +8,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function Mailer() {
+export default async function Mailer({
+  searchParams,
+}: {
+  searchParams: Promise<{ aan?: string; onderwerp?: string; tekst?: string }>;
+}) {
   await requireAdmin();
+  const p = await searchParams;
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
@@ -23,7 +28,11 @@ export default async function Mailer() {
         AI-aanwijzing schaaf je de tekst bij tot hij goed voelt. Antwoorden
         komen via de doorsturing gewoon in je eigen inbox.
       </p>
-      <MailerVak />
+      <MailerVak
+        beginAan={p.aan ?? ""}
+        beginOnderwerp={p.onderwerp ?? ""}
+        beginTekst={p.tekst ?? ""}
+      />
     </div>
   );
 }

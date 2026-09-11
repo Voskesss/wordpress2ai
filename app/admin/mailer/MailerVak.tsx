@@ -5,11 +5,21 @@ import MailBewerker from "../outreach/MailBewerker";
 
 /** Losse mails versturen vanuit jos@wordswap.nl, met AI-hulp en vaste
  * handtekening. Antwoorden komen via de doorsturing gewoon in je inbox. */
-export default function MailerVak() {
+export default function MailerVak({
+  beginAan = "",
+  beginOnderwerp = "",
+  beginTekst = "",
+}: {
+  beginAan?: string;
+  beginOnderwerp?: string;
+  beginTekst?: string;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState<{ goed: boolean; tekst: string } | null>(null);
   const [sleutel, setSleutel] = useState(0); // reset van de bewerker na verzenden
+  // Voorvulling (bv. opvolgmail vanuit de scanner) geldt tot de eerste verzending
+  const [begin, setBegin] = useState({ aan: beginAan, onderwerp: beginOnderwerp, tekst: beginTekst });
 
   async function verstuur(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +39,7 @@ export default function MailerVak() {
       const uit = (await res.json()) as { ok?: boolean; error?: string };
       if (uit.ok) {
         setMelding({ goed: true, tekst: `Verstuurd naar ${aan} ✓` });
+        setBegin({ aan: "", onderwerp: "", tekst: "" });
         formRef.current.reset();
         setSleutel((k) => k + 1);
       } else {
@@ -49,11 +60,13 @@ export default function MailerVak() {
           name="aan"
           type="email"
           required
+          key={`aan-${sleutel}`}
+          defaultValue={begin.aan}
           placeholder="naam@bedrijf.nl"
           className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 font-normal text-sm focus:border-violet-600 focus:outline-none"
         />
       </label>
-      <MailBewerker key={sleutel} beginOnderwerp="" beginTekst="" los />
+      <MailBewerker key={sleutel} beginOnderwerp={begin.onderwerp} beginTekst={begin.tekst} los />
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
         <p className="text-xs font-semibold text-stone-500">
           Dit komt er automatisch onder:
