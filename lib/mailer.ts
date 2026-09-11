@@ -36,5 +36,5 @@ export function losseMailNaarHtml(tekst: string): string {
       return `<p>${met.replace(/\n/g, "<br>")}</p>`;
     })
     .join("\n");
-  return `<div style="${stijl}">\n${alineas}\n${HANDTEKENING}</div>`;
+  return `<div style="${stijl}">\n${alineas}\n<p style="margin-top:24px">Met vriendelijke groet,</p>\n${HANDTEKENING}</div>`;
 }

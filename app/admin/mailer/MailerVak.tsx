@@ -71,6 +71,7 @@ export default function MailerVak({
         <p className="text-xs font-semibold text-stone-500">
           Dit komt er automatisch onder:
         </p>
+        <p className="mt-3 text-sm text-stone-700">Met vriendelijke groet,</p>
         <div className="mt-2 border-t-[3px] border-[#31956B] pt-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-mail.png" alt="WordSwap" className="h-10 w-auto" />
