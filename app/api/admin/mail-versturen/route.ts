@@ -38,12 +38,14 @@ export async function POST(req: Request) {
   }
   // Vastleggen wat er verzonden is (mag nooit het versturen zelf laten falen)
   try {
+    const { id: resendId } = (await res.json()) as { id?: string };
     const { db } = await import("@/db");
     const { verzondenMails } = await import("@/db/schema");
     await db.insert(verzondenMails).values({
       aan: aan.trim(),
       onderwerp: onderwerp.trim(),
       tekst: tekst.trim(),
+      resendId: resendId ?? null,
     });
   } catch (e) {
     console.error("Verzonden mail niet kunnen vastleggen:", e);

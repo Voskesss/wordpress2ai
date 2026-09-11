@@ -24,6 +24,37 @@ export default async function Mailer({
     .orderBy(desc(verzondenMails.verzonden))
     .limit(30)
     .catch(() => []);
+
+  // Bezorgstatus per mail live bij Resend opvragen (best effort)
+  const STATUS: Record<string, { tekst: string; kleur: string }> = {
+    delivered: { tekst: "✓ afgeleverd", kleur: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    opened: { tekst: "✓ geopend", kleur: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    clicked: { tekst: "✓ link aangeklikt", kleur: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    bounced: { tekst: "✗ gebounced — adres klopt niet", kleur: "bg-red-50 text-red-700 border-red-200" },
+    complained: { tekst: "⚠ als spam gemarkeerd", kleur: "bg-amber-50 text-amber-700 border-amber-200" },
+    delivery_delayed: { tekst: "⏳ vertraagd", kleur: "bg-amber-50 text-amber-700 border-amber-200" },
+    sent: { tekst: "⏳ onderweg", kleur: "bg-stone-100 text-stone-600 border-stone-200" },
+  };
+  const statussen = new Map<number, { tekst: string; kleur: string }>();
+  const key = process.env.RESEND_API_KEY;
+  if (key) {
+    await Promise.all(
+      verzonden
+        .filter((m) => m.resendId)
+        .map(async (m) => {
+          try {
+            const r = await fetch(`https://api.resend.com/emails/${m.resendId}`, {
+              headers: { Authorization: `Bearer ${key}` },
+              cache: "no-store",
+            });
+            if (!r.ok) return;
+            const d = (await r.json()) as { last_event?: string };
+            const s = d.last_event && STATUS[d.last_event];
+            if (s) statussen.set(m.id, s);
+          } catch {}
+        })
+    );
+  }
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
@@ -71,6 +102,13 @@ export default async function Mailer({
                     minute: "2-digit",
                   })}
                 </span>
+                {statussen.has(m.id) && (
+                  <span
+                    className={`ml-2 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statussen.get(m.id)!.kleur}`}
+                  >
+                    {statussen.get(m.id)!.tekst}
+                  </span>
+                )}
               </summary>
               <pre className="mt-3 whitespace-pre-wrap border-t border-stone-100 pt-3 font-sans text-sm text-stone-700">
                 {m.tekst}

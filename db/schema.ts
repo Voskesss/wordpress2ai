@@ -226,6 +226,7 @@ export const verzondenMails = pgTable("verzonden_mails", {
   onderwerp: text("onderwerp").notNull(),
   tekst: text("tekst").notNull(),
   verzonden: timestamp("verzonden").notNull().defaultNow(),
+  resendId: text("resend_id"), // voor de bezorgstatus (afgeleverd/gebounced)
 });
 
 // Webinars: door Jos ingeplande sessies waar bezoekers zich voor inschrijven

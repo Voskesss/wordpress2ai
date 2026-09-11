@@ -6,3 +6,6 @@ CREATE TABLE IF NOT EXISTS verzonden_mails (
   tekst TEXT NOT NULL,
   verzonden TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- Bezorgstatus: Resend-id per mail zodat de admin de status (afgeleverd/gebounced) kan tonen
+ALTER TABLE verzonden_mails ADD COLUMN IF NOT EXISTS resend_id TEXT;
