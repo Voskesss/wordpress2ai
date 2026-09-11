@@ -68,6 +68,36 @@ export async function deployRepoNaarCloudflareRef(
   }
 }
 
+/** Het echte klantdomein bij een worker-naam (live of wv-werkversie), zoals
+ * ingevuld op de admin-klantpagina. Null zolang de site nog op workers.dev
+ * draait. Hiermee vervangt de deploy automatisch het placeholder-domein
+ * https://VERVANG.nl in canonical/og-tags, sitemap en robots — zodat dat nooit
+ * meer vergeten kan worden bij het koppelen van een domein. */
+export async function echtDomeinVoor(naam: string): Promise<string | null> {
+  const repo = naam.replace(/^wv-/, "");
+  try {
+    const { db } = await import("../db");
+    const { sites } = await import("../db/schema");
+    const { eq, or } = await import("drizzle-orm");
+    const [site] = await db
+      .select({ domein: sites.domein })
+      .from(sites)
+      .where(or(eq(sites.githubRepo, repo), eq(sites.netlifySiteId, naam)))
+      .limit(1);
+    const d = (site?.domein ?? "").trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "").toLowerCase();
+    if (!d || !d.includes(".") || /\.workers\.dev$/.test(d)) return null;
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+/** Vervangt het placeholder-domein door het echte domein (alleen als dat bekend is). */
+export function vervangPlaceholderDomein(tekst: string, domein: string | null): string {
+  if (!domein) return tekst;
+  return tekst.replace(/https?:\/\/VERVANG\.nl/gi, `https://${domein}`).replace(/\bVERVANG\.nl\b/g, domein);
+}
+
 /** Deployt een lokale map als statische site op Cloudflare Workers. */
 export async function deployMapNaarCloudflare(
   werkmap: string,
@@ -78,6 +108,7 @@ export async function deployMapNaarCloudflare(
   {
     const bestanden = await alleBestanden(werkmap);
     const delen = await laadDelen(werkmap);
+    const echtDomein = await echtDomeinVoor(naam);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
     // Deploy-stempel: het portaal herkent hieraan of de nieuwe versie al
@@ -96,7 +127,10 @@ export async function deployMapNaarCloudflare(
         html = html.includes("</body>")
           ? html.replace("</body>", `${injectie}</body>`)
           : html + injectie;
-        data = Buffer.from(html);
+        data = Buffer.from(vervangPlaceholderDomein(html, echtDomein));
+      } else if (echtDomein && /\.(xml|txt)$/i.test(pad)) {
+        // sitemap.xml, robots.txt, llms.txt
+        data = Buffer.from(vervangPlaceholderDomein(data.toString("utf8"), echtDomein));
       }
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
       manifest[`/${pad}`] = { hash, size: data.length };

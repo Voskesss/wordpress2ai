@@ -29,6 +29,7 @@ export async function bewaarSite(formData: FormData) {
   const plan = String(formData.get("plan") ?? "via_ons");
   const status = String(formData.get("status") ?? "migratie");
   if (!naam) return;
+  const [vorige] = await db.select({ domein: sites.domein, netlifySiteId: sites.netlifySiteId, githubRepo: sites.githubRepo }).from(sites).where(eq(sites.id, siteId));
   await db
     .update(sites)
     .set({
@@ -41,6 +42,17 @@ export async function bewaarSite(formData: FormData) {
         : "migratie") as "migratie" | "actief" | "gepauzeerd" | "opgezegd",
     })
     .where(eq(sites.id, siteId));
+  // Domein gewijzigd? Dan meteen herdeployen: de deploy vervangt het
+  // placeholder-domein (VERVANG.nl) door het echte domein in canonical,
+  // sitemap en robots — anders wijst de site naar een niet-bestaand domein.
+  const nieuwDomein = domein || null;
+  if (vorige && nieuwDomein !== vorige.domein && vorige.netlifySiteId) {
+    const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
+    await deployRepoNaarCloudflare(vorige.githubRepo, vorige.netlifySiteId).catch((e) =>
+      console.error("Herdeploy na domeinwijziging mislukt:", e)
+    );
+    await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.netlifySiteId}`).catch(() => {});
+  }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");
 }
