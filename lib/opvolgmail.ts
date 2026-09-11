@@ -34,7 +34,8 @@ function klantTaal(regel: string): string | null {
 
 export function maakOpvolgmail(
   r: ScanResultaat,
-  naam?: string
+  naam?: string,
+  opties?: { gebeld?: boolean }
 ): { onderwerp: string; tekst: string } {
   const punten = [...new Set(
     [...(r.kapot ?? []), ...(r.bevindingen ?? [])]
@@ -57,7 +58,11 @@ export function maakOpvolgmail(
     onderwerp: `Je websitecheck van ${r.domein}`,
     tekst: `${aanhef}
 
-Bedankt voor je aanvraag — ik heb naar ${r.domein} gekeken.
+Bedankt voor je aanvraag — ik heb naar ${r.domein} gekeken.${
+      opties?.gebeld
+        ? " Ik probeerde je net al even te bellen, maar dat kwam vast niet gelegen — daarom de uitkomst op de mail."
+        : ""
+    }
 
 ${bevindingenBlok}
 
@@ -65,6 +70,6 @@ Zal ik als proef alvast je homepage overzetten? Dan zie je op een echte link hoe
 
 ${prijsRegel}
 
-Eén reply met "laat maar zien" is genoeg.`,
+Eén reply met "laat maar zien" is genoeg. Liever even bellen? Laat weten wat een goed moment is — dan bel ik je.`,
   };
 }
