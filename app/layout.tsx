@@ -143,6 +143,24 @@ const jsonLd = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
   const isAdmin = user?.publicMetadata?.role === "admin";
+  // Meerdere websites? Dan heet het menu-item "Mijn websites" en opent het een overzicht.
+  let meerdereSites = false;
+  if (user) {
+    try {
+      const { db } = await import("@/db");
+      const { sites } = await import("@/db/schema");
+      const { and, eq } = await import("drizzle-orm");
+      const rijen = await db
+        .select({ id: sites.id })
+        .from(sites)
+        .where(and(eq(sites.clerkUserId, user.id), eq(sites.isDemo, false)))
+        .limit(2);
+      meerdereSites = rijen.length > 1;
+    } catch {
+      meerdereSites = false;
+    }
+  }
+  const portalLabel = meerdereSites ? "Mijn websites" : "Mijn website";
   // Alles wat niet de echte productie-omgeving is, krijgt een duidelijke DEV-balk
   const isDev =
     process.env.NODE_ENV !== "production" ||
@@ -178,7 +196,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/" aria-label="WordSwap home">
                 <Logo klein />
               </Link>
-              <HeaderNav isAdmin={isAdmin} />
+              <HeaderNav isAdmin={isAdmin} portalLabel={portalLabel} />
             </div>
           </header>
           <main id="inhoud" className="flex-1">
@@ -222,7 +240,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/contact">Gratis websitecheck</Link>
                 <Link href="/partners">Samenwerken</Link>
                 <Link href="/webinar">Gratis webinar</Link>
-                <Link href="/portal">Mijn website</Link>
+                <Link href="/portal">{portalLabel}</Link>
               </nav>
             </div>
             <details className="shell footer-resources">

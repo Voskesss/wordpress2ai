@@ -12,7 +12,7 @@ import { demoLiveWorker, demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 
 export const metadata: Metadata = {
-  title: "Mijn website",
+  title: "Mijn websites",
   robots: { index: false, follow: false },
 };
 
@@ -54,13 +54,17 @@ export default async function Portal({
   // Meerdere websites? Eén tegelijk tonen, met een keuzebalk erboven.
   // Standaard de eigen site (niet de demo), anders de eerste.
   const gekozenId = Number(gekozenParam);
-  const getoondeSite =
-    mijnSites.find((s) => s.id === gekozenId) ??
-    mijnSites.find((s) => !s.isDemo && s.clerkUserId === userId) ??
-    mijnSites[0];
+  if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
+  // Meerdere websites zonder keuze in het adres? Dan eerst een overzicht,
+  // niet meteen in de eerste website belanden.
+  const toonOverzicht = mijnSites.length > 1 && !mijnSites.some((s) => s.id === gekozenId);
+  const getoondeSite = toonOverzicht
+    ? undefined
+    : (mijnSites.find((s) => s.id === gekozenId) ??
+      mijnSites.find((s) => !s.isDemo && s.clerkUserId === userId) ??
+      mijnSites[0]);
   const herstelMap: Record<number, number> = {};
   const getoondeSites = getoondeSite ? [getoondeSite] : [];
-  if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
 
   const historieMap: Record<
     number,
@@ -136,8 +140,44 @@ export default async function Portal({
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         {mijnSites.length > 1 ? "Mijn websites" : "Mijn website"}
       </h1>
-      {mijnSites.length > 1 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+      {toonOverzicht && (
+        <>
+          <p className="mt-2 text-stone-600">Kies de website die je wilt bijhouden.</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mijnSites.map((s) => (
+              <a
+                key={s.id}
+                href={`/portal?site=${s.id}`}
+                className="group flex flex-col rounded-3xl border border-stone-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md"
+              >
+                <h2 className="font-display text-xl font-semibold group-hover:text-violet-700">
+                  {s.isDemo && s.clerkUserId !== userId ? "🧪 Probeer-demo" : s.naam}
+                </h2>
+                <p className="mt-1 text-sm text-stone-500">{s.domein ?? "domein volgt"}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium">
+                  <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-stone-600">
+                    {s.status === "actief" ? "Actief" : s.status === "migratie" ? "In opbouw" : s.status}
+                  </span>
+                  {openConceptMap[s.id] && (
+                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-amber-900">
+                      Concept staat klaar
+                    </span>
+                  )}
+                </div>
+                <span className="mt-5 text-sm font-semibold text-violet-700">Website bijhouden →</span>
+              </a>
+            ))}
+          </div>
+        </>
+      )}
+      {mijnSites.length > 1 && !toonOverzicht && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <a
+            href="/portal"
+            className="rounded-full px-3 py-2 text-sm font-semibold text-stone-500 hover:text-violet-700"
+          >
+            ← Alle websites
+          </a>
           {mijnSites.map((s) => (
             <a
               key={s.id}
@@ -155,7 +195,7 @@ export default async function Portal({
           ))}
         </div>
       )}
-      {mijnSites.length === 0 ? (
+      {toonOverzicht ? null : mijnSites.length === 0 ? (
         <div className="mt-8 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
           <p className="text-stone-600 leading-relaxed">
             Je omgeving wordt nog voor je klaargezet. Zodra je website gekoppeld

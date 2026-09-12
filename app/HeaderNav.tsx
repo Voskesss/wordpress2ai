@@ -11,7 +11,7 @@ const links = [
   { href: "/over-wordswap", label: "Over ons" },
 ];
 
-export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
+export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { isAdmin: boolean; portalLabel?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,7 +45,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
             href="/portal"
             className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
           >
-            Mijn website
+            {portalLabel}
           </Link>
           {isAdmin && (
             <Link
@@ -109,7 +109,7 @@ export default function HeaderNav({ isAdmin }: { isAdmin: boolean }) {
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-4 py-3 hover:bg-zinc-50"
               >
-                Mijn website
+                {portalLabel}
               </Link>
               {isAdmin && (
                 <Link
