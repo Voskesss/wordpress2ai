@@ -1212,6 +1212,25 @@ export default function Chat({
 
   return (
     <div className="min-w-0">
+        {/* Publiceren/verwijderen: duidelijke overlay over venster én chat, zodat niemand ondertussen doorklikt */}
+        {conceptActie && (
+          <div className="absolute inset-0 z-[60] flex items-center justify-center bg-stone-900/50 backdrop-blur-[2px]" role="status" aria-live="polite">
+            <div className="mx-4 max-w-sm rounded-3xl bg-white px-8 py-7 text-center shadow-2xl">
+              <svg className="mx-auto mb-4 h-10 w-10 animate-spin text-violet-700" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-20" />
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <p className="text-lg font-semibold text-stone-900">
+                {conceptActie === "publiceer" ? "Je wijziging gaat live…" : "Concept wordt verwijderd…"}
+              </p>
+              <p className="mt-1.5 text-sm text-stone-500">
+                {conceptActie === "publiceer"
+                  ? "Een paar seconden. Daarna zie je hier meteen de gepubliceerde versie."
+                  : "Je website blijft zoals hij was."}
+              </p>
+            </div>
+          </div>
+        )}
       <div
         className={`bg-white overflow-hidden flex flex-col ${
           volledigScherm || (isMobiel && mobielVol)
