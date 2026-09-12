@@ -639,7 +639,8 @@ export default function Chat({
   async function verstuur(
     overrideTekst?: unknown,
     overrideAfbeelding?: File,
-    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null }
+    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null },
+    extra?: { controle?: boolean }
   ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
     if (!tekst) return;
@@ -700,6 +701,7 @@ export default function Chat({
         if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
         if (gekozen) form.set("selectie", JSON.stringify(gekozen));
         if (gekozenKleur) form.set("kleur", gekozenKleur);
+        if (extra?.controle) { form.set("controle", "1"); form.set("apparaat", apparaat); }
         res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
       } else {
         res = await fetch("/api/chat", {
@@ -713,6 +715,8 @@ export default function Chat({
             selectie: gekozen ?? undefined,
             kleur: gekozenKleur ?? undefined,
             videoCommandId: meegestuurdeVideo?.commandId,
+            controle: extra?.controle || undefined,
+            apparaat: extra?.controle ? apparaat : undefined,
           }),
         });
       }
@@ -1714,13 +1718,16 @@ export default function Chat({
                       m.rol === "assistent" &&
                       (m.metVerversTip || concept != null) && (
                       <button
-                        onClick={() => herlaad(Boolean(concept))}
-                        className="mt-1.5 flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                        onClick={() => verstuur("Dit klopt niet. Kijk zelf even naar wat ik nu zie.", undefined, undefined, { controle: true })}
+                        disabled={bezig || conceptActie !== null}
+                        className="mt-1.5 flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 disabled:opacity-50 cursor-pointer"
+                        title="De AI maakt een schermafbeelding van precies wat jij nu ziet en beoordeelt zijn eigen werk"
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-                          <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
                         </svg>
-                        Zie je de wijziging niet? Ververs het voorbeeld
+                        Klopt het niet? Laat de AI zelf kijken
                       </button>
                     )}
                   </div>

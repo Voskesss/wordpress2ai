@@ -62,7 +62,8 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
   for (const item of items) {
     const vol = path.join(dir, item.name);
     if (item.isDirectory()) {
-      if (item.name === ".git" || item.name === "node_modules") continue;
+      // wp2ai-controle: schermafbeeldingen voor de AI — nooit pushen of publiceren
+      if (item.name === ".git" || item.name === "node_modules" || item.name === CONTROLE_MAP) continue;
       paden.push(...(await alleBestanden(vol, basis)));
     } else {
       paden.push(path.relative(basis, vol));
@@ -70,6 +71,9 @@ async function alleBestanden(dir: string, basis = dir): Promise<string[]> {
   }
   return paden;
 }
+
+/** Map in de werkmap voor schermafbeeldingen die de AI mag bekijken (staat buiten push en deploy). */
+export const CONTROLE_MAP = "wp2ai-controle";
 
 export type Snapshot = Map<string, string>;
 

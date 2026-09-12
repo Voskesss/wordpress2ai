@@ -40,7 +40,7 @@ async function lijstAlleBestanden(root: string, sub = ""): Promise<string[]> {
   const uit: string[] = [];
   const map = path.join(root, sub);
   for (const entry of await readdir(map, { withFileTypes: true })) {
-    if (entry.name.startsWith(".") || entry.name === "node_modules") continue;
+    if (entry.name.startsWith(".") || entry.name === "node_modules" || entry.name === "wp2ai-controle") continue;
     const rel = sub ? `${sub}/${entry.name}` : entry.name;
     if (entry.isDirectory()) uit.push(...(await lijstAlleBestanden(root, rel)));
     else uit.push(rel);

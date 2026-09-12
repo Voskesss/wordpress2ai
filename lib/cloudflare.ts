@@ -23,7 +23,7 @@ function hdr(json = true): Record<string, string> {
 
 /** Werkmappen en instructiebestanden die nooit publiek horen te staan.
  * "delen" bevat de bouwstenen die bij deploy al in de pagina's zijn gezet. */
-const NIET_PUBLIEK_MAPPEN = new Set([".git", ".github", "delen"]);
+const NIET_PUBLIEK_MAPPEN = new Set([".git", ".github", "delen", "wp2ai-controle"]);
 const NIET_PUBLIEK_BESTANDEN = new Set([
   "_redirects",
   "AGENTS.md",

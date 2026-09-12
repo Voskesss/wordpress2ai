@@ -110,6 +110,11 @@ export async function POST(req: Request) {
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
+  // "Klopt niet, kijk zelf even": de AI krijgt een schermafbeelding van wat de eigenaar ziet
+  let controle = false;
+  let apparaat: "telefoon" | "tablet" | "desktop" = "desktop";
+  const apparaatVan = (v: unknown): "telefoon" | "tablet" | "desktop" =>
+    v === "telefoon" || v === "tablet" ? v : "desktop";
 
   const contentType = req.headers.get("content-type") ?? "";
   if (contentType.includes("multipart/form-data")) {
@@ -126,6 +131,8 @@ export async function POST(req: Request) {
       if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
     }
     videoCommandId = String(form.get("videoCommandId") ?? "") || undefined;
+    controle = form.get("controle") === "1";
+    apparaat = apparaatVan(form.get("apparaat"));
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -169,9 +176,13 @@ export async function POST(req: Request) {
       huidigePagina?: string;
       selectie?: Selectie;
       kleur?: string;
+      controle?: boolean;
+      apparaat?: string;
     };
     siteId = body.siteId;
     bericht = body.bericht;
+    controle = body.controle === true;
+    apparaat = apparaatVan(body.apparaat);
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
@@ -402,6 +413,36 @@ export async function POST(req: Request) {
             await writeFile(doel, foto.data);
           }
 
+          // "Klopt niet, kijk zelf even": schermafbeelding van precies wat de
+          // eigenaar nu ziet (zelfde pagina, zelfde apparaat), zodat de AI zijn
+          // eigen werk kan beoordelen in plaats van blind te raden
+          let controleRegel: string | null = null;
+          if (controle) {
+            stuur({ type: "status", tekst: "Ik maak een schermafbeelding van wat jij nu ziet..." });
+            const pad = huidigePagina && huidigePagina.startsWith("/") ? huidigePagina : "/";
+            const host =
+              openConcept && wvNaam
+                ? `${wvNaam}.${CF_SUBDOMEIN}.workers.dev`
+                : (site.domein ?? `${site.netlifySiteId}.${CF_SUBDOMEIN}.workers.dev`);
+            try {
+              const { maakSchermafbeelding, knipInDelen } = await import("@/lib/schermafbeelding");
+              const { CONTROLE_MAP } = await import("@/lib/werkmap");
+              const png = await maakSchermafbeelding(`https://${host}${pad}`, apparaat);
+              const delen = await knipInDelen(png);
+              await mkdir(path.join(werkmap, CONTROLE_MAP), { recursive: true });
+              const paden: string[] = [];
+              for (let i = 0; i < delen.length; i++) {
+                const rel = `${CONTROLE_MAP}/scherm-${i + 1}.png`;
+                await writeFile(path.join(werkmap, rel), delen[i]);
+                paden.push(rel);
+              }
+              controleRegel = `De eigenaar heeft op de knop "Klopt niet, kijk zelf even" gedrukt. Hieronder staan schermafbeeldingen van wat hij NU ziet op pagina ${pad} (${apparaat}-weergave), van boven naar beneden: ${paden.join(", ")}. BEKIJK ze eerst allemaal met lees_bestand. Vergelijk wat je ziet met wat je in je vorige antwoord beweerde te hebben gedaan. Benoem concreet en eerlijk wat er niet klopt (verkeerde kleur, onzichtbaar element, verkeerde plek, niets veranderd) en herstel het in de bestanden. Zie je echt niets mis? Zeg dat dan eerlijk, beschrijf kort wat jij ziet, en vraag wat de eigenaar anders verwacht. Plaats deze schermafbeeldingen NOOIT op de site en noem hun bestandsnamen niet in je antwoord.`;
+            } catch (e) {
+              console.error("Schermafbeelding mislukt:", e);
+              controleRegel = `De eigenaar heeft op de knop "Klopt niet, kijk zelf even" gedrukt, maar de schermafbeelding kon niet gemaakt worden. Lees de bestanden die je bij je vorige wijziging aanpaste nog eens kritisch na (kleuren die niet bestaan, selectors die nergens op slaan, ontbrekende CSS-variabelen), herstel wat je vindt, en vraag anders kort en concreet wat er niet klopt en op welke plek.`;
+            }
+          }
+
           // Gecomprimeerde video (via Rendi) ophalen en in de site zetten
           const haalBinair = async (url: string): Promise<Buffer> => {
             const ab = await fetch(url).then((r) => r.arrayBuffer());
@@ -480,6 +521,7 @@ export async function POST(req: Request) {
             openConcept
               ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
               : null,
+            controleRegel,
             `Verzoek van de eigenaar: ${bericht}`,
           ].filter(Boolean);
 
