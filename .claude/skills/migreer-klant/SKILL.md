@@ -1,11 +1,15 @@
 ---
 name: migreer-klant
-description: Migreer een WordPress-site naar een statische WordSwap-klantsite, volledig vanuit Claude Code (geen API-pijplijn). Gebruik bij een nieuwe klant-migratie, een WXR/XML-export, of "bouw de site van klant X".
+description: Migreer een WordPress-site naar een statische WordSwap-klantsite, volledig vanuit Claude Code (geen API-pijplijn). Standaard rechtstreeks vanaf de live site (alleen een URL nodig); een WXR/XML-export is optioneel. Gebruik bij een nieuwe klant-migratie, "kopieer/bouw de site van klant X", of een aangeleverde export.
 ---
 
 # WordPress-klant migreren via Claude Code
 
-Jos geeft een WordPress-export (XML, evt. .gz) en een korte repo-naam (kebab-case, max 40 tekens). Aanwijzingen van Jos ("laat Actueel weg") gaan vóór alle onderstaande regels.
+Jos geeft een site-URL (standaard) of een WordPress-export (XML, evt. .gz) en een korte repo-naam (kebab-case, max 40 tekens). Aanwijzingen van Jos ("laat Actueel weg") gaan vóór alle onderstaande regels.
+
+**Standaardroute = de live site.** Een volledige migratie werkt normaal gesproken rechtstreeks vanaf de publieke site (zie Stap 1B) — de klant hoeft nergens voor in te loggen. De XML-export is een optionele bonus, niet het startpunt. Vraag er alleen om bij (1) een site met veel blogposts (reacties en exacte publicatiedata zitten niet in de live HTML), of (2) als beeldkwaliteit zwaar telt en de live site alleen verkleinde versies geeft — en zelfs dan kan "mail me je originele foto's" makkelijker zijn.
+
+**Lukt scrapen niet, dan STOP je en meld je dat DUIDELIJK aan Jos** — niet stilletjes half werk leveren. Signalen: pagina's komen leeg/geblokkeerd terug (bot-detectie, WAF/Cloudflare-challenge, 403's ook mét crawl-delay en normale user-agent), content wordt pas client-side opgebouwd en ontbreekt óók in de Playwright-render, de site zit achter een login, of de sitemap/paginalijst is niet te achterhalen. Meld concreet wát er misgaat en adviseer dan de XML-route (of gerichte aanlevering door de klant) als alternatief.
 
 ## Snelmodus: VOORPROEFJE (alleen homepage, zonder export)
 
@@ -26,7 +30,22 @@ Zegt Jos "maak een voorproefje van <url>" (voor een lead uit de advertentie of o
 
 Lees EERST `.claude/skills/migreer-klant/LEERPUNTEN.md` — de lessen uit eerdere migraties. En andersom: **leer je tijdens deze migratie iets nieuws** (een valkuil, een plugin-patroon, een betere aanpak), dan voeg je dat DIRECT toe aan LEERPUNTEN.md, meld je het aan Jos, en commit je het mee. Zo wordt elke migratie beter dan de vorige.
 
-## Stap 1 — Mechanisch voorwerk (script, geen AI-kosten)
+## Stap 1B — Voorwerk vanaf de LIVE site (standaardroute, geen export)
+
+Doel: dezelfde bron-map opbouwen als de XML-route (`~/wordswap-klanten/<repo>-bron/` met `oud-ontwerp/`, `seo-manifest.json`, `afbeeldingen-op-paginas.json`, `embeds-op-paginas.json`, `media-map.json`), maar dan geoogst van de publieke site.
+
+1. **Paginalijst**: probeer achtereenvolgens `robots.txt` (Sitemap-regel), de daar genoemde sitemap, en `/wp-sitemap.xml` (de core-sitemap; robots kan naar een Yoast-`sitemap.xml` wijzen die 404 geeft). Geen van alle bruikbaar → menu + interne links van de homepage crawlen. Lukt óók dat niet → melden aan Jos (zie kop: scrapen niet mogelijk).
+2. **Respecteer `Crawl-delay`** uit robots.txt (en gebruik een normale browser-user-agent); zonder pauze kunnen pagina's leeg terugkomen.
+3. **Oogsten met Playwright** per pagina: gerenderde HTML, fullpage-screenshots desktop (1440) + mobiel (375), volledig doorscrollen voor lazy content, en daarna verzamelen: title/meta description/h1's (→ `seo-manifest.json`), alle `<img>`-src's én computed `background-image`s (→ `afbeeldingen-op-paginas.json`), iframes/video's (→ `embeds-op-paginas.json`), JSON-LD.
+4. **CONTROLE dat het oogsten écht gelukt is**: elke pagina heeft niet-lege HTML met de verwachte teksten, en de screenshots tonen de echte site (geen challenge-pagina, geen leeg wit vlak). Twijfel of blokkade → STOP en meld het aan Jos met wat je wel/niet binnenkreeg; ga niet bouwen op een halve oogst.
+5. **Beelden**: per beeld-URL eerst het origineel proberen door `-scaled` en `-WxH`-maatsuffixen uit de bestandsnaam te strippen; daarna pas de getoonde versie. Converteren naar webp (max 2000px, q82), dedupliceren op basisnaam, mapping in `media-map.json`, mislukte downloads in `ontbrekende-media.txt`.
+6. **Beperkingen benoemen** in de oplevering: concepten/niet-gepubliceerde pagina's, reacties onder blogposts en plugin-data zitten niet in de live site — meld of dat hier speelt (bv. veel blogposts) en of de XML alsnog gewenst is.
+
+Daarna gewoon door naar Stap 2; overal waar naar `bronmateriaal/` of het manifest wordt verwezen geldt je geoogste materiaal.
+
+## Stap 1 — Mechanisch voorwerk vanaf een XML-export (optionele route)
+
+Alleen als Jos een export aanlevert of er bewust om is gevraagd (zie boven):
 
 ```bash
 npx tsx --env-file=.env.local scripts/voorbereiden.mts <xml-pad> <repo-naam>
