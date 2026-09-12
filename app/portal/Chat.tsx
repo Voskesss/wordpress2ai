@@ -1212,6 +1212,13 @@ export default function Chat({
 
   return (
     <div className="min-w-0">
+      <div
+        className={`bg-white overflow-hidden flex flex-col ${
+          volledigScherm || (isMobiel && mobielVol)
+            ? "fixed inset-0 z-[80]"
+            : "relative rounded-3xl border-2 shadow-sm"
+        } ${concept ? "border-amber-400" : "border-stone-200"}`}
+      >
         {/* Publiceren/verwijderen: duidelijke overlay over venster én chat, zodat niemand ondertussen doorklikt */}
         {conceptActie && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-stone-900/50 backdrop-blur-[2px]" role="status" aria-live="polite">
@@ -1231,13 +1238,6 @@ export default function Chat({
             </div>
           </div>
         )}
-      <div
-        className={`bg-white overflow-hidden flex flex-col ${
-          volledigScherm || (isMobiel && mobielVol)
-            ? "fixed inset-0 z-[80]"
-            : "relative rounded-3xl border-2 shadow-sm"
-        } ${concept ? "border-amber-400" : "border-stone-200"}`}
-      >
         {/* Mobiel: wisselaar tussen chat en site */}
         {isMobiel && (
           <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1.5">
