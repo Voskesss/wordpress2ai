@@ -70,7 +70,7 @@ function Tip({ tekst, children }: { tekst: string; children: ReactNode }) {
   return (
     <span className="group relative inline-flex">
       {children}
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-[15rem] -translate-x-1/2 rounded-xl bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+      <span className="pointer-events-none absolute bottom-full left-0 z-30 mb-2 w-max max-w-[15rem] rounded-xl bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
         {tekst}
       </span>
     </span>
