@@ -141,9 +141,6 @@ async function bereidBestandenVoor(
   const bestanden = await alleBestanden(werkmap);
   const delen = await laadDelen(werkmap);
   const echtDomein = await echtDomeinVoor(naam);
-  // Deploy-stempel: het portaal herkent hieraan of de nieuwe versie al
-  // doorgedrongen is bij Cloudflare (en ververst anders zelf nog een keer)
-  const stempel = `<script>try{parent!==window&&parent.postMessage({type:"wp2ai-stempel",stempel:${Date.now()}},"*")}catch(e){}</script>`;
   const uit: { pad: string; data: Buffer }[] = [];
   for (const pad of bestanden) {
     let data = await readFile(path.join(werkmap, pad));
@@ -154,7 +151,7 @@ async function bereidBestandenVoor(
         /<script>[^<]*wp2ai[^<]*<\/script>/g,
         ""
       );
-      const injectie = PAGINA_MELDER + stempel;
+      const injectie = PAGINA_MELDER;
       html = html.includes("</body>")
         ? html.replace("</body>", `${injectie}</body>`)
         : html + injectie;
@@ -174,24 +171,11 @@ async function bereidBestandenVoor(
   return uit;
 }
 
-/** Deployt een lokale map als statische site op Cloudflare Workers.
- * Standaard via R2 (inhoud los van code, direct zichtbaar); met
- * DEPLOY_MODUS=assets de oude ingebakken manier (terugvaloptie). */
+/** Deployt een lokale map als statische site op Cloudflare Workers: alleen
+ * gewijzigde bestanden naar R2 schrijven en het vaste leesscript één keer per
+ * site (of bij een nieuwe scriptversie) publiceren. R2 is direct consistent,
+ * dus de nieuwe versie is meteen overal zichtbaar. Zie docs/r2-architectuur.md. */
 export async function deployMapNaarCloudflare(
-  werkmap: string,
-  naam: string,
-  opties: { subdomeinAanzetten?: boolean } = {}
-) {
-  if (process.env.DEPLOY_MODUS === "assets") {
-    return deployMapNaarCloudflareAssets(werkmap, naam, opties);
-  }
-  return deployMapNaarCloudflareR2(werkmap, naam, opties);
-}
-
-/** R2-variant: alleen gewijzigde bestanden naar de bucket schrijven en het
- * vaste leesscript één keer per site (of bij een nieuwe scriptversie)
- * publiceren. Zie docs/r2-architectuur.md. */
-async function deployMapNaarCloudflareR2(
   werkmap: string,
   naam: string,
   opties: { subdomeinAanzetten?: boolean } = {}
@@ -288,199 +272,6 @@ async function zorgWorkerR2(naam: string, prefix: string, subdomeinAanzetten: bo
       headers: hdr(),
       body: JSON.stringify({ enabled: true, previews_enabled: false }),
     });
-  }
-}
-
-/** Oude manier (terugvaloptie, DEPLOY_MODUS=assets): bestanden ingebakken als
- * Workers-assets. Elke deploy is dan een nieuwe worker-versie die wereldwijd moet
- * propageren — vandaar de overstap naar R2. */
-async function deployMapNaarCloudflareAssets(
-  werkmap: string,
-  naam: string,
-  opties: { subdomeinAanzetten?: boolean } = {}
-) {
-  const { subdomeinAanzetten = true } = opties;
-  {
-    const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
-    const manifest: Record<string, { hash: string; size: number }> = {};
-    for (const { pad, data } of await bereidBestandenVoor(werkmap, naam)) {
-      if (pad === "_redirects") continue; // wordt hieronder in het script gebakken
-      const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
-      manifest[`/${pad}`] = { hash, size: data.length };
-      inhoudPerHash.set(hash, { data, pad });
-    }
-
-    // 1. Upload-sessie starten
-    const sessie = (await fetch(
-      `${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/assets-upload-session`,
-      { method: "POST", headers: hdr(), body: JSON.stringify({ manifest }) }
-    ).then((r) => r.json())) as {
-      success: boolean;
-      errors?: unknown[];
-      result?: { jwt: string; buckets?: string[][] };
-    };
-    if (!sessie.success) {
-      throw new Error(`Upload-sessie mislukt: ${JSON.stringify(sessie.errors)}`);
-    }
-
-    // 2. Ontbrekende bestanden uploaden (per bucket); laatste antwoord bevat het completion-token
-    let completionJwt = sessie.result!.jwt;
-    const buckets = sessie.result!.buckets ?? [];
-    for (const bucket of buckets) {
-      const form = new FormData();
-      for (const hash of bucket) {
-        const item = inhoudPerHash.get(hash);
-        if (!item) continue;
-        const ext = item.pad.split(".").pop() ?? "";
-        const mime =
-          {
-            html: "text/html",
-            css: "text/css",
-            js: "text/javascript",
-            json: "application/json",
-            svg: "image/svg+xml",
-            png: "image/png",
-            jpg: "image/jpeg",
-            jpeg: "image/jpeg",
-            webp: "image/webp",
-            gif: "image/gif",
-            ico: "image/x-icon",
-            xml: "application/xml",
-            txt: "text/plain",
-            woff2: "font/woff2",
-            woff: "font/woff",
-            mp4: "video/mp4",
-            webm: "video/webm",
-            mp3: "audio/mpeg",
-            pdf: "application/pdf",
-            avif: "image/avif",
-          }[ext] ?? "application/octet-stream";
-        form.append(
-          hash,
-          new File([item.data.toString("base64")], hash, { type: mime })
-        );
-      }
-      const res = (await fetch(
-        `${API}/accounts/${ACCOUNT}/workers/assets/upload?base64=true`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${sessie.result!.jwt}` },
-          body: form,
-        }
-      ).then((r) => r.json())) as {
-        success: boolean;
-        errors?: unknown[];
-        result?: { jwt?: string };
-      };
-      if (!res.success) {
-        throw new Error(`Bestanden uploaden mislukt: ${JSON.stringify(res.errors)}`);
-      }
-      if (res.result?.jwt) completionJwt = res.result.jwt;
-    }
-
-    // Doorverwijzingen uit _redirects inlezen: Cloudflare Workers ondersteunt
-    // dat bestand niet zelf (dat is een Pages-functie), dus bakken we de regels
-    // in het worker-script. Zonder dit geven oude adressen een 404 = SEO-verlies.
-    const redirectRegels: Record<string, { naar: string; code: number }> = {};
-    try {
-      const tekst = await readFile(path.join(werkmap, "_redirects"), "utf8");
-      for (const regel of tekst.split("\n")) {
-        const schoon = regel.trim();
-        if (!schoon || schoon.startsWith("#")) continue;
-        const [van, naar, code] = schoon.split(/\s+/);
-        if (!van || !naar || van.includes("*") || van.includes(":")) continue;
-        const sleutel = van.replace(/\/+$/, "") || "/";
-        redirectRegels[sleutel] = { naar, code: Number(code) || 301 };
-      }
-    } catch {
-      // geen _redirects-bestand: prima
-    }
-
-    // 3. Worker publiceren — met een klein script dat workers.dev-adressen
-    // op noindex zet (voorkomt duplicate content naast het echte klantdomein)
-    const metadata = {
-      main_module: "worker.js",
-      compatibility_date: "2025-01-01",
-      assets: {
-        jwt: completionJwt,
-        config: {
-          html_handling: "auto-trailing-slash",
-          not_found_handling: "404-page",
-          run_worker_first: true,
-        },
-      },
-      bindings: [{ name: "ASSETS", type: "assets" }],
-    };
-    const workerScript = `const REDIRECTS = ${JSON.stringify(redirectRegels)};
-
-export default {
-  async fetch(request, env) {
-    // Doorverwijzingen (301) — houdt oude adressen en Google-posities intact
-    try {
-      const url = new URL(request.url);
-      const sleutel = url.pathname.replace(/\\/+$/, "") || "/";
-      const doel = REDIRECTS[sleutel];
-      if (doel) {
-        return Response.redirect(new URL(doel.naar, url.origin).toString(), doel.code);
-      }
-    } catch (e) {}
-
-    let res;
-    try {
-      res = await env.ASSETS.fetch(request);
-    } catch (e) {
-      return new Response("Pagina niet gevonden", {
-        status: 404,
-        headers: { "content-type": "text/plain; charset=utf-8" },
-      });
-    }
-    try {
-      if (
-        new URL(request.url).hostname.endsWith(".workers.dev") &&
-        res.status === 200
-      ) {
-        const r = new Response(res.body, {
-          status: res.status,
-          statusText: res.statusText,
-          headers: new Headers(res.headers),
-        });
-        r.headers.set("X-Robots-Tag", "noindex, nofollow");
-        return r;
-      }
-    } catch (e) {}
-    return res;
-  },
-};
-`;
-    const publiceerForm = new FormData();
-    publiceerForm.append(
-      "metadata",
-      new File([JSON.stringify(metadata)], "metadata.json", {
-        type: "application/json",
-      })
-    );
-    publiceerForm.append(
-      "worker.js",
-      new File([workerScript], "worker.js", { type: "application/javascript+module" })
-    );
-    const publiceer = (await fetch(
-      `${API}/accounts/${ACCOUNT}/workers/scripts/${naam}`,
-      { method: "PUT", headers: hdr(false), body: publiceerForm }
-    ).then((r) => r.json())) as { success: boolean; errors?: unknown[] };
-    if (!publiceer.success) {
-      throw new Error(`Publiceren mislukt: ${JSON.stringify(publiceer.errors)}`);
-    }
-
-    // 4. workers.dev-URL aanzetten (overslaan bij her-deploys: staat dan al aan)
-    if (subdomeinAanzetten) {
-      await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/subdomain`, {
-        method: "POST",
-        headers: hdr(),
-        body: JSON.stringify({ enabled: true, previews_enabled: false }),
-      });
-    }
-
-    return { url: `https://${naam}.${CF_SUBDOMEIN}.workers.dev` };
   }
 }
 

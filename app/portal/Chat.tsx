@@ -142,10 +142,6 @@ export default function Chat({
   );
   const scrollRef = useRef<HTMLDivElement>(null);
   const invoerRef = useRef<HTMLTextAreaElement>(null);
-  // Deploy-stempel van de pagina in het voorbeeld; gebruikt om na een wijziging
-  // automatisch te blijven verversen tot Cloudflare de nieuwe versie echt toont
-  const stempelRef = useRef<number>(0);
-  const wachtOpVerseRef = useRef<{ oudeStempel: number; pogingen: number } | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [schaal, setSchaal] = useState(1);
@@ -304,87 +300,24 @@ export default function Chat({
     setReloadTeller((t) => t + 1);
   }
 
-  /** Na een wijziging: de verse versie METEEN laten zien via de directe
-   * weergave (rechtstreeks uit de bron, dus altijd actueel), en op de
-   * achtergrond stil terugwisselen naar de snelle Cloudflare-versie zodra
-   * die is bijgetrokken (dat duurt 15-30 seconden). */
-  function wachtOpVerseVersie(conceptActief = true) {
-    const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
-    if (!werkversieUrl || !conceptActief) {
-      // Geen snelle werkversie om naar te wisselen: gewoon één keer herladen
-      herlaad(conceptActief);
-      return;
-    }
-    const oudeStempel = stempelRef.current;
-    // 1. Direct de verse inhoud tonen
-    setIframeSrc(`/site-weergave/${previewAccess}/${pad}`);
-    setReloadTeller((t) => t + 1);
+  /** Na een wijziging: de werkversie herladen. De sites komen uit R2 en dat is
+   * direct consistent — wat er staat, ís de nieuwe versie. Geen polsen, geen
+   * stil wisselen meer. */
+  function toonWerkversie(conceptActief = true) {
     setLaderTekst(null);
-    // 2. Achter de schermen wachten tot Cloudflare vers is, dan stil wisselen
-    wachtOpVerseRef.current = { oudeStempel, pogingen: 0 };
-    const controleer = async () => {
-      const wacht = wachtOpVerseRef.current;
-      if (!wacht) return;
-      wacht.pogingen += 1;
-      let vers = false;
-      try {
-        const res = await fetch(
-          `/api/stempel?host=${encodeURIComponent(werkversieUrl)}&pad=${encodeURIComponent("/" + pad)}`
-        );
-        const data = (await res.json()) as { stempel?: number };
-        vers = Boolean(data.stempel && data.stempel !== wacht.oudeStempel);
-      } catch {
-        // volgende poging
-      }
-      if (vers || wacht.pogingen >= 15) {
-        wachtOpVerseRef.current = null;
-        // Alleen wisselen als de kijker niet inmiddels ergens anders zit
-        const huidigPad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
-        setIframeSrc(`https://${werkversieUrl}/${huidigPad}`);
-        setReloadTeller((t) => t + 1);
-        return;
-      }
-      setTimeout(controleer, 2500);
-    };
-    setTimeout(controleer, 1500);
+    herlaad(conceptActief);
   }
 
-  /** Direct de verse inhoud tonen (rechtstreeks uit de bron) en op de
-   * achtergrond stil doorwisselen naar het snelle adres zodra dat is
-   * bijgetrokken. Voor werkversies polsen we de deploy-stempel; voor
-   * klantdomeinen wisselen we na een ruime vaste wachttijd. */
-  function toonVersEnWisselStil(doelHost: string | null | undefined) {
-    const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
-    setIframeSrc(`/site-weergave/${previewAccess}/${pad}`);
-    setReloadTeller((t) => t + 1);
+  /** Na publiceren: meteen het live-adres tonen op de pagina die open staat. */
+  function toonLive(doelHost: string | null | undefined) {
     setLaderTekst(null);
-    if (!doelHost) return;
-    const oudeStempel = stempelRef.current;
-    let pogingen = 0;
-    const wissel = () => {
-      const huidigPad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
-      setIframeSrc(`https://${doelHost}/${huidigPad}`);
-      setReloadTeller((t) => t + 1);
-    };
-    const controleer = async () => {
-      pogingen += 1;
-      let vers = false;
-      try {
-        const res = await fetch(
-          `/api/stempel?host=${encodeURIComponent(doelHost)}&pad=${encodeURIComponent("/" + pad)}`
-        );
-        const data = (await res.json()) as { stempel?: number };
-        vers = Boolean(data.stempel && data.stempel !== oudeStempel);
-      } catch {
-        // volgende poging
-      }
-      if (vers || pogingen >= 15) {
-        wissel();
-        return;
-      }
-      setTimeout(controleer, 2500);
-    };
-    setTimeout(controleer, 1500);
+    if (!doelHost) {
+      herlaad(false);
+      return;
+    }
+    const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+    setIframeSrc(`https://${doelHost}/${pad}`);
+    setReloadTeller((t) => t + 1);
   }
 
   const [viewerBreedte, setViewerBreedte] = useState(0);
@@ -473,14 +406,6 @@ export default function Chat({
         const pad = e.data.pad.replace(/^\/(?:preview|site-weergave)\/[^/]+/, "") || "/";
         setHuidigePagina(pad);
         huidigeRef.current = pad;
-      }
-      if (e.data?.type === "wp2ai-stempel" && typeof e.data.stempel === "number") {
-        stempelRef.current = e.data.stempel;
-        // Verse versie binnen? Dan is het wachten meteen voorbij.
-        if (wachtOpVerseRef.current && e.data.stempel !== wachtOpVerseRef.current.oudeStempel) {
-          wachtOpVerseRef.current = null;
-          setLaderTekst(null);
-        }
       }
       if (e.data?.type === "wp2ai-aanwijs-focus") {
         setAanwijsKandidaat({ tag: String(e.data.tag ?? ""), tekst: String(e.data.tekst ?? "") });
@@ -779,7 +704,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
-        wachtOpVerseVersie();
+        toonWerkversie();
         setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
@@ -844,7 +769,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
-        wachtOpVerseVersie();
+        toonWerkversie();
         setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
@@ -952,7 +877,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
-        wachtOpVerseVersie();
+        toonWerkversie();
         setOngedaanKans(null);
         setOplevering({ paden: [huidigeRef.current === "/" ? "index.html" : huidigeRef.current] });
         setChatOpen(false);
@@ -1017,7 +942,7 @@ export default function Chat({
           paginas: data.bestanden ?? [],
         });
         herlaad(true);
-        wachtOpVerseVersie();
+        toonWerkversie();
         setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
@@ -1079,7 +1004,7 @@ export default function Chat({
         // Direct de teruggedraaide versie tonen (vers uit de bron) en stil
         // doorwisselen naar het echte adres zodra dat is bijgetrokken —
         // zelfde aanpak als bij wijzigen en publiceren
-        toonVersEnWisselStil(liveUrl);
+        toonLive(liveUrl);
       }
     } finally {
       setOngedaanBezig(false);
@@ -1114,7 +1039,7 @@ export default function Chat({
       setChatOpen(true);
       if (res.ok) {
         herlaad(true);
-        wachtOpVerseVersie();
+        toonWerkversie();
       }
     } finally {
       setStapTerugBezig(false);
@@ -1221,7 +1146,7 @@ export default function Chat({
       if (actie === "publiceer") {
         // Meteen de gepubliceerde versie laten zien; stil doorwisselen naar
         // het echte adres zodra dat is bijgetrokken (voorkomt "oude site"-schrik)
-        toonVersEnWisselStil(nieuwLive);
+        toonLive(nieuwLive);
       } else {
         herlaad(false);
       }
@@ -1807,7 +1732,7 @@ export default function Chat({
                     paginas: data.bestanden ?? [],
                   });
                   herlaad(true);
-                  wachtOpVerseVersie();
+                  toonWerkversie();
                   setOngedaanKans(null);
                 }
               }}
@@ -1840,7 +1765,7 @@ export default function Chat({
                     setHuidigePagina(data.nieuwAdres);
                   }
                   herlaad(true);
-                  wachtOpVerseVersie();
+                  toonWerkversie();
                   setOngedaanKans(null);
                 }
               }}

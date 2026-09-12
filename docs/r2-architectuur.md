@@ -1,7 +1,9 @@
 # Klantsites uit R2 serveren (inhoud los van code)
 
 Opgesteld 11 september 2026, uitgevoerd 12 september 2026 (branch `r2-serveren`): alle zes
-sites (live + werkversie) draaien op R2; `DEPLOY_MODUS=assets` is de terugvaloptie.
+sites (live + werkversie) draaien op R2. Stap 5 en 7 zijn dezelfde dag gedaan: de oude
+assets-deploy, de deploy-stempel, `/api/stempel` en het polsen/wisselen in het portaal zijn
+verwijderd (terugvallen kan alleen nog via git-historie, commit 8009294 of eerder).
 Afwijkingen van het plan: voorvoegsel in de bucket is gewoon de worker-naam (`vakbeursonline/`,
 `wv-vakbeursonline/`), en het leesscript doet ook www → kaal domein (301). Doel: wijzigingen en publicaties zijn **direct** zichtbaar,
 wereldwijd tegelijk, zonder verversen, wisselen of wachten. Zoals WordPress
