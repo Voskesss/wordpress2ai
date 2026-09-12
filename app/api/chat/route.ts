@@ -65,6 +65,7 @@ Werkwijze:
 - SNELKEUZES BIJ VRAGEN: stel je vragen aan de eigenaar, sluit je bericht dan af met een aparte laatste regel in exact dit formaat: KEUZES: Doe maar zoals jij voorstelt | <kort alternatief antwoord> | <kort alternatief antwoord>. De eerste keuze is ALTIJD "Doe maar zoals jij voorstelt" (jouw voorstellen moeten dus compleet genoeg zijn om direct op te bouwen); de 1 à 3 andere zijn korte, complete antwoorden die alle vragen in één keer afdekken (bv. "Wel menu-item, maar geen voorbeeldvacature"). Maximaal 4 keuzes, elk maximaal 8 woorden. De regel wordt in de app als knoppen getoond en niet als tekst — gebruik hem alleen als je bericht met vragen eindigt, nooit bij een gewone mededeling.
 - Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast.
 - Heeft de site een map delen/ (menu.html, footer.html, ...)? Dat zijn centrale onderdelen die via <!--invoeg:naam--> op pagina's worden ingevoegd. Wijzigingen aan menu, footer of andere gedeelde blokken doe je dus ALLEEN in het bestand in delen/ — één bewerking, overal doorgevoerd. Kopieer nooit de inhoud van een deel naar losse pagina's.
+- UITLIJNING EN UITKLAPMENU'S: klaagt de eigenaar dat iets scheef staat of niet netjes uitlijnt — zeker bij onderdelen die alleen zichtbaar zijn als je eroverheen beweegt (uitklapmenu's, hover-effecten, tooltips) — vraag dan NOOIT om een screenshot of om "Laat de AI zelf kijken": zulke zwevende onderdelen staan niet op een screenshot. Lees in plaats daarvan zélf de HTML en CSS van het onderdeel (bv. delen/menu.html en de stylesheet), beredeneer de positionering (position, left/right/top, transform, breedtes, uitlijning van submenu-items) en zet het recht. Meld in één zin wat er mis stond en wat je hebt aangepast. Kom je er uit de code echt niet uit, stel dan één gerichte vraag in woorden ("staat het submenu te ver naar links, of zijn de items onderling ongelijk?") — nooit een verzoek om beeld.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
 - Pas page titles, meta descriptions of URL's alleen aan als de eigenaar er expliciet om vraagt (SEO-behoud).
 - Het WEBADRES VAN DE HOMEPAGE (/) wijzig je nooit — ook niet op verzoek. Leg vriendelijk uit dat dit beschermd is omdat het de vindbaarheid van de hele site raakt, en dat hij contact met WordSwap kan opnemen als het echt moet. Titel en omschrijving van de homepage aanpassen mag wel gewoon.
@@ -219,14 +220,16 @@ export async function POST(req: Request) {
 
   const scope = operationScope(site, userId);
   const release = await claimOperation(scope);
-  if (!release)
+  if (!release) {
+    const { leaseRestMinuten } = await import("@/lib/operation-guards");
+    const minuten = await leaseRestMinuten(scope);
     return NextResponse.json(
       {
-        reply:
-          "Er wordt al aan je website gewerkt. Wacht even tot die bewerking klaar is.",
+        reply: `Er wordt al aan je website gewerkt. Zodra die bewerking klaar is kun je verder — mocht er iets zijn misgegaan, dan komt het slot binnen ${minuten} ${minuten === 1 ? "minuut" : "minuten"} vanzelf vrij. Je bericht is niet verloren: stuur het daarna gewoon opnieuw.`,
       },
       { status: 409 },
     );
+  }
   let streaming = false;
   try {
     const pending = await db

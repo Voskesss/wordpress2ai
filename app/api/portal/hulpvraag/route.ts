@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: "WordSwap portaal <formulier@wordswap.nl>",
-      to: ["info@wordswap.nl"],
+      to: ["jos@wordswap.nl"],
       subject: `Hulpvraag uit het portaal — ${naam}`,
       reply_to: email.includes("@") ? [email] : undefined,
       html: `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.6">

@@ -20,6 +20,17 @@ export async function claimOperation(scope: string) {
   };
 }
 
+/** Hoeveel minuten het lopende slot nog maximaal geldt (voor een eerlijke
+ * wachtmelding). Een gecrashte bewerking laat het slot hooguit zo lang staan. */
+export async function leaseRestMinuten(scope: string): Promise<number> {
+  const result = await db.execute(sql`
+    SELECT CEIL(EXTRACT(EPOCH FROM (expires_at - now())) / 60) AS minuten
+    FROM operation_leases WHERE scope = ${scope} AND expires_at > now()
+  `);
+  const m = Number((result.rows[0] as { minuten?: string } | undefined)?.minuten ?? 0);
+  return Number.isFinite(m) && m > 0 ? m : 1;
+}
+
 /** Reserve the full per-request ceiling, including follow-ups, before starting AI.
  * Conservative by design: errors also consume a reservation. Actual spend is recorded separately.
  */
