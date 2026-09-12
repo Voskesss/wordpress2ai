@@ -16,7 +16,7 @@
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "3";
+export const R2_SCRIPT_VERSIE = "4";
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -123,8 +123,11 @@ export const R2_WORKER_SCRIPT = [
   '    kop.set("content-type", mimeVoor(key));',
   '    kop.set("etag", obj.httpEtag);',
   '    kop.set("accept-ranges", "bytes");',
-  '    const isHtml = /\\.html?$/i.test(key);',
-  '    kop.set("cache-control", isHtml || status !== 200 ? "no-cache" : "public, max-age=60, must-revalidate");',
+  "    // Alles wat via het portaal kan veranderen (pagina's, css, js, beelden) altijd",
+  "    // laten controleren: een 304 is goedkoop en de klant ziet nooit een oude versie.",
+  "    // Alleen video en lettertypen (groot, veranderen zelden) mag de browser bewaren.",
+  '    const bewaarbaar = /\\.(mp4|webm|mp3|ogg|wav|woff2?|ttf|otf)$/i.test(key) && status === 200;',
+  '    kop.set("cache-control", bewaarbaar ? "public, max-age=3600, must-revalidate" : "no-cache");',
   "    for (const h of regels.headers) if (h.test.test(pad)) for (const [n, w] of h.kop) kop.set(n, w);",
   '    if (url.hostname.endsWith(".workers.dev")) kop.set("x-robots-tag", "noindex, nofollow");',
   "",
