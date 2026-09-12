@@ -121,6 +121,16 @@ export async function POST(req: Request) {
       await verwijderBranch(rij.site.githubRepo, rij.change.branch).catch((e) =>
         console.error("Branch opruimen na publicatie:", e),
       );
+    // Demo: het portaal moet vanaf nu naar de PERSOONLIJKE live-site kijken,
+    // niet naar de gedeelde demo (die toont anders de oude versie, ook na verversen)
+    if (rij.site.isDemo) {
+      const { demoLiveWorker } = await import("@/lib/demo");
+      const { CF_SUBDOMEIN } = await import("@/lib/cloudflare");
+      return NextResponse.json({
+        ok: true,
+        liveUrl: `${demoLiveWorker(rij.site.githubRepo, userId)}.${CF_SUBDOMEIN}.workers.dev`,
+      });
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Publicatie niet bevestigd:", e);

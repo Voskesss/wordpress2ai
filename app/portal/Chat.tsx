@@ -81,7 +81,7 @@ export default function Chat({
   siteId,
   previewAccess,
   historie,
-  liveUrl,
+  liveUrl: liveUrlProp,
   werkversieUrl,
   openConcept,
   suggesties,
@@ -134,6 +134,8 @@ export default function Chat({
   const [hintWeg, setHintWeg] = useState(false);
   const toonHint = !hintWeg && berichten.length === 0 && !bezig && !chatOpen && !concept;
   const [reloadTeller, setReloadTeller] = useState(0);
+  // Live-adres kan na publiceren wijzigen (demo: van de gedeelde demo naar de eigen live-site)
+  const [liveUrl, setLiveUrl] = useState<string | null | undefined>(liveUrlProp);
   const [conceptActie, setConceptActie] = useState<string | null>(null);
   const [apparaat, setApparaat] = useState<"telefoon" | "tablet" | "desktop">(
     "desktop"
@@ -1190,13 +1192,16 @@ export default function Chat({
       return;
     }
     if (res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { liveUrl?: string };
+      const nieuwLive = data.liveUrl ?? liveUrl;
+      if (data.liveUrl) setLiveUrl(data.liveUrl);
       setBerichten((b) => [
         ...b,
         {
           rol: "assistent",
           tekst:
             actie === "publiceer"
-              ? "Gepubliceerd! Je ziet het hier meteen; op je echte adres duurt het nog een minuutje voordat iedereen de nieuwe versie krijgt."
+              ? "Gepubliceerd! Je wijziging staat nu live, voor iedereen."
               : "Het concept is verwijderd. Je website blijft zoals hij was.",
         },
       ]);
@@ -1206,7 +1211,7 @@ export default function Chat({
       if (actie === "publiceer") {
         // Meteen de gepubliceerde versie laten zien; stil doorwisselen naar
         // het echte adres zodra dat is bijgetrokken (voorkomt "oude site"-schrik)
-        toonVersEnWisselStil(liveUrl);
+        toonVersEnWisselStil(nieuwLive);
       } else {
         herlaad(false);
       }
