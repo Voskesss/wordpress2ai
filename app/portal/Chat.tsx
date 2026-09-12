@@ -753,14 +753,24 @@ export default function Chat({
       });
       gelukt = true;
       mislukteOpdracht.current = null;
-      setBerichten((b) => [
-        ...b,
-        {
-          rol: "assistent",
-          tekst: data.reply ?? "Er ging iets mis, probeer het opnieuw.",
-          metVerversTip: Boolean(data.previewUrl && data.changeId),
-        },
-      ]);
+      const eindTekst = data.reply ?? "Er ging iets mis, probeer het opnieuw.";
+      setBerichten((b) => {
+        // Kwam het eindantwoord al binnen als "tussenstap" (omdat er daarna nog
+        // een statusmelding volgde)? Dan niet nog een keer tonen.
+        const laatste = b[b.length - 1];
+        const basis =
+          laatste?.rol === "assistent" && laatste.tussenstap && laatste.tekst.trim() === eindTekst.trim()
+            ? b.slice(0, -1)
+            : b;
+        return [
+          ...basis,
+          {
+            rol: "assistent",
+            tekst: eindTekst,
+            metVerversTip: Boolean(data.previewUrl && data.changeId),
+          },
+        ];
+      });
       if (data.previewUrl && data.changeId) {
         setConcept({
           changeId: data.changeId,
