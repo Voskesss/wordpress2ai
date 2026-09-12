@@ -50,7 +50,9 @@ export default function Privacy() {
         <p>
           <strong>Chatberichten in het portaal:</strong> de wijzigingen die je
           aan de AI doorgeeft bewaren we, zodat je geschiedenis en versies terug
-          te vinden zijn.
+          te vinden zijn. In het portaal zie je alleen je eigen gesprek; WordSwap
+          kan gesprekken inzien om de kwaliteit en veiligheid van de dienst te
+          bewaken en te verbeteren.
         </p>
         <p>
           <strong>Formulieren op klantwebsites:</strong> vullen bezoekers een

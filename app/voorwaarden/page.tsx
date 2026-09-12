@@ -106,6 +106,12 @@ export default function Voorwaarden() {
           wijziging bewaren we versies, zodat een eerdere versie teruggezet kan
           worden.
         </p>
+        <p>
+          Gesprekken met de site-assistent worden opgeslagen. Jij ziet in het
+          portaal alleen je eigen gesprek; WordSwap kan gesprekken inzien om de
+          kwaliteit en veiligheid van de dienst te bewaken en te verbeteren.
+          Zie ook onze privacyverklaring.
+        </p>
       </Artikel>
 
       <Artikel nr={7} kop="Aansprakelijkheid">
