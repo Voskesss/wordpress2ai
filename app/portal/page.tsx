@@ -74,11 +74,9 @@ export default async function Portal({
     const rows = await db
       .select()
       .from(messages)
-      .where(
-        site.isDemo
-          ? and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId))
-          : eq(messages.siteId, site.id),
-      )
+      // Iedereen ziet alleen zijn eigen gesprek — ook op echte klantsites, zodat
+      // beheer-chats van Jos niet bij de klant in beeld komen (en andersom).
+      .where(and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId)))
       .orderBy(messages.id);
     historieMap[site.id] = vanafLaatsteNieuwGesprek(rows)
       .slice(-30)

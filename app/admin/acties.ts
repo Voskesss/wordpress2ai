@@ -739,3 +739,25 @@ export async function siteResetten(formData: FormData) {
   }
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+/** Chatgeschiedenis van een site wissen — alles, of alleen die van één
+ * gebruiker (bv. Jos' eigen beheer-chats). Klanten zien elkaars en Jos'
+ * gesprekken toch al niet; dit ruimt de opslag zelf op. */
+export async function wisChatGeschiedenis(formData: FormData) {
+  await requireAdmin();
+  const { and: en, eq: is, isNull } = await import("drizzle-orm");
+  const { messages } = await import("@/db/schema");
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const gebruiker = String(formData.get("clerkUserId") ?? "").trim();
+  await db
+    .delete(messages)
+    .where(
+      gebruiker === "onbekend"
+        ? en(is(messages.siteId, siteId), isNull(messages.clerkUserId))
+        : gebruiker
+          ? en(is(messages.siteId, siteId), is(messages.clerkUserId, gebruiker))
+          : is(messages.siteId, siteId),
+    );
+  revalidatePath(`/admin/klant/${siteId}`);
+}

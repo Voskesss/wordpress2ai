@@ -23,6 +23,7 @@ import {
   koppelKlant,
   koppelNetlify,
   verwijderKlant,
+  wisChatGeschiedenis,
 } from "../../acties";
 import { lijstVersies } from "@/lib/github";
 import { demoWorker } from "@/lib/demo";
@@ -75,6 +76,30 @@ export default async function KlantDetail({
     .select()
     .from(usage)
     .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
+  // Chatgeschiedenis per persoon (voor kwaliteitsbewaking + wissen)
+  const alleBerichten = await db
+    .select()
+    .from(messages)
+    .where(eq(messages.siteId, site.id))
+    .orderBy(messages.id);
+  const chatGroepen = new Map<string, typeof alleBerichten>();
+  for (const m of alleBerichten) {
+    const sleutel = m.clerkUserId ?? "onbekend";
+    if (!chatGroepen.has(sleutel)) chatGroepen.set(sleutel, []);
+    chatGroepen.get(sleutel)!.push(m);
+  }
+  const chatPerGebruiker = await Promise.all(
+    [...chatGroepen.entries()].map(async ([sleutel, rijen]) => {
+      let label = `Gebruiker ${sleutel.slice(-6)}`;
+      if (sleutel === admin.id) label = "Jij (beheer)";
+      else if (sleutel === site.clerkUserId) {
+        const info = await clerkGebruiker(sleutel);
+        label = `Klant${info ? ` — ${info.naam || info.email}` : ""}`;
+      } else if (sleutel === "onbekend") label = "Onbekend (oudere berichten)";
+      return { sleutel, label, rijen };
+    }),
+  );
+
   const laatsteChanges = await db
     .select()
     .from(changes)
@@ -519,6 +544,66 @@ export default async function KlantDetail({
             <ActieKnop label="↺ Reset naar sjabloon" bezigLabel="Resetten... (±1 min)" className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 cursor-pointer" />
           </form>
         </div>
+      </div>
+
+      {/* Chatgeschiedenis: alle gesprekken op deze site, per persoon. Klanten
+          zien in het portaal alleen hun eigen gesprek; hier kijkt de admin mee
+          voor kwaliteitsbewaking en kan hij gesprekken wissen. */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">💬 Chatgeschiedenis</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Alle gesprekken met de site-AI, per persoon. De klant ziet in het
+          portaal alléén zijn eigen gesprek — jouw beheer-chats blijven voor de
+          klant onzichtbaar. Wissen verwijdert de berichten definitief.
+        </p>
+        {chatPerGebruiker.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-500">Nog geen chatberichten op deze site.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {chatPerGebruiker.map((g) => (
+              <details key={g.sleutel} className="rounded-2xl border border-stone-200 px-4 py-3">
+                <summary className="cursor-pointer text-sm">
+                  <span className="font-semibold">{g.label}</span>
+                  <span className="ml-2 text-stone-500">
+                    {g.rijen.length} bericht{g.rijen.length === 1 ? "" : "en"} · laatste{" "}
+                    {g.rijen[g.rijen.length - 1].aangemaakt.toLocaleString("nl-NL", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </summary>
+                <div className="mt-3 max-h-96 space-y-2 overflow-y-auto border-t border-stone-100 pt-3">
+                  {g.rijen.map((m) => (
+                    <p
+                      key={m.id}
+                      className={`whitespace-pre-wrap rounded-xl px-3 py-2 text-sm ${
+                        m.rol === "klant"
+                          ? "bg-emerald-50 text-stone-800"
+                          : "bg-stone-50 text-stone-600"
+                      }`}
+                    >
+                      <span className="mr-1 text-xs font-semibold text-stone-400">
+                        {m.rol === "klant" ? "👤" : "🤖"}
+                      </span>
+                      {m.tekst}
+                    </p>
+                  ))}
+                </div>
+                <form action={wisChatGeschiedenis} className="mt-3">
+                  <input type="hidden" name="siteId" value={site.id} />
+                  <input type="hidden" name="clerkUserId" value={g.sleutel} />
+                  <ActieKnop
+                    label="🗑 Dit gesprek wissen"
+                    bezigLabel="Wissen..."
+                    className="rounded-full border border-red-200 px-4 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                  />
+                </form>
+              </details>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Video-tegoed */}

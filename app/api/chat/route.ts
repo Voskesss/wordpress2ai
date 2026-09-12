@@ -314,11 +314,9 @@ export async function POST(req: Request) {
     const historie = await db
       .select()
       .from(messages)
-      .where(
-        site.isDemo
-          ? and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId))
-          : eq(messages.siteId, site.id),
-      )
+      // Elk gesprek is persoonlijk: de AI krijgt alleen de historie van deze
+      // gebruiker mee, zodat beheer- en klantgesprekken elkaar niet vervuilen.
+      .where(and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId)))
       .orderBy(messages.id)
       .then(async (rows) => {
         const { vanafLaatsteNieuwGesprek } = await import("@/lib/gesprek");
