@@ -9,7 +9,8 @@
     "test": "node tests/publiceren.cjs && node tests/agent-boundary.cjs && node tests/preview-access.cjs && node tests/websitecheck.cjs && node tests/marketing-consent.cjs && node tests/chat-response.cjs && node tests/nieuw-gesprek.cjs",
     "test:seo": "node tests/seo-vergelijk.cjs",
     "typecheck": "next typegen && tsc --noEmit",
-    "test:chat-ui": "node tests/chat-recovery.cjs && node tests/demo-funnel.cjs"
+    "test:chat-ui": "node tests/chat-recovery.cjs && node tests/demo-funnel.cjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.245",
@@ -31,6 +32,8 @@
     "tar": "^7.5.22"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.34",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",

@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 .secrets/
+
+# e2e
+tests/e2e/.auth/
+test-results/
+playwright-report/
