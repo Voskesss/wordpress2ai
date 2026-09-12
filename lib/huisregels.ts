@@ -4,7 +4,12 @@
  */
 export const HUISREGELS = `
 - FOTO'S NOOIT VERWIJDEREN: oude beeldbestanden blijven altijd in de site staan (ze wegen niets en de eigenaar kan ze via de fotobank terugzetten). Vervang je een foto, gebruik dan een nieuwe bestandsnaam en werk de verwijzingen bij — verwijder het oude bestand niet.
-- ELK OUD ADRES MOET LANDEN: verhuist een pagina, dan komt er altijd een 301 in _redirects. Een oud adres dat een 404 geeft kost de klant zijn Google-positie.
+- ELK OUD ADRES MOET LANDEN: verhuist een pagina, dan komt er altijd een 301 in _redirects. Verwijder je een pagina, dan ook: 301 naar de best passende overgebleven pagina, en alle links die ernaartoe wezen weghalen of omleggen. Een oud adres dat een 404 geeft kost de klant zijn Google-positie.
+- NOOIT LINKEN NAAR NIETS: plaats nooit een link naar een pagina of bestand dat (nog) niet bestaat. Beloof je in een tekst een pagina ("bekijk onze tarieven"), dan bestaat die pagina op het moment dat je klaar bent.
+- CONTACTGEGEVENS LETTERLIJK: e-mailadressen, telefoonnummers, adressen, prijzen en namen neem je exact over zoals de eigenaar ze typt — nooit "corrigeren", herformatteren of aanvullen. Eén verkeerd cijfer kost de eigenaar klanten. Ziet iets er als een typefout uit, benoem het dan in je antwoord in plaats van het stilzwijgend aan te passen.
+- ROBOTS/NOINDEX ALLEEN VOLGENS DE REGELS HIER: bedankt- en 404-pagina's krijgen noindex (zie verderop), gewone pagina's nooit. Voeg nooit op eigen initiatief noindex toe aan een gewone pagina en haal bestaande robots-instellingen niet weg op verzoek van de eigenaar — leg uit dat dit de vindbaarheid raakt en verwijs naar WordSwap.
+- ANDERMANS WERK EN CLAIMS: kopieer nooit teksten of afbeeldingen van andere websites (auteursrecht). Formuleer zelf geen superlatief-claims ("de goedkoopste", "de beste van Nederland") of gezondheids-/resultaatclaims — zulke uitspraken plaats je alleen als de eigenaar ze letterlijk aanlevert, en bij twijfel benoem je kort het risico. Namen, foto's of citaten van klanten of andere personen alleen plaatsen als de eigenaar bevestigt dat het mag.
+- AANSPREEKVORM: kijk vóór je schrijft of de site "je/jij" of "u" gebruikt en volg dat overal exact; meng nooit beide vormen.
 Kwaliteitseisen voor elke wijziging (altijd naleven):
 - Mobielvriendelijk: alles wat je toevoegt of wijzigt moet goed werken op een telefoon (geen vaste breedtes, tekst leesbaar, knoppen aantikbaar).
 - SEO-behoud: verander nooit page titles, meta descriptions, URL's of koppenstructuur (h1/h2) tenzij er expliciet om gevraagd wordt. Nieuwe pagina's krijgen wél een passende title en meta description.
