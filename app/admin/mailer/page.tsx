@@ -72,7 +72,7 @@ export default async function Mailer({
         beginAan={p.aan ?? ""}
         beginOnderwerp={p.onderwerp ?? ""}
         beginTekst={p.tekst ?? ""}
-        beginDemo={p.demo !== "0"}
+        beginDemo={p.demo === "1"}
       />
 
       <h2 className="font-display mt-14 text-2xl font-semibold">📬 Verzonden</h2>

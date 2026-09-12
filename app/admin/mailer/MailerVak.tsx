@@ -9,7 +9,7 @@ export default function MailerVak({
   beginAan = "",
   beginOnderwerp = "",
   beginTekst = "",
-  beginDemo = true,
+  beginDemo = false,
 }: {
   beginAan?: string;
   beginOnderwerp?: string;
@@ -98,7 +98,7 @@ export default function MailerVak({
             onChange={(e) => setMetDemo(e.target.checked)}
             className="h-4 w-4 accent-[#31956B]"
           />
-          Demo-knop onder de mail (goed voor koude outreach; bij een lead vaak beter uit)
+          Demo-knop onder de mail (standaard uit; aanzetten kan handig zijn bij koude outreach)
         </label>
       </div>
       {melding && (
