@@ -98,40 +98,213 @@ export function vervangPlaceholderDomein(tekst: string, domein: string | null): 
   return tekst.replace(/https?:\/\/VERVANG\.nl/gi, `https://${domein}`).replace(/\bVERVANG\.nl\b/g, domein);
 }
 
-/** Deployt een lokale map als statische site op Cloudflare Workers. */
+/** Mime-type op basis van de extensie (voor uploads en de assets-variant). */
+export function mimeVoorPad(pad: string): string {
+  const ext = (pad.split(".").pop() ?? "").toLowerCase();
+  return (
+    {
+      html: "text/html; charset=utf-8",
+      htm: "text/html; charset=utf-8",
+      css: "text/css; charset=utf-8",
+      js: "text/javascript; charset=utf-8",
+      mjs: "text/javascript; charset=utf-8",
+      json: "application/json",
+      svg: "image/svg+xml",
+      png: "image/png",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      webp: "image/webp",
+      gif: "image/gif",
+      ico: "image/x-icon",
+      avif: "image/avif",
+      xml: "application/xml",
+      txt: "text/plain; charset=utf-8",
+      md: "text/markdown; charset=utf-8",
+      woff2: "font/woff2",
+      woff: "font/woff",
+      ttf: "font/ttf",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mp3: "audio/mpeg",
+      pdf: "application/pdf",
+    }[ext] ?? "application/octet-stream"
+  );
+}
+
+/** Maakt de publiceerbare bestanden van een werkmap klaar: delen-markers
+ * uitvouwen, meldscript en deploy-stempel injecteren, placeholder-domein
+ * vervangen. Gedeeld door de R2- en de assets-variant. */
+async function bereidBestandenVoor(
+  werkmap: string,
+  naam: string
+): Promise<{ pad: string; data: Buffer }[]> {
+  const bestanden = await alleBestanden(werkmap);
+  const delen = await laadDelen(werkmap);
+  const echtDomein = await echtDomeinVoor(naam);
+  // Deploy-stempel: het portaal herkent hieraan of de nieuwe versie al
+  // doorgedrongen is bij Cloudflare (en ververst anders zelf nog een keer)
+  const stempel = `<script>try{parent!==window&&parent.postMessage({type:"wp2ai-stempel",stempel:${Date.now()}},"*")}catch(e){}</script>`;
+  const uit: { pad: string; data: Buffer }[] = [];
+  for (const pad of bestanden) {
+    let data = await readFile(path.join(werkmap, pad));
+    if (/\.html?$/i.test(pad) && !pad.startsWith("delen/")) {
+      // Eerder ingebakken wp2ai-hulpscripts (oude versies) altijd eerst
+      // verwijderen, zodat elke deploy de nieuwste versie meekrijgt
+      let html = vouwUit(data.toString("utf8"), delen).replace(
+        /<script>[^<]*wp2ai[^<]*<\/script>/g,
+        ""
+      );
+      const injectie = PAGINA_MELDER + stempel;
+      html = html.includes("</body>")
+        ? html.replace("</body>", `${injectie}</body>`)
+        : html + injectie;
+      data = Buffer.from(vervangPlaceholderDomein(html, echtDomein));
+    } else if (echtDomein && /\.(xml|txt)$/i.test(pad)) {
+      // sitemap.xml, robots.txt, llms.txt
+      data = Buffer.from(vervangPlaceholderDomein(data.toString("utf8"), echtDomein));
+    }
+    uit.push({ pad, data });
+  }
+  // _redirects is bewust geen publiek bestand, maar het R2-script heeft hem nodig
+  try {
+    uit.push({ pad: "_redirects", data: await readFile(path.join(werkmap, "_redirects")) });
+  } catch {
+    // geen _redirects: prima
+  }
+  return uit;
+}
+
+/** Deployt een lokale map als statische site op Cloudflare Workers.
+ * Standaard via R2 (inhoud los van code, direct zichtbaar); met
+ * DEPLOY_MODUS=assets de oude ingebakken manier (terugvaloptie). */
 export async function deployMapNaarCloudflare(
+  werkmap: string,
+  naam: string,
+  opties: { subdomeinAanzetten?: boolean } = {}
+) {
+  if (process.env.DEPLOY_MODUS === "assets") {
+    return deployMapNaarCloudflareAssets(werkmap, naam, opties);
+  }
+  return deployMapNaarCloudflareR2(werkmap, naam, opties);
+}
+
+/** R2-variant: alleen gewijzigde bestanden naar de bucket schrijven en het
+ * vaste leesscript één keer per site (of bij een nieuwe scriptversie)
+ * publiceren. Zie docs/r2-architectuur.md. */
+async function deployMapNaarCloudflareR2(
+  werkmap: string,
+  naam: string,
+  opties: { subdomeinAanzetten?: boolean } = {}
+) {
+  const { subdomeinAanzetten = true } = opties;
+  const { zorgBucket, schrijfObject, leesObject, verwijderObject, parallel, R2_TEGELIJK } = await import("./r2");
+  const bestanden = await bereidBestandenVoor(werkmap, naam);
+  const prefix = naam;
+
+  await zorgBucket();
+  // Manifest van de vorige deploy: alleen het verschil hoeft naar R2
+  let oudManifest: Record<string, string> = {};
+  try {
+    const m = await leesObject(`${prefix}/.manifest.json`);
+    if (m) oudManifest = JSON.parse(m.toString("utf8")) as Record<string, string>;
+  } catch {
+    oudManifest = {};
+  }
+  const nieuwManifest: Record<string, string> = {};
+  const teSchrijven: { pad: string; data: Buffer }[] = [];
+  for (const b of bestanden) {
+    const hash = createHash("sha256").update(b.data).digest("hex").slice(0, 32);
+    nieuwManifest[b.pad] = hash;
+    if (oudManifest[b.pad] !== hash) teSchrijven.push(b);
+  }
+  const teVerwijderen = Object.keys(oudManifest).filter((pad) => !(pad in nieuwManifest));
+
+  // Eerst de niet-HTML-bestanden (css, beelden), dan de pagina's: zo verwijst
+  // een nieuwe pagina nooit naar iets dat nog onderweg is
+  const isHtml = (pad: string) => /\.html?$/i.test(pad);
+  const volgorde = [...teSchrijven.filter((b) => !isHtml(b.pad)), ...teSchrijven.filter((b) => isHtml(b.pad))];
+  // Wat al gelukt is, wordt bij een storing toch in het manifest vastgelegd:
+  // een volgende poging hoeft dan alleen de rest nog te doen
+  const gelukt = new Set<string>();
+  try {
+    await parallel(volgorde, R2_TEGELIJK, async (b) => {
+      await schrijfObject(`${prefix}/${b.pad}`, b.data, mimeVoorPad(b.pad));
+      gelukt.add(b.pad);
+    });
+    await parallel(teVerwijderen, R2_TEGELIJK, (pad) => verwijderObject(`${prefix}/${pad}`));
+    await schrijfObject(`${prefix}/.manifest.json`, JSON.stringify(nieuwManifest), "application/json");
+  } catch (e) {
+    const deels: Record<string, string> = { ...oudManifest };
+    for (const pad of gelukt) deels[pad] = nieuwManifest[pad];
+    await schrijfObject(`${prefix}/.manifest.json`, JSON.stringify(deels), "application/json").catch(() => {});
+    throw e;
+  }
+
+  await zorgWorkerR2(naam, prefix, subdomeinAanzetten);
+  return { url: `https://${naam}.${CF_SUBDOMEIN}.workers.dev` };
+}
+
+/** Publiceert het vaste R2-leesscript voor een site, maar alleen als de worker
+ * nog niet bestaat of een oudere scriptversie draait. */
+async function zorgWorkerR2(naam: string, prefix: string, subdomeinAanzetten: boolean) {
+  const { R2_SCRIPT_VERSIE, R2_WORKER_SCRIPT } = await import("./worker-r2");
+  const { R2_BUCKET } = await import("./r2");
+  try {
+    const huidig = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/settings`, {
+      headers: hdr(),
+    }).then((r) => (r.ok ? r.json() : null))) as {
+      result?: { bindings?: { type: string; name: string; text?: string }[] };
+    } | null;
+    const b = huidig?.result?.bindings ?? [];
+    const versie = b.find((x) => x.type === "plain_text" && x.name === "VERSIE")?.text;
+    const pre = b.find((x) => x.type === "plain_text" && x.name === "PREFIX")?.text;
+    if (versie === R2_SCRIPT_VERSIE && pre === prefix) return; // al goed
+  } catch {
+    // bij twijfel gewoon (opnieuw) publiceren
+  }
+  const metadata = {
+    main_module: "worker.js",
+    compatibility_date: "2025-01-01",
+    bindings: [
+      { type: "r2_bucket", name: "SITES", bucket_name: R2_BUCKET },
+      { type: "plain_text", name: "PREFIX", text: prefix },
+      { type: "plain_text", name: "VERSIE", text: R2_SCRIPT_VERSIE },
+    ],
+  };
+  const form = new FormData();
+  form.append("metadata", new File([JSON.stringify(metadata)], "metadata.json", { type: "application/json" }));
+  form.append("worker.js", new File([R2_WORKER_SCRIPT], "worker.js", { type: "application/javascript+module" }));
+  const publiceer = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}`, {
+    method: "PUT",
+    headers: hdr(false),
+    body: form,
+  }).then((r) => r.json())) as { success: boolean; errors?: unknown[] };
+  if (!publiceer.success) {
+    throw new Error(`Worker publiceren mislukt: ${JSON.stringify(publiceer.errors)}`);
+  }
+  if (subdomeinAanzetten) {
+    await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/subdomain`, {
+      method: "POST",
+      headers: hdr(),
+      body: JSON.stringify({ enabled: true, previews_enabled: false }),
+    });
+  }
+}
+
+/** Oude manier (terugvaloptie, DEPLOY_MODUS=assets): bestanden ingebakken als
+ * Workers-assets. Elke deploy is dan een nieuwe worker-versie die wereldwijd moet
+ * propageren — vandaar de overstap naar R2. */
+async function deployMapNaarCloudflareAssets(
   werkmap: string,
   naam: string,
   opties: { subdomeinAanzetten?: boolean } = {}
 ) {
   const { subdomeinAanzetten = true } = opties;
   {
-    const bestanden = await alleBestanden(werkmap);
-    const delen = await laadDelen(werkmap);
-    const echtDomein = await echtDomeinVoor(naam);
     const inhoudPerHash = new Map<string, { data: Buffer; pad: string }>();
     const manifest: Record<string, { hash: string; size: number }> = {};
-    // Deploy-stempel: het portaal herkent hieraan of de nieuwe versie al
-    // doorgedrongen is bij Cloudflare (en ververst anders zelf nog een keer)
-    const stempel = `<script>try{parent!==window&&parent.postMessage({type:"wp2ai-stempel",stempel:${Date.now()}},"*")}catch(e){}</script>`;
-    for (const pad of bestanden) {
-      let data = await readFile(path.join(werkmap, pad));
-      if (/\.html?$/i.test(pad) && !pad.startsWith("delen/")) {
-        // Eerder ingebakken wp2ai-hulpscripts (oude versies) altijd eerst
-        // verwijderen, zodat elke deploy de nieuwste versie meekrijgt
-        let html = vouwUit(data.toString("utf8"), delen).replace(
-          /<script>[^<]*wp2ai[^<]*<\/script>/g,
-          ""
-        );
-        const injectie = PAGINA_MELDER + stempel;
-        html = html.includes("</body>")
-          ? html.replace("</body>", `${injectie}</body>`)
-          : html + injectie;
-        data = Buffer.from(vervangPlaceholderDomein(html, echtDomein));
-      } else if (echtDomein && /\.(xml|txt)$/i.test(pad)) {
-        // sitemap.xml, robots.txt, llms.txt
-        data = Buffer.from(vervangPlaceholderDomein(data.toString("utf8"), echtDomein));
-      }
+    for (const { pad, data } of await bereidBestandenVoor(werkmap, naam)) {
+      if (pad === "_redirects") continue; // wordt hieronder in het script gebakken
       const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
       manifest[`/${pad}`] = { hash, size: data.length };
       inhoudPerHash.set(hash, { data, pad });
@@ -317,6 +490,8 @@ export async function verwijderCloudflareSite(naam: string) {
     method: "DELETE",
     headers: hdr(false),
   }).catch(() => {});
+  const { verwijderPrefix } = await import("./r2");
+  await verwijderPrefix(naam).catch(() => {});
 }
 
 /** Verwijdert alle persoonlijke demo-voorbeeld-workers (wvd-<repo>-…) van een demo-site. */
@@ -334,5 +509,7 @@ export async function verwijderDemoWorkers(repo: string, spaarHashes?: Set<strin
       method: "DELETE",
       headers: hdr(),
     }).catch(() => {});
+    const { verwijderPrefix } = await import("./r2");
+    await verwijderPrefix(script.id).catch(() => {});
   }
 }

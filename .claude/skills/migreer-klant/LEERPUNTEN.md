@@ -30,3 +30,10 @@ Lees dit vóór elke migratie. Leer je iets nieuws: voeg het hier direct toe (da
 - `lib/cloudflare.ts` kende geen mime-type voor mp4/webm (werd `application/octet-stream`); nu toegevoegd. Let op: Cloudflare koppelt het content-type aan de bestandshash. Een asset die al met een verkeerd type is geüpload, krijgt bij herdeploy NIET het nieuwe type — de bytes moeten veranderen (bv. opnieuw muxen met `ffmpeg -c copy -metadata title=...`).
 - Homebrew-ffmpeg kan kapot zijn (ontbrekende libx265). Vangnet zonder systeemwijziging: `npm i ffmpeg-static` in een scratchmap en dat binaire bestand gebruiken.
 - Rechtenvrij beeld voor nieuwe (AI-ontwerp)sites: Pexels. Zoekpagina's zijn zonder API-sleutel leesbaar in de browser; foto's via `images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&cs=tinysrgb&w=2000`, video-bestanden staan als `videos.pexels.com/video-files/...mp4` in de HTML van de videopagina. Eerst een contactvel (`montage`) maken om te kiezen.
+
+## Serveren uit R2 (12-09-2026)
+- Klantsites worden sinds 12-09-2026 uit R2 geserveerd (bucket `wordswap-sites`, map = worker-naam). De Worker is een vast leesscript (`lib/worker-r2.ts`); `deployMapNaarCloudflare` schrijft alleen gewijzigde bestanden (manifest `.manifest.json`). Wijzigingen zijn direct wereldwijd zichtbaar — geen propagatie meer. Terugvallen: `DEPLOY_MODUS=assets`.
+- Scriptwijziging? Verhoog `R2_SCRIPT_VERSIE`; de eerstvolgende deploy per site publiceert het script opnieuw. Alle sites in één keer: per repo `scripts/deploy-klant.mts` draaien.
+- De Cloudflare-API laat ± 4 aanvragen per seconde toe. Een eerste deploy van een grote site (honderden bestanden) duurt daardoor 1-2 minuten; 429's worden netjes afgewacht en een gestrande deploy hervat waar hij bleef. Sneller uploaden kan later via de S3-API van R2 (eigen sleutels nodig).
+- `www.` → kaal domein is een 301 in het leesscript; canonical-tags wijzen dus altijd naar het kale domein.
+- Het uurlijkse demo-reset op Vercel deployt met de code die dáár draait: tot de merge naar main zette het de demo-workers terug op assets. Na de merge is dat vanzelf R2.
