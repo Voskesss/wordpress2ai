@@ -11,9 +11,17 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const host = url.searchParams.get("host") ?? "";
   const pad = url.searchParams.get("pad") ?? "/";
-  // Alleen onze eigen workers-domeinen — niets anders op te vragen
-  if (!new RegExp(`^[a-z0-9-]+\\.${CF_SUBDOMEIN}\\.workers\\.dev$`).test(host) || pad.includes("..")) {
+  // Alleen onze eigen workers-adressen of een gekoppeld klantdomein — niets anders op te vragen
+  if (pad.includes("..") || !/^[a-z0-9.-]+$/.test(host)) {
     return NextResponse.json({ error: "Ongeldig" }, { status: 400 });
+  }
+  const isWorker = new RegExp(`^[a-z0-9-]+\\.${CF_SUBDOMEIN}\\.workers\\.dev$`).test(host);
+  if (!isWorker) {
+    const { db } = await import("@/db");
+    const { sites } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const [site] = await db.select({ id: sites.id }).from(sites).where(eq(sites.domein, host)).limit(1);
+    if (!site) return NextResponse.json({ error: "Ongeldig" }, { status: 400 });
   }
   try {
     const res = await fetch(`https://${host}${pad.startsWith("/") ? pad : `/${pad}`}`, {

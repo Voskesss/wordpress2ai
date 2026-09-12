@@ -40,7 +40,7 @@ const secties: { kop: string; blokken: { titel: string; tekst: string }[] }[] = 
       {
         titel: "De onderdelen",
         tekst:
-          "Elke klantsite is een eigen GitHub-repo in de organisatie wordpress2ai met platte HTML/CSS. De site draait als Cloudflare Worker op twee adressen: de live site (<naam>.wordswap.workers.dev of eigen domein) en de werkversie (wv-<naam>...) waar concepten op getoond worden. Het portaal en de admin draaien op Vercel; de database (klanten, chats, concepten, kosten) is Neon Postgres; inloggen gaat via Clerk.",
+          "Elke klantsite is een eigen GitHub-repo in de organisatie wordpress2ai met platte HTML/CSS. De site draait als Cloudflare Worker op twee adressen: de live site (<naam>.wordswap.workers.dev of eigen domein) en de werkversie (wv-<naam>...) waar concepten op getoond worden. De bestanden zelf staan in Cloudflare R2 (bucket wordswap-sites, map per worker-naam); de Worker is een vast leesprogramma. Een deploy schrijft alleen de gewijzigde bestanden naar R2 en is daardoor direct overal zichtbaar. Zie docs/r2-architectuur.md. Het portaal en de admin draaien op Vercel; de database (klanten, chats, concepten, kosten) is Neon Postgres; inloggen gaat via Clerk.",
       },
       {
         titel: "Centrale onderdelen (delen/)",

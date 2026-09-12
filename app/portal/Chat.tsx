@@ -342,9 +342,9 @@ export default function Chat({
         setReloadTeller((t) => t + 1);
         return;
       }
-      setTimeout(controleer, 4000);
+      setTimeout(controleer, 2500);
     };
-    setTimeout(controleer, 5000);
+    setTimeout(controleer, 1500);
   }
 
   /** Direct de verse inhoud tonen (rechtstreeks uit de bron) en op de
@@ -358,7 +358,6 @@ export default function Chat({
     setLaderTekst(null);
     if (!doelHost) return;
     const oudeStempel = stempelRef.current;
-    const isWorker = /\.workers\.dev$/.test(doelHost);
     let pogingen = 0;
     const wissel = () => {
       const huidigPad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
@@ -368,24 +367,22 @@ export default function Chat({
     const controleer = async () => {
       pogingen += 1;
       let vers = false;
-      if (isWorker) {
-        try {
-          const res = await fetch(
-            `/api/stempel?host=${encodeURIComponent(doelHost)}&pad=${encodeURIComponent("/" + pad)}`
-          );
-          const data = (await res.json()) as { stempel?: number };
-          vers = Boolean(data.stempel && data.stempel !== oudeStempel);
-        } catch {
-          // volgende poging
-        }
+      try {
+        const res = await fetch(
+          `/api/stempel?host=${encodeURIComponent(doelHost)}&pad=${encodeURIComponent("/" + pad)}`
+        );
+        const data = (await res.json()) as { stempel?: number };
+        vers = Boolean(data.stempel && data.stempel !== oudeStempel);
+      } catch {
+        // volgende poging
       }
-      if (vers || pogingen >= (isWorker ? 15 : 9)) {
+      if (vers || pogingen >= 15) {
         wissel();
         return;
       }
-      setTimeout(controleer, 4000);
+      setTimeout(controleer, 2500);
     };
-    setTimeout(controleer, isWorker ? 5000 : 8000);
+    setTimeout(controleer, 1500);
   }
 
   const [viewerBreedte, setViewerBreedte] = useState(0);

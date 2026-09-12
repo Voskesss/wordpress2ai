@@ -1,6 +1,9 @@
-# Plan: klantsites uit R2 serveren (inhoud los van code)
+# Klantsites uit R2 serveren (inhoud los van code)
 
-Opgesteld 11 september 2026. Doel: wijzigingen en publicaties zijn **direct** zichtbaar,
+Opgesteld 11 september 2026, uitgevoerd 12 september 2026 (branch `r2-serveren`): alle zes
+sites (live + werkversie) draaien op R2; `DEPLOY_MODUS=assets` is de terugvaloptie.
+Afwijkingen van het plan: voorvoegsel in de bucket is gewoon de worker-naam (`vakbeursonline/`,
+`wv-vakbeursonline/`), en het leesscript doet ook www → kaal domein (301). Doel: wijzigingen en publicaties zijn **direct** zichtbaar,
 wereldwijd tegelijk, zonder verversen, wisselen of wachten. Zoals WordPress
 (inhoud in een database, code staat stil), maar dan statisch en zonder onderhoud.
 
