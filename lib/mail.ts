@@ -1,4 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { handtekening } from "./mailer";
 
 /** Sleutel voor het versleutelen van SMTP-wachtwoorden (afgeleid van CRON_SECRET). */
 function sleutel(): Buffer {
@@ -45,17 +46,15 @@ function isEigenSite(site: MailSite): boolean {
   return Boolean(site && (site.domein?.includes("wordswap.nl") || site.naam === "WordSwap"));
 }
 
-/** WordSwap-huisstijl om een mail heen: logo boven, slanke voet met
- * bedrijfsgegevens onder een lijn in het huisstijl-verloop. */
+/** WordSwap-huisstijl om een mail heen: dezelfde groene handtekening als de
+ * losse mails (logo, Jos Klijnhout, demo-knop), met een juridische regel
+ * met de handelsnaam eronder. */
 function metWordSwapOpmaak(html: string): string {
   return `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
-<img src="https://www.wordswap.nl/logo-mail.png" height="36" alt="WordSwap" style="display:block;height:36px;width:auto;margin-bottom:20px">
 ${html}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%"><tr>
-<td style="height:2px;line-height:2px;font-size:2px;background-color:#7c3aed;background-image:linear-gradient(90deg,#7c3aed,#d946ef)">&nbsp;</td>
-</tr><tr><td style="padding-top:12px">
-<p style="margin:0;font-size:12px;color:#a8a29e">WordSwap · J.K. Klijnhout Holding B.V. · KvK 09190650 · <a href="https://wordswap.nl" style="color:#7c3aed;text-decoration:none">wordswap.nl</a></p>
-</td></tr></table></div>`;
+${handtekening(true)}
+<p style="margin:16px 0 0;font-size:12px;color:#a8a29e">WordSwap · AI Backoffice · KvK 09190650</p>
+</div>`;
 }
 
 export async function verstuurSiteMail(opties: {
