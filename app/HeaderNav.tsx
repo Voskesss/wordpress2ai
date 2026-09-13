@@ -132,14 +132,14 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
                   Inloggen
                 </button>
               </SignInButton>
+              <Link
+                href="/contact"
+                onClick={() => setOpen(false)}
+                className="mt-2 rounded-lg bg-violet-700 px-4 py-3 text-center text-white"
+              >
+                Gratis websitecheck ↗
+              </Link>
             </Show>
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="mt-2 rounded-lg bg-violet-700 px-4 py-3 text-center text-white"
-            >
-              Gratis websitecheck ↗
-            </Link>
           </nav>
         </div>
       )}
