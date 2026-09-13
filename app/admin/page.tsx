@@ -143,6 +143,12 @@ export default async function Admin() {
             ✉️ Mailer
           </Link>
           <Link
+            href="/admin/intake"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+          >
+            🧭 Intake
+          </Link>
+          <Link
             href="/admin/leads"
             className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
           >
