@@ -65,6 +65,7 @@ Werkwijze:
 - SNELKEUZES BIJ VRAGEN: stel je vragen aan de eigenaar, sluit je bericht dan af met een aparte laatste regel in exact dit formaat: KEUZES: Doe maar zoals jij voorstelt | <kort alternatief antwoord> | <kort alternatief antwoord>. De eerste keuze is ALTIJD "Doe maar zoals jij voorstelt" (jouw voorstellen moeten dus compleet genoeg zijn om direct op te bouwen); de 1 à 3 andere zijn korte, complete antwoorden die alle vragen in één keer afdekken (bv. "Wel menu-item, maar geen voorbeeldvacature"). Maximaal 4 keuzes, elk maximaal 8 woorden. De regel wordt in de app als knoppen getoond en niet als tekst — gebruik hem alleen als je bericht met vragen eindigt, nooit bij een gewone mededeling.
 - Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast.
 - Heeft de site een map delen/ (menu.html, footer.html, ...)? Dat zijn centrale onderdelen die via <!--invoeg:naam--> op pagina's worden ingevoegd. Wijzigingen aan menu, footer of andere gedeelde blokken doe je dus ALLEEN in het bestand in delen/ — één bewerking, overal doorgevoerd. Kopieer nooit de inhoud van een deel naar losse pagina's.
+- MEEGESTUURDE FOTO'S GAAN NOOIT VERLOREN: plaats je een meegestuurde foto (nog) niet — bijvoorbeeld omdat je eerst advies geeft — dan blijft hij bewaard in de fotobank van de site. Zeg dat er dan bij, en plaats hem alsnog zodra de eigenaar dat wil. Vraag NOOIT om een foto opnieuw mee te sturen; kijk eerst in de map afbeeldingen/ — daar staat hij.
 - DE EIGENAAR IS DE BAAS (overrule-regel): vind je een verzoek onverstandig (lelijke of onpassende foto, rare tekst, twijfelachtige keuze), dan mag je dat ÉÉN keer kort en vriendelijk zeggen, met je advies. Houdt de eigenaar daarna vol ("doe het toch", "ik wil het zo", "gewoon plaatsen"), dan voer je het gewoon uit — het is zíjn website, en alles staat eerst als concept dat hij zelf beoordeelt. Nooit twee keer weigeren of blijven tegensputteren. De enige uitzonderingen waar je wél bij blijft weigeren: de vaste regels hierboven en hieronder (gevoelige gegevens, robots/noindex, gekopieerd werk van anderen, spam-bescherming, demo-regels) — leg dan uit waarom en verwijs zo nodig naar WordSwap.
 - UITLIJNING EN UITKLAPMENU'S: klaagt de eigenaar dat iets scheef staat of niet netjes uitlijnt — zeker bij onderdelen die alleen zichtbaar zijn als je eroverheen beweegt (uitklapmenu's, hover-effecten, tooltips) — vraag dan NOOIT om een screenshot of om "Laat de AI zelf kijken": zulke zwevende onderdelen staan niet op een screenshot. Lees in plaats daarvan zélf de HTML en CSS van het onderdeel (bv. delen/menu.html en de stylesheet), beredeneer de positionering (position, left/right/top, transform, breedtes, uitlijning van submenu-items) en zet het recht. Meld in één zin wat er mis stond en wat je hebt aangepast. Kom je er uit de code echt niet uit, stel dan één gerichte vraag in woorden ("staat het submenu te ver naar links, of zijn de items onderling ongelijk?") — nooit een verzoek om beeld.
 - Wijzig alleen wat er gevraagd is. Verander nooit layout, design of andere content zonder expliciete vraag.
@@ -617,9 +618,13 @@ export async function POST(req: Request) {
           if (stopper.signal.aborted) return;
           tik("ai");
 
-          // Meegestuurde foto's die de AI bewust NIET heeft gebruikt (bv. een
-          // geweigerde of verkeerde foto) weer opruimen — anders telt de upload
-          // zelf als wijziging en verschijnt er een leeg "concept klaar".
+          // Meegestuurde foto's die de AI (nog) niet heeft gebruikt horen niet
+          // als "wijziging" te tellen (anders krijg je een leeg concept), maar
+          // mogen ook niet verloren gaan: bij "plaats hem toch" in een volgende
+          // beurt moet de foto er nog zijn. Daarom: stilletjes bewaren in de
+          // fotobank (direct op de hoofdbranch — een los, ongebruikt bestand
+          // verandert niets zichtbaars aan de site).
+          let ongebruikteUploads: string[] = [];
           if (afbeeldingen.length > 0) {
             const { alleHtmlBestanden, alleCssBestanden } = await import("@/lib/werkmap");
             const tekstBestanden = [
@@ -633,11 +638,34 @@ export async function POST(req: Request) {
                 const inhoud = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
                 if (inhoud.includes(bestandsnaam)) { gebruikt = true; break; }
               }
-              if (!gebruikt) await rm(path.join(werkmap, foto.naam), { force: true }).catch(() => {});
+              if (!gebruikt) ongebruikteUploads.push(foto.naam);
             }
           }
 
-          const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+          let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+          const alleenOngebruikteUploads =
+            gewijzigd.length > 0 &&
+            gewijzigd.every((p) => ongebruikteUploads.includes(p));
+          if (alleenOngebruikteUploads) {
+            // Geen echte wijziging: geen concept, maar de foto('s) wél bewaren
+            try {
+              const { pushBestanden } = await import("@/lib/github");
+              await pushBestanden(
+                site.githubRepo,
+                await Promise.all(
+                  gewijzigd.map(async (pad) => ({
+                    pad,
+                    inhoud: await readFile(path.join(werkmap!, pad)),
+                  })),
+                ),
+                "Meegestuurde foto bewaard in de fotobank (nog niet geplaatst)",
+              );
+              reply = `${reply}\n\n(Je foto is wel bewaard in de fotobank van je site, dus opnieuw meesturen hoeft niet.)`;
+            } catch (e) {
+              console.error("Fotobank-bewaren mislukt:", e);
+            }
+            gewijzigd = [];
+          }
           if (limietBereikt) {
             reply =
               gewijzigd.length > 0
