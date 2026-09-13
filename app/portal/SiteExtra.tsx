@@ -1,9 +1,11 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
+import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import {
   bewaarMailHandtekening,
   bewaarNotificatieEmail,
+  uploadMailLogo,
   inzendingVerwerken,
   uploadKennisDocument,
   verwijderKennisDocument,
@@ -162,12 +164,7 @@ export default async function SiteExtra({
                 placeholder="jouw@bedrijf.nl"
                 className="flex-1 min-w-0 rounded-xl border border-stone-300 px-4 py-2.5 font-normal text-sm focus:border-violet-600 focus:outline-none"
               />
-              <button
-                type="submit"
-                className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-              >
-                Opslaan
-              </button>
+              <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
             </div>
           </label>
         </form>
@@ -218,12 +215,36 @@ export default async function SiteExtra({
               </div>
             </label>
           </div>
-          <button
-            type="submit"
-            className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-          >
-            Handtekening opslaan
-          </button>
+          <ActieKnop label="Handtekening opslaan" bezigLabel="Opslaan..." className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
+        </form>
+
+        {/* Logo: voorbeeld + uploaden */}
+        <form action={uploadMailLogo} className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+          <input type="hidden" name="siteId" value={siteId} />
+          <div className="flex h-16 w-40 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white p-2">
+            {mailLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mailLogoUrl} alt="Logo in de handtekening" className="max-h-12 max-w-full object-contain" />
+            ) : (
+              <span className="text-xs text-stone-400">nog geen logo</span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Logo in de handtekening</p>
+            <p className="text-xs text-stone-500">
+              {mailLogoUrl ? "Dit logo staat nu in je mails. Ander logo? Kies een bestand en upload." : "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site te staan en in de mails."}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                type="file"
+                name="logo"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                required
+                className="min-w-0 text-xs file:mr-2 file:rounded-full file:border-0 file:bg-violet-50 file:px-3 file:py-1.5 file:text-violet-700 file:font-semibold file:cursor-pointer"
+              />
+              <ActieKnop label="Logo uploaden" bezigLabel="Uploaden en op de site zetten..." klaarLabel="✓ Logo staat erin" className="rounded-full bg-violet-700 px-4 py-1.5 text-white text-xs font-semibold hover:bg-violet-600 cursor-pointer" />
+            </div>
+          </div>
         </form>
       </div>
 
@@ -274,12 +295,7 @@ export default async function SiteExtra({
             required
             className="flex-1 min-w-0 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-violet-700 file:font-semibold file:cursor-pointer"
           />
-          <button
-            type="submit"
-            className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-          >
-            Upload
-          </button>
+          <ActieKnop label="Upload" bezigLabel="Uploaden..." klaarLabel="✓ Geüpload" className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
         </form>
       </div>
     </div>

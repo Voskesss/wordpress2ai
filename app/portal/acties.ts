@@ -49,6 +49,38 @@ export async function bewaarMailHandtekening(formData: FormData) {
   revalidatePath(`/admin/klant/${site.id}`);
 }
 
+/** Logo voor de mailhandtekening uploaden: komt als afbeeldingen/mail-logo.webp
+ * in de site (repo + live), zodat mailprogramma's hem gewoon kunnen laden. */
+export async function uploadMailLogo(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const bestand = formData.get("logo");
+  if (!(bestand instanceof File) || bestand.size === 0) return;
+  if (bestand.size > 5 * 1024 * 1024) return;
+  const sharp = (await import("sharp")).default;
+  const data = await sharp(Buffer.from(await bestand.arrayBuffer()))
+    .rotate()
+    .resize({ width: 480, height: 200, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 88 })
+    .toBuffer();
+  const pad = "afbeeldingen/mail-logo.webp";
+  const { pushBestanden } = await import("@/lib/github");
+  await pushBestanden(site.githubRepo, [{ pad, inhoud: data }], "Logo voor de mailhandtekening");
+  if (site.netlifySiteId) {
+    const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
+    await deployRepoNaarCloudflare(site.githubRepo, site.netlifySiteId).catch((e) =>
+      console.error("Deploy na logo-upload mislukt:", e)
+    );
+  }
+  const host = site.domein && !/\.workers\.dev$/.test(site.domein) ? site.domein : `${site.netlifySiteId ?? site.githubRepo}.wordswap.workers.dev`;
+  await db
+    .update(sites)
+    .set({ mailLogoUrl: `https://${host.replace(/^https?:\/\//, "").replace(/\/$/, "")}/${pad}?v=${Date.now().toString(36)}` })
+    .where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {
