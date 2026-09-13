@@ -48,7 +48,7 @@ export const aankoopVragen = [
     "Je bekijkt het voorstel vóór je publiceert. Klopt het niet, dan vraag je een aanpassing. Na publicatie kan een eerdere versie worden teruggezet. Bij vragen neem je contact op met Jos; extra maatwerk spreken we apart af.",
   ],
   [
-    "Kan ik later weer weg?",
-    "De koppeling is maandelijks opzegbaar en je kunt je websitebestanden meenemen. Een overstap terug naar WordPress vraagt een nieuwe inrichting; dat gebeurt niet automatisch.",
+    "Kan ik later weer terug naar WordPress?",
+    "Ja, dat regelen we vooraf. Je oude WordPress-site blijft gewoon bestaan zolang jij je hosting aanhoudt — teruggaan is dan alleen je domein terugwijzen. Wil je die hosting opzeggen, dan maak je eerst (met onze hulp, zonder dat wij je inloggegevens nodig hebben) een complete kopie van je WordPress-site. Die kopie houd je zelf en bewaren wij desgewenst een jaar mee. Wil je binnen dat jaar terug, dan zetten we hem voor je terug — je hebt dan alleen weer hosting nodig. En los daarvan: de koppeling met ons is maandelijks opzegbaar en je websitebestanden zijn altijd van jou.",
   ],
 ];
