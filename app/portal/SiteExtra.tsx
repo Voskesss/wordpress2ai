@@ -1,12 +1,14 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
 import { zoekLogo } from "@/lib/logo-zoeken";
+import { isBeheerder } from "@/lib/auth";
 import {
   bewaarMailHandtekening,
   bewaarNotificatieEmail,
+  chatbotInteresse,
   gebruikGevondenLogo,
   uploadMailLogo,
   inzendingVerwerken,
@@ -38,6 +40,13 @@ export default async function SiteExtra({
 }) {
   // Nog geen logo ingesteld? Dan kijken we of de site er zelf een heeft.
   const gevondenLogo = !mailLogoUrl && online && domein ? await zoekLogo(domein) : null;
+  const beheerder = await isBeheerder();
+  // Al interesse in de chatbot doorgegeven voor deze site?
+  const interesseVanDezeSite = (await db
+    .select({ velden: formulierInzendingen.velden })
+    .from(formulierInzendingen)
+    .where(and(eq(formulierInzendingen.formulier, "chatbot-interesse"), eq(formulierInzendingen.siteRepo, "wordswap")))
+    .catch(() => [])).some((r) => (r.velden as Record<string, string>).site === siteNaam);
   const alle = await db
     .select()
     .from(formulierInzendingen)
@@ -52,7 +61,7 @@ export default async function SiteExtra({
     .orderBy(desc(kennisDocumenten.id));
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+    <div data-site-extra className="mt-6 grid gap-6 lg:grid-cols-2">
       {/* Formulier-inzendingen */}
       <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
         <h3 className="font-display text-lg font-semibold">
@@ -263,7 +272,28 @@ export default async function SiteExtra({
         )}
       </div>
 
-      {/* Kennisdocumenten (voor de toekomstige chatbot) */}
+      {/* Chatbot: klant ziet een interesse-kaart; documenten uploaden is voorlopig alleen voor beheer */}
+      {!beheerder && (
+        <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
+          <h3 className="font-display text-lg font-semibold">Een chatbot op je website?</h3>
+          <p className="mt-2 text-sm text-stone-600">
+            Binnenkort kan een chatbot op je site bezoekersvragen beantwoorden over je diensten, prijzen en
+            openingstijden, op basis van jouw eigen teksten. Bij voldoende belangstelling zetten we dit als
+            eerste op voor wie het aangeeft.
+          </p>
+          {interesseVanDezeSite ? (
+            <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+              ✓ Je interesse is doorgegeven. We nemen contact op zodra het zover is.
+            </p>
+          ) : (
+            <form action={chatbotInteresse} className="mt-4">
+              <input type="hidden" name="siteId" value={siteId} />
+              <ActieKnop label="Ja, ik heb interesse" bezigLabel="Doorgeven..." klaarLabel="✓ Doorgegeven" className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
+            </form>
+          )}
+        </div>
+      )}
+      {beheerder && (
       <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-display text-lg font-semibold">
@@ -313,6 +343,7 @@ export default async function SiteExtra({
           <ActieKnop label="Upload" bezigLabel="Uploaden..." klaarLabel="✓ Geüpload" className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
         </form>
       </div>
+      )}
     </div>
   );
 }

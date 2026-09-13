@@ -8,6 +8,7 @@ import { vanafLaatsteNieuwGesprek } from "@/lib/gesprek";
 import { requireUser } from "@/lib/auth";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
+import Aankondigingen from "./Aankondigingen";
 import { demoLiveWorker, demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 
@@ -130,11 +131,24 @@ export default async function Portal({
     }
   }
 
+  const aankondigingenLijst = await (async () => {
+    const { aankondigingen } = await import("@/db/schema");
+    const { desc } = await import("drizzle-orm");
+    return db
+      .select({ id: aankondigingen.id, titel: aankondigingen.titel, tekst: aankondigingen.tekst, link: aankondigingen.link })
+      .from(aankondigingen)
+      .where(eq(aankondigingen.actief, true))
+      .orderBy(desc(aankondigingen.id))
+      .limit(5)
+      .catch(() => []);
+  })();
+
   return (
     <div data-demo-step={mijnSites.some((s) => s.isDemo) ? "portal" : undefined} className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
       {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && (
         <DemoWelkom />
       )}
+      <Aankondigingen lijst={aankondigingenLijst} />
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         {mijnSites.length > 1 ? "Mijn websites" : "Mijn website"}
       </h1>
@@ -225,6 +239,7 @@ export default async function Portal({
                   <HerstelMelding changeId={herstelMap[site.id]} />
                 )}
                 <Chat
+                  terugLink={mijnSites.length > 1 ? "/portal" : null}
                   siteId={site.id}
                   previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}

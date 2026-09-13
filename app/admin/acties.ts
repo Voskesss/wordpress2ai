@@ -815,3 +815,30 @@ export async function wisChatGeschiedenis(formData: FormData) {
     );
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+/** Aankondiging voor klanten plaatsen (verschijnt bovenaan het portaal, wegklikbaar). */
+export async function aankondigingPlaatsen(formData: FormData) {
+  await requireAdmin();
+  const { aankondigingen } = await import("@/db/schema");
+  const titel = String(formData.get("titel") ?? "").trim().slice(0, 120);
+  const tekst = String(formData.get("tekst") ?? "").trim().slice(0, 1000);
+  const link = String(formData.get("link") ?? "").trim().slice(0, 300);
+  if (!titel || !tekst) return;
+  await db.insert(aankondigingen).values({ titel, tekst, link: link || null });
+  revalidatePath("/admin/aankondigingen");
+  revalidatePath("/portal");
+}
+
+/** Aankondiging aan/uit zetten of verwijderen. */
+export async function aankondigingBijwerken(formData: FormData) {
+  await requireAdmin();
+  const { aankondigingen } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  const actie = String(formData.get("actie") ?? "");
+  if (actie === "verwijder") await db.delete(aankondigingen).where(eq(aankondigingen.id, id));
+  else if (actie === "uit") await db.update(aankondigingen).set({ actief: false }).where(eq(aankondigingen.id, id));
+  else if (actie === "aan") await db.update(aankondigingen).set({ actief: true }).where(eq(aankondigingen.id, id));
+  revalidatePath("/admin/aankondigingen");
+  revalidatePath("/portal");
+}

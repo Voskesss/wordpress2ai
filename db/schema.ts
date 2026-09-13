@@ -279,3 +279,14 @@ export const aiBudgetReservations = pgTable(
   },
   (t) => [primaryKey({ columns: [t.scope, t.month] })]
 );
+
+// Aankondigingen: berichten van Jos voor ingelogde klanten in het portaal
+// (wegklikbaar per bezoeker, onthouden in de browser).
+export const aankondigingen = pgTable("aankondigingen", {
+  id: serial("id").primaryKey(),
+  titel: text("titel").notNull(),
+  tekst: text("tekst").notNull(),
+  link: text("link"),
+  actief: boolean("actief").notNull().default(true),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});

@@ -85,8 +85,11 @@ export default function Chat({
   werkversieUrl,
   openConcept,
   suggesties,
+  terugLink,
 }: {
   siteId: number;
+  /** Link naar het websiteoverzicht (alleen bij meerdere websites) */
+  terugLink?: string | null;
   previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
@@ -1310,6 +1313,30 @@ export default function Chat({
                 </button>
               ))}
             </div>
+            {volledigScherm && !isMobiel && (
+              <>
+                {/* Schermvullend: duidelijke weg terug naar de rest van het dashboard */}
+                {terugLink && (
+                  <a
+                    href={terugLink}
+                    className="hidden sm:inline-flex items-center gap-1 rounded-full border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 hover:border-violet-400 hover:text-violet-700"
+                  >
+                    ← Alle websites
+                  </a>
+                )}
+                <button
+                  onClick={() => {
+                    setVolledigScherm(false);
+                    setTimeout(() => document.querySelector("[data-site-extra]")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+                  }}
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-violet-300 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
+                  title="Berichten van je formulieren, e-mailinstellingen en handtekening"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                  Berichten &amp; instellingen
+                </button>
+              </>
+            )}
             {concept && werkversieUrl && (
               <a
                 href={`https://${werkversieUrl}`}

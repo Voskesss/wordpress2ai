@@ -92,6 +92,37 @@ export async function gebruikGevondenLogo(formData: FormData) {
   revalidatePath(`/admin/klant/${site.id}`);
 }
 
+/** Klant geeft aan interesse te hebben in een chatbot: komt als aanvraag in het admin en per mail bij Jos. */
+export async function chatbotInteresse(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const { formulierInzendingen } = await import("@/db/schema");
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const u = await currentUser();
+  const email = u?.emailAddresses[0]?.emailAddress ?? "";
+  const naam = [u?.firstName, u?.lastName].filter(Boolean).join(" ") || site.naam;
+  await db.insert(formulierInzendingen).values({
+    siteRepo: "wordswap",
+    formulier: "chatbot-interesse",
+    velden: { naam, email, website: site.domein ?? site.githubRepo, site: site.naam, bericht: "Heeft interesse in een chatbot op de website (knop in het portaal)." },
+  });
+  try {
+    const [ws] = await db.select().from(sites).where(eq(sites.githubRepo, "wordswap"));
+    if (ws?.notificatieEmail) {
+      const { verstuurSiteMail } = await import("@/lib/mail");
+      await verstuurSiteMail({
+        site: ws,
+        naar: ws.notificatieEmail,
+        onderwerp: `Chatbot-interesse: ${site.naam}`,
+        html: `<p>${naam} (${email}) van <strong>${site.naam}</strong> wil een chatbot op de website. Staat ook bij de aanvragen in het admin.</p>`,
+      });
+    }
+  } catch (e) {
+    console.error("Chatbot-interesse mailen mislukt:", e);
+  }
+  revalidatePath("/portal");
+}
+
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {
