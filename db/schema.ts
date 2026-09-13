@@ -229,6 +229,18 @@ export const verzondenMails = pgTable("verzonden_mails", {
   resendId: text("resend_id"), // voor de bezorgstatus (afgeleverd/gebounced)
 });
 
+// Feedback op de chatbeleving: duimpjes bij AI-antwoorden en algemene
+// opmerkingen, zodat Jos de chat gericht kan verbeteren
+export const chatFeedback = pgTable("chat_feedback", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  clerkUserId: text("clerk_user_id"),
+  oordeel: text("oordeel", { enum: ["goed", "slecht", "algemeen"] }).notNull(),
+  reden: text("reden"),
+  antwoord: text("antwoord"), // het AI-antwoord waar het duimpje bij hoort
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
 // Webinars: door Jos ingeplande sessies waar bezoekers zich voor inschrijven
 export const webinars = pgTable("webinars", {
   id: serial("id").primaryKey(),

@@ -110,6 +110,33 @@ export default function Chat({
   const [statusTekst, setStatusTekst] = useState<string | null>(null);
   // Antwoord dat woord voor woord binnenstroomt (native agent): live tonen
   const [liveTekst, setLiveTekst] = useState<string | null>(null);
+  // Feedback op de chatbeleving: duimpjes per antwoord + algemene opmerkingen
+  const [feedbackGegeven, setFeedbackGegeven] = useState<Record<number, "goed" | "slecht">>({});
+  const [redenVoor, setRedenVoor] = useState<number | "algemeen" | null>(null);
+  const [redenTekst, setRedenTekst] = useState("");
+  const [redenBezig, setRedenBezig] = useState(false);
+  const [redenKlaar, setRedenKlaar] = useState(false);
+
+  async function stuurFeedback(
+    oordeel: "goed" | "slecht" | "algemeen",
+    opties?: { antwoord?: string; reden?: string; index?: number },
+  ) {
+    try {
+      await fetch("/api/portal/chat-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          siteId,
+          oordeel,
+          reden: opties?.reden,
+          antwoord: opties?.antwoord,
+        }),
+      });
+    } catch {}
+    if (oordeel !== "algemeen" && opties?.index !== undefined) {
+      setFeedbackGegeven((f) => ({ ...f, [opties.index!]: oordeel === "goed" ? "goed" : "slecht" }));
+    }
+  }
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
   const [videoKlaar, setVideoKlaarState] = useState<{ commandId: string; naam: string } | null>(null);
@@ -1558,6 +1585,13 @@ export default function Chat({
                   {nieuwBezig ? "Gesprek starten..." : "🧹 Nieuw gesprek"}
                 </button>
                 <button
+                  onClick={() => { setRedenVoor(redenVoor === "algemeen" ? null : "algemeen"); setRedenTekst(""); setRedenKlaar(false); }}
+                  title="We verbeteren de chatbeleving continu — vertel wat er beter kan"
+                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer"
+                >
+                  💬 Feedback
+                </button>
+                <button
                   onClick={() => setChatOpen(false)}
                   aria-label="Gesprek inklappen"
                   title="Gesprek inklappen"
@@ -1610,6 +1644,48 @@ export default function Chat({
                     </ul>
                   </div>
                 )}
+                {redenVoor === "algemeen" && (
+                  <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-3 text-sm">
+                    {redenKlaar ? (
+                      <p className="font-medium text-emerald-700">Dank je wel! Je feedback is bij Jos beland. 🙏</p>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-stone-700">
+                          We verbeteren de chatbeleving continu — wat kan er beter?
+                        </p>
+                        <textarea
+                          value={redenTekst}
+                          onChange={(e) => setRedenTekst(e.target.value)}
+                          rows={2}
+                          placeholder="Vertel wat er niet goed ging of anders moet..."
+                          className="mt-2 w-full resize-none rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            onClick={async () => {
+                              if (redenTekst.trim().length < 3 || redenBezig) return;
+                              setRedenBezig(true);
+                              await stuurFeedback("algemeen", { reden: redenTekst });
+                              setRedenBezig(false);
+                              setRedenKlaar(true);
+                              setTimeout(() => { setRedenVoor(null); setRedenKlaar(false); }, 2500);
+                            }}
+                            disabled={redenBezig || redenTekst.trim().length < 3}
+                            className="rounded-full bg-violet-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                          >
+                            {redenBezig ? "Versturen..." : "Verstuur"}
+                          </button>
+                          <button
+                            onClick={() => setRedenVoor(null)}
+                            className="rounded-full px-3 py-1.5 text-xs font-medium text-stone-500 hover:bg-stone-100 cursor-pointer"
+                          >
+                            Annuleren
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
                 {berichten.map((m, i) => {
                   const { schoon, keuzes } =
                     m.rol === "assistent"
@@ -1634,6 +1710,65 @@ export default function Chat({
                         )
                       )}
                     </div>
+                    {m.rol === "assistent" && !m.tussenstap && (
+                      <div className="mt-0.5 flex items-center gap-0.5">
+                        {feedbackGegeven[i] ? (
+                          <span className="px-1.5 text-xs text-stone-400">
+                            {feedbackGegeven[i] === "goed" ? "👍 Dank je!" : "👎 Doorgegeven — dank je!"}
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => stuurFeedback("goed", { antwoord: m.tekst, index: i })}
+                              title="Goed antwoord"
+                              className="rounded-full px-1.5 py-0.5 text-xs opacity-35 hover:opacity-100 hover:bg-stone-100 cursor-pointer"
+                            >
+                              👍
+                            </button>
+                            <button
+                              onClick={() => { setRedenVoor(redenVoor === i ? null : i); setRedenTekst(""); }}
+                              title="Dit antwoord was niet goed"
+                              className="rounded-full px-1.5 py-0.5 text-xs opacity-35 hover:opacity-100 hover:bg-stone-100 cursor-pointer"
+                            >
+                              👎
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {redenVoor === i && !feedbackGegeven[i] && (
+                      <div className="mt-1 w-fit max-w-[90%] rounded-2xl border border-stone-200 bg-white p-3 text-sm">
+                        <p className="text-xs font-semibold text-stone-600">Wat was er niet goed aan dit antwoord?</p>
+                        <textarea
+                          value={redenTekst}
+                          onChange={(e) => setRedenTekst(e.target.value)}
+                          rows={2}
+                          placeholder="Bijvoorbeeld: hij deed iets anders dan ik vroeg..."
+                          className="mt-1.5 w-64 max-w-full resize-none rounded-xl border border-stone-300 px-2.5 py-1.5 text-xs focus:border-violet-500 focus:outline-none"
+                        />
+                        <div className="mt-1.5 flex gap-2">
+                          <button
+                            onClick={async () => {
+                              if (redenBezig) return;
+                              setRedenBezig(true);
+                              await stuurFeedback("slecht", { antwoord: m.tekst, reden: redenTekst, index: i });
+                              setRedenBezig(false);
+                              setRedenVoor(null);
+                            }}
+                            disabled={redenBezig}
+                            className="rounded-full bg-violet-700 px-3.5 py-1 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                          >
+                            {redenBezig ? "Versturen..." : "Verstuur"}
+                          </button>
+                          <button
+                            onClick={() => setRedenVoor(null)}
+                            className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 cursor-pointer"
+                          >
+                            Annuleren
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {i === berichten.length - 1 &&
                       m.rol === "assistent" &&
                       keuzes.length > 0 &&
