@@ -46,6 +46,13 @@ export async function bewaarSite(formData: FormData) {
   // placeholder-domein (VERVANG.nl) door het echte domein in canonical,
   // sitemap en robots — anders wijst de site naar een niet-bestaand domein.
   const nieuwDomein = domein || null;
+  if (vorige && nieuwDomein !== vorige.domein && nieuwDomein && !/\.workers\.dev$/.test(nieuwDomein)) {
+    // Logo van de mailhandtekening stond op het workers.dev-adres: mee naar het echte domein
+    const [rij] = await db.select({ logo: sites.mailLogoUrl }).from(sites).where(eq(sites.id, siteId));
+    if (rij?.logo && /\.workers\.dev\//.test(rij.logo)) {
+      await db.update(sites).set({ mailLogoUrl: rij.logo.replace(/^https:\/\/[^/]+\//, `https://${nieuwDomein.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`) }).where(eq(sites.id, siteId));
+    }
+  }
   if (vorige && nieuwDomein !== vorige.domein && vorige.netlifySiteId) {
     const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
     await deployRepoNaarCloudflare(vorige.githubRepo, vorige.netlifySiteId).catch((e) =>

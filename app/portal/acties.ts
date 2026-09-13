@@ -81,6 +81,17 @@ export async function uploadMailLogo(formData: FormData) {
   revalidatePath(`/admin/klant/${site.id}`);
 }
 
+/** Het op de site gevonden logo als handtekeninglogo gebruiken. */
+export async function gebruikGevondenLogo(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const url = String(formData.get("url") ?? "").trim();
+  if (!/^https:\/\/[^\s<>"]+$/.test(url) || url.length > 300) return;
+  await db.update(sites).set({ mailLogoUrl: url }).where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {

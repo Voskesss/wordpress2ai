@@ -269,6 +269,7 @@ export default async function Portal({
                   mailHandtekening={site.mailHandtekening}
                   mailLogoUrl={site.mailLogoUrl}
                   mailKleur={site.mailKleur}
+                  online={Boolean(site.netlifySiteId)}
                   notificatieEmail={site.notificatieEmail}
                 />
               )}

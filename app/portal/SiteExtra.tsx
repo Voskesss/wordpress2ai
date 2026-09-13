@@ -3,9 +3,11 @@ import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
+import { zoekLogo } from "@/lib/logo-zoeken";
 import {
   bewaarMailHandtekening,
   bewaarNotificatieEmail,
+  gebruikGevondenLogo,
   uploadMailLogo,
   inzendingVerwerken,
   uploadKennisDocument,
@@ -21,6 +23,7 @@ export default async function SiteExtra({
   mailHandtekening,
   mailLogoUrl,
   mailKleur,
+  online = true,
 }: {
   siteId: number;
   siteRepo: string;
@@ -30,7 +33,11 @@ export default async function SiteExtra({
   mailHandtekening?: string | null;
   mailLogoUrl?: string | null;
   mailKleur?: string | null;
+  /** Staat de site online (worker bestaat)? Anders kan er geen logo geladen of geüpload worden. */
+  online?: boolean;
 }) {
+  // Nog geen logo ingesteld? Dan kijken we of de site er zelf een heeft.
+  const gevondenLogo = !mailLogoUrl && online && domein ? await zoekLogo(domein) : null;
   const alle = await db
     .select()
     .from(formulierInzendingen)
@@ -204,7 +211,7 @@ export default async function SiteExtra({
                 name="logoUrl"
                 type="url"
                 defaultValue={mailLogoUrl ?? ""}
-                placeholder={domein ? `https://${domein}/afbeeldingen/logo.webp` : "https://…/logo.webp"}
+                placeholder="Alleen nodig als je een ander logo wilt dan hieronder"
                 className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-2.5 font-normal text-sm focus:border-violet-600 focus:outline-none"
               />
             </label>
@@ -223,23 +230,37 @@ export default async function SiteExtra({
         <form action={uploadMailLogo} className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
           <input type="hidden" name="siteId" value={siteId} />
           <div className="flex h-16 w-40 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white p-2">
-            {mailLogoUrl ? (
+            {mailLogoUrl || gevondenLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mailLogoUrl} alt="Logo in de handtekening" className="max-h-12 max-w-full object-contain" />
+              <img src={mailLogoUrl ?? gevondenLogo ?? ""} alt="Logo" className="max-h-12 max-w-full object-contain" />
             ) : (
-              <span className="text-xs text-stone-400">nog geen logo</span>
+              <span className="text-xs text-stone-400">{online ? "geen logo gevonden" : "site nog niet online"}</span>
             )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">Logo in de handtekening</p>
             <p className="text-xs text-stone-500">
-              {mailLogoUrl ? "Dit logo staat nu in je mails." : "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site en in je mails."}
+              {mailLogoUrl
+                ? "Dit logo staat nu in je mails."
+                : gevondenLogo
+                  ? "Dit logo vonden we op je site. Gebruiken, of een ander bestand kiezen."
+                  : online
+                    ? "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site en in je mails."
+                    : "Zet de site eerst online; dan kan het logo geladen worden in de mails."}
             </p>
-            <div className="mt-2">
-              <LogoUploadKnop heeftLogo={Boolean(mailLogoUrl)} />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {online && <LogoUploadKnop heeftLogo={Boolean(mailLogoUrl)} />}
             </div>
           </div>
         </form>
+        {!mailLogoUrl && gevondenLogo && (
+          <form action={gebruikGevondenLogo} className="mt-2 flex items-center gap-2">
+            <input type="hidden" name="siteId" value={siteId} />
+            <input type="hidden" name="url" value={gevondenLogo} />
+            <ActieKnop label="Gebruik dit logo" bezigLabel="Opslaan..." klaarLabel="✓ Logo staat erin" className="rounded-full border border-violet-300 bg-white px-4 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer" />
+            <span className="truncate text-xs text-stone-400">{gevondenLogo}</span>
+          </form>
+        )}
       </div>
 
       {/* Kennisdocumenten (voor de toekomstige chatbot) */}
