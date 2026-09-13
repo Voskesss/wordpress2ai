@@ -27,13 +27,13 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
             {item.label}
           </Link>
         ))}
-        <Link
-          href="/contact"
-          className="rounded-lg bg-violet-700 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
-        >
-          Gratis websitecheck ↗
-        </Link>
         <Show when="signed-out">
+          <Link
+            href="/contact"
+            className="rounded-lg bg-violet-700 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
+          >
+            Gratis websitecheck ↗
+          </Link>
           <SignInButton mode="modal">
             <button className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
               Inloggen
@@ -41,11 +41,16 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
           </SignInButton>
         </Show>
         <Show when="signed-in">
+          {/* Ingelogd: het dashboard is de hoofdknop, de websitecheck verdwijnt */}
           <Link
             href="/portal"
-            className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors"
+            title="Je dashboard: website bijhouden, berichten, instellingen"
+            className="inline-flex items-center gap-2 rounded-lg bg-violet-700 px-4 py-2 text-white hover:bg-violet-500 transition-colors"
           >
-            {portalLabel}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="3" width="8" height="8" rx="2" /><rect x="13" y="3" width="8" height="5" rx="2" /><rect x="13" y="10" width="8" height="11" rx="2" /><rect x="3" y="13" width="8" height="8" rx="2" />
+            </svg>
+            Dashboard · {portalLabel}
           </Link>
           {isAdmin && (
             <Link
@@ -107,9 +112,9 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
               <Link
                 href="/portal"
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-4 py-3 hover:bg-zinc-50"
+                className="rounded-lg bg-violet-700 px-4 py-3 text-white font-semibold hover:bg-violet-600"
               >
-                {portalLabel}
+                Dashboard · {portalLabel}
               </Link>
               {isAdmin && (
                 <Link
