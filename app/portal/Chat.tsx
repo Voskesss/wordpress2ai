@@ -1711,26 +1711,33 @@ export default function Chat({
                       )}
                     </div>
                     {m.rol === "assistent" && !m.tussenstap && (
-                      <div className="mt-0.5 flex items-center gap-0.5">
+                      <div className="mt-1 flex items-center gap-1">
                         {feedbackGegeven[i] ? (
-                          <span className="px-1.5 text-xs text-stone-400">
-                            {feedbackGegeven[i] === "goed" ? "👍 Dank je!" : "👎 Doorgegeven — dank je!"}
+                          <span className="flex items-center gap-1 px-1 text-xs text-stone-400">
+                            <svg width="13" height="13" viewBox="0 0 24 24" className={feedbackGegeven[i] === "goed" ? "fill-emerald-100 text-emerald-600" : "rotate-180 fill-stone-200 text-stone-500"} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden>
+                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                            </svg>
+                            Dank je!
                           </span>
                         ) : (
                           <>
                             <button
                               onClick={() => stuurFeedback("goed", { antwoord: m.tekst, index: i })}
                               title="Goed antwoord"
-                              className="rounded-full px-1.5 py-0.5 text-xs opacity-35 hover:opacity-100 hover:bg-stone-100 cursor-pointer"
+                              className="group rounded-full p-1 text-stone-300 hover:text-emerald-600 cursor-pointer"
                             >
-                              👍
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="group-hover:fill-emerald-100" aria-hidden>
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                              </svg>
                             </button>
                             <button
                               onClick={() => { setRedenVoor(redenVoor === i ? null : i); setRedenTekst(""); }}
                               title="Dit antwoord was niet goed"
-                              className="rounded-full px-1.5 py-0.5 text-xs opacity-35 hover:opacity-100 hover:bg-stone-100 cursor-pointer"
+                              className="group rounded-full p-1 text-stone-300 hover:text-red-500 cursor-pointer"
                             >
-                              👎
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="rotate-180 group-hover:fill-red-100" aria-hidden>
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                              </svg>
                             </button>
                           </>
                         )}
