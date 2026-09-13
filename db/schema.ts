@@ -1,6 +1,8 @@
 import {
+  bigint,
   boolean,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -256,3 +258,24 @@ export const webinars = pgTable("webinars", {
   actief: boolean("actief").notNull().default(true),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Vergrendeling en AI-budget (lib/operation-guards.ts werkt met ruwe SQL).
+// Hier in het schema opgenomen zodat `drizzle-kit push` ze kent: push gooit
+// tabellen weg die niet in dit bestand staan — dat gebeurde op 13-09-2026,
+// waardoor publiceren en concept weggooien faalden.
+export const operationLeases = pgTable("operation_leases", {
+  scope: text("scope").primaryKey(),
+  owner: text("owner").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+export const aiBudgetReservations = pgTable(
+  "ai_budget_reservations",
+  {
+    scope: text("scope").notNull(),
+    month: text("month").notNull(),
+    reservedMicroUsd: bigint("reserved_micro_usd", { mode: "number" }).notNull().default(0),
+    requests: integer("requests").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.scope, t.month] })]
+);
