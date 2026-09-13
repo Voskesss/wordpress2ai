@@ -4,8 +4,14 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, webinars } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { formatWanneer, hoortBij } from "@/lib/webinar";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { webinarBijwerken, webinarMailen, webinarToevoegen } from "../acties";
+import {
+  webinarBijwerken,
+  webinarInschrijvingVerplaatsen,
+  webinarMailen,
+  webinarToevoegen,
+} from "../acties";
 
 export const metadata: Metadata = {
   title: "Webinars",
@@ -16,21 +22,29 @@ export const dynamic = "force-dynamic";
 
 const invoerStijl =
   "mt-1 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 font-normal text-sm focus:border-violet-600 focus:outline-none";
+const keuzeStijl =
+  "rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 focus:border-violet-600 focus:outline-none";
 
 export default async function Webinars() {
   await requireAdmin();
   const lijst = await db.select().from(webinars).orderBy(desc(webinars.wanneer));
-  // Inschrijvingen tellen (formulier "webinar" op de eigen site)
+  // Inschrijvingen (formulier "webinar" op de eigen site), gekoppeld op webinar-id;
+  // oude inschrijvingen zonder id koppelen op titel
   const inschrijvingen = await db
     .select()
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.formulier, "webinar"))
     .orderBy(desc(formulierInzendingen.id));
 
-  const perWebinar = (titel: string) =>
-    inschrijvingen.filter(
-      (i) => (i.velden as Record<string, string>).webinar === titel
-    );
+  const perWebinar = (w: (typeof lijst)[number]) =>
+    inschrijvingen.filter((i) => hoortBij(i.velden as Record<string, unknown>, w));
+  const gekoppeld = new Set(lijst.flatMap((w) => perWebinar(w).map((i) => i.id)));
+  const zwevend = inschrijvingen.filter((i) => !gekoppeld.has(i.id));
+  const komende = lijst.filter((w) => w.wanneer.getTime() >= Date.now());
+
+  /** Keuzelijst "verplaats naar": alle andere komende webinars. */
+  const verplaatsOpties = (huidigId: number | null) =>
+    komende.filter((w) => w.id !== huidigId);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -42,7 +56,8 @@ export default async function Webinars() {
         Plan een webinar in — hij verschijnt automatisch op{" "}
         <Link href="/webinar" className="text-violet-700 hover:underline">wordswap.nl/webinar</Link>{" "}
         met een inschrijfformulier. Inschrijvers krijgen een bevestigingsmail met
-        de deelnamelink en een agenda-bestand.
+        de deelnamelink en een agenda-bestand. Elke inschrijving hoort bij één
+        datum; je kunt mensen hieronder verplaatsen naar een andere datum.
       </p>
 
       {/* Inplannen */}
@@ -81,20 +96,15 @@ export default async function Webinars() {
         {lijst.length === 0 && <p className="text-stone-500">Nog geen webinars ingepland.</p>}
         {lijst.map((w) => {
           const isVerleden = w.wanneer.getTime() < Date.now();
-          const inschr = perWebinar(w.titel);
+          const inschr = perWebinar(w);
+          const anderen = verplaatsOpties(w.id);
           return (
             <div key={w.id} className="rounded-3xl border border-stone-200 bg-white p-5">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{w.titel}</p>
                   <p className="text-sm text-stone-500">
-                    {w.wanneer.toLocaleString("nl-NL", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatWanneer(w.wanneer)}
                     {" · "}
                     <strong className="text-violet-700">{inschr.length}</strong> inschrijving
                     {inschr.length === 1 ? "" : "en"}
@@ -158,16 +168,35 @@ export default async function Webinars() {
               {inschr.length > 0 && (
                 <details className="mt-2">
                   <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
-                    Inschrijvers bekijken ({inschr.length})
+                    Inschrijvers bekijken en verplaatsen ({inschr.length})
                   </summary>
-                  <ul className="mt-2 space-y-1 text-sm text-stone-600">
+                  <ul className="mt-2 space-y-1.5 text-sm text-stone-600">
                     {inschr.map((i) => {
                       const v = i.velden as Record<string, string>;
                       return (
-                        <li key={i.id} className="flex flex-wrap gap-x-2">
+                        <li key={i.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <span className="font-medium">{v.naam ?? "—"}</span>
                           <span className="text-stone-400">{v.email ?? ""}</span>
                           {v.website && <span className="text-stone-400">· {v.website}</span>}
+                          <form action={webinarInschrijvingVerplaatsen} className="ml-auto flex items-center gap-1.5">
+                            <input type="hidden" name="inzendingId" value={i.id} />
+                            <select name="naar" required defaultValue="" className={keuzeStijl} aria-label="Verplaats naar">
+                              <option value="" disabled>
+                                Verplaats naar…
+                              </option>
+                              {anderen.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                  {formatWanneer(a.wanneer)}
+                                </option>
+                              ))}
+                              <option value="weg">Inschrijving verwijderen</option>
+                            </select>
+                            <ActieKnop
+                              label="Ok"
+                              bezigLabel="…"
+                              className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                            />
+                          </form>
                         </li>
                       );
                     })}
@@ -197,20 +226,82 @@ export default async function Webinars() {
                     />
                   </div>
                 </form>
-                <form action={webinarBijwerken} className="mt-2">
+                <form action={webinarBijwerken} className="mt-4 rounded-2xl border border-red-100 bg-red-50/40 p-3">
                   <input type="hidden" name="id" value={w.id} />
                   <input type="hidden" name="verwijder" value="1" />
-                  <ActieKnop
-                    label="Verwijderen"
-                    bezigLabel="Verwijderen..."
-                    className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
-                  />
+                  {inschr.length > 0 ? (
+                    <label className="block text-xs text-stone-600">
+                      Dit webinar heeft {inschr.length} inschrijving{inschr.length === 1 ? "" : "en"}. Wat moet daarmee gebeuren?
+                      <select name="inschrijvingen" required defaultValue="" className={`${keuzeStijl} mt-1 block w-full`}>
+                        <option value="" disabled>
+                          Kies…
+                        </option>
+                        {anderen.map((a) => (
+                          <option key={a.id} value={`naar:${a.id}`}>
+                            Verplaatsen naar {formatWanneer(a.wanneer)}
+                          </option>
+                        ))}
+                        <option value="weg">Inschrijvingen verwijderen</option>
+                      </select>
+                    </label>
+                  ) : (
+                    <p className="text-xs text-stone-500">Geen inschrijvingen; dit webinar kan zo weg.</p>
+                  )}
+                  <div className="mt-2">
+                    <ActieKnop
+                      label="Webinar verwijderen"
+                      bezigLabel="Verwijderen..."
+                      className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                    />
+                  </div>
                 </form>
               </details>
             </div>
           );
         })}
       </div>
+
+      {zwevend.length > 0 && (
+        <div className="mt-8 rounded-3xl border border-amber-200 bg-amber-50/50 p-5">
+          <h2 className="font-semibold text-amber-900">
+            Inschrijvingen zonder webinar ({zwevend.length})
+          </h2>
+          <p className="mt-1 text-sm text-amber-800">
+            Deze horen bij een webinar dat niet meer bestaat of een titel die niet meer klopt. Zet ze bij een datum, of verwijder ze.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm text-stone-700">
+            {zwevend.map((i) => {
+              const v = i.velden as Record<string, string>;
+              return (
+                <li key={i.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-medium">{v.naam ?? "—"}</span>
+                  <span className="text-stone-400">{v.email ?? ""}</span>
+                  {v.webinar && <span className="text-stone-400">· {v.webinar}</span>}
+                  <form action={webinarInschrijvingVerplaatsen} className="ml-auto flex items-center gap-1.5">
+                    <input type="hidden" name="inzendingId" value={i.id} />
+                    <select name="naar" required defaultValue="" className={keuzeStijl} aria-label="Verplaats naar">
+                      <option value="" disabled>
+                        Zet bij…
+                      </option>
+                      {komende.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatWanneer(a.wanneer)}
+                        </option>
+                      ))}
+                      <option value="weg">Inschrijving verwijderen</option>
+                    </select>
+                    <ActieKnop
+                      label="Ok"
+                      bezigLabel="…"
+                      className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                    />
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

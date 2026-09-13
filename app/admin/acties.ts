@@ -431,6 +431,31 @@ export async function webinarBijwerken(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return;
   if (formData.get("verwijder")) {
+    // Inschrijvers eerst een plek geven: verplaatsen naar een ander webinar of
+    // (bewust) verwijderen. Zonder keuze wordt een webinar mét inschrijvers
+    // niet weggegooid — dan zouden mensen zich hebben aangemeld voor niets.
+    const { formulierInzendingen } = await import("@/db/schema");
+    const { hoortBij, webinarLabel } = await import("@/lib/webinar");
+    const [w] = await db.select().from(webinars).where(eq(webinars.id, id));
+    if (!w) return;
+    const alle = await db.select().from(formulierInzendingen).where(eq(formulierInzendingen.formulier, "webinar"));
+    const inschr = alle.filter((i) => hoortBij(i.velden as Record<string, unknown>, w));
+    const keuze = String(formData.get("inschrijvingen") ?? "");
+    if (inschr.length > 0) {
+      if (keuze.startsWith("naar:")) {
+        const naarId = Number(keuze.slice(5));
+        const [doel] = await db.select().from(webinars).where(eq(webinars.id, naarId));
+        if (!doel) return;
+        for (const i of inschr) {
+          const velden = { ...(i.velden as Record<string, unknown>), webinar_id: String(doel.id), webinar: webinarLabel(doel) };
+          await db.update(formulierInzendingen).set({ velden }).where(eq(formulierInzendingen.id, i.id));
+        }
+      } else if (keuze === "weg") {
+        for (const i of inschr) await db.delete(formulierInzendingen).where(eq(formulierInzendingen.id, i.id));
+      } else {
+        return; // geen keuze gemaakt: niets doen
+      }
+    }
     await db.delete(webinars).where(eq(webinars.id, id));
   } else {
     const opnameLink = String(formData.get("opnameLink") ?? "").trim();
@@ -439,6 +464,27 @@ export async function webinarBijwerken(formData: FormData) {
   }
   revalidatePath("/admin/webinars");
   revalidatePath("/webinar");
+}
+
+/** Eén inschrijving verplaatsen naar een ander webinar, of verwijderen. */
+export async function webinarInschrijvingVerplaatsen(formData: FormData) {
+  await requireAdmin();
+  const { webinars, formulierInzendingen } = await import("@/db/schema");
+  const { webinarLabel } = await import("@/lib/webinar");
+  const inzendingId = Number(formData.get("inzendingId"));
+  const naar = String(formData.get("naar") ?? "");
+  if (!Number.isInteger(inzendingId) || !naar) return;
+  if (naar === "weg") {
+    await db.delete(formulierInzendingen).where(eq(formulierInzendingen.id, inzendingId));
+  } else {
+    const naarId = Number(naar);
+    const [doel] = await db.select().from(webinars).where(eq(webinars.id, naarId));
+    const [i] = await db.select().from(formulierInzendingen).where(eq(formulierInzendingen.id, inzendingId));
+    if (!doel || !i) return;
+    const velden = { ...(i.velden as Record<string, unknown>), webinar_id: String(doel.id), webinar: webinarLabel(doel) };
+    await db.update(formulierInzendingen).set({ velden }).where(eq(formulierInzendingen.id, inzendingId));
+  }
+  revalidatePath("/admin/webinars");
 }
 
 /** Aanvraag op de admin-hoofdpagina archiveren, terugzetten of verwijderen. */
@@ -474,8 +520,9 @@ export async function webinarMailen(formData: FormData) {
     .select()
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.formulier, "webinar"));
+  const { hoortBij } = await import("@/lib/webinar");
   const ontvangers = inzendingen
-    .filter((i) => (i.velden as Record<string, string>).webinar === w.titel)
+    .filter((i) => hoortBij(i.velden as Record<string, unknown>, w))
     .map((i) => ({
       email: (i.velden as Record<string, string>).email,
       naam: (i.velden as Record<string, string>).naam ?? "",

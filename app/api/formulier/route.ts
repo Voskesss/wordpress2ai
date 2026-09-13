@@ -114,6 +114,25 @@ export async function POST(req: Request) {
       { error: "Probeer het later opnieuw." },
       { status: 429 },
     );
+  // Webinar-inschrijving: de gekozen sessie opzoeken (op id; oude formulieren
+  // sturen nog de titel) en een leesbare naam bewaren, zodat admin en mails
+  // altijd weten om welke datum het gaat — ook als er meerdere webinars
+  // dezelfde titel hebben.
+  let webinarSessie: { id: number; titel: string; wanneer: Date; meetLink: string | null } | null = null;
+  if (formulier === "webinar" && (velden.webinar_id || velden.webinar)) {
+    const { webinars } = await import("@/db/schema");
+    const idNum = Number(velden.webinar_id);
+    const [w] = Number.isInteger(idNum) && idNum > 0
+      ? await db.select().from(webinars).where(eq(webinars.id, idNum))
+      : await db.select().from(webinars).where(eq(webinars.titel, String(velden.webinar)));
+    if (w) {
+      webinarSessie = w;
+      const { webinarLabel } = await import("@/lib/webinar");
+      velden.webinar_id = String(w.id);
+      velden.webinar = webinarLabel(w);
+    }
+  }
+
   if (echt) {
     let opgeslagen = true;
     await db
@@ -139,20 +158,11 @@ export async function POST(req: Request) {
     )?.[1];
     // Webinar-inschrijving? Zoek de sessie op voor datum/link + agenda-bestand.
     let webinarInfo = "";
-    if (formulier === "webinar" && velden.webinar) {
-      const { webinars } = await import("@/db/schema");
-      const [w] = await db
-        .select()
-        .from(webinars)
-        .where(eq(webinars.titel, velden.webinar));
-      if (w) {
-        const wanneer = w.wanneer.toLocaleString("nl-NL", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+    if (formulier === "webinar" && webinarSessie) {
+      const w = webinarSessie;
+      {
+        const { formatWanneer } = await import("@/lib/webinar");
+        const wanneer = formatWanneer(w.wanneer);
         webinarInfo = `<p><strong>Wanneer:</strong> ${ontsnap(wanneer)}</p>${
           w.meetLink
             ? `<p><strong>Deelnamelink:</strong> <a href="${ontsnap(w.meetLink)}">${ontsnap(w.meetLink)}</a></p>`

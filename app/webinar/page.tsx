@@ -139,9 +139,9 @@ export default async function Webinar() {
                 <label htmlFor="webinar" className="block text-sm font-semibold">
                   Kies een datum
                 </label>
-                <select id="webinar" name="webinar" required className={inputStijl}>
+                <select id="webinar" name="webinar_id" required className={inputStijl}>
                   {komende.map((w) => (
-                    <option key={w.id} value={w.titel}>
+                    <option key={w.id} value={w.id}>
                       {w.wanneer.toLocaleString("nl-NL", {
                         weekday: "long",
                         day: "numeric",
