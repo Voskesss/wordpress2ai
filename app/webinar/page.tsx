@@ -8,7 +8,7 @@ import { josFoto } from "@/lib/persoonlijk";
 export const metadata: Metadata = {
   title: "Gratis webinar: weg uit WordPress",
   description:
-    "In 30 minuten laten we live zien hoe je van je WordPress-site af komt: een snellere website zonder onderhoud, die je aanpast door het gewoon te typen. Schrijf je gratis in.",
+    "In 30 minuten laten we live zien hoe je van je WordPress-site af komt: een website zonder WordPress-beheer, die je aanpast door het gewoon te typen. Schrijf je gratis in.",
   alternates: { canonical: "/webinar" },
 };
 
@@ -101,7 +101,7 @@ export default async function Webinar() {
 
       <ul className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
         {[
-          "Waarom WordPress je vooral tijd en geld kost",
+          "Wanneer overstappen van WordPress bij je bedrijf past",
           "Live demo: een wijziging typen en publiceren",
           "Wat de overstap kost (no cure, no pay)",
         ].map((punt) => (

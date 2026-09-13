@@ -12,7 +12,13 @@ export const metadata: Metadata = {
 const inputStijl =
   "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-[#31956B] focus:outline-none focus:ring-2 focus:ring-[#e3eedd]";
 
-export default async function Contact() {
+export default async function Contact({
+  searchParams,
+}: {
+  searchParams: Promise<{ onderwerp?: string | string[] }>;
+}) {
+  const { onderwerp } = await searchParams;
+  const samenwerken = onderwerp === "samenwerken";
   // Ingelogde bezoekers (bv. vanuit de demo): naam en e-mail alvast invullen
   const gebruiker = await currentUser().catch(() => null);
   const vulNaam = [gebruiker?.firstName, gebruiker?.lastName]
@@ -23,12 +29,14 @@ export default async function Contact() {
     <div className="mx-auto max-w-5xl px-6 py-20 grid gap-14 lg:grid-cols-5">
       <div className="lg:col-span-2">
         <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-          Kan jouw WordPress-site mee?
+          {samenwerken
+            ? "Samen één klantsite bekijken?"
+            : "Kan jouw website zonder WordPress?"}
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-          Stuur je websiteadres mee en we kijken gratis en vrijblijvend of je
-          site geschikt is voor de overstap. Je krijgt binnen één werkdag een
-          eerlijk antwoord — óók als het (nog) niet past.
+          {samenwerken
+            ? "Vertel over de klantsite die je wilt overzetten. Jos neemt binnen één werkdag contact op om de mogelijkheden en rolverdeling te bespreken."
+            : "Stuur je websiteadres. Jos bekijkt gratis of we jouw site kunnen overzetten met je bestaande uitstraling en inhoud, zodat je hem daarna zelf bijhoudt met AI. Binnen één werkdag krijg je antwoord, ook als het niet past."}
         </p>
         <ul className="mt-8 space-y-3 text-stone-600">
           {[
@@ -75,7 +83,9 @@ export default async function Contact() {
         <div>
           <p className="eyebrow">GRATIS & VRIJBLIJVEND</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-            Begin met je website.
+            {samenwerken
+              ? "Bespreek een samenwerking."
+              : "Begin met je websiteadres."}
           </h2>
           <p className="mt-2 text-sm text-stone-500">
             Alleen je naam, e-mail en websiteadres zijn nodig. Je hoeft nog geen
@@ -135,7 +145,12 @@ export default async function Contact() {
             id="bericht"
             name="bericht"
             rows={3}
-            placeholder="Vertel kort over je site en waar je vanaf wilt..."
+            defaultValue={
+              samenwerken
+                ? "Ik wil samenwerken met WordSwap rond een bestaande klantsite. "
+                : ""
+            }
+            placeholder="Bijvoorbeeld: ik wil mijn site houden, maar zelf teksten en foto’s aanpassen."
             className={inputStijl}
           />
         </div>
@@ -143,7 +158,9 @@ export default async function Contact() {
           type="submit"
           className="lift rounded-lg bg-[#244b3d] px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-[#2f5d4b]"
         >
-          Vraag mijn gratis websitecheck aan ↗
+          {samenwerken
+            ? "Bespreek deze klantsite met Jos ↗"
+            : "Vraag mijn gratis websitecheck aan ↗"}
         </button>
         <p className="text-xs leading-relaxed text-stone-500">
           Met je gegevens beantwoorden we je aanvraag. Lees ons{" "}

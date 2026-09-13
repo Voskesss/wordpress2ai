@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
+import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een snelle, AI-vriendelijke website",
   description:
-    "Zo zet je je WordPress-site om naar een snellere website die ook door AI-chatbots (ChatGPT, Claude, Perplexity) goed gelezen en genoemd wordt. Vanaf €150, no cure no pay.",
-  alternates: { canonical: "/wordpress-omzetten-snel-en-ai-vriendelijk" },
+    "WordPress omzetten met aandacht voor laadtijd, leesbare inhoud, bestaande URL’s en SEO. Daarna zelf bijhouden met AI. Geen garantie op zoekposities of AI-vermeldingen.",
+  alternates: {
+    canonical: "/wordpress-omzetten-snel-en-ai-vriendelijk",
+  },
 };
 
 export default function Pagina() {
@@ -14,57 +17,48 @@ export default function Pagina() {
       data={{
         slug: "wordpress-omzetten-snel-en-ai-vriendelijk",
         label: "Snel & AI-vriendelijk",
-        titel: "Hoe zet ik mijn WordPress-website om naar een snellere, AI-vriendelijke website?",
+        titel:
+          "WordPress omzetten: snel voor bezoekers, begrijpelijk voor zoekmachines.",
         intro:
-          "Het korte antwoord: laat je WordPress-site omzetten naar een statische website — kant-en-klare HTML-pagina's zonder database of plugins. Snel voor bezoekers, en goed leesbaar voor AI-zoekmachines zoals ChatGPT, Claude, Perplexity en Google's AI-overzichten. WordSwap doet precies dat: een zo getrouw mogelijke kopie van je site, snel en AI-klaar, vanaf €150 en no cure no pay. Wijzigen doe je daarna gewoon via AI-chat.",
+          "Een goede website vertelt duidelijk wat je bedrijf doet en maakt contact opnemen makkelijk. WordSwap zet je bestaande WordPress-site over naar statische webpagina’s, met je ontwerp en SEO-inrichting als uitgangspunt. Daarna houd je de inhoud zelf actueel met AI.",
         blokken: [
           {
-            kop: "Waarom is een statische site sneller én AI-vriendelijker?",
+            kop: "Wat kan er sneller worden?",
             tekst:
-              "Eerlijk is eerlijk: een goed onderhouden WordPress-site met caching kan ook snel zijn. Het verschil zit erin dat een statische site die snelheid niet hoeft te verdienen — er is geen database, geen plugin-code en geen cache die je moet instellen, bijhouden of die op het verkeerde moment verlopen is. Elke pagina staat kant-en-klaar op een wereldwijd netwerk, altijd even snel. In de praktijk zien we bovendien dat veel WordPress-sites van kleine bedrijven níét goed gecachet zijn, of vertraagd worden door een stapel plugins. Voor AI-bots komt er iets bij: beveiligings-plugins blokkeren of misleiden AI-crawlers regelmatig zonder dat de eigenaar het weet — dat zien we terug als we sites scannen. Een statische site levert de complete inhoud als schone HTML, zonder poortwachters ertussen: precies wat een taalmodel nodig heeft om je bedrijf te begrijpen en te citeren.",
+              "Statische pagina’s hoeven niet bij ieder bezoek door WordPress te worden opgebouwd. Dat kan de laadtijd verbeteren. Grote foto’s, video’s en externe scripts blijven invloed hebben. Een goed ingerichte WordPress-site kan ook snel zijn; daarom vergelijken we de oude en nieuwe pagina’s.",
           },
           {
-            kop: "Zo word je genoemd in ChatGPT, Claude en Perplexity",
+            kop: "Wat helpt zoekmachines en AI je bedrijf begrijpen?",
             tekst:
-              "AI-zoekmachines noemen bedrijven waarvan ze de website goed kunnen lezen en vertrouwen. Dat regel je met vier dingen die bij elke WordSwap-site standaard zitten: (1) alle inhoud als server-gerenderde HTML, zodat elke bot alles ziet; (2) structured data (Schema.org) die vertelt wát je bedrijf is en doet; (3) een llms.txt-bestand — de nieuwe standaard waarmee je AI-systemen een nette samenvatting van je site geeft; en (4) een robots-configuratie die AI-crawlers zoals GPTBot, ClaudeBot en PerplexityBot expliciet welkom heet in plaats van blokkeert (veel WordPress-beveiligingsplugins blokkeren ze per ongeluk).",
+              "Duidelijke teksten over je diensten, doelgroep, werkwijze en prijzen. Belangrijke informatie moet leesbaar in de pagina staan. We controleren pagina-adressen, titels, beschrijvingen en interne links. Gestructureerde gegevens moeten overeenkomen met de zichtbare inhoud.",
           },
           {
-            kop: "Stappenplan: van WordPress naar snel en AI-klaar",
+            kop: "Leesbaar zijn is nog geen aanbeveling",
             tekst:
-              "Stap 1: je vraagt de gratis site-check aan en maakt in WordPress een export (twee klikken, wij leggen het uit). Stap 2: wij bouwen de statische kopie — zelfde design, teksten en URL's, mét structured data, llms.txt en AI-vriendelijke robots-regels. Stap 3: jij beoordeelt de complete kopie vóórdat je iets betaalt. Stap 4: na jouw akkoord koppelen we je domein en melden we de site aan bij Google. Vanaf dat moment wijzig je alles via AI-chat — je site wordt dus niet alleen gelezen door AI, maar ook beheerd met AI.",
+              "Of Google of een AI-assistent je bedrijf noemt, hangt van meer af dan de techniek. Betrouwbare inhoud en aantoonbare ervaring blijven nodig. Voor de AI-functies van Google gelden de gewone SEO-uitgangspunten; er is geen speciaal bestand dat een vermelding afdwingt.",
           },
           {
-            kop: "Wat levert het op?",
+            kop: "Van je bestaande site naar zelf bijhouden",
             tekst:
-              "Een site die altijd snel is zonder dat je er iets voor hoeft te doen (en snelheid is een rankingfactor bij Google), geen updates of plugin-onderhoud meer en een veel kleiner aanvalsoppervlak, lagere maandlasten — en een steeds belangrijker voordeel: als klanten aan een AI-assistent vragen om een bedrijf zoals het jouwe, is een goed leesbare site het verschil tussen genoemd worden of onzichtbaar zijn. Steeds meer mensen zoeken via AI in plaats van via Google; wie daar nu leesbaar is, pakt die stroom als eerste.",
+              "Stuur eerst je websiteadres. We beoordelen de functies en spreken de prijs af. Daarna bekijken we samen de kopie en de SEO-controle. Na jouw akkoord koppelen we je domein. Nieuwe teksten, foto’s en pagina’s vraag je voortaan aan via de WordSwap-chat.",
           },
         ],
         faq: [
           {
-            vraag: "Wat maakt een website 'AI-vriendelijk'?",
-            antwoord:
-              "Complete inhoud als server-gerenderde HTML (geen inhoud die pas na JavaScript verschijnt), snelle laadtijd, duidelijke paginatitels en structuur, structured data (Schema.org), een llms.txt-bestand met een samenvatting van je site, en robots-regels die AI-crawlers toelaten. WordSwap-sites hebben dit allemaal standaard.",
-          },
-          {
             vraag: "Wat is llms.txt?",
             antwoord:
-              "Een klein tekstbestand op je website (vergelijkbaar met robots.txt) dat AI-systemen in gewone taal vertelt wat je site is, wat je aanbiedt en welke pagina's belangrijk zijn. Het is een jonge standaard die door steeds meer AI-zoekmachines gelezen wordt — en het kost niets om hem goed te hebben.",
+              "Een tekstbestand waarin je het aanbod en belangrijke pagina’s samenvat voor systemen die het gebruiken. Zie het als aanvullende documentatie. Het is geen gegarandeerd ondersteunde zoekstandaard en Google vereist het niet voor AI Overviews of AI Mode.",
           },
           {
-            vraag: "Blokkeert mijn huidige WordPress-site AI-bots?",
+            vraag: "Blokkeert mijn huidige site AI-bots?",
             antwoord:
-              "Grote kans van wel, zonder dat je het weet: veel beveiligings- en cacheplugins (en sommige hosters) blokkeren onbekende crawlers standaard, waaronder GPTBot en ClaudeBot. Ook laden veel WordPress-thema's inhoud pas via JavaScript, waardoor AI-bots een halflege pagina zien. Stuur je adres in, dan checken we het gratis.",
+              "Dat moeten we per website controleren. Robots-regels, toegangsbeveiliging en de manier waarop inhoud laadt kunnen invloed hebben. WordPress gebruiken betekent op zichzelf niet dat bots worden geblokkeerd.",
           },
           {
-            vraag: "Wat kost het omzetten?",
-            antwoord:
-              "Eenmalig €150 voor een kleine site tot ± €650 voor een grote of complexe site, daarna €5 tot €20 per maand voor hosting én de AI-chat waarmee je wijzigingen doorgeeft. No cure no pay: je betaalt pas als je tevreden bent met de kopie.",
+            vraag: "Garandeert WordSwap mijn zoekposities?",
+            antwoord: aanbod.seo,
           },
-          {
-            vraag: "Verlies ik mijn Google-posities?",
-            antwoord:
-              "We nemen alles mee wat je vindbaarheid bepaalt — adressen, paginatitels, beschrijvingen, doorverwijzingen en sitemap — en vergelijken elke pagina na de overstap met het origineel. Daar stopt het niet: we kijken actief mee met je vindbaarheid en zien we verbetering mogelijk, dan stellen we die voor. Ook je zichtbaarheid in AI-chatbots zoals ChatGPT, Copilot en Claude nemen we daarin mee. Zoekposities garanderen kan niemand — wie dat wel doet, kun je beter wantrouwen.",
-          },
+          { vraag: "Wat kost het omzetten?", antwoord: aanbod.prijs },
         ],
       }}
     />

@@ -15,9 +15,9 @@ const stappen = [
       "Stuur je websiteadres. Jos bekijkt je pagina’s en functies en geeft je een duidelijke prijs. Bedrijfssites, blogs en formulieren passen goed. Webshops en ledenportalen zetten we niet over; externe boekingswidgets beoordelen we vooraf.",
   },
   {
-    titel: "We nemen je website zorgvuldig over",
+    titel: "We bouwen je website opnieuw op, zonder WordPress",
     tekst:
-      "Je teksten, afbeeldingen en bestaande ontwerp vormen het uitgangspunt. We controleren ook je domein, e-mail en de adressen van je pagina’s. Als e-mailmigratie nodig is, bespreken we de aanvullende kosten vooraf.",
+      "Je teksten, afbeeldingen en bestaande ontwerp vormen het uitgangspunt. Je huidige website blijft tijdens het overzetten online. We controleren ook je domein, e-mail en de adressen van je pagina’s. Als e-mailmigratie nodig is, bespreken we de aanvullende kosten vooraf.",
   },
   {
     titel: "Je ziet het resultaat vóór je beslist",
@@ -66,7 +66,7 @@ const previewStappen = [
   ],
   [
     "De AI zet het klaar",
-    "Je krijgt binnen een minuut een link naar een concept-versie van je site — je echte site blijft onaangeroerd.",
+    "Je krijgt een voorbeeld van je wijziging op je website. Je live site verandert nog niet.",
   ],
   [
     "Jij beoordeelt",
@@ -74,7 +74,7 @@ const previewStappen = [
   ],
   [
     "Het staat live",
-    "Na jouw akkoord staat de wijziging binnen twee minuten op je echte website.",
+    "Na jouw akkoord publiceren we de wijziging. Je ziet in het portaal wanneer het gelukt is.",
   ],
 ];
 
@@ -84,7 +84,7 @@ export default function HoeHetWerkt() {
       <div className="mx-auto max-w-3xl px-6 pt-20 pb-4 sm:flex sm:items-center sm:gap-8">
         <div className="min-w-0">
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
-            Eerst je website behouden. Daarna bijhouden met AI.
+            Je website overzetten. WordPress achterlaten. Zelf bijhouden met AI.
           </h1>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
             Je bestaande website is het uitgangspunt: ontwerp, pagina-adressen,

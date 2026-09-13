@@ -1,11 +1,10 @@
 import VerhaalBeeld from "./VerhaalBeeld";
-import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import ProductPreview from "./ProductPreview";
 import { aankoopVragen } from "@/lib/aanbod";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Je bestaande WordPress-site behouden. Verder met AI.",
+  title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
     "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + €5–€20 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
@@ -31,27 +30,29 @@ export default function Home() {
       <section className="home-hero shell">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="status-dot" /> WORDPRESS OVERZETTEN. VERDER MET AI.
+            <span className="status-dot" /> VOOR ONDERNEMERS MET EEN
+            WORDPRESS-WEBSITE
           </p>
           <h1>
-            Van WordPress naar
+            Je website houden.
             <br />
-            <em>een website die je bijhoudt met AI.</em>
+            <em>WordPress loslaten.</em>
           </h1>
           <p className="hero-intro">
-            Je nieuwe website draait zonder WordPress. We nemen je bestaande
-            ontwerp, inhoud, pagina-adressen en SEO-instellingen zorgvuldig mee.
+            <strong>Daarna zelf bijhouden met AI.</strong> Wij zetten je
+            bestaande website over naar een versie zonder WordPress. Je ontwerp,
+            teksten, foto’s en pagina-adressen nemen we zorgvuldig mee.
           </p>
           <p className="hero-definition">
-            Daarna pas je teksten en foto’s aan door te vertellen wat je wilt.
-            Eerst bekijken. Dan pas live. Met persoonlijke hulp van Jos.
+            “Zet onze nieuwe openingstijden erop.” Dat vraag je voortaan in de
+            chat. Jij bekijkt het voorstel en beslist wat live gaat.
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
-              Laat mijn website checken <span>↗</span>
+              Kan mijn website mee? <span>↗</span>
             </Link>
             <Link className="button-text" href="#zo-werkt-aanpassen">
-              Bekijk hoe het werkt <span>→</span>
+              Probeer het voorbeeld <span>→</span>
             </Link>
           </div>
           <p className="hero-assurance">
@@ -67,7 +68,10 @@ export default function Home() {
             <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
           </div>
         </div>
-        <OverstapVisual />
+        <div className="hero-example" id="zo-werkt-aanpassen">
+          <p className="eyebrow">ZO HOUD JE HEM STRAKS BIJ · KLIK EN PROBEER</p>
+          <ProductPreview />
+        </div>
       </section>
       <div className="trust-strip">
         <div className="shell">
@@ -96,54 +100,6 @@ export default function Home() {
           <Link href="#zo-werkt-aanpassen" className="button-text">
             Bekijk een voorbeeld →
           </Link>
-        </div>
-      </section>
-      <section className="section-space shell" aria-labelledby="behoud-titel">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">OVERZETTEN ÉN BLIJVEN BIJHOUDEN</p>
-            <h2 id="behoud-titel">Verder met wat je al hebt opgebouwd.</h2>
-          </div>
-          <p>
-            Je huidige website is het vertrekpunt. De overstap en het dagelijkse
-            beheer zijn twee afzonderlijke stappen.
-          </p>
-        </div>
-        <div className="benefit-grid">
-          <article className="benefit">
-            <span className="number-tag">1</span>
-            <h3>Je bestaande website meenemen</h3>
-            <p>
-              We behouden bestaande URL’s en structuur waar mogelijk exact,
-              nemen titels en meta-informatie over en bespreken afwijkende
-              functies vooraf.
-            </p>
-          </article>
-          <article className="benefit">
-            <span className="number-tag">✓</span>
-            <h3>Controleren vóór de overstap</h3>
-            <p>
-              Oude en nieuwe pagina’s vergelijken, links en formulieren testen,
-              afwijkingen bespreken. Een gewijzigd adres krijgt een passende
-              doorverwijzing. Zoekposities blijven afhankelijk van meer
-              factoren.
-            </p>
-            <Link href="/seo-behoud" className="button-text">
-              Zo controleren we de overstap →
-            </Link>
-          </article>
-          <article className="benefit">
-            <span className="number-tag">2</span>
-            <h3>Zelf actueel houden met AI</h3>
-            <p>
-              Een nieuwe foto, andere openingstijden of een extra dienst? Je
-              vraagt het in gewone taal. Bekijk de wijziging op je eigen website
-              en publiceer als die klopt.
-            </p>
-            <Link href="/demo" className="button-text">
-              Bekijk het aanpassen →
-            </Link>
-          </article>
         </div>
       </section>
       <section className="section-space shell">
@@ -189,9 +145,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="shell beeld-band" aria-hidden="true">
-        <VerhaalBeeld onderwerp="meubelmaker-lamp" />
-      </section>
       <section className="shell fit-section">
         <div>
           <p className="eyebrow">WAT VERANDERT ER NU EIGENLIJK?</p>
@@ -201,9 +154,10 @@ export default function Home() {
             Het beheer wordt anders.
           </h2>
           <p>
-            We verkopen je geen nieuw ontwerp als je huidige website nog goed
-            is. We bouwen je bestaande site opnieuw op, zodat je die via de
-            WordSwap-chat kunt beheren.
+            Ben je tevreden met je uitstraling? Dan beginnen we daarmee. Je
+            website wordt opnieuw opgebouwd zonder WordPress. Voor bezoekers
+            blijft je bedrijf herkenbaar; jij krijgt een andere manier om de
+            inhoud bij te houden.
           </p>
           <Link href="/wordswap-vs-wordpress" className="button-text">
             Vergelijk WordSwap met WordPress →
@@ -221,14 +175,16 @@ export default function Home() {
           <div>
             <strong>Dit regelen wij</strong>
             <p>
-              De omzetting, hosting, SSL, contactformulier en controle van de
-              SEO-structuur.
+              De omzetting, hosting, SSL en het contactformulier. We vergelijken
+              oude en nieuwe URL’s, paginatitels en meta-informatie. Afwijkingen
+              bespreken we vóór de overstap.
             </p>
           </div>
           <div>
             <strong>Dit doe jij voortaan</strong>
             <p>
               Een wijziging vragen → het voorbeeld bekijken → zelf publiceren.
+              WordPress en de bijbehorende plugin-updates vervallen.
             </p>
           </div>
         </div>
@@ -294,6 +250,12 @@ export default function Home() {
               </article>
             ))}
           </div>
+          <p className="process-assurance">
+            Je huidige website blijft tijdens het overzetten online. Eerst
+            controleren we de kopie, formulieren en SEO-inrichting. Pas na jouw
+            akkoord veranderen we de domeinkoppeling.{" "}
+            <Link href="/seo-behoud">Bekijk onze SEO-controle →</Link>
+          </p>
         </div>
       </section>
       <section className="section-space shell price-story">
@@ -336,30 +298,6 @@ export default function Home() {
           </p>
         </div>
       </section>
-      <section
-        className="shell service-demo section-space"
-        id="zo-werkt-aanpassen"
-      >
-        <div>
-          <p className="eyebrow">ALS DE OVERSTAP GEREGELD IS</p>
-          <h2>
-            Een nieuwe foto.
-            <br />
-            Andere openingstijden.
-            <br />
-            Dat regel je voortaan zelf.
-          </h2>
-          <p className="section-intro">
-            Je hoeft voor een kleine aanpassing niet opnieuw je website te leren
-            bouwen. Geef je wijziging door in de chat, bekijk het voorstel en
-            publiceer wanneer het klopt.
-          </p>
-          <Link href="/demo" className="button-text">
-            Bekijk hoe het bijhouden werkt →
-          </Link>
-        </div>
-        <ProductPreview />
-      </section>
       <section className="shell founder-section">
         <div className="founder-mark">
           <span>
@@ -389,7 +327,7 @@ export default function Home() {
       <section className="section-space shell faq-layout">
         <div>
           <p className="eyebrow">GOED OM TE WETEN</p>
-          <h2>Nog even dit.</h2>
+          <h2>Jouw website gaat mee. Wat gebeurt er met de rest?</h2>
           <p>
             Een overstap maak je niet elke dag.
             <br />
@@ -415,9 +353,9 @@ export default function Home() {
         <div className="closing-cta">
           <p className="eyebrow">DE EERSTE STAP IS ZO GEZET</p>
           <h2>
-            Benieuwd of jouw website
+            Blij met je website?
             <br />
-            ook eenvoudiger kan?
+            Klaar met het WordPress-beheer?
           </h2>
           <p>
             Je krijgt antwoord op drie vragen: kan mijn site mee, wat vraagt

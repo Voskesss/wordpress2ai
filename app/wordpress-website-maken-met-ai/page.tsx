@@ -1,64 +1,66 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
+import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
-  title: "WordPress-website maken met AI? Dit werkt beter",
+  title: "WordPress-website maken met AI? Bouwen én blijven bijhouden",
   description:
-    "Een website laten maken met AI in plaats van WordPress: AI-ontwerp vanaf €250, geen onderhoud, wijzigen via chat. No cure no pay.",
-  alternates: { canonical: "/wordpress-website-maken-met-ai" },
+    "Een nieuwe website zonder WordPress, vanaf €250 excl. btw. Daarna zelf bijhouden met AI-chat. Heb je al een site? Bekijk ook de overstap met bestaand ontwerp.",
+  alternates: {
+    canonical: "/wordpress-website-maken-met-ai",
+  },
 };
 
 export default function Pagina() {
   return (
     <SeoLanding
       data={{
+        nieuweWebsite: true,
         slug: "wordpress-website-maken-met-ai",
         label: "Website maken met AI",
-        titel: "Een WordPress-website maken met AI? Sla WordPress gewoon over",
+        titel: "Een website maken met AI is het begin. Bijhouden hoort erbij.",
         intro:
-          "Wie in 2026 een website wil, hoeft niet meer bij WordPress te beginnen. Met WordSwap maakt AI je complete website — ontwerp, teksten, pagina's — en beheer je hem daarna óók met AI: je typt gewoon wat er anders moet. Geen thema's, geen plugins, geen updates. Alleen een site die doet wat je zegt.",
+          "Heb je nog geen website, of wil je een nieuw ontwerp? Dan bouwen we een website zonder WordPress op basis van jouw bedrijf, huisstijl en inhoud. Daarna blijf je teksten, foto’s en pagina’s aanpassen met de ingebouwde AI-chat.",
         blokken: [
           {
-            kop: "Waarom AI + WordPress een omweg is",
+            kop: "Bouwen vanuit jouw bedrijf",
             tekst:
-              "Er zijn genoeg AI-plugins en -builders vóór WordPress, maar die stapelen slimmigheid op een systeem dat zelf onderhoud, hosting en beveiliging blijft eisen. Je krijgt dan AI én plugin-updates én een tragere site. Wij draaien het om: de AI bouwt een kant-en-klare, razendsnelle website zonder systeem eronder — er valt simpelweg niets te onderhouden.",
+              "Vertel wie je helpt, wat je aanbiedt en welke actie bezoekers moeten kunnen uitvoeren. Lever je logo, foto’s en juiste bedrijfsinformatie aan. Wij bouwen een voorstel dat je kunt bekijken en waarop je feedback geeft.",
           },
           {
-            kop: "Zo maakt de AI je website",
+            kop: "Je hoeft daarna niet opnieuw te leren bouwen",
             tekst:
-              "Je vertelt wat je bedrijf doet, wat je mooi vindt (voorbeelden van sites die je aanspreken helpen) en welke pagina's je wilt. De AI ontwerpt en bouwt de complete site; jij kijkt mee en stuurt bij in gewone taal — \"maak de kop wat rustiger\", \"andere foto bovenaan\". Wil je liever een menselijke ontwerper aan het roer met AI als bouwer, dan kan dat ook.",
+              "Een nieuw project, andere openingstijden of een extra dienst geef je door in de chat. De AI maakt een concept; jij controleert het en publiceert als het klopt. De ingebouwde chat, hosting en SSL vallen onder het maandbedrag.",
           },
           {
-            kop: "En daarna wijzig je alles via chat",
+            kop: "Heb je al een goede WordPress-site?",
             tekst:
-              "Dit is het echte verschil: na de oplevering blijf je de AI gewoon opdrachten geven. Nieuwe pagina, andere openingstijden, een actiebanner — je typt het, bekijkt het voorbeeld en keurt het goed. Elke wijziging wordt als versie bewaard, dus een eerdere versie herstellen is mogelijk.",
+              "Dan kan zorgvuldig overzetten beter passen dan een nieuw ontwerp. Je huidige uitstraling, inhoud en SEO-inrichting vormen dan het uitgangspunt. Via de gratis websitecheck bekijken we welke route bij je site past.",
           },
           {
-            kop: "Heb je al een WordPress-site?",
+            kop: "Wat kost een nieuw ontwerp?",
             tekst:
-              "Dan hoef je niet opnieuw te beginnen: we kunnen je bestaande site ook zorgvuldig overzetten naar dezelfde techniek, met controle van je SEO-structuur. Zie de pagina over WordPress overzetten — of vraag de gratis check aan, dan adviseren we wat in jouw geval slimmer is: overzetten of opnieuw ontwerpen.",
+              "Een AI-ontwerp kost €250 tot 8 pagina’s, €400 tot 20 pagina’s en €650 voor grotere sites. Een ontwerp door een designer begint bij €1.750. Daarna €5–€20 per maand. Alle bedragen zijn excl. btw; domein, e-mail en maatwerk staan daar los van.",
           },
         ],
         faq: [
           {
-            vraag: "Wat kost een website laten maken met AI?",
+            vraag: "Heeft AI gebruiken gevolgen voor Google?",
             antwoord:
-              "Een compleet AI-ontwerp vanaf €250, of vanaf €1.750 met een designer erbij. Daarna €5 tot €20 per maand voor hosting én de AI-koppeling waarmee je alles wijzigt. Geen verdere kosten: geen thema's, plugins of onderhoudscontracten.",
+              "De kwaliteit en juistheid van je inhoud blijven belangrijk. We letten op leesbare pagina’s, titels, beschrijvingen en interne links. Gebruik van AI of een bepaalde techniek garandeert geen zoekpositie.",
           },
           {
-            vraag: "Is een AI-website wel goed voor Google?",
+            vraag: "Kan ik zelf wijzigen zonder technische kennis?",
             antwoord:
-              "Ja — juist. De site wordt opgeleverd als pure, snelle HTML met nette paginatitels, meta-omschrijvingen en structured data. Snelheid is een rankingfactor, en statische sites zijn het snelste dat er bestaat.",
+              "Je geeft aan wat er anders moet en bekijkt het voorstel op je site. Voor de ingebouwde chat heb je geen eigen AI-abonnement nodig. Voor complexe nieuwe functies bespreken we eerst wat mogelijk is.",
           },
           {
-            vraag: "Kan ik zelf nog dingen aanpassen zonder technische kennis?",
-            antwoord:
-              "Dat is precies het idee. Je typt in gewone taal wat er anders moet, de AI voert het uit en jij keurt het resultaat goed. Je hoeft nooit in code of een beheeromgeving te duiken.",
+            vraag: "Kan ik een webshop laten bouwen?",
+            antwoord: aanbod.geschikt,
           },
           {
-            vraag: "Wat als ik een webshop wil?",
-            antwoord:
-              "Webshops en ledenportalen met inlog bouwen we niet — daarvoor ben je bij gespecialiseerde platforms beter af. Een boekings- of afsprakensysteem van een externe dienst nemen we wél gewoon op in je site, en maatwerk is altijd bespreekbaar. Gewone bedrijfssites, ook met blog en formulieren, zijn onze specialiteit.",
+            vraag: "Welke extra kosten zijn er?",
+            antwoord: aanbod.aanvullingen,
           },
         ],
       }}

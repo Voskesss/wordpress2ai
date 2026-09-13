@@ -37,12 +37,12 @@ export default function Prijzen() {
         <h1>
           Eenmalig overstappen.
           <br />
-          <em>Daarna eenvoudig beheren.</em>
+          <em>Daarna bijhouden met AI.</em>
         </h1>
         <p className="section-intro">
-          Je totaal bestaat uit twee delen: de omzetting van je huidige website
-          en een maandbedrag voor hosting en de AI-chat. Alle bedragen zijn
-          exclusief btw.
+          Je totaal bestaat uit twee delen: je huidige website overzetten zonder
+          WordPress en een maandbedrag voor hosting en de AI-chat. Alle bedragen
+          zijn exclusief btw.
         </p>
       </section>
       <section

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
+import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
   title: "Je website aansturen met AI — verder dan WordPress",
   description:
-    "WordPress aansturen met AI? Het kan slimmer: een website die je volledig via AI-chat beheert, zonder WordPress-onderhoud. Vanaf €150 overstappen.",
-  alternates: { canonical: "/wordpress-aansturen-met-ai" },
+    "Laat je bestaande WordPress-site overzetten. Daarna vraag je tekst- en fotowijzigingen aan via AI-chat en publiceer je na controle.",
+  alternates: {
+    canonical: "/wordpress-aansturen-met-ai",
+  },
 };
 
 export default function Pagina() {
@@ -14,52 +17,44 @@ export default function Pagina() {
       data={{
         slug: "wordpress-aansturen-met-ai",
         label: "Website aansturen met AI",
-        titel: "WordPress aansturen met AI? Wij gingen een stap verder",
+        titel: "WordPress achterlaten. Je website aansturen met AI.",
         intro:
-          "Steeds meer ondernemers zoeken naar manieren om hun WordPress-site met AI te beheren: teksten laten schrijven, wijzigingen laten doorvoeren, content plannen. Dat kan met plugins — maar dan blijft alle WordPress-ballast bestaan. Wij bouwden het andersom: een website die vólledig door AI wordt aangestuurd, zonder WordPress eronder.",
+          "Je bedrijf verandert. Je website moet mee kunnen veranderen. WordSwap neemt je bestaande ontwerp en inhoud zorgvuldig over naar een website zonder WordPress. Daarna vraag je een wijziging, bekijk je het voorstel en zet je het zelf live.",
         blokken: [
           {
-            kop: "AI-plugins vs. een AI-gestuurde website",
+            kop: "Begin met één duidelijke vraag",
             tekst:
-              "Een AI-plugin in WordPress helpt je met stukjes: een tekst hier, een afbeelding daar. Maar jij blijft degene die door het beheerscherm klikt, updates draait en hoopt dat de plugins elkaar niet bijten. Bij een AI-gestuurde website is de chat je complete beheeromgeving: de AI leest je site, voert elke wijziging door en zet hem pas live na jouw akkoord.",
+              "“Zet de openingstijden op zaterdag op 9 tot 16 uur.” Benoem de pagina en wat er moet veranderen. Voor een nieuwe dienst geef je zelf de feiten mee; de AI helpt om er een pagina van te maken.",
           },
           {
-            kop: "Wat je de AI zoal kunt vragen",
+            kop: "Controle hoort bij het aanpassen",
             tekst:
-              "Alles wat je anders aan je webbouwer zou vragen: \"zet de openingstijden op zaterdag tot 17:00\", \"maak een pagina over onze nieuwe dienst\", \"schrijf een blog over de vakbeurs van volgende week\", \"maak de site wat frisser van kleur\". Je kunt zelfs een element op de pagina aanwijzen of een schets meesturen. De AI kent je hele site en het logboek van eerdere wijzigingen.",
+              "De AI kan je verkeerd begrijpen of informatie verkeerd formuleren. Daarom bekijk je ieder concept. Vraag een verbetering als het nog niet klopt. Je live website verandert pas wanneer je zelf publiceert.",
           },
           {
-            kop: "Jij houdt de regie",
+            kop: "Ook foto’s en nieuwe pagina’s",
             tekst:
-              "De AI publiceert nooit zelf: elke wijziging zie je eerst als voorbeeld en gaat pas live als jij op Publiceer klikt. Elke publicatie wordt als versie bewaard, dus \"zet maar terug zoals het was\" is ook gewoon een opdracht die werkt.",
+              "Stuur een foto mee en vertel waar hij moet komen. Of vraag een pagina over een nieuw project. Je ziet het resultaat in de context van jouw website. Extra functies en maatwerk stemmen we apart af.",
           },
-          {
-            kop: "De overstap vanaf WordPress",
-            tekst:
-              "Je huidige WordPress-site zetten we zorgvuldig over (no cure no pay, vanaf €150 excl. btw) en vanaf dat moment stuur je hem aan via AI. Geen updates, geen hosting-gedoe, geen beheerschermen — alleen nog een chat die doet wat je zegt.",
-          },
+          { kop: "De overstap van je huidige site", tekst: aanbod.ontwerp },
         ],
         faq: [
           {
-            vraag: "Kan de AI ook teksten en blogs voor me schrijven?",
+            vraag: "Kan de AI teksten en blogs schrijven?",
             antwoord:
-              "Ja. Je geeft het onderwerp en eventueel wat steekwoorden, de AI schrijft het bericht in de stijl van je site en zet hem als concept klaar. Jij leest, stuurt bij en publiceert.",
+              "Ja. Geef het onderwerp en de juiste bedrijfsinformatie mee. De AI maakt een concept. Jij controleert de inhoud, stuurt bij en publiceert.",
           },
           {
-            vraag: "Wat als de AI iets verkeerd doet?",
+            vraag: "Blijft het een WordPress-site?",
             antwoord:
-              "Niets gaat live zonder jouw akkoord — je ziet elke wijziging eerst als voorbeeld. En elke gepubliceerde versie wordt bewaard, dus een eerdere versie herstellen is mogelijk. We controleren of het herstel ook goed is gepubliceerd.",
+              "Nee. Je site wordt opnieuw opgebouwd zonder WordPress. Ontwerp, inhoud en bestaande pagina-adressen nemen we zo nauwkeurig mogelijk over. Bijzondere functies bespreken we vooraf.",
           },
           {
-            vraag: "Moet ik hiervoor mijn WordPress-site opgeven?",
+            vraag: "Wat als een wijziging verkeerd is?",
             antwoord:
-              "De site zelf blijft er exact zo uitzien — alleen de techniek eronder verandert. We zetten je site over als kopie, met behoud van design, teksten, URL's en vindbaarheid. WordPress zelf heb je daarna simpelweg niet meer nodig.",
+              "Je kunt het concept laten aanpassen. Na publicatie kan een eerdere versie worden teruggezet. Controleer daarna ook of het herstel goed zichtbaar is.",
           },
-          {
-            vraag: "Wat kost het aansturen met AI per maand?",
-            antwoord:
-              "€5 tot €20 per maand, afgestemd op hoe vaak je iets wijzigt — inclusief hosting en SSL. Wie zelden iets verandert, zit aan de onderkant. Geen lock-in: maandelijks opzegbaar en je bestanden zijn van jou.",
-          },
+          { vraag: "Wat kost het?", antwoord: aanbod.prijs },
         ],
       }}
     />

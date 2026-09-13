@@ -36,7 +36,7 @@ export default function OverstapVisual() {
           <h2>
             Dezelfde uitstraling.
             <br />
-            Een nieuw begin.
+            Zonder WordPress.
           </h2>
           <div className="transfer-site-lines" aria-hidden="true">
             <i />

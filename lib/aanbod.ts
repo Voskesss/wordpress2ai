@@ -1,7 +1,7 @@
 /** Shared public product facts; keep visible pages and machine-readable summaries aligned. */
 export const aanbod = {
   omschrijving:
-    "WordSwap zet bestaande WordPress-bedrijfswebsites over naar statische websites, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
+    "WordSwap zet je bestaande bedrijfswebsite over naar een versie zonder WordPress. Je ontwerp en inhoud worden zorgvuldig overgenomen, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
   prijs:
     "Overstap €150–€650 eenmalig; daarna €5–€20 per maand voor hosting en de AI-koppeling. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
   inbegrepen:
@@ -19,6 +19,10 @@ export const aanbod = {
     "De ingebouwde WordSwap-chat is beschikbaar. Teksten uit ChatGPT of Claude kun je daarin plakken. Een rechtstreekse koppeling vanuit zo’n assistent is nog gepland. Experts kunnen op afspraak eigen AI-codetools gebruiken; zij werken buiten de standaard goedkeuringsroute.",
 };
 export const aankoopVragen = [
+  [
+    "Blijft mijn website op WordPress draaien?",
+    "Nee. We bouwen je bestaande website opnieuw op als statische webpagina’s, zonder WordPress. Je herkent je eigen ontwerp en inhoud, maar past die daarna aan in het WordSwap-portaal met AI. Dit is een overstap naar een andere techniek, geen plugin in WordPress.",
+  ],
   [
     "Is WordSwap een chatbot voor mijn bezoekers?",
     "De ingebouwde AI-chat is voor jou als eigenaar: daarmee pas je je website aan. Wil je daarnaast een chatbot óp je website die vragen van bezoekers beantwoordt? Dat kunnen we toevoegen — in je klantomgeving kun je nu al documenten over je bedrijf klaarzetten waar die chatbot straks uit put.",

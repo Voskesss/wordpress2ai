@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een gewone website",
   description:
-    "WordPress omzetten naar een gewone (statische) HTML-website: sneller, veiliger, geen onderhoud. Vanaf €150, SEO-structuur zorgvuldig meegenomen, no cure no pay.",
+    "WordPress omzetten naar een gewone (statische) HTML-website zonder WordPress-beheer. Vanaf €150, SEO-structuur zorgvuldig meegenomen, no cure no pay.",
   alternates: { canonical: "/wordpress-omzetten-naar-gewone-website" },
 };
 
@@ -14,7 +14,8 @@ export default function Pagina() {
       data={{
         slug: "wordpress-omzetten-naar-gewone-website",
         label: "WordPress omzetten",
-        titel: "WordPress omzetten naar een gewone website — zo simpel als het klinkt",
+        titel:
+          "WordPress omzetten naar een gewone website — zo simpel als het klinkt",
         intro:
           "Een eenvoudige bedrijfssite heeft niet altijd alle mogelijkheden van WordPress nodig. We nemen je bestaande ontwerp, inhoud, pagina-adressen en SEO-inrichting zorgvuldig over naar een statische website. WordPress- en plugin-updates vervallen; je inhoud, formulieren en hosting blijven aandacht nodig hebben.",
         blokken: [
@@ -26,7 +27,7 @@ export default function Pagina() {
           {
             kop: "Maar hoe wijzig ik dan nog iets?",
             tekst:
-              "Vroeger was dat het nadeel van statische sites: voor elke wijziging had je een webbouwer nodig. Dat lossen wij op met AI: je typt in een chat wat er anders moet — \"ander telefoonnummer\", \"nieuwe pagina over dakisolatie\" — en de AI voert het uit. Jij bekijkt het voorbeeld en keurt het goed. Makkelijker dan WordPress ooit was.",
+              'Vroeger was dat het nadeel van statische sites: voor elke wijziging had je een webbouwer nodig. Dat lossen wij op met AI: je typt in een chat wat er anders moet — "ander telefoonnummer", "nieuwe pagina over dakisolatie" — en de AI voert het uit. Jij bekijkt het voorbeeld en keurt het goed. Makkelijker dan WordPress ooit was.',
           },
           {
             kop: "De omzetting: een zo getrouw mogelijke kopie",
@@ -36,7 +37,7 @@ export default function Pagina() {
           {
             kop: "Wat je bespaart",
             tekst:
-              "Hosting (€10-25 p/m), premium plugins en thema's (€5-30 p/m), onderhoud of een onderhoudscontract (€30+ p/m) en het uurtarief voor elke kleine aanpassing. Daarvoor in de plaats komt één klein maandbedrag van €5 tot €20 waar hosting én AI-wijzigingen al in zitten.",
+              "Vergelijk je huidige facturen voor hosting, eventuele plugins en onderhoud met het afgesproken WordSwap-bedrag. Hosting en AI-chat kosten €5–€20 per maand excl. btw. Domein, e-mail en extra maatwerk zijn apart. De besparing verschilt per site.",
           },
         ],
         faq: [

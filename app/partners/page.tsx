@@ -16,13 +16,13 @@ export default function Partners() {
         <h1>
           Je klant wil zijn website houden.
           <br />
-          <em>Het beheer kan eenvoudiger.</em>
+          <em>Jij wilt af van de kleine beheerklusjes.</em>
         </h1>
         <p className="section-intro">
           Heb je klanten met een eenvoudige WordPress-bedrijfssite? WordSwap
           verzorgt de overstap met de bestaande vormgeving, URL’s en
-          SEO-inrichting als uitgangspunt. Daarna houdt de klant de site bij met
-          AI-chat.
+          SEO-inrichting als uitgangspunt. De site draait daarna zonder
+          WordPress en je klant houdt de inhoud zelf bij met AI.
         </p>
         <Link href="/contact?onderwerp=samenwerken" className="button-primary">
           Bespreek één geschikte klantsite →
@@ -57,7 +57,7 @@ export default function Partners() {
           </article>
         </div>
         <p className="section-intro">
-          Neem contact op met de vermelding ‘samenwerken’. Deel eerst alleen het
+          De knop opent een aanvraag voor samenwerking. Deel eerst alleen het
           openbare websiteadres; inloggegevens zijn voor dit gesprek niet nodig.
         </p>
       </section>

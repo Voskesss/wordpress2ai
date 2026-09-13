@@ -1,8 +1,10 @@
+import VerhaalBeeld from "./VerhaalBeeld";
 import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
 
 export type LandingData = {
+  nieuweWebsite?: boolean;
   slug: string;
   label: string; // korte naam voor menu's/footers
   titel: string; // H1
@@ -38,13 +40,28 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
             {data.intro}
           </p>
-          <p className="mt-4 text-sm text-stone-500">{aanbod.prijs}</p>
+          <p className="mt-4 text-sm text-stone-500">
+            {data.nieuweWebsite
+              ? "Nieuw AI-ontwerp vanaf €250; daarna €5–€20 per maand. Excl. btw. Domein, e-mail en maatwerk apart."
+              : aanbod.prijs}
+          </p>
+          <p className="landing-explanation">
+            <strong>
+              {data.nieuweWebsite
+                ? "Je nieuwe site draait zonder WordPress."
+                : "WordSwap vervangt WordPress."}
+            </strong>{" "}
+            Daarna houd je teksten, foto’s en pagina’s bij met AI. Eerst
+            bekijken, dan zelf publiceren.
+          </p>
           <div className="mt-7 flex flex-wrap gap-4">
             <Link
-              href="/contact"
+              href={data.nieuweWebsite ? "/nieuwe-website#intake" : "/contact"}
               className="lift rounded-lg bg-violet-700 px-6 py-3 font-semibold text-white shadow-sm hover:bg-violet-600"
             >
-              Gratis site-check aanvragen →
+              {data.nieuweWebsite
+                ? "Bespreek mijn nieuwe website →"
+                : "Kan mijn website mee? →"}
             </Link>
             <Link
               href="/demo"
@@ -54,11 +71,16 @@ export default function SeoLanding({ data }: { data: LandingData }) {
             </Link>
           </div>
           <p className="mt-4 text-sm font-semibold text-emerald-700">
-            ✓ No cure, no pay: niet tevreden met de kopie van je site, dan
-            betaal je niets.
+            {data.nieuweWebsite
+              ? "✓ Eerst het voorstel bekijken, dan beslissen."
+              : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
           </p>
         </div>
-        <OverstapVisual />
+        {data.nieuweWebsite ? (
+          <VerhaalBeeld onderwerp="ondernemer" />
+        ) : (
+          <OverstapVisual />
+        )}
       </div>
 
       <div className="mx-auto max-w-3xl px-6 pb-6 space-y-8">
@@ -95,15 +117,18 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           Benieuwd wat het voor jouw site betekent?
         </h2>
         <p className="mt-3 text-stone-600">
-          Stuur je websiteadres en je krijgt binnen één werkdag een eerlijk
-          antwoord en een vaste prijs — vrijblijvend.
+          {data.nieuweWebsite
+            ? "Vertel over je bedrijf en het ontwerp dat je zoekt. Je krijgt een voorstel om te beoordelen vóór je akkoord geeft."
+            : "Stuur je websiteadres. Jos bekijkt binnen één werkdag wat er mee kan, wat aandacht vraagt en wat de overstap kost. Gratis en vrijblijvend."}
         </p>
         <div className="mt-6 flex justify-center flex-wrap gap-4">
           <Link
-            href="/contact"
+            href={data.nieuweWebsite ? "/nieuwe-website#intake" : "/contact"}
             className="lift rounded-lg bg-violet-700 px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-violet-600"
           >
-            Vraag de gratis check aan →
+            {data.nieuweWebsite
+              ? "Vertel over je nieuwe website →"
+              : "Vraag de gratis check aan →"}
           </Link>
           <Link
             href="/prijzen"

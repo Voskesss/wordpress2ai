@@ -184,9 +184,9 @@ export default function ZelfDoen() {
             Wat wij toevoegen zit vooral in de laatste stap: bij ons zit
             diezelfde AI vást aan je site. Je typt in een chat wat er anders
             moet, ziet het resultaat als concept en klikt op publiceer — geen
-            bestanden aanleveren, niets uploaden, geen controle of er per
+            bestanden aanleveren, niets uploaden, wel controleren of er per
             ongeluk iets anders is meegewijzigd. Dat verschil voel je pas bij
-            de tiende wijziging, en het is de reden dat onze klanten blijven.
+            de tiende wijziging, en dat is het gemak waarop WordSwap zich richt.
             De overstap zelf doen we no cure, no pay: je ziet eerst de complete
             kopie, en alleen als je tevreden bent betaal je (vanaf €150).
           </p>

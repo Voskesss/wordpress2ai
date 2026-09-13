@@ -1676,3 +1676,16 @@ main p {
 .beeld-band { padding-block: 10px 55px; }
 .beeld-band .verhaal-beeld img { aspect-ratio: 5 / 2; object-fit: cover; object-position: center 35%; }
 @media (max-width: 767px) { .beeld-band { padding-bottom: 30px; } .beeld-band .verhaal-beeld img { aspect-ratio: 3 / 2; } }
+
+/* The product example belongs beside the migration promise. */
+.hero-example { min-width: 0; scroll-margin-top: 130px; }
+.hero-example > .eyebrow { margin-bottom: 15px; font-size: 10px; }
+.hero-example .product-demo { transform: none; }
+.hero-intro strong { display: block; color: #244b3d; margin-bottom: 8px; }
+.demo-site-content p.demo-change-highlight { background: #e2efcf; color: #244b3d; border-radius: 4px; padding: 5px 7px; width: fit-content; }
+.landing-explanation { margin-top: 18px; padding-left: 16px; border-left: 3px solid #31956b; font-size: 15px; line-height: 1.7; color: #435b4c; }
+.process-assurance { margin-top: 36px; padding-top: 24px; border-top: 1px solid #ffffff30; color: #dce7d5; font-size: 15px; line-height: 1.8; max-width: 850px; }
+.process-assurance a { color: white; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 767px) {
+  .hero-example > .eyebrow { font-size: 9px; }
+}

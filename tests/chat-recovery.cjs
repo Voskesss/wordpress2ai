@@ -204,7 +204,7 @@ const assert = require("node:assert/strict");
     handlers["/api/publiceer"] = (r) =>
       r.fulfill({ contentType: "application/json", body: '{"ok":true}' });
     await alert().getByRole("button", { name: "Opnieuw proberen" }).click();
-    await page.getByText(/Gepubliceerd! Je ziet het hier meteen/).waitFor();
+    await page.getByText(/Gepubliceerd! Je wijziging staat nu live, voor iedereen/).waitFor();
     assert.deepEqual(
       calls
         .filter((c) => c.path === "/api/publiceer")

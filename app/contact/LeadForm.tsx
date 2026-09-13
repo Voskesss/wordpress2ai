@@ -38,9 +38,9 @@ export default function LeadForm({ children }: { children: ReactNode }) {
           Dank je. Jos kijkt met je mee.
         </h2>
         <p className="mt-5 leading-relaxed text-stone-600">
-          Binnen één werkdag ontvang je een beoordeling: kan je site mee, welke
-          onderdelen vragen aandacht en wat kost de overstap? Je hebt nog niets
-          besteld.
+          Binnen één werkdag krijg je persoonlijk antwoord op je aanvraag. Bij
+          een websitecheck hoor je wat er mee kan, wat aandacht vraagt en wat de
+          overstap kost. Je hebt nog niets besteld.
         </p>
         <Link href="/demo" className="button-primary mt-6">
           Bekijk intussen hoe de chat werkt →

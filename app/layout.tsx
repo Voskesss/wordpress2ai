@@ -59,8 +59,7 @@ const jsonLd = {
       alternateName: "WordSwap — AI Backoffice",
       url: siteUrl,
       logo: `${siteUrl}/logo-mail.png`,
-      description:
-        "WordSwap is een Nederlandse dienst die WordPress-websites omzet naar snelle, veilige websites zonder onderhoud. De eigenaar past de site daarna aan door in gewone taal te typen wat er anders moet; een AI voert het uit en de eigenaar keurt het goed vóór publicatie.",
+      description: aanbod.omschrijving,
       foundingDate: "2026",
       founder: {
         "@type": "Person",
@@ -86,7 +85,7 @@ const jsonLd = {
     {
       "@type": "Service",
       "@id": `${siteUrl}/#overstap`,
-      name: "WordPress-website overzetten naar een website zonder onderhoud",
+      name: "WordPress-website overzetten en daarna bijhouden met AI",
       serviceType:
         "Websitemigratie van WordPress naar statische website met AI-beheer",
       provider: { "@id": `${siteUrl}/#organisatie` },

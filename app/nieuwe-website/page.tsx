@@ -42,10 +42,9 @@ export default function NieuweWebsite() {
           Een nieuwe website. Klaar voor jouw plannen.
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Nog geen website, of toe aan een nieuwe uitstraling? Wij
-          bouwen hem opnieuw — snel, zonder WordPress, en altijd met de
-          AI-beheerder erbij zodat je hem daarna zelf kunt aanpassen door het
-          gewoon te typen.
+          Nog geen website, of toe aan een nieuwe uitstraling? Wij bouwen hem
+          opnieuw — snel, zonder WordPress, en altijd met de AI-beheerder erbij
+          zodat je hem daarna zelf kunt aanpassen door het gewoon te typen.
         </p>
       </div>
 
@@ -55,21 +54,24 @@ export default function NieuweWebsite() {
           <h2 className="font-display text-xl font-semibold">AI-ontwerp</h2>
           <p className="mt-3 font-display text-4xl font-semibold">
             vanaf €250{" "}
-            <span className="text-base font-normal text-stone-500">eenmalig</span>
+            <span className="text-base font-normal text-stone-500">
+              eenmalig
+            </span>
           </p>
           <p className="mt-1 text-sm font-medium text-stone-600">
-            tot 8 pagina&apos;s €250 · tot 20 pagina&apos;s €400 · daarboven €650
+            tot 8 pagina&apos;s €250 · tot 20 pagina&apos;s €400 · daarboven
+            €650
           </p>
           <p className="mt-2 text-sm text-stone-500">
             De AI ontwerpt en bouwt je site op basis van jouw verhaal, huisstijl
-            en voorbeelden die je mooi vindt. Binnen dagen een werkend
-            voorstel; onbeperkt bijsturen via de chat tot het klopt.
+            en voorbeelden die je mooi vindt. Binnen dagen een werkend voorstel;
+            feedback en eventuele extra wensen stemmen we samen af.
           </p>
           <ul className="mt-5 space-y-2.5 text-stone-600 text-sm">
             {[
               "Compleet ontwerp + bouw van al je pagina's",
               "Jouw logo, kleuren en foto's verwerkt",
-              "Supersnel, veilig en goed vindbaar in Google",
+              "Aandacht voor laadtijd, beveiliging en SEO-inrichting",
               "Contactformulier en AI-beheerder inbegrepen",
             ].map((p) => (
               <li key={p} className="flex gap-2.5">
@@ -85,7 +87,9 @@ export default function NieuweWebsite() {
           </h2>
           <p className="mt-3 font-display text-4xl font-semibold">
             vanaf €1750{" "}
-            <span className="text-base font-normal text-stone-500">eenmalig</span>
+            <span className="text-base font-normal text-stone-500">
+              eenmalig
+            </span>
           </p>
           <p className="mt-2 text-sm text-stone-500">
             Een menselijke ontwerper maakt een uniek design op maat — met
@@ -112,7 +116,10 @@ export default function NieuweWebsite() {
         Daarna geldt hetzelfde als voor iedereen: de AI-koppeling voor €5 – €20
         per maand, afgestemd op je gebruik. Heb je nog een WordPress-site die
         gewoon goed is? Dan is{" "}
-        <Link href="/prijzen" className="font-semibold text-violet-700 underline">
+        <Link
+          href="/prijzen"
+          className="font-semibold text-violet-700 underline"
+        >
           de overstap
         </Link>{" "}
         voordeliger — dat blijft ons hoofdvak.
@@ -149,6 +156,7 @@ export default function NieuweWebsite() {
             werkdag terug met een voorstel en een vaste prijs.
           </p>
           <form
+            id="intake"
             method="POST"
             action="/api/formulier"
             className="mt-8 space-y-4 rounded-xl border border-stone-200 bg-white p-7 shadow-sm"
@@ -189,9 +197,14 @@ export default function NieuweWebsite() {
               </select>
             </label>
             <label className="block text-sm font-semibold">
-              Vertel over je site: wat doe je, welke pagina&apos;s heb je
-              nodig, welke sites vind je mooi?
-              <textarea name="omschrijving" rows={5} required className={invoer} />
+              Vertel over je site: wat doe je, welke pagina&apos;s heb je nodig,
+              welke sites vind je mooi?
+              <textarea
+                name="omschrijving"
+                rows={5}
+                required
+                className={invoer}
+              />
             </label>
             <button
               type="submit"
