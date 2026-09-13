@@ -15,6 +15,14 @@ type Resultaat = {
   siteIp: string[];
   www: string[];
   subdomeinen: { sub: string; data: string }[];
+  hosting: { ip: string; server: string | null; netwerk: string | null } | null;
+  website: {
+    bereikbaar: boolean;
+    adressenOpSite: string[];
+    domeinMail: string[];
+    externeMail: string[];
+    formulieren: number;
+  };
   advies: string;
 };
 
@@ -98,7 +106,15 @@ export default function IntakeCheck() {
                 Advies tijdens het gesprek
               </h2>
               <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-stone-800">
-                {res.advies}
+                {res.advies.split(/\*\*(.+?)\*\*/g).map((deel, i) =>
+                  i % 2 === 1 ? (
+                    <span key={i} className="mt-2 block font-bold text-violet-800">
+                      {deel}
+                    </span>
+                  ) : (
+                    deel
+                  )
+                )}
               </div>
             </div>
           )}
@@ -121,6 +137,15 @@ export default function IntakeCheck() {
               <p className="mt-1 break-all font-mono text-xs text-stone-500">
                 {res.nameservers.join(" · ") || "geen nameservers gevonden"}
               </p>
+              {res.hosting && (
+                <p className="mt-2">
+                  Site gehost bij:{" "}
+                  <b>{res.hosting.server ?? res.hosting.netwerk ?? res.hosting.ip}</b>
+                  {res.hosting.netwerk && res.hosting.server && (
+                    <span className="text-stone-500"> ({res.hosting.netwerk})</span>
+                  )}
+                </p>
+              )}
               {res.subdomeinen.length > 0 && (
                 <p className="mt-2 text-stone-500">
                   Subdomeinen in gebruik (moeten mee bij verhuizing):{" "}
@@ -129,7 +154,36 @@ export default function IntakeCheck() {
               )}
             </Kaart>
 
-            <Kaart titel="3 · E-mail">
+            <Kaart titel="Op de website">
+              {!res.website.bereikbaar ? (
+                <p className="text-stone-500">Site niet bereikbaar of te traag — zelf even kijken.</p>
+              ) : (
+                <>
+                  {res.website.externeMail.length > 0 && (
+                    <p>
+                      ⚠️ Op de site staat een <b>privé-mailadres</b>:{" "}
+                      <span className="font-mono text-xs">{res.website.externeMail.join(", ")}</span>{" "}
+                      — mooi gespreksopeninkje voor domeinmail.
+                    </p>
+                  )}
+                  {res.website.domeinMail.length > 0 && (
+                    <p className="mt-1">
+                      Domeinmail op de site:{" "}
+                      <span className="font-mono text-xs">{res.website.domeinMail.join(", ")}</span>
+                    </p>
+                  )}
+                  {res.website.adressenOpSite.length === 0 && (
+                    <p className="text-stone-500">Geen mailadres op de site gevonden.</p>
+                  )}
+                  <p className="mt-1 text-stone-500">
+                    Contactformulier: <b>{res.website.formulieren > 0 ? `ja (${res.website.formulieren})` : "niet gevonden"}</b>
+                    {res.website.formulieren > 0 && " — moet mee in de migratie"}
+                  </p>
+                </>
+              )}
+            </Kaart>
+
+            <Kaart titel="3 · E-mail (achter de schermen)">
               <span
                 className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold ${MAIL_KLEUR[res.mailCode] ?? "bg-stone-100 border-stone-300"}`}
               >
