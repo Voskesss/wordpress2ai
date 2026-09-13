@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
+import LogoUploadKnop from "./LogoUploadKnop";
 import {
   bewaarMailHandtekening,
   bewaarNotificatieEmail,
@@ -232,17 +233,10 @@ export default async function SiteExtra({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">Logo in de handtekening</p>
             <p className="text-xs text-stone-500">
-              {mailLogoUrl ? "Dit logo staat nu in je mails. Ander logo? Kies een bestand en upload." : "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site te staan en in de mails."}
+              {mailLogoUrl ? "Dit logo staat nu in je mails." : "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site en in je mails."}
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <input
-                type="file"
-                name="logo"
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                required
-                className="min-w-0 text-xs file:mr-2 file:rounded-full file:border-0 file:bg-violet-50 file:px-3 file:py-1.5 file:text-violet-700 file:font-semibold file:cursor-pointer"
-              />
-              <ActieKnop label="Logo uploaden" bezigLabel="Uploaden en op de site zetten..." klaarLabel="✓ Logo staat erin" className="rounded-full bg-violet-700 px-4 py-1.5 text-white text-xs font-semibold hover:bg-violet-600 cursor-pointer" />
+            <div className="mt-2">
+              <LogoUploadKnop heeftLogo={Boolean(mailLogoUrl)} />
             </div>
           </div>
         </form>
