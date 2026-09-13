@@ -91,7 +91,34 @@ async function hostingVanIp(ip: string | undefined) {
       .then((j: { name?: string } | null) => j?.name ?? null)
       .catch(() => null),
   ]);
-  return { ip, server: ptr, netwerk: ripe };
+  // Bedrijfsnaam afleiden: eerst bekende partijen, anders het domein van de servernaam
+  const BEKEND: [RegExp, string][] = [
+    [/siteground/i, "SiteGround"],
+    [/zxcs/i, "ZXCS"],
+    [/vimexx/i, "Vimexx"],
+    [/transip/i, "TransIP"],
+    [/antagonist/i, "Antagonist"],
+    [/vercel/i, "Vercel"],
+    [/cloudflare/i, "Cloudflare"],
+    [/one\.com|one-com/i, "one.com"],
+    [/hostnet/i, "Hostnet"],
+    [/hypernode|byte\.nl/i, "Hypernode (Byte)"],
+    [/strato/i, "Strato"],
+    [/argeweb/i, "Argeweb"],
+    [/mijndomein/i, "Mijndomein"],
+    [/versio/i, "Versio"],
+    [/yourhosting/i, "Yourhosting"],
+    [/neostrada/i, "Neostrada"],
+    [/greenhost/i, "Greenhost"],
+    [/hetzner/i, "Hetzner"],
+    [/ovh/i, "OVHcloud"],
+    [/amazonaws|awsdns/i, "Amazon AWS"],
+    [/googleusercontent|google/i, "Google Cloud"],
+  ];
+  const bron = `${ptr ?? ""} ${ripe ?? ""}`;
+  let bedrijf = BEKEND.find(([re]) => re.test(bron))?.[1] ?? null;
+  if (!bedrijf && ptr) bedrijf = ptr.split(".").slice(-2).join(".");
+  return { ip, server: ptr, netwerk: ripe, bedrijf };
 }
 
 function mailSituatie(mx: string[]): { code: string; label: string } {

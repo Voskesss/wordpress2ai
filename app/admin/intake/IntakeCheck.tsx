@@ -15,7 +15,12 @@ type Resultaat = {
   siteIp: string[];
   www: string[];
   subdomeinen: { sub: string; data: string }[];
-  hosting: { ip: string; server: string | null; netwerk: string | null } | null;
+  hosting: {
+    ip: string;
+    server: string | null;
+    netwerk: string | null;
+    bedrijf: string | null;
+  } | null;
   website: {
     bereikbaar: boolean;
     adressenOpSite: string[];
@@ -140,9 +145,9 @@ export default function IntakeCheck() {
               {res.hosting && (
                 <p className="mt-2">
                   Site gehost bij:{" "}
-                  <b>{res.hosting.server ?? res.hosting.netwerk ?? res.hosting.ip}</b>
-                  {res.hosting.netwerk && res.hosting.server && (
-                    <span className="text-stone-500"> ({res.hosting.netwerk})</span>
+                  <b>{res.hosting.bedrijf ?? res.hosting.netwerk ?? res.hosting.ip}</b>
+                  {res.hosting.server && (
+                    <span className="font-mono text-xs text-stone-500"> · {res.hosting.server}</span>
                   )}
                 </p>
               )}
