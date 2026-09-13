@@ -16,9 +16,9 @@ import { db } from "../db";
 import * as schema from "../db/schema";
 
 const inSchema = new Set<string>(
-  Object.values(schema)
-    .filter((v): v is PgTable => is(v, PgTable))
-    .map((t) => getTableName(t)),
+  (Object.values(schema) as unknown[])
+    .filter((v) => is(v, PgTable))
+    .map((t) => getTableName(t as PgTable)),
 );
 const r = await db.execute(
   sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY 1`,
