@@ -128,6 +128,7 @@ Scripts ALTIJD draaien vanuit `~/wordpress2ai` (vanwege .env.local). Herdeploy l
 
 ## Stap 4 — Afronden
 
+- **TERUGWEG-GARANTIE (verplicht vóór de klant zijn oude hosting opzegt):** de klant kan alleen naar WordPress terug met een volledige backup (bestanden + database) — onze statische kopie is daarvoor niet genoeg. Regel dus vóór opzegging een complete export (klant installeert All-in-One WP Migration of UpdraftPlus en draait één export; desnoods samen aan de telefoon). De klant krijgt het zipbestand zelf ("jouw data, altijd van jou") en wij bewaren met toestemming twaalf maanden een kopie. Adviseer daarnaast om de oude hosting pas op te zeggen als de nieuwe site een paar weken naar tevredenheid draait — zolang die doorloopt is teruggaan alleen het domein terugwijzen. Zeg dit ook expliciet tegen de klant: "je kunt altijd terug" is onderdeel van het aanbod.
 - Live site (`https://<repo>.wordswap.workers.dev`) doorlopen naast de bron; restpunten direct fixen.
 - Admin (wordpress2ai-beta.vercel.app/admin): klant verschijnt automatisch; Jos koppelt het klantaccount en vult richtlijnen in. Domein/e-mail: /admin/handleiding bovenaan (MX-check eerst!).
 - Eerlijk melden wat niet 1-op-1 kon (bv. externe-plugin-content) — maatwerk of backlog.
