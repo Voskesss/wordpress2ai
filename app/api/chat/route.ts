@@ -616,6 +616,26 @@ export async function POST(req: Request) {
           if (stopper.signal.aborted) return;
           tik("ai");
 
+          // Meegestuurde foto's die de AI bewust NIET heeft gebruikt (bv. een
+          // geweigerde of verkeerde foto) weer opruimen — anders telt de upload
+          // zelf als wijziging en verschijnt er een leeg "concept klaar".
+          if (afbeeldingen.length > 0) {
+            const { alleHtmlBestanden, alleCssBestanden } = await import("@/lib/werkmap");
+            const tekstBestanden = [
+              ...(await alleHtmlBestanden(werkmap)),
+              ...(await alleCssBestanden(werkmap)),
+            ];
+            for (const foto of afbeeldingen) {
+              const bestandsnaam = path.basename(foto.naam);
+              let gebruikt = false;
+              for (const rel of tekstBestanden) {
+                const inhoud = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
+                if (inhoud.includes(bestandsnaam)) { gebruikt = true; break; }
+              }
+              if (!gebruikt) await rm(path.join(werkmap, foto.naam), { force: true }).catch(() => {});
+            }
+          }
+
           const gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
           if (limietBereikt) {
             reply =
