@@ -642,6 +642,21 @@ export async function POST(req: Request) {
               if (!gebruikt) ongebruikteUploads.push(foto.naam);
             }
           }
+          // Zelfde voor een meegestuurde video: staat hij nergens in de site,
+          // dan is het (nog) geen wijziging — alleen een bewaard bestand
+          if (videoPaden) {
+            const { alleHtmlBestanden } = await import("@/lib/werkmap");
+            const htmls = await alleHtmlBestanden(werkmap);
+            let gebruikt = false;
+            for (const rel of htmls) {
+              const inhoud = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
+              if (inhoud.includes(path.basename(videoPaden.video))) { gebruikt = true; break; }
+            }
+            if (!gebruikt) {
+              ongebruikteUploads.push(videoPaden.video);
+              if (videoPaden.poster) ongebruikteUploads.push(videoPaden.poster);
+            }
+          }
 
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
           const alleenOngebruikteUploads =
@@ -659,9 +674,10 @@ export async function POST(req: Request) {
                     inhoud: await readFile(path.join(werkmap!, pad)),
                   })),
                 ),
-                "Meegestuurde foto bewaard in de fotobank (nog niet geplaatst)",
+                "Meegestuurd bestand bewaard (nog niet geplaatst)",
               );
-              reply = `${reply}\n\n(Je foto is wel bewaard in de fotobank van je site, dus opnieuw meesturen hoeft niet.)`;
+              const alleenVideo = afbeeldingen.length === 0 && Boolean(videoPaden);
+              reply = `${reply}\n\n(${alleenVideo ? "Je video is wel bewaard op je site" : "Je foto is wel bewaard in de fotobank van je site"}, dus opnieuw meesturen hoeft niet.)`;
             } catch (e) {
               console.error("Fotobank-bewaren mislukt:", e);
             }

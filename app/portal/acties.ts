@@ -29,6 +29,26 @@ export async function bewaarNotificatieEmail(formData: FormData) {
   revalidatePath("/portal");
 }
 
+/** Handtekening onder de formuliermails van deze site (bevestiging aan de invuller). */
+export async function bewaarMailHandtekening(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const handtekening = String(formData.get("handtekening") ?? "").replace(/\r/g, "").trim().slice(0, 600);
+  const logoUrl = String(formData.get("logoUrl") ?? "").trim().slice(0, 300);
+  const kleur = String(formData.get("kleur") ?? "").trim();
+  if (logoUrl && !/^https?:\/\/[^\s<>"]+$/.test(logoUrl)) return;
+  await db
+    .update(sites)
+    .set({
+      mailHandtekening: handtekening || null,
+      mailLogoUrl: logoUrl || null,
+      mailKleur: /^#[0-9a-fA-F]{6}$/.test(kleur) ? kleur : null,
+    })
+    .where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {

@@ -264,6 +264,11 @@ export default async function Portal({
                 <SiteExtra
                   siteId={site.id}
                   siteRepo={site.githubRepo}
+                  siteNaam={site.naam}
+                  domein={site.domein}
+                  mailHandtekening={site.mailHandtekening}
+                  mailLogoUrl={site.mailLogoUrl}
+                  mailKleur={site.mailKleur}
                   notificatieEmail={site.notificatieEmail}
                 />
               )}

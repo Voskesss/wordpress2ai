@@ -29,12 +29,53 @@ export function ontsleutel(dicht: string): string | null {
 export type MailSite = {
   naam: string;
   domein?: string | null;
+  mailHandtekening?: string | null;
+  mailLogoUrl?: string | null;
+  mailKleur?: string | null;
   smtpHost: string | null;
   smtpPoort: number | null;
   smtpGebruiker: string | null;
   smtpWachtwoord: string | null;
   smtpAfzender: string | null;
 } | null;
+
+function ontsnapHtml(t: string): string {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Nette, neutrale opmaak om een klantmail heen, met de handtekening van het
+ * bedrijf: logo, naam, adresregels, website. Geen WordSwap-sporen: de mail is
+ * van de klant. Zonder ingevulde handtekening: naam + website. */
+export function metKlantOpmaak(site: MailSite, html: string): string {
+  const naam = ontsnapHtml(site?.naam ?? "");
+  const kleur = /^#[0-9a-fA-F]{6}$/.test(site?.mailKleur ?? "") ? (site!.mailKleur as string) : "#292524";
+  const domein = (site?.domein ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const toonDomein = domein && !/\.workers\.dev$/.test(domein) ? domein : "";
+  const regels = (site?.mailHandtekening ?? "")
+    .split(/\r?\n/)
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .map((r) => {
+      if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r)) return `<a href="mailto:${ontsnapHtml(r)}" style="color:${kleur};text-decoration:none">${ontsnapHtml(r)}</a>`;
+      if (/^(\+|0)[0-9 ()-]{6,}$/.test(r)) return `<a href="tel:${r.replace(/[^+0-9]/g, "")}" style="color:${kleur};text-decoration:none">${ontsnapHtml(r)}</a>`;
+      return ontsnapHtml(r);
+    });
+  const logo = site?.mailLogoUrl && /^https?:\/\//.test(site.mailLogoUrl)
+    ? `<img src="${ontsnapHtml(site.mailLogoUrl)}" alt="${naam}" style="max-height:56px;max-width:220px;display:block;margin:0 0 12px">`
+    : "";
+  const website = toonDomein
+    ? `<a href="https://${ontsnapHtml(toonDomein)}" style="color:${kleur};font-weight:600;text-decoration:none">${ontsnapHtml(toonDomein)}</a>`
+    : "";
+  return `<div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
+${html}
+<div style="margin-top:28px;padding-top:18px;border-top:2px solid ${kleur}">
+${logo}<p style="margin:0;font-weight:700;color:${kleur}">${naam}</p>
+${regels.length ? `<p style="margin:4px 0 0;color:#57534e">${regels.join("<br>")}</p>` : ""}
+${website ? `<p style="margin:6px 0 0">${website}</p>` : ""}
+</div>
+${toonDomein ? `<p style="margin:18px 0 0;font-size:12px;color:#a8a29e">Deze e-mail is automatisch verstuurd via het formulier op ${ontsnapHtml(toonDomein)}.</p>` : ""}
+</div>`;
+}
 
 /** Verstuurt e-mail namens een klantsite.
  * Heeft de site eigen SMTP-instellingen (witlabel), dan gaat de mail via de
@@ -66,7 +107,7 @@ export async function verstuurSiteMail(opties: {
   bijlagen?: { bestandsnaam: string; inhoud: Buffer }[];
 }) {
   const { site, naar, onderwerp, antwoordNaar, bijlagen } = opties;
-  const html = isEigenSite(site) ? metWordSwapOpmaak(opties.html) : opties.html;
+  const html = isEigenSite(site) ? metWordSwapOpmaak(opties.html) : metKlantOpmaak(site, opties.html);
   if (!naar) return;
 
   // Witlabel-route: eigen mailserver van de klant

@@ -25,6 +25,11 @@ export const sites = pgTable("sites", {
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
   notificatieEmail: text("notificatie_email"),
+  // Handtekening onder formuliermails (bevestiging aan de invuller): regels
+  // met adres/telefoon, logo-adres en accentkleur. Leeg = naam + website.
+  mailHandtekening: text("mail_handtekening"),
+  mailLogoUrl: text("mail_logo_url"),
+  mailKleur: text("mail_kleur"),
   // Uitgenodigde klant die nog geen account heeft; gekoppeld zodra hij inlogt
   uitnodigingEmail: text("uitnodiging_email"),
   // Witlabel-mail: formulier-mails via de eigen mailserver van de klant (SMTP).

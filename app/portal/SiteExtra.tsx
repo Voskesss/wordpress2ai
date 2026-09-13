@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import {
+  bewaarMailHandtekening,
   bewaarNotificatieEmail,
   inzendingVerwerken,
   uploadKennisDocument,
@@ -12,10 +13,20 @@ export default async function SiteExtra({
   siteId,
   siteRepo,
   notificatieEmail,
+  siteNaam,
+  domein,
+  mailHandtekening,
+  mailLogoUrl,
+  mailKleur,
 }: {
   siteId: number;
   siteRepo: string;
   notificatieEmail: string | null;
+  siteNaam?: string;
+  domein?: string | null;
+  mailHandtekening?: string | null;
+  mailLogoUrl?: string | null;
+  mailKleur?: string | null;
 }) {
   const alle = await db
     .select()
@@ -159,6 +170,60 @@ export default async function SiteExtra({
               </button>
             </div>
           </label>
+        </form>
+
+        {/* Handtekening onder de bevestigingsmail aan invullers */}
+        <form action={bewaarMailHandtekening} className="mt-5 border-t border-stone-100 pt-4">
+          <input type="hidden" name="siteId" value={siteId} />
+          <p className="text-sm font-semibold">Handtekening onder je formuliermails</p>
+          <p className="mt-1 text-sm text-stone-600">
+            Wie een formulier invult, krijgt een bevestiging uit naam van{" "}
+            <strong>{siteNaam ?? "je bedrijf"}</strong>. Hieronder bepaal je hoe die mail
+            afsluit: adres, telefoon, logo en kleur.{" "}
+            <a
+              href={`/api/mail-voorbeeld?siteId=${siteId}`}
+              target="_blank"
+              rel="noopener"
+              className="font-semibold text-violet-700 hover:underline"
+            >
+              Bekijk een voorbeeld
+            </a>
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-semibold sm:col-span-2">
+              Regels onder je naam <span className="font-normal text-stone-400">(adres, telefoon, e-mail — elke regel apart)</span>
+              <textarea
+                name="handtekening"
+                rows={4}
+                defaultValue={mailHandtekening ?? ""}
+                placeholder={"Ambachtsweg 14, 6827 BX Arnhem\n026 - 123 45 67\ninfo@bedrijf.nl"}
+                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-2.5 font-normal text-sm focus:border-violet-600 focus:outline-none"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              Logo <span className="font-normal text-stone-400">(webadres van een afbeelding op je site)</span>
+              <input
+                name="logoUrl"
+                type="url"
+                defaultValue={mailLogoUrl ?? ""}
+                placeholder={domein ? `https://${domein}/afbeeldingen/logo.webp` : "https://…/logo.webp"}
+                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-2.5 font-normal text-sm focus:border-violet-600 focus:outline-none"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              Kleur van de naam en lijn
+              <div className="mt-1.5 flex items-center gap-2">
+                <input name="kleur" type="color" defaultValue={mailKleur ?? "#292524"} className="h-10 w-14 cursor-pointer rounded-lg border border-stone-300 bg-white p-1" />
+                <span className="text-xs text-stone-500">Kies de hoofdkleur van je site</span>
+              </div>
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+          >
+            Handtekening opslaan
+          </button>
         </form>
       </div>
 
