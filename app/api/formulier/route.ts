@@ -78,10 +78,15 @@ export async function POST(req: Request) {
   const bedanktPad = /^\/[a-z0-9\-\/]{0,100}$/i.test(velden._bedankt ?? "")
     ? (velden._bedankt as string)
     : null;
+  // Eigen bevestigingstekst voor de mail aan de invuller (per formulier
+  // instelbaar via een verborgen veld; de AI vult hem passend in bij het
+  // bouwen en de eigenaar kan hem via de chat wijzigen). Platte tekst.
+  const eigenBevestiging = (velden._bevestiging ?? "").trim().slice(0, 600) || null;
   delete velden._site;
   delete velden._extra;
   delete velden._formulier;
   delete velden._bedankt;
+  delete velden._bevestiging;
 
   const [site] = siteRepo
     ? await db.select().from(sites).where(eq(sites.githubRepo, siteRepo))
@@ -186,7 +191,11 @@ export async function POST(req: Request) {
           site: site ?? null,
           naar: invullerEmail,
           onderwerp: `Bedankt voor uw bericht aan ${siteNaam}`,
-          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.</p><hr>${veldenHtml}`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>${
+            eigenBevestiging
+              ? ontsnap(eigenBevestiging).replace(/\n/g, "<br>")
+              : `Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.`
+          }</p><hr>${veldenHtml}`,
           antwoordNaar: site?.notificatieEmail ?? undefined,
         });
       }
