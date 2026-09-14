@@ -111,7 +111,12 @@ Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + 
 3. SEO-VALIDATIE tegen `<repo>-bron/seo-manifest.json` (dit is het contract met Google): elke URL uit het manifest bestaat als pagina op exact dat pad (of staat bewust in de aanwijzingen als weggelaten — noteer die dan als 301-kandidaat in `_redirects`); `<title>` en meta description letterlijk gelijk aan het manifest; h1-koppen behouden; noindex-pagina's ook in de nieuwe site noindex. Rapporteer aan Jos per pagina groen/afwijkend.
 
    **Elk oud adres MOET landen.** Verhuist een pagina naar een submap (bijv. `/vaco` wordt `/evc-mobiliteit/vaco`), dan is het oude adres zonder 301 een 404 — en verdampt de Google-positie. Loop het manifest daarom na de bouw nog een keer af en controleer per adres: bestaat de pagina op exact dat pad, óf staat er een regel in `_redirects`? Zo niet, voeg de 301 toe. Doel is nul openstaande adressen.
-3. Screenshots van het resultaat aan Jos laten zien vóór livegang.
+4. **SNELHEIDS-GARANTIE (verplichte Lighthouse-vergelijking oud vs nieuw):** wij verkopen "sneller zonder WordPress", dus dat moet gemeten kloppen. Draai lokaal (geen API-sleutel of quotum nodig):
+   ```bash
+   npx -y lighthouse <url> --quiet --chrome-flags="--headless" --only-categories=performance --output=json --output-path=stdout
+   ```
+   Eén keer op de OUDE live site en één keer op de kopie (workers.dev). Eis: de kopie scoort minimaal gelijk en liefst hoger, met een lagere LCP. Scoort de kopie lager → beelden en laadgedrag fixen (zie het beelden-leerpunt: max 1200px/q78, lazy-loading) vóór oplevering. Rapporteer beide scores aan Jos — "Google meet: oud X, nieuw Y" is meteen verkoopmateriaal voor de klant. (De SEO-score op workers.dev is altijd laag door de bewuste noindex; dat is normaal en verdwijnt bij domeinkoppeling.)
+5. Screenshots van het resultaat aan Jos laten zien vóór livegang.
 
 ## Stap 3 — Registreren en live zetten
 
