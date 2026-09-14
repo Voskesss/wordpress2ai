@@ -64,9 +64,20 @@ export default async function SiteExtra({
     <div data-site-extra className="mt-6 grid gap-6 lg:grid-cols-2">
       {/* Formulier-inzendingen */}
       <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
-        <h3 className="font-display text-lg font-semibold">
-          Berichten via je formulieren
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="font-display text-lg font-semibold">
+            Berichten via je formulieren
+          </h3>
+          {alle.length > 0 && (
+            <a
+              href={`/api/portal/inzendingen-export?siteId=${siteId}`}
+              className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-700"
+              title="Alle inzendingen (ook afgehandelde) als Excel-bestand — in Excel filterbaar per formulier"
+            >
+              ⬇ Download (Excel)
+            </a>
+          )}
+        </div>
         {inzendingen.length === 0 ? (
           <p className="mt-2 text-sm text-stone-500">
             Nog geen berichten ontvangen.
