@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
+import InzendingKnop from "./InzendingKnop";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
 import { zoekLogo } from "@/lib/logo-zoeken";
@@ -112,17 +113,13 @@ export default async function SiteExtra({
                     <input type="hidden" name="id" value={inz.id} />
                     <input type="hidden" name="siteId" value={siteId} />
                     <input type="hidden" name="actie" value="archiveer" />
-                    <button type="submit" className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer">
-                      Markeer als afgehandeld
-                    </button>
+                    <InzendingKnop label="Markeer als afgehandeld" bezigLabel="Bezig..." className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer" />
                   </form>
                   <form action={inzendingVerwerken}>
                     <input type="hidden" name="id" value={inz.id} />
                     <input type="hidden" name="siteId" value={siteId} />
                     <input type="hidden" name="actie" value="verwijder" />
-                    <button type="submit" className="text-xs text-stone-400 hover:text-red-600 cursor-pointer">
-                      Verwijderen
-                    </button>
+                    <InzendingKnop label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Deze inzending definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className="text-xs text-stone-400 hover:text-red-600 cursor-pointer" />
                   </form>
                 </div>
               </div>
@@ -151,13 +148,13 @@ export default async function SiteExtra({
                       <input type="hidden" name="id" value={inz.id} />
                       <input type="hidden" name="siteId" value={siteId} />
                       <input type="hidden" name="actie" value="terug" />
-                      <button type="submit" className="hover:text-violet-700 cursor-pointer">↩ Terugzetten</button>
+                      <InzendingKnop label="↩ Terugzetten" bezigLabel="Bezig..." className="hover:text-violet-700 cursor-pointer" />
                     </form>
                     <form action={inzendingVerwerken}>
                       <input type="hidden" name="id" value={inz.id} />
                       <input type="hidden" name="siteId" value={siteId} />
                       <input type="hidden" name="actie" value="verwijder" />
-                      <button type="submit" className="hover:text-red-600 cursor-pointer">Verwijderen</button>
+                      <InzendingKnop label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Deze inzending definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className="hover:text-red-600 cursor-pointer" />
                     </form>
                   </div>
                 </div>
