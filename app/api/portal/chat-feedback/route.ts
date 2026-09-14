@@ -6,6 +6,8 @@ import { chatFeedback } from "@/db/schema";
 /** Feedback op de chatbeleving: duimpje omhoog/omlaag bij een AI-antwoord of
  * een algemene opmerking. Alles wordt opgeslagen; duim omlaag en algemene
  * feedback gaan ook direct per mail naar Jos. */
+const kort = (s: string, max: number) => [...s].slice(0, max).join("");
+
 export async function POST(req: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
@@ -24,8 +26,8 @@ export async function POST(req: Request) {
     siteId: siteId!,
     clerkUserId: user.id,
     oordeel: oordeel!,
-    reden: reden?.trim().slice(0, 2000) || null,
-    antwoord: antwoord?.trim().slice(0, 4000) || null,
+    reden: reden?.trim() ? kort(reden.trim(), 2000) : null,
+    antwoord: antwoord?.trim() ? kort(antwoord.trim(), 4000) : null,
   });
 
   // Duim omhoog stil registreren; omlaag/algemeen direct doormailen
@@ -50,8 +52,8 @@ export async function POST(req: Request) {
         reply_to: email.includes("@") ? [email] : undefined,
         html: `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.6">
 <p><strong>${ontsnap(naam)}</strong> (${ontsnap(email)}) gaf ${oordeel === "slecht" ? "een duim omlaag" : "algemene feedback"} in het portaal (site ${siteId}).</p>
-${reden?.trim() ? `<p><strong>Reden:</strong></p><blockquote style="margin:8px 0;padding:10px 14px;background:#fef2f2;border-radius:10px;white-space:pre-wrap">${ontsnap(reden.trim().slice(0, 2000))}</blockquote>` : "<p>(geen reden opgegeven)</p>"}
-${antwoord?.trim() ? `<p><strong>Het AI-antwoord waar het om ging:</strong></p><blockquote style="margin:8px 0;padding:10px 14px;background:#f5f5f4;border-radius:10px;white-space:pre-wrap">${ontsnap(antwoord.trim().slice(0, 1500))}</blockquote>` : ""}
+${reden?.trim() ? `<p><strong>Reden:</strong></p><blockquote style="margin:8px 0;padding:10px 14px;background:#fef2f2;border-radius:10px;white-space:pre-wrap">${ontsnap(kort(reden.trim(), 2000))}</blockquote>` : "<p>(geen reden opgegeven)</p>"}
+${antwoord?.trim() ? `<p><strong>Het AI-antwoord waar het om ging:</strong></p><blockquote style="margin:8px 0;padding:10px 14px;background:#f5f5f4;border-radius:10px;white-space:pre-wrap">${ontsnap(kort(antwoord.trim(), 1500))}</blockquote>` : ""}
 <p style="font-size:13px;color:#78716c">Alle feedback staat ook in de database (chat_feedback). Beantwoorden = deze mail beantwoorden.</p>
 </div>`,
       }),

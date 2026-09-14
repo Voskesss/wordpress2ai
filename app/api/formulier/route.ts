@@ -13,6 +13,12 @@ const BIJLAGE_EXTENSIES = /\.(pdf|docx?|odt|rtf|txt|jpe?g|png)$/i;
 const BIJLAGE_MAX_BYTES = 5 * 1024 * 1024;
 const BIJLAGE_MAX_AANTAL = 2;
 
+/** Tekst afkappen zonder een emoji of ander meerdelig teken doormidden te
+ * knippen (een halve emoji is ongeldige tekst en laat de opslag stuklopen). */
+function kort(s: string, max: number): string {
+  return [...s].slice(0, max).join("");
+}
+
 export async function POST(req: Request) {
   const velden: Record<string, string> = {};
   const bijlagen: { bestandsnaam: string; inhoud: Buffer }[] = [];
@@ -42,7 +48,7 @@ export async function POST(req: Request) {
             `${naam} — geweigerd (te groot of geen toegestaan bestandstype)`;
         }
       } else {
-        velden[k] = String(v).slice(0, 2000);
+        velden[k] = kort(String(v), 2000);
       }
     }
   } else {
@@ -81,7 +87,7 @@ export async function POST(req: Request) {
   // Eigen bevestigingstekst voor de mail aan de invuller (per formulier
   // instelbaar via een verborgen veld; de AI vult hem passend in bij het
   // bouwen en de eigenaar kan hem via de chat wijzigen). Platte tekst.
-  const eigenBevestiging = (velden._bevestiging ?? "").trim().slice(0, 600) || null;
+  const eigenBevestiging = kort((velden._bevestiging ?? "").trim(), 600) || null;
   delete velden._site;
   delete velden._extra;
   delete velden._formulier;
