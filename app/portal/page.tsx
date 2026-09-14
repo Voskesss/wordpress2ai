@@ -240,6 +240,7 @@ export default async function Portal({
                 )}
                 <Chat
                   terugLink={mijnSites.length > 1 ? "/portal" : null}
+                  isDemo={site.isDemo}
                   siteId={site.id}
                   previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}

@@ -86,8 +86,11 @@ export default function Chat({
   openConcept,
   suggesties,
   terugLink,
+  isDemo = false,
 }: {
   siteId: number;
+  /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
+  isDemo?: boolean;
   /** Link naar het websiteoverzicht (alleen bij meerdere websites) */
   terugLink?: string | null;
   previewAccess: string;
@@ -2364,6 +2367,17 @@ export default function Chat({
                     // Foto-vervangen-flow: eerste bestand direct verwerken (zonder AI)
                     fotoVervangRef.current = false;
                     fotoDirect(bestanden[0]);
+                  } else if (bestanden.length > 0 && isDemo) {
+                    // Demo: duidelijk zeggen dat dit hier niet kan, in plaats van stil negeren
+                    setChatOpen(true);
+                    setBerichten((b) => [
+                      ...b,
+                      {
+                        rol: "assistent",
+                        tekst:
+                          "In deze demo kun je helaas geen eigen foto's meesturen. Wat wél kan: klik op \"Wijs aan\", kies een foto op de site en vervang die door een andere uit de fotobank. Bij je eigen website stuur je gewoon foto's mee in de chat en zet de AI ze op de juiste plek.",
+                      },
+                    ]);
                   } else if (bestanden.length > 0) {
                     setAfbeeldingen((vorige) => [...vorige, ...bestanden].slice(0, 12));
                   }
