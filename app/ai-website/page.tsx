@@ -58,7 +58,7 @@ const wijRegelen = [
       "Website, hosting, beveiligde verbinding, domeinkoppeling en versiegeschiedenis. Mail en domein regelen we op jouw naam. Je hebt één aanspreekpunt.",
   },
   {
-    kop: "Aanpassen door het te vragen",
+    kop: "Wijzigen door het te typen",
     tekst:
       "“Zet onze nieuwe openingstijden erop.” Dat typ je in de chat. Je bekijkt het voorstel op je eigen site en publiceert zelf. Klopt het niet, dan zet je een eerdere versie terug.",
   },
@@ -142,7 +142,8 @@ export default function AiWebsite() {
         </p>
         <p className="mt-4 text-lg text-stone-600 leading-relaxed max-w-2xl">
           Bij WordSwap koop je geen website. Je krijgt hem, mét alles eromheen.
-          En aanpassen doe je door het gewoon te vragen.
+          En iets wijzigen? Dat typ je in de chat van je eigen website, en hij
+          past het zelf aan.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <a href="#check" className="button-primary">
