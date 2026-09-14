@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { aiKosten, changes, formulierInzendingen, messages, sites, usage } from "@/db/schema";
+import { aiKosten, changes, chatFeedback, formulierInzendingen, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { aanvraagVerwerken } from "./acties";
 
@@ -78,6 +78,14 @@ export default async function Admin() {
   const aanvragen = alleAanvragen.filter((a) => !a.gearchiveerd).slice(0, 20);
   const afgehandeld = alleAanvragen.filter((a) => a.gearchiveerd).slice(0, 60);
   const alleSites = await db.select().from(sites).orderBy(sites.id);
+  // Chat-feedback van alle klanten bij elkaar (nieuwste eerst)
+  const alleFeedback = await db
+    .select()
+    .from(chatFeedback)
+    .orderBy(desc(chatFeedback.id))
+    .then((r) => r.slice(0, 40))
+    .catch(() => []);
+  const siteNaamVan = (id: number) => alleSites.find((s) => s.id === id)?.naam ?? `site ${id}`;
   const maand = new Date().toISOString().slice(0, 7);
 
   const rijen = await Promise.all(
@@ -319,6 +327,50 @@ export default async function Admin() {
                 </div>
               </details>
             )}
+          </div>
+        </div>
+      )}
+
+      {alleFeedback.length > 0 && (
+        <div className="mt-10">
+          <h2 className="font-display text-2xl font-semibold">
+            👍👎 Chat-feedback
+            <span className="ml-2 text-sm font-normal text-stone-500">
+              {alleFeedback.filter((f) => f.oordeel === "goed").length}× omhoog ·{" "}
+              {alleFeedback.filter((f) => f.oordeel === "slecht").length}× omlaag ·{" "}
+              {alleFeedback.filter((f) => f.oordeel === "algemeen").length}× algemeen
+            </span>
+          </h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Duimpjes en opmerkingen over de chatbeleving, van alle klanten bij
+            elkaar — doorklikken op de klantnaam opent de klantpagina met de
+            volledige chatgeschiedenis.
+          </p>
+          <div className="mt-4 space-y-2">
+            {alleFeedback.map((f) => (
+              <details key={f.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-2.5 text-sm">
+                <summary className="cursor-pointer">
+                  <span className="mr-1.5">
+                    {f.oordeel === "goed" ? "👍" : f.oordeel === "slecht" ? "👎" : "💬"}
+                  </span>
+                  <Link href={`/admin/klant/${f.siteId}`} className="font-semibold text-violet-700 hover:underline">
+                    {siteNaamVan(f.siteId)}
+                  </Link>
+                  <span className={`ml-2 ${f.oordeel === "slecht" ? "font-semibold text-red-700" : "text-stone-700"}`}>
+                    {f.reden ? f.reden.slice(0, 80) : f.oordeel === "goed" ? "Goed antwoord" : "(geen reden opgegeven)"}
+                  </span>
+                  <span className="ml-2 text-xs text-stone-400">
+                    {f.aangemaakt.toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </summary>
+                <div className="mt-2 space-y-2 border-t border-stone-100 pt-2 text-xs text-stone-600">
+                  {f.reden && <p className="whitespace-pre-wrap">{f.reden}</p>}
+                  {f.antwoord && (
+                    <p className="whitespace-pre-wrap rounded-xl bg-stone-50 p-2.5 text-stone-500">🤖 {f.antwoord}</p>
+                  )}
+                </div>
+              </details>
+            ))}
           </div>
         </div>
       )}
