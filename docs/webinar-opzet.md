@@ -1,98 +1,200 @@
-# Webinar-opzet: "Zelf een website maken met AI — wat er echt veranderd is (en de valkuil die niemand noemt)"
+# Webinar-script: "Weg uit WordPress — zonder gedoe"
 
-Duur: 35 minuten + 10 minuten vragen. Publiek: ondernemers met een site of
-plannen daarvoor, nieuwsgierig naar AI. Insteek: een eerlijke vakles — wat kan
-er tegenwoordig, hoe doe je het zelf, en waar gaat het stilletjes mis (vooral
-SEO). De expertise ís de verkoop; het aanbod komt pas aan het eind, klein en
-zonder druk.
+Duur: ± 35 minuten + 10 minuten vragen. Publiek: mkb'ers met een bestaande
+(WordPress-)site. **Insteek: wat, waarom en wanneer — bewust níét de hoe.**
+Het doel is een overtuigingsverschuiving:
 
-## Titelopties
+> Van: "Mijn website is een ding dat ik ooit heb laten maken en waar ik zo
+> min mogelijk aan wil denken."
+> Naar: "Mijn website hoort iets te zijn dat ik zelf aanstuur door het gewoon
+> te vragen — en al het gedoe eromheen hoort geregeld te zijn."
 
-1. **Zelf een website maken met AI: wat kan er echt — en de valkuil die niemand noemt**
-2. Websites in het AI-tijdperk: wat er in één jaar veranderd is
-3. Waarom je AI-gebouwde website onvindbaar kan zijn (en hoe het wél moet)
+Elke minuut van het webinar bewijst die ene zin. De techniek (migratie,
+hosting, AI-modellen) blijft weg — dat is precies waarom ze óns nodig hebben.
+Vraagt iemand "maar hoe werkt dat dan?", dan is het vaste antwoord: *"Goede
+vraag — dat laat ik je het liefst in jouw situatie zien. Vraag na afloop de
+gratis check aan, dan kijk ik met je eigen site mee."*
 
-## Opbouw (35 min)
+---
 
-### 1. Wat er in één jaar is veranderd (min 0–7)
-- Een jaar geleden: website = webbouwer of zelf worstelen met WordPress.
-  Nu: AI bouwt in minuten een complete site. Laat het zíen — vraag live aan
-  een AI-tool om een pagina te maken (of toon een vooraf gemaakte opname van
-  30 seconden). Verwondering eerst, kanttekeningen later.
-- De nieuwe realiteit benoemen: AI-bouwtools en chat-AI's die HTML uitspugen,
-  AI-hulpjes ín WordPress (Jetpack AI), en diensten zoals WordSwap die AI
-  gebruiken om je site te behéren. Het landschap in één plaat.
-- Kernboodschap: "een site kríjgen is makkelijker dan ooit. Een site die
-  gevonden wordt, blijft werken en bijgehouden wordt — dáár zit het verschil
-  nu."
+## 1. Herkenning — het probleem zoals zíj het voelen (min 0–10)
 
-### 2. Zelf doen: de drie routes, eerlijk (min 7–14)
-- **Route A — AI-bouwtool of chat-AI:** snel en indrukwekkend; jij bent daarna
-  de webmaster (hosting, domein, wijzigingen opnieuw aan de AI vragen en
-  ergens plaatsen).
-- **Route B — WordPress + AI-plugins:** vertrouwd, AI helpt schrijven; het
-  onderhoud (updates, plugins, traagheid) blijft.
-- **Route C — laten doen:** webbouwer klassiek, of het nieuwe model: statische
-  site die je via AI-chat beheert (dat is ons vak — één zin, nu nog niet meer).
-- Per route: voor wie het past. Eerlijkheid hier is wat de rest van het
-  verhaal geloofwaardig maakt.
+Niet beginnen met AI. Beginnen met hun dinsdagmiddag.
 
-### 3. DE VALKUIL: onvindbaar door vergeten SSR (min 14–23) — het kennisjuweel
-Dit is het deel dat mensen onthouden en doorvertellen. In gewone taal:
+**Spreektekst (op hoofdlijnen):**
 
-- **Het probleem:** veel AI-tools bouwen sites die pas ín je browser worden
-  opgebouwd (JavaScript). Jij ziet een prachtige site; Google en AI-zoekers
-  krijgen een bijna lege pagina. Vaktermen één keer noemen (client-side
-  rendering vs. server-side rendering / SSR) en meteen vertalen: "de etalage
-  is pas gevuld als er al iemand binnen staat — maar Google kijkt alleen door
-  de ruit."
-- **Laat het zien** (demo-goud): open zo'n AI-gebouwde site → rechtermuisknop
-  → "paginabron bekijken" → een lege huls. Doe hetzelfde bij een statische
-  site (bijv. een WordSwap-klantsite): alle tekst staat er gewoon in. Dit
-  visuele contrast is je sterkste 60 seconden.
-- **De rest van het SEO-lijstje** kort: titels en meta-omschrijvingen, één
-  h1 per pagina, alt-teksten, een sitemap, en — bij verhuizen — doorverwijzingen
-  (301's) zodat oude adressen blijven landen. Plus de nieuwe laag: AI-zoekers
-  (ChatGPT, Copilot) lezen je site ook — zelfde regels, zelfde winst.
-- **Snelheid als bonus:** platte HTML is het snelste dat er bestaat en Google
-  beloont dat. (Eventueel de eigen meting tonen: oude WordPress-site vs.
-  onze kopie in Lighthouse.)
+> "Ik wil beginnen met een middag die je waarschijnlijk herkent. Je bent
+> volgende week een dag dicht, dus je denkt: dat zet ik even op de website.
+> Even.
+>
+> Je zoekt je inloggegevens. Wachtwoord vergeten. Reset-mailtje. Je bent
+> binnen — en het eerste wat je ziet is een oranje balk: *er staan 9 updates
+> klaar*. Durf je die te doen? Vorige keer lag de site er daarna uit.
+>
+> Dus je mailt je websitebouwer. Die zit vol, 'ik pak het volgende week op'.
+> Twee weken later staat het erop en krijg je een factuur van €85. Voor één
+> zin.
+>
+> En het gekke is: we vinden dat allemaal nórmaal. We hebben met z'n allen
+> geaccepteerd dat je eigen website het enige ding in je bedrijf is dat je
+> niet zelf kunt bedienen."
 
-### 4. De live chat-demo (min 23–30) — het magische moment
-- Nu pas de Van Dijk-demosite: *"Zet de openingstijden op zaterdag op 9 tot
-  16"* → concept → publiceer → ververs. Daarna een foto vervangen of een
-  pagina toevoegen als er tijd is.
-- Verbind het met deel 3: "en alles wat je hier ziet is platte HTML — dus
-  alles wat ik net over vindbaarheid vertelde, zit er automatisch goed in."
-- Vangnetten benoemen: concept eerst, versies terug, niets gaat vanzelf live.
+Daarna het lijstje benoemen, in hún woorden (kies er 3–4, niet allemaal):
+- "Ik durf nergens aan te zitten, straks ligt de site eruit."
+- "Elke wijziging kost geld of duurt weken."
+- "Ik betaal onderhoud maar ik weet niet waarvoor."
+- "Mijn openingstijden op de site kloppen al maanden niet."
+- "Die site is van mijn websitebouwer, niet van mij."
 
-### 5. Het aanbod (min 30–35) — klein en zonder druk
-- Eén alinea: wij maken een exacte kopie van je huidige site, eerst zien dan
-  betalen, vanaf €150 eenmalig + €5–20 p/m, daarna beheer je hem zoals in de
-  demo. Terugweg-garantie: vóór je iets opzegt staat je complete
-  WordPress-kopie veilig.
-- Eén CTA: **wordswap.nl → gratis websitecheck** (met de belofte: eerlijke
-  uitslag, ook als het "blijf waar je zit" is — verwijs naar deel 2).
+**Afsluiter van dit deel:** "Als je bij minstens één hiervan zat te knikken:
+dit webinar is voor jou. En het goede nieuws is — dit hoeft niet meer."
 
-### 6. Vragen (min 35–45)
-- Paraat: webshop? (meestal nee, eerlijk), Google-posities? (behoud-aanpak,
-  nooit garantie), blog/reacties? (beperkt, roadmap), "welke AI-tool raad je
-  aan als ik zelf wil?" (eerlijk antwoorden — dat mag, zie deel 2).
+*Doel: "zij begrijpen mij." Nog geen woord over een oplossing.*
+
+## 2. Waarom dit nu speelt (min 10–18)
+
+Urgentie zaaien zonder techniek. Twee bewegingen:
+
+**a) Je klanten zoeken anders.**
+
+> "Vraag jezelf af: wanneer heb jij voor het laatst zelf iets opgezocht via
+> tien blauwe linkjes in Google? Steeds meer van je klanten stellen hun vraag
+> gewoon aan een AI: 'welke meubelmaker bij mij in de buurt maakt tafels op
+> maat?' En die AI leest websites en geeft één antwoord. Staat jouw
+> informatie er verouderd of onleesbaar op, dan besta je in dat antwoord
+> gewoon niet. Niet volgend jaar — nu al."
+
+**b) Websites zelf kunnen inmiddels meer.**
+
+> "Tegelijk is er iets veranderd aan wat een website kán. AI kan websites
+> niet alleen lezen, maar ook aanpassen. Dat betekent dat het hele model —
+> een techneut tussen jou en je eigen site — een overblijfsel is uit een
+> vorig tijdperk. Zoals je vroeger naar de bank móést voor een overschrijving
+> en nu gewoon je telefoon pakt."
+
+**Kernzin van dit deel (letterlijk uitspreken):**
+"Een website die alleen door een techneut aan te passen is, is geen
+gemakskeuze meer — het is een achterstand die elke maand groter wordt."
+
+*Let op: geen SSR, geen HTML, geen vaktermen. Hooguit één zin: "hoe dat
+technisch zit hoef jij niet te weten — dat is nou precies het punt."*
+
+## 3. Het nieuwe normaal — de demo (min 18–28)
+
+Nu pas laten zien wat er mogelijk is. **Eén demo, kort en huiselijk.** Meer
+demo's = meer hoe.
+
+- Open de Van Dijk-demosite (meubelmakerij-van-dijk, site #17 — status in
+  admin op "actief" zetten indien nodig).
+- Typ in de chat: *"Ik ben volgende week vrijdag gesloten vanwege een
+  beurs."* De site antwoordt in de ik-vorm, toont het concept, publiceer,
+  ververs de pagina: het staat erop.
+- Eventueel één tweede opdracht als het soepel loopt (foto vervangen), maar
+  niet meer dan dat.
+
+**Spreektekst eromheen:**
+
+> "Wat je hier ziet is geen mockup en geen toekomstplan. Dit is de website
+> van een meubelmaker, en ik heb net gedaan wat jij op die dinsdagmiddag
+> wilde doen: één zin getypt. Geen inlog, geen updates, geen mailtje naar een
+> bouwer, geen factuur. Dertig seconden.
+>
+> En zie je dat er eerst een concept kwam? Niets gaat vanzelf live. Jij
+> beslist, de site voert uit."
+
+**Belangrijk:** de verwondering laten landen. Na de demo 3 seconden stil
+zijn. Niet uitleggen hoe het werkt.
+
+## 4. Wat je laat liggen als je niets doet (min 28–33)
+
+De kosten van níét veranderen — dit is het overtuigingshart. Drie kolommen,
+concreet maken met hun eigen getallen:
+
+**Geld**
+> "Reken even mee. Onderhoudscontract: zeg €30 tot €75 per maand. Losse
+> wijzigingen: €75 tot €95 per uur. Eén klant per maand die afhaakt omdat je
+> openingstijden niet klopten of je site traag was: wat is die waard bij jou?
+> En de grootste post zie je niet op een factuur: de klanten die je nooit
+> ziet omdat een AI-assistent je site niet als antwoord geeft."
+
+**Tijd**
+> "Elke wijziging is nu een projectje: uitzoeken, mailen, wachten, najagen,
+> controleren. Zeg twee uur gedoe per wijziging. Dat zijn uren die je niet
+> aan je vak besteedt — en het zorgt ervoor dat je wijzigingen gewoon niet
+> meer dóórvoert. Verouderde site als gevolg."
+
+**Frustratie**
+> "En misschien wel de echte reden dat je hier zit: dat gevoel dat je eigen
+> website niet van jou is. Dat je afhankelijk bent van iemand die het te druk
+> heeft. Dat je 's avonds denkt 'ik moet nog wat aan de site doen' en het
+> wéér voor je uitschuift. Dat mag gewoon weg."
+
+**Kernzin:** "Niets doen voelt gratis, maar is de duurste optie die je hebt."
+
+## 5. Wanneer (min 33–36)
+
+Het bezwaar "mijn site is nog prima / ooit als hij toe is aan vernieuwing"
+wegnemen:
+
+> "Misschien denk je: mooi verhaal, maar mijn site is pas twee jaar oud. Dan
+> heb ik goed nieuws: dit is geen nieuwe website. Je bestaande site — je
+> teksten, je foto's, je uitstraling — gaat gewoon mee. Er hoeft niets
+> opnieuw bedacht of ontworpen te worden.
+>
+> Dus de vraag is niet 'wanneer is mijn site aan vervanging toe?' De vraag
+> is: hoeveel maanden achterstand op die AI-vindbaarheid wil je nog opbouwen,
+> en hoeveel van die dinsdagmiddagen wil je nog hebben?"
+
+## 6. Afsluiter — één CTA (min 36–38)
+
+Geen prijzen-slide, geen pakkettenvergelijking — dat hoort bij het gesprek
+erna (en op de site staat het al). Eén uitnodiging, drempel zo laag mogelijk:
+
+> "Wil je weten wat dit voor jouw site betekent? Doe de gratis websitecheck.
+> Je krijgt een eerlijke uitslag — ook als die uitslag is: blijf waar je zit,
+> het past niet bij jou. Zet je websiteadres in de chat, dan kijk ik deze
+> week persoonlijk naar je site."
+
+(Websiteadres in de chat = trede 1 van het leadtrappetje: check + opvolgmail.
+Lager dan een link laten intypen.)
+
+## 7. Vragen (min 38–48)
+
+Antwoorden paraat — en elk hoe-antwoord ombuigen naar de check:
+- **"Hoe werkt dat technisch?"** → "Dat hoef jij niet te weten, dat is het
+  hele punt. In de check laat ik je zien hoe het er voor jouw site uitziet."
+- **"Wat kost het?"** → eerlijk en kort: eerst zien dan betalen, eenmalig
+  bedrag + klein maandbedrag, exacte prijs hangt van je site af — daarom de
+  check. Niet uitweiden.
+- **"Kan mijn webshop mee?"** → meestal nee, eerlijk zeggen.
+- **"Verlies ik mijn Google-positie?"** → behoud-aanpak, nooit garanties.
+- **"Kan ik niet gewoon zelf een AI-site laten maken?"** → "Zeker, en voor
+  wie iets nieuws wil beginnen is dat prima. Maar dan bén je daarna de
+  webmaster: hosting, domein, mail, wijzigingen. Wij verkopen precies het
+  omgekeerde: dat je er nooit meer over na hoeft te denken."
+
+---
 
 ## Techniek-checklist vooraf
 
-- Demosite resetten naar sjabloon; demo-opdrachten vooraf één keer testen.
-- De "lege paginabron"-demo voorbereiden: één AI-gebouwde voorbeeldsite en één
-  klantsite naast elkaar in tabbladen.
-- Demo-video als vangnet bij haperende verbinding.
-- Aanmeldingen via wordswap.nl/webinar (staat al, incl. bevestigingsmail).
+- Van Dijk-demosite: demo-opdracht vooraf één keer testen, daarna site
+  terugzetten zodat de wijziging live opnieuw gedaan kan worden.
+- Demo-opname (30 sec) als vangnet bij haperende verbinding.
+- Aanmeldingen lopen via wordswap.nl/webinar (incl. bevestigingsmail);
+  webinar-datum in /admin/webinars actief zetten.
 
 ## Na afloop
 
-- Zelfde dag mail aan alle aanmelders (ook no-shows): opname, het
-  SEO-lijstje uit deel 3 als korte checklist (weggever!), en de
+- Zelfde dag mail aan alle aanmelders (ook no-shows): opname + de
   websitecheck-link.
-- Aanmelders met een bedrijfssite: site alvast checken via 🎯 Leads en een
-  persoonlijke zin toevoegen.
-- In het webinar zelf: "wie wil dat ik zijn site gratis check? Zet je site in
-  de chat" — drempel lager dan een link.
+- Iedereen die zijn site in de chat zette: dezelfde week de check + de
+  opvolgmail met bevindingen (trede 1), daarná pas eventueel het
+  homepage-voorproefje bij reactie (trede 2). Niet meteen bouwen.
+
+## Bewaakpunten
+
+1. **Geen hoe.** Elke technische uitleg maakt de kijker slimmer maar de
+   check overbodiger. De hoe is het product.
+2. **Bouwen-als-vluchtgedrag:** dit script en de bestaande webinarpagina zijn
+   genoeg. Er hoeft niets nieuws gebouwd te worden voordat er een datum staat
+   en het webinar geoefend is.

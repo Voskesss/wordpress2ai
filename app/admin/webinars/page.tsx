@@ -51,7 +51,15 @@ export default async function Webinars() {
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
         ← Alle klanten
       </Link>
-      <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight">Webinars</h1>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-display text-4xl font-semibold tracking-tight">Webinars</h1>
+        <Link
+          href="/admin/webinars/script"
+          className="lift rounded-full bg-amber-100 px-5 py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-200"
+        >
+          📜 Webinar-script (spiekbrief)
+        </Link>
+      </div>
       <p className="mt-3 text-stone-600 leading-relaxed max-w-2xl">
         Plan een webinar in — hij verschijnt automatisch op{" "}
         <Link href="/webinar" className="text-violet-700 hover:underline">wordswap.nl/webinar</Link>{" "}
