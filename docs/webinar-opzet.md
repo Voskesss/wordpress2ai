@@ -1,88 +1,98 @@
-# Webinar-opzet: "Wat AI vandaag met jouw website kan (en waar het gedoe begint)"
+# Webinar-opzet: "Zelf een website maken met AI — wat er echt veranderd is (en de valkuil die niemand noemt)"
 
-Duur: 30 minuten + 10 minuten vragen. Publiek: ondernemers met een (WordPress-)site
-die nieuwsgierig zijn naar AI — plus hobbyisten en twijfelaars: die worden geen
-klant, wel doorvertellers. Doel: het magische moment laten zíen, eerlijk zijn
-over doe-het-zelf, en eindigen bij ontzorging. We verkopen geen website; we
-verkopen dat ze er nooit meer naar hoeven om te kijken.
+Duur: 35 minuten + 10 minuten vragen. Publiek: ondernemers met een site of
+plannen daarvoor, nieuwsgierig naar AI. Insteek: een eerlijke vakles — wat kan
+er tegenwoordig, hoe doe je het zelf, en waar gaat het stilletjes mis (vooral
+SEO). De expertise ís de verkoop; het aanbod komt pas aan het eind, klein en
+zonder druk.
 
-## Titelopties (kies wat bij je mond past)
+## Titelopties
 
-1. **Wat AI vandaag met jouw website kan — en waar het gedoe begint**
-2. Je website aanpassen door het gewoon te typen — live demo
-3. Weg met WordPress-gedoe: zo werkt een website in het AI-tijdperk
+1. **Zelf een website maken met AI: wat kan er echt — en de valkuil die niemand noemt**
+2. Websites in het AI-tijdperk: wat er in één jaar veranderd is
+3. Waarom je AI-gebouwde website onvindbaar kan zijn (en hoe het wél moet)
 
-## Opbouw (30 min)
+## Opbouw (35 min)
 
-### 1. Herkenning (min 0–4) — "dit ben jij"
-- Open met het frustratie-verhaal, zelfde toon als de advertentie: *"Alleen
-  even je tarieven aanpassen… en je zit weer in WordPress."* Plugins, updates,
-  wachten op je webbouwer.
-- Vraag in de chat van het webinar: "wie heeft er weleens iets stukgemaakt met
-  een WordPress-update?" — meteen interactie, meteen herkenning.
-- Eén zin over jezelf: Jos, WordSwap, ik zet WordPress-sites om en beheer ze
-  met AI. Niet meer — de demo doet het praatwerk.
+### 1. Wat er in één jaar is veranderd (min 0–7)
+- Een jaar geleden: website = webbouwer of zelf worstelen met WordPress.
+  Nu: AI bouwt in minuten een complete site. Laat het zíen — vraag live aan
+  een AI-tool om een pagina te maken (of toon een vooraf gemaakte opname van
+  30 seconden). Verwondering eerst, kanttekeningen later.
+- De nieuwe realiteit benoemen: AI-bouwtools en chat-AI's die HTML uitspugen,
+  AI-hulpjes ín WordPress (Jetpack AI), en diensten zoals WordSwap die AI
+  gebruiken om je site te behéren. Het landschap in één plaat.
+- Kernboodschap: "een site kríjgen is makkelijker dan ooit. Een site die
+  gevonden wordt, blijft werken en bijgehouden wordt — dáár zit het verschil
+  nu."
 
-### 2. HET MOMENT (min 4–12) — de live demo op de Van Dijk-demosite
-Dit is het hart. Niet uitleggen, dóen — scherm delen op het portaal:
+### 2. Zelf doen: de drie routes, eerlijk (min 7–14)
+- **Route A — AI-bouwtool of chat-AI:** snel en indrukwekkend; jij bent daarna
+  de webmaster (hosting, domein, wijzigingen opnieuw aan de AI vragen en
+  ergens plaatsen).
+- **Route B — WordPress + AI-plugins:** vertrouwd, AI helpt schrijven; het
+  onderhoud (updates, plugins, traagheid) blijft.
+- **Route C — laten doen:** webbouwer klassiek, of het nieuwe model: statische
+  site die je via AI-chat beheert (dat is ons vak — één zin, nu nog niet meer).
+- Per route: voor wie het past. Eerlijkheid hier is wat de rest van het
+  verhaal geloofwaardig maakt.
 
-- **Demo 1 (tekst):** typ *"Zet de openingstijden op zaterdag op 9 tot 16"* →
-  laat het concept verschijnen → publiceer → ververs de site. Stilte laten
-  vallen. Dit is het moment waarvoor iedereen kwam.
-- **Demo 2 (foto):** stuur een foto mee — *"vervang de foto van de werkplaats
-  door deze"* — en wijs erop dat het kader, de hoekjes en de maat vanzelf
-  kloppen.
-- **Demo 3 (iets nieuws):** *"maak een pagina over onze nieuwe eikenhouten
-  tafels, met een aanvraagformulier"* → laat zien dat er een complete pagina
-  in de huisstijl staat, mét werkend formulier en bedankt-pagina.
-- Benoem tussendoor de vangnetten (dit is óók verkoop): alles is eerst een
-  concept, niets gaat live zonder jouw akkoord, en elke versie kan terug.
+### 3. DE VALKUIL: onvindbaar door vergeten SSR (min 14–23) — het kennisjuweel
+Dit is het deel dat mensen onthouden en doorvertellen. In gewone taal:
 
-### 3. Eerlijk over zelf doen (min 12–20) — de vertrouwensbouwer
-- "Kun je dit zelf? Ja — en ik ga je precies vertellen hoe." Noem de echte
-  opties: met AI-tools (ChatGPT/Claude) zelf HTML bouwen, sitebouwers, en
-  AI-plugins ín WordPress (Jetpack AI) voor wie wil blijven.
-- Dan de eerlijke tweede helft: **waar het gedoe begint**. Domein en DNS,
-  e-mail die stuk kan gaan, formulieren die echt moeten aankomen (en spam),
-  Google-posities behouden bij een verhuizing, back-ups, en: wie doet het
-  onderhoud als jij het druk hebt? Per punt één zin, geen doemverhaal —
-  gewoon de checklist die doe-het-zelvers pas ontdekken als het te laat is.
-- Kernzin: *"Als je dit leuk vindt om zelf uit te zoeken: doen! Het kan echt.
-  Als je hiervoor juist een zaak runt die je aandacht nodig heeft — daar zijn
-  wij voor."*
+- **Het probleem:** veel AI-tools bouwen sites die pas ín je browser worden
+  opgebouwd (JavaScript). Jij ziet een prachtige site; Google en AI-zoekers
+  krijgen een bijna lege pagina. Vaktermen één keer noemen (client-side
+  rendering vs. server-side rendering / SSR) en meteen vertalen: "de etalage
+  is pas gevuld als er al iemand binnen staat — maar Google kijkt alleen door
+  de ruit."
+- **Laat het zien** (demo-goud): open zo'n AI-gebouwde site → rechtermuisknop
+  → "paginabron bekijken" → een lege huls. Doe hetzelfde bij een statische
+  site (bijv. een WordSwap-klantsite): alle tekst staat er gewoon in. Dit
+  visuele contrast is je sterkste 60 seconden.
+- **De rest van het SEO-lijstje** kort: titels en meta-omschrijvingen, één
+  h1 per pagina, alt-teksten, een sitemap, en — bij verhuizen — doorverwijzingen
+  (301's) zodat oude adressen blijven landen. Plus de nieuwe laag: AI-zoekers
+  (ChatGPT, Copilot) lezen je site ook — zelfde regels, zelfde winst.
+- **Snelheid als bonus:** platte HTML is het snelste dat er bestaat en Google
+  beloont dat. (Eventueel de eigen meting tonen: oude WordPress-site vs.
+  onze kopie in Lighthouse.)
 
-### 4. Het aanbod (min 20–25) — kort en zonder druk
-- Wat WordSwap doet: exacte kopie van je huidige site, eerst zien dan betalen
-  (no cure no pay), vanaf €150 eenmalig + €5–20 p/m alles-inbegrepen, daarna
-  aanpassen zoals in de demo.
-- De twee angst-wegnemers benoemen: **gratis websitecheck** als eerste stap
-  (verplicht niets) en de **terugweg-garantie** (complete WordPress-kopie vóór
-  er iets wordt opgezegd; je kunt altijd terug).
-- Eén duidelijke CTA, één link: **wordswap.nl** → gratis websitecheck. Niet
-  drie aanbiedingen; één volgende stap.
+### 4. De live chat-demo (min 23–30) — het magische moment
+- Nu pas de Van Dijk-demosite: *"Zet de openingstijden op zaterdag op 9 tot
+  16"* → concept → publiceer → ververs. Daarna een foto vervangen of een
+  pagina toevoegen als er tijd is.
+- Verbind het met deel 3: "en alles wat je hier ziet is platte HTML — dus
+  alles wat ik net over vindbaarheid vertelde, zit er automatisch goed in."
+- Vangnetten benoemen: concept eerst, versies terug, niets gaat vanzelf live.
 
-### 5. Vragen (min 25–40)
-- Standaardvragen die komen (antwoorden paraat): "werkt het ook met mijn
-  webshop?" (meestal niet — eerlijk zeggen), "verlies ik mijn Google-positie?"
-  (behoud-aanpak uitleggen, nooit garanderen), "wat als de AI het verkeerd
-  doet?" (concept + versies terug), "kan ik reacties/blog kwijt?" (eerlijk:
-  beperkt — roadmap).
-- Afsluiten met een herhaling van de ene CTA + "de opname en de link krijg
-  je per mail".
+### 5. Het aanbod (min 30–35) — klein en zonder druk
+- Eén alinea: wij maken een exacte kopie van je huidige site, eerst zien dan
+  betalen, vanaf €150 eenmalig + €5–20 p/m, daarna beheer je hem zoals in de
+  demo. Terugweg-garantie: vóór je iets opzegt staat je complete
+  WordPress-kopie veilig.
+- Eén CTA: **wordswap.nl → gratis websitecheck** (met de belofte: eerlijke
+  uitslag, ook als het "blijf waar je zit" is — verwijs naar deel 2).
+
+### 6. Vragen (min 35–45)
+- Paraat: webshop? (meestal nee, eerlijk), Google-posities? (behoud-aanpak,
+  nooit garantie), blog/reacties? (beperkt, roadmap), "welke AI-tool raad je
+  aan als ik zelf wil?" (eerlijk antwoorden — dat mag, zie deel 2).
 
 ## Techniek-checklist vooraf
 
-- Demosite (meubelmakerij-van-dijk) resetten naar het sjabloon vóór aanvang.
-- Demo-opdrachten van tevoren één keer testen (zelfde formuleringen).
-- Reserve: als de live chat hapert, de opgenomen demo-video als vangnet klaar.
-- Aanmeldingen lopen via wordswap.nl/webinar (formulier + automatische
-  bevestiging met deelnamelink staat al).
+- Demosite resetten naar sjabloon; demo-opdrachten vooraf één keer testen.
+- De "lege paginabron"-demo voorbereiden: één AI-gebouwde voorbeeldsite en één
+  klantsite naast elkaar in tabbladen.
+- Demo-video als vangnet bij haperende verbinding.
+- Aanmeldingen via wordswap.nl/webinar (staat al, incl. bevestigingsmail).
 
-## Na afloop (de eigenlijke oogst)
+## Na afloop
 
-- Zelfde dag: mail aan alle aanmelders (ook no-shows) met de opname, de
-  Jetpack-tip voor doe-het-zelvers, en de websitecheck-link.
-- Aanmelders zijn leads: check hun site alvast via de 🎯 Leads-pagina vóór je
-  mailt — wie een bedrijfssite heeft, krijgt een persoonlijke zin extra.
-- Vraag aan het eind van het webinar wie een gratis check wil: handopsteken in
-  de chat verlaagt de drempel meer dan een link alleen.
+- Zelfde dag mail aan alle aanmelders (ook no-shows): opname, het
+  SEO-lijstje uit deel 3 als korte checklist (weggever!), en de
+  websitecheck-link.
+- Aanmelders met een bedrijfssite: site alvast checken via 🎯 Leads en een
+  persoonlijke zin toevoegen.
+- In het webinar zelf: "wie wil dat ik zijn site gratis check? Zet je site in
+  de chat" — drempel lager dan een link.
