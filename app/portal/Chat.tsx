@@ -1880,7 +1880,9 @@ export default function Chat({
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
-              beeldBasis={werkversieUrl ?? liveUrl}
+              // Zonder open concept van het live-adres laden: de werkversie kan dan
+              // nog niet bestaan (demo: persoonlijke sandbox ontstaat pas bij de eerste wijziging)
+              beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               vervangDoel={fotobankDoel}
               onSluit={() => {
                 setFotobankOpen(false);
