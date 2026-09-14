@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
+import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import Chat from "@/app/portal/Chat";
@@ -99,6 +99,15 @@ export default async function KlantDetail({
       return { sleutel, label, rijen };
     }),
   );
+
+  // Feedback op de chatbeleving (duimpjes + algemene opmerkingen)
+  const feedback = await db
+    .select()
+    .from(chatFeedback)
+    .where(eq(chatFeedback.siteId, site.id))
+    .orderBy(desc(chatFeedback.id))
+    .then((r) => r.slice(0, 50))
+    .catch(() => []);
 
   const laatsteChanges = await db
     .select()
@@ -544,6 +553,49 @@ export default async function KlantDetail({
             <ActieKnop label="↺ Reset naar sjabloon" bezigLabel="Resetten... (±1 min)" className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 cursor-pointer" />
           </form>
         </div>
+      </div>
+
+      {/* Feedback op de chatbeleving: duimpjes en opmerkingen uit het portaal */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">
+          👍👎 Chat-feedback
+          {feedback.length > 0 && (
+            <span className="ml-2 text-sm font-normal text-stone-500">
+              {feedback.filter((f) => f.oordeel === "goed").length}× omhoog ·{" "}
+              {feedback.filter((f) => f.oordeel === "slecht").length}× omlaag ·{" "}
+              {feedback.filter((f) => f.oordeel === "algemeen").length}× algemeen
+            </span>
+          )}
+        </h2>
+        {feedback.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-500">Nog geen feedback ontvangen op deze site.</p>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {feedback.map((f) => (
+              <details key={f.id} className="rounded-2xl border border-stone-200 px-4 py-2.5 text-sm">
+                <summary className="cursor-pointer">
+                  <span className="mr-1.5">
+                    {f.oordeel === "goed" ? "👍" : f.oordeel === "slecht" ? "👎" : "💬"}
+                  </span>
+                  <span className={f.oordeel === "slecht" ? "font-semibold text-red-700" : "font-medium"}>
+                    {f.reden ? f.reden.slice(0, 90) : f.oordeel === "goed" ? "Goed antwoord" : "(geen reden opgegeven)"}
+                  </span>
+                  <span className="ml-2 text-xs text-stone-400">
+                    {f.aangemaakt.toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </summary>
+                <div className="mt-2 space-y-2 border-t border-stone-100 pt-2 text-xs text-stone-600">
+                  {f.reden && <p className="whitespace-pre-wrap">{f.reden}</p>}
+                  {f.antwoord && (
+                    <p className="whitespace-pre-wrap rounded-xl bg-stone-50 p-2.5 text-stone-500">
+                      🤖 {f.antwoord}
+                    </p>
+                  )}
+                </div>
+              </details>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Chatgeschiedenis: alle gesprekken op deze site, per persoon. Klanten
