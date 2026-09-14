@@ -216,9 +216,33 @@ export async function POST(req: Request) {
 
   if (websitecheckJson) return NextResponse.json({ ok: true });
 
-  // Eigen bedankt-pagina van de site? Daarheen doorsturen.
-  if (bedanktPad && site?.domein) {
-    return NextResponse.redirect(`https://${site.domein}${bedanktPad}`, 303);
+  // Eigen bedankt-pagina van de site? Daarheen doorsturen — naar dezelfde
+  // host als waar het formulier werd ingevuld (live domein óf een werkversie/
+  // concept op *.wordswap.workers.dev), zodat testen vanuit het concept niet
+  // op de live site belandt waar de pagina nog niet bestaat.
+  if (bedanktPad) {
+    const herkomst = req.headers.get("referer") ?? req.headers.get("origin") ?? "";
+    let host: string | null = null;
+    try {
+      host = herkomst ? new URL(herkomst).host : null;
+    } catch {
+      host = null;
+    }
+    const eigenHosts = new Set(
+      [
+        site?.domein,
+        site?.domein ? `www.${site.domein}` : null,
+        site?.githubRepo ? `${site.githubRepo}.wordswap.workers.dev` : null,
+      ].filter(Boolean) as string[],
+    );
+    const magTerug =
+      host && (eigenHosts.has(host) || host.endsWith(".wordswap.workers.dev"));
+    if (magTerug) {
+      return NextResponse.redirect(`https://${host}${bedanktPad}`, 303);
+    }
+    if (site?.domein) {
+      return NextResponse.redirect(`https://${site.domein}${bedanktPad}`, 303);
+    }
   }
 
   return new Response(
