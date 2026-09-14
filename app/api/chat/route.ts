@@ -165,10 +165,12 @@ export async function POST(req: Request) {
       let n = 2;
       while (gebruikteNamen.has(naam)) naam = `${basisnaam}-${n++}`;
       gebruikteNamen.add(naam);
+      // 1600px/q78 houdt ook een herofoto scherp maar licht (~200 kB);
+      // zwaardere instellingen gaven meetbaar trage sites (RoelArt-leerpunt).
       const data = await sharp(Buffer.from(await file.arrayBuffer()))
         .rotate()
-        .resize({ width: 2000, withoutEnlargement: true })
-        .webp({ quality: 82 })
+        .resize({ width: 1600, withoutEnlargement: true })
+        .webp({ quality: 78 })
         .toBuffer();
       afbeeldingen.push({ naam: `afbeeldingen/${naam}.webp`, data });
     }
