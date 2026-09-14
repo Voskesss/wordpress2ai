@@ -3,9 +3,9 @@ import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
-  title: "Je website aansturen met AI — verder dan WordPress",
+  title: "Je WordPress-website omzetten en via AI aanpassen",
   description:
-    "Laat je bestaande WordPress-site overzetten. Daarna vraag je tekst- en fotowijzigingen aan via AI-chat en publiceer je na controle.",
+    "Je WordPress-website omzetten zodat je hem via AI kunt aanpassen? WordSwap zet je bestaande site over (zelfde ontwerp en adressen) en daarna wijzig je alles door het gewoon te typen. Vanaf €150, eerst zien dan betalen.",
   alternates: {
     canonical: "/wordpress-aansturen-met-ai",
   },
@@ -16,10 +16,10 @@ export default function Pagina() {
     <SeoLanding
       data={{
         slug: "wordpress-aansturen-met-ai",
-        label: "Website aansturen met AI",
-        titel: "WordPress achterlaten. Je website aansturen met AI.",
+        label: "Omzetten en via AI aanpassen",
+        titel: "Je WordPress-website omzetten om hem via AI aan te passen",
         intro:
-          "Je bedrijf verandert. Je website moet mee kunnen veranderen. WordSwap neemt je bestaande ontwerp en inhoud zorgvuldig over naar een website zonder WordPress. Daarna vraag je een wijziging, bekijk je het voorstel en zet je het zelf live.",
+          "Wil je je WordPress-website omzetten zodat je hem via AI kunt aanpassen? Dat kan op drie manieren: AI-plugins ín WordPress (je houdt het onderhoud), een AI-sitebouwer (je begint opnieuw), of de WordSwap-route: wij zetten je bestáánde site om naar een snelle website zonder WordPress — zelfde ontwerp, zelfde adressen — en daarna pas je hem aan door in gewone taal te typen wat er anders moet. Je ziet elk voorstel eerst en zet het zelf live.",
         blokken: [
           {
             kop: "Begin met één duidelijke vraag",
@@ -53,6 +53,16 @@ export default function Pagina() {
             vraag: "Wat als een wijziging verkeerd is?",
             antwoord:
               "Je kunt het concept laten aanpassen. Na publicatie kan een eerdere versie worden teruggezet. Controleer daarna ook of het herstel goed zichtbaar is.",
+          },
+          {
+            vraag: "Hoe zet ik mijn WordPress-website om zodat ik hem via AI kan aanpassen?",
+            antwoord:
+              "Je hoeft er zelf niets voor te doen: wij maken vanaf je live site een exacte kopie zonder WordPress, met behoud van ontwerp, teksten en pagina-adressen. Je beoordeelt de kopie gratis; pas als je tevreden bent stap je over. Daarna pas je alles aan via de ingebouwde AI-chat — typen wat er anders moet is genoeg.",
+          },
+          {
+            vraag: "Kan ik mijn WordPress-site ook via AI aanpassen zónder over te stappen?",
+            antwoord:
+              "Ja, met AI-plugins zoals Jetpack AI krijg je schrijfhulp binnen WordPress — prima als je vooral veel blogt. Het WordPress-onderhoud (updates, plugins, hosting) houd je dan wel. Wil je juist van dat onderhoud af én via AI blijven aanpassen, dan is omzetten naar een statische site de completere route.",
           },
           { vraag: "Wat kost het?", antwoord: aanbod.prijs },
         ],

@@ -14,6 +14,7 @@ ${aanbod.seo}
 - [Partners](https://wordswap.nl/partners): samenwerken rond bestaande WordPress-klantsites
 - [Volledig overzicht](https://wordswap.nl/llms-full.txt): aanbod, prijzen, beperkingen en vragen
 - [Home](https://wordswap.nl/): WordPress overzetten en daarna wijzigen via AI-chat
+- [WordPress omzetten en via AI aanpassen](https://wordswap.nl/wordpress-aansturen-met-ai): je bestaande WordPress-website omzetten zodat je hem via AI aanpast door te typen wat er anders moet — de drie routes vergeleken (plugins, AI-bouwers, overstap)
 - [Prijzen](https://wordswap.nl/prijzen): hosting, AI-gebruik, btw en aanvullende kosten
 - [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): van websitecheck tot goedgekeurde overstap
 - [Eigen AI](https://wordswap.nl/eigen-ai-koppelen): ingebouwde chat, teksten voorbereiden, expert-route en geplande koppeling
