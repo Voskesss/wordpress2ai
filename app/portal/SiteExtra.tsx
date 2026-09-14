@@ -113,7 +113,7 @@ export default async function SiteExtra({
                     <input type="hidden" name="siteId" value={siteId} />
                     <input type="hidden" name="actie" value="archiveer" />
                     <button type="submit" className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer">
-                      ✓ Afgehandeld
+                      Markeer als afgehandeld
                     </button>
                   </form>
                   <form action={inzendingVerwerken}>
