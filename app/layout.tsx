@@ -230,6 +230,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 </Link>
                 <Link href="/veiligheid">Veiligheid & controle</Link>
                 <Link href="/seo-behoud">SEO bij de overstap</Link>
+                <Link href="/ai-website">Goedkope AI-website? Let hierop</Link>
                 <Link href="/eigen-ai-koppelen">Je eigen AI koppelen</Link>
                 <Link href="/zelf-doen">Zelf aan de slag</Link>
               </nav>
