@@ -41,3 +41,6 @@ Lees dit vóór elke migratie. Leer je iets nieuws: voeg het hier direct toe (da
 - Cache: alles `no-cache` (browser controleert altijd, krijgt 304) behalve video en lettertypen (1 uur). Met `max-age=60` op css zag Jos na publiceren nog een minuut de oude knopkleur — juist wat we wilden voorkomen.
 - `www.` → kaal domein is een 301 in het leesscript; canonical-tags wijzen dus altijd naar het kale domein.
 - Het uurlijkse demo-reset op Vercel deployt met de code die dáár draait: tot de merge naar main zette het de demo-workers terug op assets. Na de merge is dat vanzelf R2.
+
+## Beelden: 1200px/q78 + lazy-loading (RoelArt, sept 2026)
+Max 2000px/q82 leverde bij schilderij-foto's ~500 kB per beeld op → mobiele LCP van 19s, drie keer trager dan de oude WordPress-site. Voortaan: contentbeelden naar **max 1200px breed, webp q78** (heroes/panorama's mogen 1600px), en élk `<img>` behalve de hero krijgt `loading="lazy" decoding="async"`. Controleer na de bouw: geen beeld boven ~250 kB zonder goede reden, en draai in gedachten de PageSpeed-check — wij verkopen "sneller zonder WordPress", dus de kopie moet dat ook meetbaar zíjn.
