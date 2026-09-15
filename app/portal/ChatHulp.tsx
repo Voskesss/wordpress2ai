@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function ChatHulp() {
+export default function ChatHulp({ onInChat }: { onInChat?: (vraag: string) => void }) {
   const [vraag, setVraag] = useState("");
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState<{ goed: boolean; tekst: string } | null>(null);
@@ -19,7 +19,13 @@ export default function ChatHulp() {
       });
       const uit = (await res.json()) as { ok?: boolean; error?: string };
       if (uit.ok) {
-        setMelding({ goed: true, tekst: "Verstuurd! Jos mailt je zo snel mogelijk terug." });
+        setMelding({
+          goed: true,
+          tekst: onInChat
+            ? "Verstuurd naar Jos! Ik leg je vraag ondertussen ook aan je website voor — grote kans dat je hieronder al antwoord krijgt."
+            : "Verstuurd! Jos mailt je zo snel mogelijk terug.",
+        });
+        onInChat?.(vraag.trim());
         setVraag("");
       } else {
         setMelding({ goed: false, tekst: uit.error ?? "Versturen mislukte." });

@@ -296,6 +296,35 @@ export default function Chat({
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
+  // Hulpvraag die óók naar Jos is gemaild: na het chat-antwoord vragen we of
+  // de klant zo geholpen is, of dat Jos alsnog contact moet opnemen.
+  const [hulpvraagOpen, setHulpvraagOpen] = useState<string | null>(null);
+  function hulpvraagInChat(vraag: string) {
+    setHulpvraagOpen(vraag);
+    setChatOpen(true);
+    void verstuur(`Hulpvraag (ook naar Jos gemaild): ${vraag}`);
+  }
+  async function hulpvraagVervolg(vervolg: "opgelost" | "contact") {
+    const vraag = hulpvraagOpen;
+    setHulpvraagOpen(null);
+    if (vraag) {
+      void fetch("/api/portal/hulpvraag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tekst: vraag, vervolg }),
+      }).catch(() => {});
+    }
+    setBerichten((b) => [
+      ...b,
+      {
+        rol: "assistent",
+        tekst:
+          vervolg === "opgelost"
+            ? "Fijn! Ik heb Jos laten weten dat het al is opgelost."
+            : "Doorgegeven — Jos neemt persoonlijk contact met je op.",
+      },
+    ]);
+  }
   // Wachtbeleving: hoe lang loopt de huidige beurt, en hoe lang duurde het
   // meestal (mediaan van de laatste beurten, per site in de browser bewaard)?
   const [wachtSec, setWachtSec] = useState(0);
@@ -1693,7 +1722,7 @@ export default function Chat({
                   "relative z-10 mx-auto w-[min(96%,44rem)] lg:w-[min(94%,52rem)] xl:w-[min(92%,62rem)] 2xl:w-[min(90%,72rem)] pb-3"
           }
         >
-          <ChatHulp />
+          <ChatHulp onInChat={hulpvraagInChat} />
           {herstelFout && (
             <div role="alert" className="mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-950">
               <p>{herstelFout.tekst}</p>
@@ -1953,6 +1982,28 @@ export default function Chat({
                                   : keuze}
                             </button>
                           ))}
+                        </div>
+                      )}
+                    {i === berichten.length - 1 &&
+                      m.rol === "assistent" &&
+                      hulpvraagOpen &&
+                      !bezig && (
+                        <div className="mt-2">
+                          <p className="text-xs text-stone-500">Ben je hiermee geholpen?</p>
+                          <div className="mt-1.5 flex flex-wrap gap-2">
+                            <button
+                              onClick={() => hulpvraagVervolg("opgelost")}
+                              className="rounded-full bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+                            >
+                              ✅ Ja, zo geholpen
+                            </button>
+                            <button
+                              onClick={() => hulpvraagVervolg("contact")}
+                              className="rounded-full border border-violet-300 bg-white px-4 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer"
+                            >
+                              📞 Laat Jos toch contact opnemen
+                            </button>
+                          </div>
                         </div>
                       )}
                     {i === berichten.length - 1 &&
