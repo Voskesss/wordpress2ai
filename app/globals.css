@@ -1689,3 +1689,21 @@ main p {
 @media (max-width: 767px) {
   .hero-example > .eyebrow { font-size: 9px; }
 }
+
+/* Knipperend typ-streepje in het homepage-voorbeeld */
+.demo-caret {
+  display: inline-block;
+  margin-left: 1px;
+  color: #31956b;
+  animation: demo-caret-knipper 0.9s steps(1) infinite;
+}
+@keyframes demo-caret-knipper {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-caret {
+    animation: none;
+  }
+}

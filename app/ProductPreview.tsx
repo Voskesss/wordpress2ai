@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trackMarketing } from "./MarketingEvents";
 const examples = [
   {
@@ -36,10 +36,58 @@ export default function ProductPreview() {
   const [stage, setStage] = useState<"before" | "preview" | "published">(
     "before",
   );
+  // Speelt één keer vanzelf af zodra het voorbeeld in beeld komt; elke
+  // interactie van de bezoeker neemt het meteen over.
+  const [autoplay, setAutoplay] = useState(true);
+  const [typedChars, setTypedChars] = useState<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const published = stage === "published";
   const example = examples[selected];
+  useEffect(() => {
+    if (!autoplay) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setAutoplay(false);
+      return;
+    }
+    const el = wrapRef.current;
+    if (!el) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        observer.disconnect();
+        const vraag = [...examples[0].question];
+        timers.push(setTimeout(() => setTypedChars(0), 700));
+        vraag.forEach((_, i) =>
+          timers.push(setTimeout(() => setTypedChars(i + 1), 700 + 45 * i)),
+        );
+        timers.push(
+          setTimeout(
+            () => {
+              setTypedChars(null);
+              setStage("preview");
+            },
+            700 + 45 * vraag.length + 900,
+          ),
+        );
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      timers.forEach(clearTimeout);
+    };
+  }, [autoplay]);
+  const stopAutoplay = () => {
+    setAutoplay(false);
+    setTypedChars(null);
+  };
   return (
-    <div className="product-demo">
+    <div className="product-demo" ref={wrapRef}>
       <div className="demo-top">
         <span className="demo-dots" aria-hidden="true">
           ● ● ●
@@ -89,6 +137,7 @@ export default function ProductPreview() {
               type="button"
               aria-pressed={index === selected}
               onClick={() => {
+                stopAutoplay();
                 setSelected(index);
                 setStage("before");
                 trackMarketing("example_select", { example: item.label });
@@ -98,7 +147,12 @@ export default function ProductPreview() {
             </button>
           ))}
         </div>
-        <p className="chat-question">{example.question}</p>
+        <p className="chat-question">
+          {typedChars !== null
+            ? [...example.question].slice(0, typedChars).join("")
+            : example.question}
+          {typedChars !== null && <span className="demo-caret">▍</span>}
+        </p>
         <p className="chat-answer" aria-live="polite">
           <span aria-hidden="true">✳</span>
           {stage === "before"
@@ -117,6 +171,7 @@ export default function ProductPreview() {
             type="button"
             disabled={published}
             onClick={() => {
+              stopAutoplay();
               setStage(stage === "before" ? "preview" : "published");
               trackMarketing(
                 stage === "before" ? "example_preview" : "example_approve",
