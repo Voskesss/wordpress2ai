@@ -123,7 +123,7 @@ export default function Chat({
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
   const [herstelFout, setHerstelFout] = useState<{ soort: "gesprek" | "bericht" | "publiceer" | "verwerp"; tekst: string } | null>(null);
-  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; pagina: string } | null>(null);
+  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto: string | null; pagina: string } | null>(null);
 
   const [bezig, setBezigState] = useState(false);
   const bezigRef = useRef(false);
@@ -211,6 +211,8 @@ export default function Chat({
   const [seoOpen, setSeoOpen] = useState(false);
   const [fotobankOpen, setFotobankOpen] = useState(false);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
+  // Uit de fotobank gekozen foto om in de volgende chatopdracht te gebruiken
+  const [fotobankKeuze, setFotobankKeuze] = useState<string | null>(null);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Grote schermen: standaard de gesplitste weergave (site links, gesprek
@@ -330,6 +332,7 @@ export default function Chat({
     video: { commandId: string; naam: string } | null;
     sel: Selectie | null;
     kleur: string | null;
+    bankFoto: string | null;
   } | null>(null);
 
   /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
@@ -654,7 +657,7 @@ export default function Chat({
   async function verstuur(
     overrideTekst?: unknown,
     overrideAfbeelding?: File,
-    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null },
+    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto?: string | null },
     extra?: { controle?: boolean }
   ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
@@ -668,12 +671,14 @@ export default function Chat({
         video: videoKlaarRef.current ?? q?.video ?? null,
         sel: selectie ?? q?.sel ?? null,
         kleur: kleur ?? q?.kleur ?? null,
+        bankFoto: fotobankKeuze ?? q?.bankFoto ?? null,
       };
       setInvoer("");
       setAfbeeldingen([]);
       setVideoKlaar(null);
       setSelectie(null);
       setKleur(null);
+      setFotobankKeuze(null);
       setChatOpen(true);
       setBerichten((b) => [
         ...b,
@@ -693,6 +698,8 @@ export default function Chat({
     setSelectie(null);
     const gekozenKleur = uitWachtrij ? uitWachtrij.kleur : kleur;
     setKleur(null);
+    const gekozenBankFoto = uitWachtrij ? (uitWachtrij.bankFoto ?? null) : fotobankKeuze;
+    setFotobankKeuze(null);
     if (!uitWachtrij) {
       setBerichten((b) => [
         ...b,
@@ -701,7 +708,7 @@ export default function Chat({
     }
     setBezig(true);
     setStatusTekst(teVersturen.length > 0 ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...` : null);
-    const opdracht = { tekst, fotos: teVersturen, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, pagina: huidigePagina };
+    const opdracht = { tekst, fotos: teVersturen, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, bankFoto: gekozenBankFoto, pagina: huidigePagina };
     let gelukt = false;
     const stopper = new AbortController();
     stopRef.current = stopper;
@@ -716,6 +723,7 @@ export default function Chat({
           if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
           if (gekozen) form.set("selectie", JSON.stringify(gekozen));
           if (gekozenKleur) form.set("kleur", gekozenKleur);
+          if (gekozenBankFoto) form.set("fotobankPad", gekozenBankFoto);
           if (extra?.controle) { form.set("controle", "1"); form.set("apparaat", apparaat); }
           return fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
         }
@@ -729,6 +737,7 @@ export default function Chat({
             huidigePagina,
             selectie: gekozen ?? undefined,
             kleur: gekozenKleur ?? undefined,
+            fotobankPad: gekozenBankFoto ?? undefined,
             videoCommandId: meegestuurdeVideo?.commandId,
             controle: extra?.controle || undefined,
             apparaat: extra?.controle ? apparaat : undefined,
@@ -856,7 +865,7 @@ export default function Chat({
       const q = wachtrijRef.current;
       if (q && gelukt) {
         wachtrijRef.current = null;
-        void verstuur(q.tekst, undefined, { fotos: q.fotos, video: q.video, sel: q.sel, kleur: q.kleur });
+        void verstuur(q.tekst, undefined, { fotos: q.fotos, video: q.video, sel: q.sel, kleur: q.kleur, bankFoto: q.bankFoto });
       }
       setStatusTekst(null);
     }
@@ -1212,6 +1221,7 @@ export default function Chat({
     setVideoKlaar(opdracht.video);
     setSelectie(opdracht.sel);
     setKleur(opdracht.kleur);
+    setFotobankKeuze(opdracht.bankFoto);
     setHuidigePagina(opdracht.pagina);
     huidigeRef.current = opdracht.pagina;
     setHerstelFout(null);
@@ -1999,6 +2009,12 @@ export default function Chat({
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
+              onGebruik={(pad) => {
+                setFotobankKeuze(pad);
+                setFotobankOpen(false);
+                setChatOpen(true);
+                invoerRef.current?.focus();
+              }}
               // Zonder open concept van het live-adres laden: de werkversie kan dan
               // nog niet bestaan (demo: persoonlijke sandbox ontstaat pas bij de eerste wijziging)
               beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
@@ -2218,6 +2234,25 @@ export default function Chat({
             </div>
           )}
 
+          {/* Uit de fotobank gekozen foto */}
+          {fotobankKeuze && (
+            <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
+                  <span className="font-semibold">Foto uit de bank:</span>{" "}
+                  {fotobankKeuze.split("/").pop()}
+                  <span className="text-violet-600"> — vertel hieronder wat ermee moet gebeuren</span>
+                </p>
+                <button
+                  onClick={() => setFotobankKeuze(null)}
+                  aria-label="Foto-keuze wissen"
+                  className="shrink-0 cursor-pointer text-violet-400 hover:text-violet-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
           {/* Aangewezen onderdeel */}
           {selectie && (
             <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">

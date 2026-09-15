@@ -12,6 +12,7 @@ export default function Fotobank({
   vervangDoel,
   onKlaar,
   onSluit,
+  onGebruik,
 }: {
   siteId: number;
   /** Gezet vanuit de aanwijs-flow: de foto die vervangen wordt — de bank
@@ -26,6 +27,9 @@ export default function Fotobank({
     bestanden?: string[];
   }) => void;
   onSluit: () => void;
+  /** Bladeren zonder vervangdoel: foto kiezen om in een chatopdracht te
+   * gebruiken ("zet deze foto op ..."). */
+  onGebruik?: (pad: string) => void;
 }) {
   const [beelden, setBeelden] = useState<Beeld[] | null>(null);
   const [fout, setFout] = useState<string | null>(null);
@@ -97,7 +101,7 @@ export default function Fotobank({
       <p className="mt-1 text-xs text-stone-500">
         {vervangDoel
           ? "Klik een foto aan en hij komt op de plek van de aangewezen foto te staan (als concept — jij publiceert). Liever een nieuw bestand? Gebruik dan de knop \"Vervang deze foto\"."
-          : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Vervangen? Wijs de foto op de site aan en kies daar \"Kies uit de fotobank\"."}
+          : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Klik \"Gebruik in opdracht\" en vertel in de chat wat er met de foto moet gebeuren. Een foto op de site vervangen? Wijs hem aan en kies daar \"Kies uit de fotobank\"."}
       </p>
       <label className="mt-2 flex items-center gap-2 text-xs text-stone-600">
         <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
@@ -151,6 +155,14 @@ export default function Fotobank({
                   className="mt-1 cursor-pointer rounded-full border border-violet-300 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
                 >
                   {bezigMet === b.pad ? "Bezig..." : "Gebruik deze"}
+                </button>
+              )}
+              {!vervangDoel && onGebruik && (
+                <button
+                  onClick={() => onGebruik(b.pad)}
+                  className="mt-1 cursor-pointer rounded-full border border-violet-300 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                >
+                  Gebruik in opdracht
                 </button>
               )}
             </div>

@@ -126,6 +126,8 @@ export async function POST(req: Request) {
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
+  // Uit de fotobank gekozen foto waar het bericht over gaat
+  let fotobankPad: string | null = null;
   // "Klopt niet, kijk zelf even": de AI krijgt een schermafbeelding van wat de eigenaar ziet
   let controle = false;
   let apparaat: "telefoon" | "tablet" | "desktop" = "desktop";
@@ -147,6 +149,10 @@ export async function POST(req: Request) {
       if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
     }
     videoCommandId = String(form.get("videoCommandId") ?? "") || undefined;
+    {
+      const f = String(form.get("fotobankPad") ?? "");
+      if (/^[\w./-]{1,200}$/.test(f) && !f.includes("..")) fotobankPad = f;
+    }
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     const files = form
@@ -193,6 +199,7 @@ export async function POST(req: Request) {
       videoCommandId?: string;
       huidigePagina?: string;
       selectie?: Selectie;
+      fotobankPad?: string;
       kleur?: string;
       controle?: boolean;
       apparaat?: string;
@@ -204,6 +211,10 @@ export async function POST(req: Request) {
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
+    {
+      const f = String(body.fotobankPad ?? "");
+      if (/^[\w./-]{1,200}$/.test(f) && !f.includes("..")) fotobankPad = f;
+    }
     if (typeof body.kleur === "string" && /^#[0-9a-fA-F]{6}$/.test(body.kleur))
       kleur = body.kleur;
   }
@@ -387,7 +398,7 @@ export async function POST(req: Request) {
     // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
     // bericht een pure, letterlijke tekstwissel is die zonder agent kan.
     const snelBelofte =
-      afbeeldingen.length === 0 && !videoCommandId && !selectie && !kleur && !controle
+      afbeeldingen.length === 0 && !videoCommandId && !selectie && !kleur && !controle && !fotobankPad
         ? classificeerTekstwissel(bericht).catch(() => null)
         : Promise.resolve(null);
 
@@ -575,6 +586,9 @@ export async function POST(req: Request) {
               : null,
             kleur
               ? `De eigenaar heeft met de kleurkiezer een kleur gekozen: ${kleur}. Gebruik EXACT deze kleurcode voor wat hij in het bericht vraagt (en pas waar logisch ook hover-/accentvarianten aan zodat het consistent blijft).`
+              : null,
+            fotobankPad
+              ? `De eigenaar heeft in de fotobank de foto "${fotobankPad}" gekozen — zijn bericht gaat over déze foto. Het bestand staat al in de werkmap (BEKIJK hem eerst met lees_bestand); plaats of gebruik hem zoals gevraagd en vraag nooit om hem opnieuw te sturen.`
               : null,
             selectie
               ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
