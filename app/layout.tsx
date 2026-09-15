@@ -19,6 +19,10 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
   axes: ["opsz", "SOFT", "WONK"],
+  // De sierletter is 118 KiB en is alleen decoratie voor koppen: niet
+  // voorladen, zodat de eerste weergave niet op deze download wacht.
+  // Door font-display: swap verschijnen de koppen meteen in de terugvalletter.
+  preload: false,
 });
 
 const siteUrl = "https://wordswap.nl";

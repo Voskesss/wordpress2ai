@@ -315,7 +315,7 @@ main p {
   justify-content: space-between;
   gap: 8px;
   font-size: 8px;
-  color: #6d7a65;
+  color: #525c4a;
   padding: 1px 0 14px;
 }
 .demo-dots {
@@ -357,7 +357,7 @@ main p {
 .demo-site-content .eyebrow {
   font-size: 7px;
 }
-.demo-site-content h3 {
+.demo-site-content .demo-site-kop {
   font-family: var(--font-fraunces), Georgia, serif;
   font-size: 27px;
   line-height: 1.12;
@@ -498,7 +498,7 @@ main p {
   padding-top: 12px;
   border-top: 1px solid #edf0e7;
   font-size: 8px;
-  color: #79806e;
+  color: #565e4d;
 }
 .demo-publish button {
   background: #245747;
@@ -516,7 +516,7 @@ main p {
 .demo-caption {
   font-size: 8px;
   text-align: center;
-  color: #67735e;
+  color: #525c4a;
   margin-top: 12px;
 }
 .demo-caption a {
@@ -556,7 +556,7 @@ main p {
   max-width: 310px;
   font-size: 14px;
   line-height: 1.8;
-  color: #70796b;
+  color: #565e51;
 }
 .benefit-grid {
   display: grid;
@@ -585,7 +585,7 @@ main p {
 .founder-section > div > p:not(.eyebrow) {
   font-size: 14px;
   line-height: 1.8;
-  color: #687463;
+  color: #525c4a;
 }
 .process-section {
   background: #eff3e8;
@@ -677,7 +677,7 @@ main p {
 }
 .fine-print {
   font-size: 10px;
-  color: #738068;
+  color: #576149;
   line-height: 1.7;
   margin-top: 14px;
 }
@@ -706,7 +706,7 @@ main p {
 }
 .founder-mark > p > span {
   letter-spacing: 0;
-  color: #77816c;
+  color: #576149;
 }
 .founder-photo {
   border-radius: 50%;
@@ -884,7 +884,7 @@ main p {
   .shell {
     width: calc(100% - 40px);
   }
-  .demo-site-content h3 {
+  .demo-site-content .demo-site-kop {
     max-width: 180px;
     font-size: 24px;
   }
@@ -910,7 +910,7 @@ main p {
     width: 100%;
     margin-inline: auto;
   }
-  .demo-site-content h3 {
+  .demo-site-content .demo-site-kop {
     max-width: 230px;
     font-size: 30px;
   }
@@ -1091,7 +1091,7 @@ main p {
 }
 .demo-top {
   font-size: 10px;
-  color: #7b705d;
+  color: #5d5443;
 }
 .demo-status {
   font-size: 9px;
@@ -1102,7 +1102,7 @@ main p {
 .demo-site-content {
   min-height: 190px;
 }
-.marketing-home .demo-site-content h3 {
+.marketing-home .demo-site-content .demo-site-kop {
   font-family: var(--font-fraunces), Georgia, serif;
   font-size: 30px;
   font-weight: 450;
@@ -1289,7 +1289,7 @@ main p {
   .demo-publish {
     flex-wrap: wrap;
   }
-  .marketing-home .demo-site-content h3 {
+  .marketing-home .demo-site-content .demo-site-kop {
     max-width: 185px;
     font-size: 29px;
   }
@@ -1655,7 +1655,7 @@ main p {
 .verhaal-section { display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: 56px; padding-block: 64px; }
 .verhaal-beeld { margin: 0; min-width: 0; }
 .verhaal-beeld img { display: block; width: 100%; height: auto; border-radius: 12px; }
-.verhaal-beeld figcaption { margin-top: 8px; font-size: 10px; color: #777a72; }
+.verhaal-beeld figcaption { margin-top: 8px; font-size: 10px; color: #585b53; }
 .verhaal-copy h2 { font-size: clamp(28px, 3vw, 40px); line-height: 1.16; letter-spacing: -.035em; margin: 18px 0; }
 .verhaal-copy > p:not(.eyebrow) { font-size: 17px; line-height: 1.8; color: #566054; margin-bottom: 24px; }
 .verhaal-wide { max-width: 920px; padding-bottom: 20px; }

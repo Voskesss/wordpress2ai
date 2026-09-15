@@ -104,7 +104,7 @@ export default function ProductPreview() {
         </div>
         <div className="demo-site-content">
           <span className="eyebrow">RUIMTE VOOR GROEN</span>
-          <h3>{example.title}</h3>
+          <p className="demo-site-kop">{example.title}</p>
           <p className={stage === "before" ? "" : "demo-change-highlight"}>
             {stage === "before" ? example.before : example.detail}
           </p>
