@@ -290,3 +290,35 @@ export const aankondigingen = pgTable("aankondigingen", {
   actief: boolean("actief").notNull().default(true),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Maandabonnementen via Mollie (eerste betaling iDEAL → machtiging → maandelijkse SEPA-incasso)
+export const abonnementen = pgTable("abonnementen", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull().unique(),
+  email: text("email").notNull(),
+  naam: text("naam").notNull(),
+  maandbedragCent: integer("maandbedrag_cent").notNull(), // exclusief btw
+  status: text("status", {
+    enum: ["wacht_op_eerste", "actief", "mislukt", "gestopt"],
+  })
+    .notNull()
+    .default("wacht_op_eerste"),
+  mollieCustomerId: text("mollie_customer_id"),
+  mollieMandateId: text("mollie_mandate_id"),
+  mollieSubscriptionId: text("mollie_subscription_id"),
+  betaallink: text("betaallink"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+});
+
+export const betalingen = pgTable("betalingen", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  molliePaymentId: text("mollie_payment_id").notNull().unique(),
+  soort: text("soort", { enum: ["eerste", "maand"] }).notNull(),
+  bedragCent: integer("bedrag_cent").notNull(), // inclusief btw, zoals afgeschreven
+  status: text("status").notNull(),
+  omschrijving: text("omschrijving"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+});

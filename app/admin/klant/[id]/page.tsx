@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
+import { abonnementen, betalingen, changes, chatFeedback, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
+import { mailBetaallink, startAbonnement, stopAbonnement } from "../../acties-abonnement";
+import { euroTekst, inclBtwCent, isTestmodus } from "@/lib/mollie";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import Chat from "@/app/portal/Chat";
@@ -60,16 +62,34 @@ async function clerkGebruiker(userId: string) {
 
 export default async function KlantDetail({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ abonnement?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
+  const { abonnement: abonnementMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) notFound();
+
+  // Maandelijkse incasso via Mollie
+  const [abonnement] = await db
+    .select()
+    .from(abonnementen)
+    .where(eq(abonnementen.siteId, site.id))
+    .catch(() => []);
+  const betaalHistorie = await db
+    .select()
+    .from(betalingen)
+    .where(eq(betalingen.siteId, site.id))
+    .orderBy(desc(betalingen.id))
+    .then((r) => r.slice(0, 12))
+    .catch(() => []);
+  const klantInfo = abonnement ? null : await clerkGebruiker(site.clerkUserId);
 
   const maand = new Date().toISOString().slice(0, 7);
   const [verbruik] = await db
@@ -655,6 +675,109 @@ export default async function KlantDetail({
               </details>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Maandelijkse incasso (Mollie) */}
+      <div id="abonnement" className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="font-display text-xl font-semibold">💶 Maandelijkse incasso</h2>
+          {abonnement && (
+            <span
+              className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                abonnement.status === "actief"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : abonnement.status === "mislukt"
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-stone-200 bg-stone-50 text-stone-600"
+              }`}
+            >
+              {{ wacht_op_eerste: "wacht op eerste betaling", actief: "actief", mislukt: "laatste incasso mislukt", gestopt: "gestopt" }[abonnement.status]}
+            </span>
+          )}
+          {isTestmodus() && (
+            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+              testmodus: er gaat geen echt geld om
+            </span>
+          )}
+        </div>
+        {abonnementMelding && (
+          <p className="mt-3 rounded-xl bg-violet-50 px-4 py-2.5 text-sm text-violet-900">{abonnementMelding}</p>
+        )}
+
+        {abonnement && abonnement.status !== "gestopt" ? (
+          <div className="mt-3 space-y-3 text-sm text-stone-700">
+            <p>
+              <strong>{abonnement.naam}</strong> · {abonnement.email} ·{" "}
+              <strong>{euroTekst(abonnement.maandbedragCent)}</strong> per maand excl. btw (
+              {euroTekst(inclBtwCent(abonnement.maandbedragCent))} incl. btw)
+            </p>
+            {abonnement.status === "wacht_op_eerste" && abonnement.betaallink && (
+              <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+                <p className="text-xs text-stone-500">Betaallink voor de eerste maand (geeft meteen de machtiging):</p>
+                <input readOnly value={abonnement.betaallink} className={`${invoerStijl} select-all`} />
+                <form action={mailBetaallink} className="mt-2">
+                  <input type="hidden" name="siteId" value={site.id} />
+                  <ActieKnop label="✉️ Mail deze link naar de klant" bezigLabel="Mailen..." className="rounded-full bg-[#31956B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#245747] cursor-pointer" />
+                </form>
+              </div>
+            )}
+            {abonnement.status === "actief" && (
+              <p>Mollie schrijft elke maand automatisch af. Mislukt een incasso, dan krijg je een mail en staat hier een rode melding.</p>
+            )}
+            {abonnement.status === "mislukt" && (
+              <p className="text-red-800">
+                De laatste incasso is mislukt. Neem contact op met de klant. Lukt het daarna nog steeds niet, stop de incasso en maak een nieuwe betaallink.
+              </p>
+            )}
+            <form action={stopAbonnement}>
+              <input type="hidden" name="siteId" value={site.id} />
+              <ActieKnop label="Incasso stoppen" bezigLabel="Stoppen..." className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 cursor-pointer" />
+            </form>
+          </div>
+        ) : (
+          <form action={startAbonnement} className="mt-3 grid gap-3 sm:grid-cols-4 items-end">
+            <input type="hidden" name="siteId" value={site.id} />
+            <label className="block text-sm font-semibold sm:col-span-1">
+              Naam klant
+              <input name="naam" required defaultValue={abonnement?.naam ?? klantInfo?.naam ?? ""} className={invoerStijl} />
+            </label>
+            <label className="block text-sm font-semibold sm:col-span-2">
+              E-mailadres
+              <input name="email" type="email" required defaultValue={abonnement?.email ?? (klantInfo?.email !== "onbekend" ? klantInfo?.email : site.uitnodigingEmail) ?? ""} className={invoerStijl} />
+            </label>
+            <label className="block text-sm font-semibold">
+              € per maand (excl. btw)
+              <input name="bedrag" inputMode="decimal" required defaultValue={abonnement ? String(abonnement.maandbedragCent / 100) : "12"} className={invoerStijl} />
+            </label>
+            <div className="sm:col-span-4">
+              <ActieKnop label="Betaallink aanmaken" bezigLabel="Aanmaken bij Mollie..." className="rounded-full bg-[#31956B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#245747] cursor-pointer" />
+              <p className="mt-2 text-xs text-stone-500">
+                De klant betaalt de eerste maand via iDEAL (met 21% btw erbij) en geeft daarmee de machtiging. Daarna start de maandelijkse incasso vanzelf.
+              </p>
+            </div>
+          </form>
+        )}
+
+        {betaalHistorie.length > 0 && (
+          <details className="mt-4">
+            <summary className="cursor-pointer text-sm font-semibold text-stone-700">Betalingen ({betaalHistorie.length})</summary>
+            <ul className="mt-2 divide-y divide-stone-100 text-sm">
+              {betaalHistorie.map((b) => (
+                <li key={b.id} className="flex flex-wrap justify-between gap-2 py-1.5">
+                  <span>
+                    {b.aangemaakt.toLocaleDateString("nl-NL")} · {b.soort === "eerste" ? "eerste maand" : "maandincasso"}
+                  </span>
+                  <span>
+                    {euroTekst(b.bedragCent)} ·{" "}
+                    <strong className={b.status === "paid" ? "text-emerald-700" : ["failed", "expired", "canceled"].includes(b.status) ? "text-red-700" : "text-stone-500"}>
+                      {({ paid: "betaald", open: "open", pending: "in behandeling", failed: "mislukt", expired: "verlopen", canceled: "geannuleerd" } as Record<string, string>)[b.status] ?? b.status}
+                    </strong>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </div>
 
