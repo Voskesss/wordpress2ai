@@ -39,7 +39,7 @@ export default function Pagina() {
           {
             vraag: "Wat als ik later weer WordPress wil?",
             antwoord:
-              "Je kunt je bestanden meenemen en het abonnement maandelijks opzeggen. Terug naar WordPress vraagt een nieuwe inrichting van thema, inhoud en functies. Dat is geen automatische terugzetknop.",
+              "Dat kan. Vóór je je oude hosting opzegt, zetten we een complete kopie van je WordPress-site veilig. Wil je binnen een jaar terug, dan zetten we die voor je terug; je hebt dan alleen weer hosting nodig. Je bestanden blijven altijd van jou en het abonnement is maandelijks opzegbaar.",
           },
           {
             vraag: "Heeft de website nog beveiliging nodig?",

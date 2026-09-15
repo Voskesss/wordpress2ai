@@ -17,7 +17,7 @@ const rijen: [string, string, string][] = [
   [
     "Onderhoud",
     "Updates van WordPress, thema en plugins; back-ups; onderhoudscontract",
-    "Geen WordPress-onderhoud op de publieke site; hosting en beheer blijven nodig",
+    "Geen WordPress-onderhoud meer; hosting en beheer regelen wij",
   ],
   [
     "Snelheid",
@@ -27,7 +27,7 @@ const rijen: [string, string, string][] = [
   [
     "Veiligheid",
     "WordPress, accounts, hosting en plugins moeten worden beveiligd en bijgewerkt",
-    "Geen WordPress-inlog, database of plugins op de publieke site; beheer blijft beveiliging nodig hebben",
+    "Geen WordPress-inlog, database of plugins om te hacken; de beveiliging van hosting en portaal regelen wij",
   ],
   [
     "Kosten per maand",
@@ -72,7 +72,7 @@ const faq: [string, string][] = [
   ],
   [
     "Kan ik terug naar WordPress?",
-    "Je bestanden en inhoud blijven van jou en het abonnement is maandelijks opzegbaar. Terug naar WordPress kan, maar vraagt een nieuwe inrichting; het is geen automatische terugzetknop.",
+    "Ja. Vóór je je oude hosting opzegt, zetten we een complete kopie van je WordPress-site veilig. Wil je binnen een jaar terug, dan zetten we die voor je terug; je hebt dan alleen weer hosting nodig. Je bestanden blijven altijd van jou en het abonnement is maandelijks opzegbaar.",
   ],
   [
     "Is een website zonder WordPress niet beperkt?",

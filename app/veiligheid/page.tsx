@@ -4,7 +4,7 @@ import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
   title: "Veiligheid: je website, AI-chat en controle",
   description:
-    "Geen WordPress-plugins op je publieke site. Wel beveiligde accounts, controle vóór publicatie en versiegeschiedenis. Lees hoe WordSwap risico’s beperkt.",
+    "Geen WordPress-plugins op je publieke site. Wel beveiligde accounts, controle vóór publicatie en versiegeschiedenis. Lees hoe WordSwap de beveiliging voor je regelt.",
   alternates: { canonical: "/veiligheid" },
 };
 const vragen = [
@@ -15,11 +15,11 @@ const vragen = [
   ],
   [
     "Hoe is mijn beheeromgeving beschermd?",
-    "Je beheert je website vanuit je persoonlijke, ingelogde WordSwap-omgeving. Gebruik een sterk wachtwoord en stel waar beschikbaar tweestapsverificatie in. Deel geen wachtwoorden in de chat. De publieke website en de beheeromgeving zijn verschillende onderdelen.",
+    "Je beheert je website vanuit je eigen, beveiligde WordSwap-omgeving. Inloggen loopt via een gespecialiseerde inlogdienst die wachtwoorden versleuteld bewaart; wij zien je wachtwoord nooit. Wil je extra zekerheid, dan zet je met één klik tweestapsverificatie aan. Je publieke website staat daar los van, dus ook een bezoeker kan nooit bij het beheer.",
   ],
   [
     "Hoe werken formulieren en SSL?",
-    "Hosting en SSL zijn onderdeel van de koppeling. Formulieren gebruiken onze server om inzendingen te verwerken en door te sturen. Daarbij passen we onder meer een verborgen spamveld en begrenzing van inzendingen toe. Dat verkleint misbruik, maar garandeert niet dat iedere spambericht wordt tegengehouden.",
+    "Hosting en SSL zijn onderdeel van de koppeling. Formulieren gebruiken onze server om inzendingen te verwerken en door te sturen. Daarbij passen we onder meer een verborgen spamveld en begrenzing van inzendingen toe. Zo houden we het overgrote deel van de spam tegen. Glipt er toch iets doorheen, laat het ons weten: dan scherpen wij het aan.",
   ],
   [
     "Hebben jullie een ISO 27001- of SOC 2-certificering?",
@@ -38,9 +38,10 @@ export default function Veiligheid() {
         Jij houdt de regie.
       </h1>
       <p className="mt-6 text-lg text-stone-600 leading-relaxed">
-        Je publieke website heeft na de overstap geen WordPress-database of
-        plugins meer. Dat neemt bepaalde risico’s weg. Accounts, formulieren,
-        hosting en het beheer blijven bescherming nodig hebben.
+        Je website heeft na de overstap geen WordPress-database of plugins
+        meer. Daarmee verdwijnen de zwakke plekken waar de meeste gehackte
+        websites op sneuvelen. De rest regelen wij: hosting, beveiliging, je
+        formulieren en het portaal houden we in de gaten en up-to-date.
       </p>
       <div className="faq-list mt-10">
         {vragen.map(([q, a]) => (

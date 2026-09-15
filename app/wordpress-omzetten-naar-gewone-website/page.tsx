@@ -17,12 +17,12 @@ export default function Pagina() {
         titel:
           "WordPress omzetten naar een gewone website — zo simpel als het klinkt",
         intro:
-          "Een eenvoudige bedrijfssite heeft niet altijd alle mogelijkheden van WordPress nodig. We nemen je bestaande ontwerp, inhoud, pagina-adressen en SEO-inrichting zorgvuldig over naar een statische website. WordPress- en plugin-updates vervallen; je inhoud, formulieren en hosting blijven aandacht nodig hebben.",
+          "Een eenvoudige bedrijfssite heeft niet altijd alle mogelijkheden van WordPress nodig. We nemen je bestaande ontwerp, inhoud, pagina-adressen en SEO-inrichting zorgvuldig over naar een statische website. WordPress- en plugin-updates vervallen, en hosting, beveiliging en formulieren regelen wij. Jij houdt alleen je eigen inhoud bij, gewoon via de chat.",
         blokken: [
           {
             kop: "Wat is een 'gewone' website eigenlijk?",
             tekst:
-              "Kant-en-klare HTML-pagina's, zonder database of beheersysteem eronder. Bij elk bezoek wordt gewoon de pagina zelf geladen — er hoeft niets berekend of opgebouwd te worden. Dat kan de laadtijd verbeteren en neemt kwetsbaarheden in WordPress en plug-ins weg. Hosting, toegang en formulieren moeten nog steeds goed beveiligd worden.",
+              "Kant-en-klare HTML-pagina's, zonder database of beheersysteem eronder. Bij elk bezoek wordt gewoon de pagina zelf geladen — er hoeft niets berekend of opgebouwd te worden. Dat maakt je site sneller en haalt de zwakke plekken van WordPress en plug-ins weg. De hosting, de beveiliging en je formulieren houden wij voor je in de gaten, daar hoef jij niet naar om te kijken.",
           },
           {
             kop: "Maar hoe wijzig ik dan nog iets?",

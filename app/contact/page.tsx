@@ -39,6 +39,13 @@ export default async function Contact({
             ? "Vertel over de klantsite die je wilt overzetten. Jos neemt binnen één werkdag contact op om de mogelijkheden en rolverdeling te bespreken."
             : "Stuur je websiteadres. Jos bekijkt gratis of we jouw site kunnen overzetten met je bestaande uitstraling en inhoud, zodat je hem daarna zelf bijhoudt met AI. Binnen één werkdag krijg je antwoord, ook als het niet past."}
         </p>
+        {!samenwerken && (
+          <p className="mt-4 rounded-xl border border-[#dde7d9] bg-[#eff3e8] px-4 py-3 text-stone-700 leading-relaxed">
+            <strong>Daarna hoef je je nergens druk om te maken.</strong> Hosting,
+            beveiliging, updates en je formulieren regelen wij. Jij houdt alleen
+            je eigen teksten en foto&apos;s bij, door het gewoon te typen.
+          </p>
+        )}
         <ul className="mt-8 space-y-3 text-stone-600">
           {[
             "Geschiktheid: welke pagina’s en functies kunnen mee?",
