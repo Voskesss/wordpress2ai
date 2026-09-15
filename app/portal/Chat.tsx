@@ -375,6 +375,15 @@ export default function Chat({
   const [iframeSrc, setIframeSrc] = useState(() => basisVoor(Boolean(openConcept)));
 
   /** Herlaadt het voorbeeld op de pagina waar de eigenaar nu naar kijkt. */
+  /** Na weggooien of terugdraaien kan de huidige pagina verdwenen zijn
+   * (bv. een pagina die alleen in het concept bestond) — herladen toont dan
+   * een verwarrende 404. Daarom: altijd voorspelbaar terug naar de homepage. */
+  function naarHome() {
+    huidigeRef.current = "/";
+    setHuidigePagina("/");
+    setOplevering(null);
+  }
+
   function herlaad(conceptActief: boolean) {
     const pad =
       huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
@@ -1140,6 +1149,7 @@ export default function Chat({
       setChatOpen(true);
       if (res.ok) {
         setOngedaanKans(null);
+        naarHome();
         // Direct de teruggedraaide versie tonen (vers uit de bron) en stil
         // doorwisselen naar het echte adres zodra dat is bijgetrokken —
         // zelfde aanpak als bij wijzigen en publiceren
@@ -1177,7 +1187,7 @@ export default function Chat({
       ]);
       setChatOpen(true);
       if (res.ok) {
-        herlaad(true);
+        naarHome();
         toonWerkversie();
       }
     } finally {
@@ -1288,6 +1298,7 @@ export default function Chat({
         // het echte adres zodra dat is bijgetrokken (voorkomt "oude site"-schrik)
         toonLive(nieuwLive);
       } else {
+        naarHome();
         herlaad(false);
       }
     }
