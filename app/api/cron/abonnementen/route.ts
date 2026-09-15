@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 
 /** Dagelijks: geplande wijzigingen van het maandbedrag doorvoeren en geplande opzeggingen uitvoeren. */
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  const geheim = process.env.CRON_SECRET;
+  if (!geheim || req.headers.get("authorization") !== `Bearer ${geheim}`) {
     return new NextResponse("Geen toegang", { status: 401 });
   }
   const vandaag = vandaagNl();
