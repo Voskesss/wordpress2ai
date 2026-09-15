@@ -46,6 +46,17 @@ export default async function Contact({
             je eigen teksten en foto&apos;s bij, door het gewoon te typen.
           </p>
         )}
+        {!samenwerken && (
+          <div className="mt-4 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm leading-relaxed text-stone-600">
+            <p className="font-semibold text-stone-800">Past jouw website?</p>
+            <p className="mt-1">
+              Gewone bedrijfssites, ook met blog en formulieren: <strong>juist wél</strong>. Een bestaand
+              boekings- of afsprakensysteem (agenda-widget) bekijken we per site, en maatwerk is bespreekbaar.
+              Webshops en ledenportalen met inlog zetten we niet over, die hebben een draaiend systeem nodig.
+              Twijfel je? De check is gratis.
+            </p>
+          </div>
+        )}
         <ul className="mt-8 space-y-3 text-stone-600">
           {[
             "Geschiktheid: welke pagina’s en functies kunnen mee?",
@@ -177,8 +188,7 @@ export default async function Contact({
           <a href="/privacy" className="underline">
             privacybeleid
           </a>
-          . Geschikt voor bedrijfssites, blogs en formulieren. Webshops en
-          ledenportalen zetten we niet over.
+          .
         </p>
       </LeadForm>
     </div>
