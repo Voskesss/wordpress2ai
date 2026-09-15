@@ -324,3 +324,20 @@ export const betalingen = pgTable("betalingen", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
+
+// Leadlijst: iedereen die zelf contact zocht, met status en de volgende actie voor Jos
+export const leads = pgTable("leads", {
+  id: serial("id").primaryKey(),
+  naam: text("naam").notNull(),
+  email: text("email"),
+  telefoon: text("telefoon"),
+  website: text("website"),
+  bron: text("bron"), // bijv. Meta-advertentie, Website (/ai-website)
+  soort: text("soort").notNull().default("klant"), // klant | partner
+  status: text("status").notNull().default("nieuw"), // zie LEAD_STATUSSEN in lib/leads.ts
+  volgendeActie: text("volgende_actie"),
+  actieDatum: text("actie_datum"), // YYYY-MM-DD
+  notities: text("notities"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+});
