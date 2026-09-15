@@ -83,6 +83,7 @@ export async function startAbonnement(formData: FormData) {
     klantAdres: tekst(formData, "adres"),
     klantBtw: tekst(formData, "btw"),
     klantKvk: tekst(formData, "kvk"),
+    afspraken: tekst(formData, "afspraken")?.slice(0, 1500) ?? null,
   };
 
   await db
@@ -149,6 +150,7 @@ async function verstuurBetaallinkMail(abo: typeof abonnementen.$inferSelect, sit
     klantEmail: abo.email,
     maandbedragCent: abo.maandbedragCent,
     eenmaligCent: abo.eenmaligCent,
+    afspraken: abo.afspraken,
   });
   return mailVanJos({
     naar: abo.email,

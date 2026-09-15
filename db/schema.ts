@@ -305,6 +305,9 @@ export const abonnementen = pgTable("abonnementen", {
   klantAdres: text("klant_adres"), // meerdere regels: straat, postcode en plaats
   klantBtw: text("klant_btw"),
   klantKvk: text("klant_kvk"),
+  // Vrije tekst met afwijkende afspraken (bv. domeinregistratie of e-mail via ons,
+  // uitsplitsing van het maandbedrag); komt als eigen kopje in de opdrachtbevestiging
+  afspraken: text("afspraken"),
   stoptOp: text("stopt_op"), // YYYY-MM-DD: geplande opzegging, uitgevoerd door de dagelijkse cron
   nieuwBedragCent: integer("nieuw_bedrag_cent"), // geplande wijziging van het maandbedrag, excl. btw
   nieuwBedragVanaf: text("nieuw_bedrag_vanaf"), // YYYY-MM-DD

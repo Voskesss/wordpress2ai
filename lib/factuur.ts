@@ -451,11 +451,12 @@ export async function maakOpdrachtbevestigingPdf(o: {
   klantEmail: string;
   maandbedragCent: number;
   eenmaligCent: number;
+  afspraken?: string | null;
 }): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`Opdrachtbevestiging WordSwap — ${o.siteNaam}`);
   doc.setAuthor("WordSwap");
-  const page = doc.addPage([595.28, 841.89]);
+  let page = doc.addPage([595.28, 841.89]);
   const gewoon = await doc.embedFont(StandardFonts.Helvetica);
   const vet = await doc.embedFont(StandardFonts.HelveticaBold);
   const L = 56;
@@ -492,6 +493,11 @@ export async function maakOpdrachtbevestigingPdf(o: {
   y -= 10;
 
   const alinea = (tekst: string, opties: { vet?: boolean; kleur?: ReturnType<typeof rgb> } = {}) => {
+    // Onder aan de pagina? Verder op een nieuwe, boven de voetregel blijven
+    if (y < 110) {
+      page = doc.addPage([595.28, 841.89]);
+      y = 780;
+    }
     const font = opties.vet ? vet : gewoon;
     const woorden = tekst.split(" ");
     let regel = "";
@@ -500,6 +506,10 @@ export async function maakOpdrachtbevestigingPdf(o: {
       if (font.widthOfTextAtSize(probeer, 10.5) > R - L) {
         page.drawText(regel, { x: L, y, font, size: 10.5, color: opties.kleur ?? DONKER });
         y -= 15;
+        if (y < 90) {
+          page = doc.addPage([595.28, 841.89]);
+          y = 780;
+        }
         regel = w;
       } else regel = probeer;
     }
@@ -525,6 +535,14 @@ export async function maakOpdrachtbevestigingPdf(o: {
   alinea(
     "Je domeinnaam en e-mailabonnement staan op jouw naam en de kosten daarvan lopen buiten WordSwap om. Voor de inhoud van je website (teksten, foto's, claims en rechten daarop) ben jij verantwoordelijk. Wijzigingen die je via de chat publiceert, zijn jouw keuze; er is altijd eerst een voorbeeld en een eerdere versie kan worden teruggezet. AI-gebruik boven de fair-use-grens en maatwerk spreken we vooraf apart af.",
   );
+  if (o.afspraken?.trim()) {
+    y -= 4;
+    alinea("Aanvullende afspraken", { vet: true, kleur: GROEN });
+    for (const regel of o.afspraken.trim().split(/\r?\n/)) {
+      if (regel.trim()) alinea(regel.trim());
+      else y -= 8;
+    }
+  }
   y -= 4;
   alinea("Terugweg en einde", { vet: true, kleur: GROEN });
   alinea(
@@ -536,8 +554,10 @@ export async function maakOpdrachtbevestigingPdf(o: {
     `Door de betaallink te betalen ga je akkoord met deze opdrachtbevestiging, de algemene voorwaarden (wordswap.nl/voorwaarden) en de verwerkersovereenkomst (wordswap.nl/verwerkersovereenkomst). Wij leggen datum en betaling vast als bevestiging. Vragen? Mail jos@wordswap.nl of bel ${AFZENDER.telefoon}.`,
   );
 
-  page.drawLine({ start: { x: L, y: 70 }, end: { x: R, y: 70 }, thickness: 0.5, color: LICHT });
-  page.drawText(AFZENDER.juridisch, { x: L, y: 54, font: gewoon, size: 8.5, color: GRIJS });
-  tekstRechts(page, `${AFZENDER.web} · KvK ${AFZENDER.kvk} · btw ${AFZENDER.btw}`, R, 54, gewoon, 8.5, GRIJS);
+  for (const p of doc.getPages()) {
+    p.drawLine({ start: { x: L, y: 70 }, end: { x: R, y: 70 }, thickness: 0.5, color: LICHT });
+    p.drawText(AFZENDER.juridisch, { x: L, y: 54, font: gewoon, size: 8.5, color: GRIJS });
+    tekstRechts(p, `${AFZENDER.web} · KvK ${AFZENDER.kvk} · btw ${AFZENDER.btw}`, R, 54, gewoon, 8.5, GRIJS);
+  }
   return doc.save();
 }

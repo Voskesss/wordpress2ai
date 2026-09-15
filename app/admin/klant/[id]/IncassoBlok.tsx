@@ -17,6 +17,7 @@ import {
   wijzigMaandbedrag,
 } from "../../acties-abonnement";
 import ActieKnop from "./ActieKnop";
+import AfsprakenVeld from "./AfsprakenVeld";
 
 type Site = typeof sites.$inferSelect;
 
@@ -140,6 +141,13 @@ export default async function IncassoBlok({
               )}
               {volgendeAfschrijving && <> · volgende afschrijving {datumNl(volgendeAfschrijving)}</>}
             </p>
+            {abonnement.afspraken && (
+              <p className="whitespace-pre-line rounded-xl bg-white border border-stone-200 px-3 py-2 text-xs text-stone-600">
+                <strong className="text-stone-700">Aanvullende afspraken (staan in de opdrachtbevestiging):</strong>
+                {"\n"}
+                {abonnement.afspraken}
+              </p>
+            )}
 
             {abonnement.status === "wacht_op_eerste" && abonnement.betaallink && (
               <div className="rounded-xl border border-stone-200 bg-white p-3">
@@ -267,6 +275,10 @@ export default async function IncassoBlok({
               Eenmalige omzetting (€)
               <input name="eenmalig" inputMode="decimal" placeholder="leeg = geen" className={invoer} />
             </label>
+            <div className="block text-sm font-semibold sm:col-span-4">
+              Aanvullende afspraken (optioneel — komen als eigen kopje in de opdrachtbevestiging)
+              <AfsprakenVeld standaard={abonnement?.afspraken ?? ""} />
+            </div>
             <div className="sm:col-span-4">
               <ActieKnop label="✉️ Betaallink aanmaken en meteen mailen" bezigLabel="Aanmaken en mailen..." className={knopGroen} />
               <p className="mt-2 text-xs text-stone-500">
