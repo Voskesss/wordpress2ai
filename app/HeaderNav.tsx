@@ -8,7 +8,8 @@ const links = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
   { href: "/demo", label: "Demo" },
-  { href: "/over-wordswap", label: "Over ons" },  { href: "/contact", label: "Contact" },
+  { href: "/over-wordswap", label: "Over ons" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { isAdmin: boolean; portalLabel?: string }) {
