@@ -111,11 +111,13 @@ export function bouwReeksMail(
       return {
         onderwerp: "“Mooi verhaal, maar bij mij kan dat niet”",
         html: kader(
-          p("Bijna iedereen die zich aanmeldt heeft wel een ‘ja, maar’. Dat is gezond. Dit zijn de vijf die ik het vaakst hoor:") +
+          p("Bijna iedereen die zich aanmeldt heeft wel een ‘ja, maar’. Dat is gezond. Dit zijn de zeven die ik het vaakst hoor:") +
             p("<strong>“Mijn website is nog vrij nieuw.”</strong><br>Dan is het juist een goed moment: je teksten, foto’s en uitstraling gaan gewoon mee. Er hoeft niets opnieuw ontworpen te worden.") +
-            p("<strong>“Ik ben niet technisch.”</strong><br>Dat hoeft ook niet. Dat is precies het punt.") +
+            p("<strong>“Dat wordt vast te duur.”</strong><br>Kijk eens wat het huidige gedoe je al kost: onderhoud, losse wijzigingen, en de uren die je er zelf in steekt. En je betaalt pas als je de overgezette site hebt gezien en goed vindt.") +
+            p("<strong>“Straks gaat de AI iets doen wat ik niet wil.”</strong><br>Niets gaat vanzelf live. Je ziet elke wijziging eerst als voorbeeld en jij beslist of hij erop komt. Toch iets niet goed? Dan zet je de vorige versie gewoon terug.") +
             p("<strong>“Straks verlies ik mijn plek in Google.”</strong><br>Je pagina-adressen en instellingen nemen we zorgvuldig mee. Een garantie geeft niemand je eerlijk, maar we doen er alles aan dat je vindbaar blijft.") +
-            p("<strong>“Straks zit ik ergens aan vast.”</strong><br>Nee. Alles blijft van jou en opzeggen kan per maand.") +
+            p("<strong>“Ik heb geen tijd voor een overstap.”</strong><br>Die hoef je ook niet te hebben: wij doen het werk. Jij kijkt alleen of het klopt, en tot die tijd blijft je huidige site gewoon online.") +
+            p("<strong>“Straks zit ik ergens aan vast. En als jullie ermee stoppen?”</strong><br>Dan heb je nog steeds alles. Je websitebestanden zijn van jou, je kunt ze altijd zelf downloaden en ergens anders neerzetten, en opzeggen kan per maand.") +
             p("<strong>“Mijn website is te ingewikkeld.”</strong><br>Dat kan. Heb je een webshop of een ledenportaal, of blog je bijna elke dag? Dan is dit waarschijnlijk niet voor jou, en dat zeg ik je liever nu eerlijk.") +
             p("Welke ‘ja, maar’ heb jij? Antwoord gerust op deze mail. Staat hij er niet bij, dan wil ik hem juist horen."),
         ),
