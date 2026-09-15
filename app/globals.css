@@ -1758,6 +1758,17 @@ main p {
   }
 }
 /* Foto van Jos in het oprichtersblok */
+@media (max-width: 767px) {
+  /* Op mobiel staan foto en naam naast elkaar: foto vast klein, naam mag breken */
+  .founder-mark .founder-foto {
+    width: 6.5rem;
+    max-width: none;
+    flex: 0 0 auto;
+  }
+  .founder-mark > p {
+    min-width: 0;
+  }
+}
 .founder-foto {
   width: 100%;
   max-width: 15rem;
