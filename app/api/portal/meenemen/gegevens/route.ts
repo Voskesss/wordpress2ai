@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import JSZip from "jszip";
 import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
-import { facturen, formulierInzendingen, messages, sites } from "@/db/schema";
+import { facturen, formulierInzendingen, kennisDocumenten, messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
 import { pdfVan } from "@/lib/factuur";
 
@@ -67,6 +67,20 @@ export async function GET(req: Request) {
     ),
   );
 
+  // Documenten die de klant zelf uploadde (bedrijfsinformatie voor de chatbot)
+  const documenten = await db
+    .select()
+    .from(kennisDocumenten)
+    .where(eq(kennisDocumenten.siteId, site.id))
+    .orderBy(asc(kennisDocumenten.id));
+  const gebruikteNamen = new Set<string>();
+  for (const d of documenten) {
+    let naam = d.naam.replace(/[^\w.\- ]/g, "_").slice(0, 80) || `document-${d.id}`;
+    if (gebruikteNamen.has(naam)) naam = `${d.id}-${naam}`;
+    gebruikteNamen.add(naam);
+    zip.file(`documenten/${naam}${/\.[a-z0-9]{2,5}$/i.test(naam) ? "" : ".txt"}`, d.inhoud);
+  }
+
   // Facturen en creditfacturen, precies zoals ze verstuurd zijn
   const lijst = await db
     .select()
@@ -85,6 +99,7 @@ export async function GET(req: Request) {
       "",
       "formulierberichten.csv  Alle berichten die via de formulieren op je website zijn verstuurd. Opent in Excel.",
       "chatgeschiedenis.json   Je gesprekken met de AI in het portaal.",
+      "documenten/             De documenten die je zelf in het portaal hebt geüpload (als die er zijn).",
       `facturen/               Je facturen van WordSwap (${lijst.length}), precies zoals ze verstuurd zijn.`,
       "",
       "Je websitebestanden zelf (pagina's, foto's en opmaak) download je met de andere knop in je portaal.",

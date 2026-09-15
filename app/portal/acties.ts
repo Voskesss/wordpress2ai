@@ -250,6 +250,10 @@ export async function zegAbonnementOp(formData: FormData) {
       .set({ status: "gestopt", mollieSubscriptionId: null, betaallink: null, stoptOp: null, nieuwBedragCent: null, nieuwBedragVanaf: null, bijgewerkt: new Date() })
       .where(eq(abonnementen.id, abo.id));
   }
+  // De klantenlijst in de admin meteen kloppend: site op "opgezegd"
+  if (!fout) {
+    await db.update(sites).set({ status: "opgezegd" }).where(eq(sites.id, site.id));
+  }
 
   const gebruiker = await currentUser();
   const klantEmail = abo?.email ?? gebruiker?.emailAddresses?.[0]?.emailAddress ?? null;

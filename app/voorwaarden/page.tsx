@@ -143,11 +143,16 @@ export default function Voorwaarden() {
       <Artikel nr={8} kop="Duur en opzegging">
         <p>
           De AI-koppeling is maandelijks opzegbaar, zonder opzegtermijn langer
-          dan één maand. Na beëindiging krijg je op verzoek de bestanden van je
-          website mee (die zijn en blijven van jou) en halen we de website
-          binnen een maand offline. Wij kunnen de overeenkomst beëindigen met
-          een opzegtermijn van drie maanden, zodat je ruim de tijd hebt om te
-          verhuizen.
+          dan één maand; opzeggen kan rechtstreeks in je portaal. Bij opzegging
+          stopt de automatische afschrijving direct en blijft je website online
+          tot het einde van de periode waarvoor je betaald hebt, plus één maand
+          extra, zodat je zonder tijdsdruk kunt verhuizen; daarna halen we hem
+          offline. Je websitebestanden en gegevens (die zijn en blijven van
+          jou) kun je op elk moment zelf downloaden in je portaal, ook na
+          opzegging tot het moment van verwijdering. Je ontvangt van ons een
+          overzicht van je domeininstellingen voor een soepele verhuizing. Wij
+          kunnen de overeenkomst beëindigen met een opzegtermijn van drie
+          maanden, zodat je ruim de tijd hebt om te verhuizen.
         </p>
       </Artikel>
 
