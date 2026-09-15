@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LeadForm from "../contact/LeadForm";
+import ContactVoorkeur from "../contact/ContactVoorkeur";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
@@ -314,19 +315,7 @@ export default function AiWebsite() {
               />
             </div>
           </div>
-          <div>
-            <label htmlFor="telefoon" className="block text-sm font-semibold">
-              Telefoonnummer (optioneel)
-            </label>
-            <input
-              id="telefoon"
-              name="telefoon"
-              type="tel"
-              autoComplete="tel"
-              placeholder="voor als bellen makkelijker praat"
-              className={inputStijl}
-            />
-          </div>
+          <ContactVoorkeur />
           <div>
             <label htmlFor="website" className="block text-sm font-semibold">
               Je website

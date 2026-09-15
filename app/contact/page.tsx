@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
 import LeadForm from "./LeadForm";
+import ContactVoorkeur from "./ContactVoorkeur";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default async function Contact({
             "Geschiktheid: welke pagina’s en functies kunnen mee?",
             "Aandachtspunten: je domein, mail en SEO-structuur",
             "Een voorstel met overstapprijs, maandbedrag en eventuele extra’s",
+            "Liever even bellen? Dat kan, ook ’s avonds: jij kiest het moment",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
               <span className="mt-1 text-[#31956B] shrink-0">✓</span>
@@ -122,19 +124,7 @@ export default async function Contact({
             />
           </div>
         </div>
-        <div>
-          <label htmlFor="telefoon" className="block text-sm font-semibold">
-            Telefoonnummer (optioneel)
-          </label>
-          <input
-            id="telefoon"
-            name="telefoon"
-            type="tel"
-            autoComplete="tel"
-            placeholder="voor als bellen makkelijker praat"
-            className={inputStijl}
-          />
-        </div>
+        <ContactVoorkeur />
         <div>
           <label htmlFor="website" className="block text-sm font-semibold">
             Je huidige website
