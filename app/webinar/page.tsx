@@ -33,6 +33,7 @@ const naAfloop = [
 
 const voorWieWel = [
   "Je hebt een eigen bedrijf en al een website, meestal in WordPress.",
+  "Je wilt je huidige website houden, met je eigen uitstraling, alleen zonder het gedoe.",
   "Je bent het gedoe eromheen zat, van updates tot wachten op je bouwer.",
   "Je wilt dat het gewoon geregeld is, zodat jij met je vak bezig kunt.",
 ];
@@ -102,8 +103,9 @@ export default async function Webinar() {
           <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight">Weg uit WordPress — zonder gedoe</h2>
           <p className="mt-4 text-stone-600 leading-relaxed">
             Jos Klijnhout, oprichter van WordSwap, begint bij de ergernis die je vast kent. Eén keer zie je met eigen
-            ogen dat het anders kan. Techniek laten we erbuiten: die hoef jij niet te kennen. Je hoeft niets voor te
-            bereiden, luisteren is genoeg.
+            ogen dat het anders kan. En nee, je hoeft niet opnieuw te beginnen: <strong>je eigen ontwerp, teksten en
+            foto&apos;s gaan gewoon mee.</strong> Techniek laten we erbuiten: die hoef jij niet te kennen. Je hoeft
+            niets voor te bereiden, luisteren is genoeg.
           </p>
           <div className="mt-6 space-y-2 text-stone-700">
             <p>
