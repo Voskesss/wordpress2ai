@@ -127,7 +127,23 @@ export async function maakSiteOverzicht(dir: string): Promise<string> {
         ? " — CENTRAAL ONDERDEEL, wordt via <!--invoeg:...--> op meerdere pagina's ingevoegd; wijzig gedeelde blokken hier"
         : "";
       regels.push(`- ${pad}${titel ? ` — "${titel}"` : ""}${centraal}${koppen.length ? `\n  ${koppen.join(" | ")}` : ""}`);
-    } else if (/\.(png|jpe?g|webp|gif|svg|avif)$/i.test(pad)) {
+    } else if (/\.(png|jpe?g|webp|gif|avif)$/i.test(pad)) {
+      // Afmetingen erbij: zo kan de AI bij het zelf kiezen van een foto direct
+      // zien welke groot genoeg zijn (KLEIN = ongeschikt voor een grote plek)
+      try {
+        // Alleen voor de beelden die de plattegrond echt toont (max 60):
+        // meer meten is verspilde tijd in elke beurt.
+        if (afbeeldingen.length >= 60) throw new Error("buiten plattegrond");
+        const sharp = (await import("sharp")).default;
+        const m = await sharp(path.join(dir, pad)).metadata();
+        const b = m.width ?? 0;
+        afbeeldingen.push(
+          `${pad} (${b < 700 ? "KLEIN " : ""}${b}×${m.height ?? 0})`,
+        );
+      } catch {
+        afbeeldingen.push(pad);
+      }
+    } else if (/\.svg$/i.test(pad)) {
       afbeeldingen.push(pad);
     } else if (/\.(css|js|json|xml|txt)$/i.test(pad)) {
       overig.push(pad);

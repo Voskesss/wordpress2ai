@@ -122,7 +122,7 @@ export async function POST(req: Request) {
   let bericht: string;
   let huidigePagina: string | undefined;
   let videoCommandId: string | undefined;
-  let afbeeldingen: { naam: string; data: Buffer }[] = [];
+  let afbeeldingen: { naam: string; data: Buffer; kwaliteit?: string | null }[] = [];
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
@@ -185,12 +185,18 @@ export async function POST(req: Request) {
       gebruikteNamen.add(naam);
       // 1600px/q78 houdt ook een herofoto scherp maar licht (~200 kB);
       // zwaardere instellingen gaven meetbaar trage sites (RoelArt-leerpunt).
-      const data = await sharp(Buffer.from(await file.arrayBuffer()))
+      const origineel = Buffer.from(await file.arrayBuffer());
+      const data = await sharp(origineel)
         .rotate()
         .resize({ width: 1600, withoutEnlargement: true })
         .webp({ quality: 78 })
         .toBuffer();
-      afbeeldingen.push({ naam: `afbeeldingen/${naam}.webp`, data });
+      const { meetFotoKwaliteit, kwaliteitsWaarschuwing } = await import("@/lib/foto-kwaliteit");
+      afbeeldingen.push({
+        naam: `afbeeldingen/${naam}.webp`,
+        data,
+        kwaliteit: kwaliteitsWaarschuwing(await meetFotoKwaliteit(origineel)),
+      });
     }
   } else {
     const body = (await req.json()) as {
@@ -484,6 +490,17 @@ export async function POST(req: Request) {
             }
           }
 
+          // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
+          let fotobankKwaliteit: string | null = null;
+          if (fotobankPad) {
+            const { meetFotoKwaliteit, kwaliteitsWaarschuwing } = await import("@/lib/foto-kwaliteit");
+            fotobankKwaliteit = kwaliteitsWaarschuwing(
+              await meetFotoKwaliteit(
+                await readFile(path.join(werkmap, fotobankPad)).catch(() => Buffer.alloc(0)),
+              ),
+            );
+          }
+
           const siteOverzicht = snelpad ? "" : await maakSiteOverzicht(werkmap);
           tik("voorbereid");
 
@@ -588,7 +605,7 @@ export async function POST(req: Request) {
               ? `De eigenaar heeft met de kleurkiezer een kleur gekozen: ${kleur}. Gebruik EXACT deze kleurcode voor wat hij in het bericht vraagt (en pas waar logisch ook hover-/accentvarianten aan zodat het consistent blijft).`
               : null,
             fotobankPad
-              ? `De eigenaar heeft in de fotobank de foto "${fotobankPad}" gekozen — zijn bericht gaat over déze foto. Het bestand staat al in de werkmap (BEKIJK hem eerst met lees_bestand); plaats of gebruik hem zoals gevraagd en vraag nooit om hem opnieuw te sturen.`
+              ? `De eigenaar heeft in de fotobank de foto "${fotobankPad}" gekozen — zijn bericht gaat over déze foto. Het bestand staat al in de werkmap (BEKIJK hem eerst met lees_bestand); plaats of gebruik hem zoals gevraagd en vraag nooit om hem opnieuw te sturen.${fotobankKwaliteit ? ` LET OP: ${fotobankKwaliteit} — beoordeel bij het bekijken of hij geschikt is voor de gevraagde plek en waarschuw anders kort met een alternatief.` : ""}`
               : null,
             selectie
               ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`
@@ -597,7 +614,7 @@ export async function POST(req: Request) {
               ? `De eigenaar heeft een VIDEO meegestuurd; die is al gecomprimeerd voor het web en staat op ${videoPaden.video}${videoPaden.poster ? ` met poster-afbeelding ${videoPaden.poster}` : ""}. Plaats hem waar het bericht om vraagt. Als achtergrond/hero-video: <video autoplay muted loop playsinline preload="metadata"${videoPaden.poster ? ` poster="/${videoPaden.poster}"` : ""}> met <source src="/${videoPaden.video}" type="video/mp4">, netjes gepositioneerd achter de tekst, en respecteer prefers-reduced-motion (dan alleen de poster). Als gewone video op een pagina: <video controls preload="metadata" poster=...>. Verwijder een eventuele oude hero-video-verwijzing die hij vervangt, maar laat het oude bestand staan.`
               : null,
             afbeeldingen.length > 1
-              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => a.naam).join(", ")} (geoptimaliseerd, max 2000px breed). BEKIJK ze eerst met lees_bestand. Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
+              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => `${a.naam}${a.kwaliteit ? ` [LET OP: ${a.kwaliteit}]` : ""}`).join(", ")} (geoptimaliseerd, max 1600px breed). BEKIJK ze eerst met lees_bestand. Staat er een LET OP bij een foto, beoordeel dan bij het bekijken of hij echt te onscherp of te klein is voor de gevraagde plek — zo ja, plaats hem niet stilzwijgend groot maar waarschuw kort en bied een keuze (kleiner plaatsen, een scherpere foto uit de fotobank, of een nieuwe foto vragen). Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
               : afbeeldingen.length === 1
                 ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met lees_bestand. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
                 : null,
