@@ -4,6 +4,7 @@ import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { webinars } from "@/db/schema";
 import { josFoto } from "@/lib/persoonlijk";
+import { formatWanneer } from "@/lib/webinar";
 
 export const metadata: Metadata = {
   title: "Gratis webinar: kun jij van het websitegedoe af?",
@@ -108,13 +109,7 @@ export default async function Webinar() {
             <p>
               📅{" "}
               {eerstvolgende
-                ? eerstvolgende.wanneer.toLocaleString("nl-NL", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }) + " uur"
+                ? formatWanneer(eerstvolgende.wanneer) + " uur"
                 : "Nieuwe datum volgt"}
             </p>
             <p>⏱ Maximaal 30 minuten, inclusief je vragen</p>
@@ -217,13 +212,7 @@ export default async function Webinar() {
                 <select id="webinar" name="webinar_id" required className={inputStijl}>
                   {komende.map((w) => (
                     <option key={w.id} value={w.id}>
-                      {w.wanneer.toLocaleString("nl-NL", {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatWanneer(w.wanneer)}
                     </option>
                   ))}
                 </select>

@@ -30,10 +30,15 @@ export async function reeksMailZetten(formData: FormData) {
 export async function voorbeeldWebinar() {
   const [komend] = await db.select().from(webinars).where(gte(webinars.wanneer, new Date())).orderBy(asc(webinars.wanneer)).limit(1);
   if (komend) return komend;
-  const over = new Date();
-  over.setDate(over.getDate() + 7);
-  over.setHours(20, 0, 0, 0);
-  return { titel: "Weg uit WordPress — zonder gedoe", wanneer: over, meetLink: null, opnameLink: null, demoVideoLink: null };
+  const over = new Date(Date.now() + 7 * 24 * 3_600_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
+  const { amsterdamseTijdNaarDatum } = await import("@/lib/webinar");
+  return {
+    titel: "Weg uit WordPress — zonder gedoe",
+    wanneer: amsterdamseTijdNaarDatum(over, "20:00"),
+    meetLink: null,
+    opnameLink: null,
+    demoVideoLink: null,
+  };
 }
 
 /** Een mail uit de reeks als test naar Jos sturen. */

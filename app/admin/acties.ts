@@ -424,7 +424,8 @@ export async function webinarToevoegen(formData: FormData) {
   const tijd = String(formData.get("tijd") ?? "");
   const meetLink = String(formData.get("meetLink") ?? "").trim();
   if (!titel || !datum || !tijd) return;
-  const wanneer = new Date(`${datum}T${tijd}`);
+  const { amsterdamseTijdNaarDatum } = await import("@/lib/webinar");
+  const wanneer = amsterdamseTijdNaarDatum(datum, tijd);
   if (isNaN(wanneer.getTime())) return;
   await db.insert(webinars).values({ titel, wanneer, meetLink: meetLink || null });
   revalidatePath("/admin/webinars");
@@ -547,6 +548,7 @@ export async function webinarMailen(formData: FormData) {
     month: "long",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/Amsterdam",
   });
   const linkBlok = w.meetLink
     ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="background:#6d28d9;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Deelnemen aan het webinar</a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
@@ -558,8 +560,8 @@ export async function webinarMailen(formData: FormData) {
       html: `<p>Hallo{{naam}},</p><p>Hierbij de link voor het webinar <strong>${w.titel}</strong> op <strong>${wanneer}</strong>. Bewaar deze mail — je hebt hem straks nodig om deel te nemen.</p>${linkBlok}<p>Tot dan!</p>`,
     },
     herinnering: {
-      onderwerp: `Vandaag: het webinar begint om ${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`,
-      html: `<p>Hallo{{naam}},</p><p>Kleine herinnering: vandaag om <strong>${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}</strong> begint het webinar <strong>${w.titel}</strong>. Het duurt ongeveer een half uur en je mag gerust alleen luisteren.</p>${linkBlok}<p>Tot zo!</p>`,
+      onderwerp: `Vandaag: het webinar begint om ${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" })}`,
+      html: `<p>Hallo{{naam}},</p><p>Kleine herinnering: vandaag om <strong>${w.wanneer.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" })}</strong> begint het webinar <strong>${w.titel}</strong>. Het duurt ongeveer een half uur en je mag gerust alleen luisteren.</p>${linkBlok}<p>Tot zo!</p>`,
     },
     followup: {
       onderwerp: `Bedankt voor je interesse in het webinar`,
