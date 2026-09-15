@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { abonnementen, betaalverzoeken, betalingen, facturen, sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { creditBijTerugbetaling, maakOpdrachtbevestigingPdf, mailFactuur } from "@/lib/factuur";
+import { creditBijTerugbetaling, maakOpdrachtbevestigingPdf, mailFactuur, vervangFactuur } from "@/lib/factuur";
 import { handtekening } from "@/lib/mailer";
 import { euro, euroTekst, inclBtwCent, mollie, SITE_URL, vandaagNl, type MolliePayment } from "@/lib/mollie";
 import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
@@ -399,7 +399,7 @@ export async function terugbetalen(formData: FormData) {
   const factuurId = Number(formData.get("factuurId"));
   if (siteId === null || !Number.isInteger(factuurId)) return;
   const [f] = await db.select().from(facturen).where(eq(facturen.id, factuurId));
-  if (!f || f.soort !== "factuur" || !f.nummer || !f.molliePaymentId.startsWith("tr_")) {
+  if (!f || f.soort !== "factuur" || !f.nummer || !/^tr_\w+$/.test(f.molliePaymentId)) {
     terug(siteId, "Deze factuur kan niet worden terugbetaald.");
   }
   const credits = await db.select().from(facturen).where(eq(facturen.creditVoorId, f.id));
@@ -435,6 +435,27 @@ export async function terugbetalen(formData: FormData) {
       ? `${euroTekst(bedragCent)} terugbetaald, maar de creditfactuur is niet gemaakt: ${creditFout}`
       : `${euroTekst(bedragCent)} terugbetaald. De creditfactuur is gemaild naar ${f.klantEmail}.`,
   );
+}
+
+/** Corrigeert een verkeerd opgemaakte factuur: creditfactuur + herziene factuur, zonder terugbetaling. */
+export async function factuurCorrigeren(formData: FormData) {
+  await requireAdmin();
+  const siteId = siteIdVan(formData);
+  const id = Number(formData.get("factuurId"));
+  if (siteId === null || !Number.isInteger(id)) return;
+  const naam = tekst(formData, "naam");
+  const email = tekst(formData, "email");
+  if (!naam || !email || !EMAIL.test(email)) terug(siteId, "Vul een naam en geldig e-mailadres in voor de herziene factuur.");
+  const fout = await vervangFactuur(id, {
+    klantNaam: naam,
+    klantBedrijf: tekst(formData, "bedrijf"),
+    klantAdres: tekst(formData, "adres"),
+    klantEmail: email,
+    klantBtw: tekst(formData, "btw"),
+    klantKvk: tekst(formData, "kvk"),
+  });
+  revalidatePath(`/admin/klant/${siteId}`);
+  terug(siteId, fout ?? `Gecorrigeerd: creditfactuur en herziene factuur zijn naar ${email} gemaild.`);
 }
 
 /** Stuurt een factuur opnieuw naar de klant (dezelfde vastgelegde pdf). */

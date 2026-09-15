@@ -5,6 +5,7 @@ import { euroTekst, inclBtwCent, isTestmodus, mollie, vandaagNl } from "@/lib/mo
 import {
   annuleerBedragWijziging,
   betaalverzoekIntrekken,
+  factuurCorrigeren,
   factuurOpnieuwMailen,
   losseOpdracht,
   mailBetaallink,
@@ -375,7 +376,7 @@ export default async function IncassoBlok({
                       </form>
                     </span>
                   </div>
-                  {f.soort === "factuur" && nogTerug > 0 && f.molliePaymentId.startsWith("tr_") && (
+                  {f.soort === "factuur" && nogTerug > 0 && /^tr_\w+$/.test(f.molliePaymentId) && (
                     <details className="mt-1">
                       <summary className="cursor-pointer text-xs text-stone-500">Terugbetalen</summary>
                       <form action={terugbetalen} className="mt-2 flex flex-wrap items-end gap-2">
@@ -386,6 +387,45 @@ export default async function IncassoBlok({
                           <input name="bedrag" inputMode="decimal" className="mt-1 w-40 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm" />
                         </label>
                         <ActieKnop label="Terugbetalen en creditfactuur maken" bezigLabel="Bezig..." className={knopRood} />
+                      </form>
+                    </details>
+                  )}
+                  {f.soort === "factuur" && nogTerug === f.totaalCent && (
+                    <details className="mt-1">
+                      <summary className="cursor-pointer text-xs text-stone-500">Gegevens corrigeren (creditfactuur + herziene factuur)</summary>
+                      <form action={factuurCorrigeren} className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <input type="hidden" name="siteId" value={site.id} />
+                        <input type="hidden" name="factuurId" value={f.id} />
+                        <label className="block text-xs font-semibold">
+                          Naam
+                          <input name="naam" required defaultValue={f.klantNaam} className={invoer} />
+                        </label>
+                        <label className="block text-xs font-semibold">
+                          E-mailadres
+                          <input name="email" type="email" required defaultValue={f.klantEmail} className={invoer} />
+                        </label>
+                        <label className="block text-xs font-semibold">
+                          Bedrijfsnaam
+                          <input name="bedrijf" defaultValue={f.klantBedrijf ?? ""} className={invoer} />
+                        </label>
+                        <label className="block text-xs font-semibold">
+                          Adres
+                          <textarea name="adres" rows={2} defaultValue={f.klantAdres ?? ""} className={invoer} />
+                        </label>
+                        <label className="block text-xs font-semibold">
+                          KvK
+                          <input name="kvk" defaultValue={f.klantKvk ?? ""} className={invoer} />
+                        </label>
+                        <label className="block text-xs font-semibold">
+                          Btw-nr
+                          <input name="btw" defaultValue={f.klantBtw ?? ""} className={invoer} />
+                        </label>
+                        <div className="sm:col-span-2">
+                          <ActieKnop label="Corrigeer: credit + herziene factuur mailen" bezigLabel="Bezig..." className={knopRand} />
+                          <p className="mt-1 text-xs text-stone-400">
+                            De bedragen blijven gelijk en er wordt niets terugbetaald — alleen de gegevens op de factuur worden rechtgezet.
+                          </p>
+                        </div>
                       </form>
                     </details>
                   )}

@@ -71,7 +71,7 @@ async function claim(waarden: NieuweFactuur): Promise<number | null> {
 }
 
 /** Nummer toekennen, de pdf vastleggen zoals hij verstuurd wordt, en mailen. */
-async function nummerVastleggenEnMailen(id: number): Promise<void> {
+async function nummerEnPdfVastleggen(id: number): Promise<Factuur> {
   const nummer = await volgendNummer();
   const [f] = await db.update(facturen).set({ nummer }).where(eq(facturen.id, id)).returning();
   const pdf = await maakFactuurPdf(f);
@@ -80,7 +80,91 @@ async function nummerVastleggenEnMailen(id: number): Promise<void> {
     .set({ pdfBase64: Buffer.from(pdf).toString("base64") })
     .where(eq(facturen.id, f.id))
     .returning();
-  await mailFactuur(vast);
+  return vast;
+}
+
+async function nummerVastleggenEnMailen(id: number): Promise<void> {
+  await mailFactuur(await nummerEnPdfVastleggen(id));
+}
+
+/**
+ * Vervangt een verkeerd opgemaakte factuur: een volledige creditfactuur (zonder terugbetaling —
+ * de betaling zelf was goed) plus een herziene factuur met dezelfde bedragen en de juiste
+ * gegevens. Beide gaan in één mail naar de klant. Geeft een foutmelding-tekst of null bij succes.
+ */
+export async function vervangFactuur(
+  origineelId: number,
+  juist: {
+    klantNaam: string;
+    klantBedrijf: string | null;
+    klantAdres: string | null;
+    klantEmail: string;
+    klantBtw: string | null;
+    klantKvk: string | null;
+  },
+): Promise<string | null> {
+  const [origineel] = await db.select().from(facturen).where(eq(facturen.id, origineelId));
+  if (!origineel?.nummer || origineel.soort !== "factuur") return "Deze factuur kan niet gecorrigeerd worden.";
+  const credits = await db.select().from(facturen).where(eq(facturen.creditVoorId, origineel.id));
+  if (credits.length > 0) return "Deze factuur is al (deels) gecrediteerd; automatisch corrigeren kan dan niet meer.";
+
+  const creditId = await claim({
+    siteId: origineel.siteId,
+    molliePaymentId: `${origineel.molliePaymentId}-credit-1`,
+    soort: "credit",
+    creditVoorId: origineel.id,
+    creditVoorNummer: origineel.nummer,
+    klantNaam: origineel.klantNaam,
+    klantBedrijf: origineel.klantBedrijf,
+    klantAdres: origineel.klantAdres,
+    klantEmail: origineel.klantEmail,
+    klantBtw: origineel.klantBtw,
+    klantKvk: origineel.klantKvk,
+    regels: [{ omschrijving: `Creditering van factuur ${origineel.nummer} (correctie van de gegevens)`, bedragCent: -origineel.subtotaalCent }],
+    subtotaalCent: -origineel.subtotaalCent,
+    btwCent: -origineel.btwCent,
+    totaalCent: -origineel.totaalCent,
+    betaalwijze: "correctie, geen terugbetaling",
+  });
+  if (!creditId) return "Er loopt al een correctie voor deze factuur.";
+  const credit = await nummerEnPdfVastleggen(creditId);
+
+  const nieuwId = await claim({
+    siteId: origineel.siteId,
+    molliePaymentId: `${origineel.molliePaymentId}-herzien-1`,
+    soort: "factuur",
+    klantNaam: juist.klantNaam,
+    klantBedrijf: juist.klantBedrijf,
+    klantAdres: juist.klantAdres,
+    klantEmail: juist.klantEmail,
+    klantBtw: juist.klantBtw,
+    klantKvk: juist.klantKvk,
+    regels: origineel.regels,
+    subtotaalCent: origineel.subtotaalCent,
+    btwCent: origineel.btwCent,
+    totaalCent: origineel.totaalCent,
+    betaalwijze: origineel.betaalwijze,
+  });
+  if (!nieuwId) return `Creditfactuur ${credit.nummer} is gemaakt, maar de herziene factuur bestond al.`;
+  const nieuw = await nummerEnPdfVastleggen(nieuwId);
+
+  const gelukt = await mailVanJos({
+    naar: juist.klantEmail,
+    onderwerp: `Herziene factuur ${nieuw.nummer} van WordSwap`,
+    html: `<p>Beste ${ontsnap(juist.klantNaam.split(" ")[0])},</p>
+<p>Er stond iets niet goed op factuur ${origineel.nummer}. In de bijlage vind je daarom creditfactuur <strong>${credit.nummer}</strong>, die de oude factuur vervangt, en de herziene factuur <strong>${nieuw.nummer}</strong> met de juiste gegevens.</p>
+<p>De bedragen zijn ongewijzigd en het is al betaald — dit is alleen een administratieve correctie, je hoeft niets te doen.</p>
+<p>Vragen? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+    bijlagen: [
+      { bestandsnaam: `Creditfactuur-${credit.nummer}.pdf`, inhoud: Buffer.from(await pdfVan(credit)) },
+      { bestandsnaam: `Factuur-${nieuw.nummer}.pdf`, inhoud: Buffer.from(await pdfVan(nieuw)) },
+    ],
+  });
+  if (gelukt) {
+    await db.update(facturen).set({ verstuurd: true }).where(eq(facturen.id, credit.id));
+    await db.update(facturen).set({ verstuurd: true }).where(eq(facturen.id, nieuw.id));
+  }
+  return null;
 }
 
 async function klantVoorBetaling(b: MolliePayment) {
