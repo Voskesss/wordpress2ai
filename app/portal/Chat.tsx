@@ -33,6 +33,13 @@ function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
   return { schoon: tekst.slice(0, m.index).trimEnd(), keuzes };
 }
 
+/** Alleen échte pagina's zijn klikbaar: deelbestanden (delen/menu.html e.d.)
+ * worden op pagina's INGEVOEGD en bestaan niet als eigen adres — doorklikken
+ * gaf daar een 404. */
+function isEchtePagina(pad: string) {
+  return /\.html?$/i.test(pad) && !pad.replace(/^\/+/, "").startsWith("delen/");
+}
+
 function paginaLabel(pad: string) {
   const schoon = pad.replace(/^\/+|\/+$/g, "");
   if (!schoon) return "homepage";
@@ -769,7 +776,7 @@ export default function Chat({
         herlaad(true);
         toonWerkversie();
         setOngedaanKans(null);
-        const paginas = (data.bestanden ?? []).filter((b) => /\.html?$/i.test(b));
+        const paginas = (data.bestanden ?? []).filter(isEchtePagina);
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
         setChatOpen(false);
@@ -839,7 +846,7 @@ export default function Chat({
         herlaad(true);
         toonWerkversie();
         setOngedaanKans(null);
-        const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
+        const paginas = (data.bestanden ?? []).filter(isEchtePagina);
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
       } else if (data.fallback) {
@@ -1012,7 +1019,7 @@ export default function Chat({
         herlaad(true);
         toonWerkversie();
         setOngedaanKans(null);
-        const paginas = (data.bestanden ?? []).filter((p) => /\.html?$/i.test(p));
+        const paginas = (data.bestanden ?? []).filter(isEchtePagina);
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         setChatOpen(false);
       } else if (data.fallback) {
@@ -1987,7 +1994,7 @@ export default function Chat({
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
                 {concept.paginas.length > 0 && (() => {
-                  const paginas = concept.paginas.filter((p) => /\.html?$/i.test(p));
+                  const paginas = concept.paginas.filter(isEchtePagina);
                   const overig = concept.paginas.length - paginas.length;
                   return (
                     <span className="text-amber-800 hidden sm:inline">
@@ -2019,6 +2026,13 @@ export default function Chat({
                 >
                   {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
                 </button>
+                {conceptActie === "publiceer" && (
+                  <span className="basis-full text-xs text-amber-800">
+                    We zetten je wijziging live en lopen alles nog even na
+                    (koppelingen en vindbaarheid), zodat alles goed blijft
+                    werken. Dit duurt zo'n halve minuut.
+                  </span>
+                )}
                 {isMobiel ? (
                   <button
                     onClick={() => setMobielWeergave("site")}

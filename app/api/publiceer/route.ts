@@ -107,6 +107,30 @@ export async function POST(req: Request) {
           .set({ status: "publicatie_mislukt" })
           .where(eq(changes.id, changeId));
       }
+      // Nabewerking vóór de deploy: sitemap.xml en llms.txt kloppend maken met
+      // de pagina's die er nu echt zijn. Bewust hier en niet in de chatbeurt —
+      // daar wacht de eigenaar op zichtbaar resultaat, niet op administratie.
+      // Best effort: dit mag een publicatie nooit tegenhouden.
+      try {
+        const { laadWerkmap, ruimWerkmapOp } = await import("@/lib/werkmap");
+        const { werkOverzichtenBij } = await import("@/lib/site-onderhoud");
+        const map = await laadWerkmap(rij.site.githubRepo);
+        try {
+          const onderhoud = await werkOverzichtenBij(map);
+          if (onderhoud.length) {
+            const { pushBestanden } = await import("@/lib/github");
+            await pushBestanden(
+              rij.site.githubRepo,
+              onderhoud,
+              "Nabewerking bij publicatie: sitemap.xml en llms.txt bijgewerkt",
+            );
+          }
+        } finally {
+          await ruimWerkmapOp(map).catch(() => {});
+        }
+      } catch (e) {
+        console.error("Nabewerking sitemap/llms bij publicatie:", e);
+      }
       await deployRepoNaarCloudflare(
         rij.site.githubRepo,
         rij.site.netlifySiteId,
