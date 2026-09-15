@@ -60,7 +60,6 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${siteUrl}/#organisatie`,
       name: "WordSwap",
-      alternateName: "WordSwap — AI Backoffice",
       url: siteUrl,
       logo: `${siteUrl}/logo-mail.png`,
       description: aanbod.omschrijving,
@@ -72,7 +71,7 @@ const jsonLd = {
       },
       parentOrganization: {
         "@type": "Organization",
-        name: "AI Backoffice (J.K. Klijnhout Holding B.V.)",
+        name: "J.K. Klijnhout Holding B.V.",
         identifier: "KvK 09190650",
       },
       address: {
@@ -277,8 +276,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             </details>
             <div className="shell footer-bottom">
               <span>
-                © {new Date().getFullYear()} WordSwap · AI Backoffice · KvK
-                09190650
+                © {new Date().getFullYear()} WordSwap · KvK 09190650
               </span>
               <span>
                 <Link href="/privacy">Privacy</Link> ·{" "}

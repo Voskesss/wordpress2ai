@@ -6,7 +6,7 @@ import PersoonlijkBlok from "../PersoonlijkBlok";
 export const metadata: Metadata = {
   title: "Over WordSwap — wie, wat en waarom",
   description:
-    "WordSwap is een Nederlandse dienst van AI Backoffice (Oosterbeek) die WordPress-websites omzet naar snelle websites zonder WordPress-beheer, die je daarna aanpast door het te typen. Opgericht door Jos Klijnhout.",
+    "WordSwap is een Nederlandse dienst uit Oosterbeek die WordPress-websites omzet naar snelle websites zonder WordPress-beheer, die je daarna aanpast door het te typen. Opgericht door Jos Klijnhout.",
   alternates: { canonical: "/over-wordswap" },
 };
 
@@ -21,7 +21,7 @@ const feiten: [string, string][] = [
   ],
   [
     "Wie",
-    "Opgericht door Jos Klijnhout. WordSwap is een dienst van AI Backoffice, handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, gevestigd aan de Lebretweg 72, 6861 ZZ Oosterbeek.",
+    "Opgericht door Jos Klijnhout. WordSwap is een handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, gevestigd aan de Lebretweg 72, 6861 ZZ Oosterbeek.",
   ],
   [
     "Sinds",

@@ -78,7 +78,7 @@ export default async function Webinar() {
             Weg uit WordPress — zonder gedoe
           </h2>
           <p className="mt-4 text-stone-600 leading-relaxed">
-            Jos Klijnhout, eigenaar van AI Backoffice en WordSwap, laat live
+            Jos Klijnhout, oprichter van WordSwap, laat live
             zien hoe hij een website aanpast door het gewoon te typen — en wat
             er komt kijken bij de overstap van WordPress naar een site zonder
             onderhoud. Eerlijk over wat het kost én over wanneer het níét past.

@@ -23,7 +23,7 @@ ${aanbod.seo}
 - [Nieuwe website](https://wordswap.nl/nieuwe-website): nieuw ontwerp als aanvullende dienst
 
 ## Vertrouwen en contact
-- [Over WordSwap](https://wordswap.nl/over-wordswap): Jos Klijnhout, AI Backoffice, KvK 09190650, Oosterbeek
+- [Over WordSwap](https://wordswap.nl/over-wordswap): Jos Klijnhout, WordSwap (handelsnaam van J.K. Klijnhout Holding B.V.), KvK 09190650, Oosterbeek
 - [Veiligheid](https://wordswap.nl/veiligheid): risico’s, accounts, hosting en goedkeuring
 - [Zelf doen](https://wordswap.nl/zelf-doen): technische handleiding
 - [Contact](https://wordswap.nl/contact): gratis geschiktheidscheck en prijsvoorstel

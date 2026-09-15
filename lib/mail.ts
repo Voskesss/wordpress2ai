@@ -94,7 +94,7 @@ function metWordSwapOpmaak(html: string): string {
   return `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
 ${html}
 ${handtekening(true)}
-<p style="margin:16px 0 0;font-size:12px;color:#a8a29e">WordSwap · AI Backoffice · KvK 09190650</p>
+<p style="margin:16px 0 0;font-size:12px;color:#a8a29e">WordSwap · KvK 09190650</p>
 </div>`;
 }
 

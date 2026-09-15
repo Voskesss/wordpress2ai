@@ -33,10 +33,10 @@ export default function Voorwaarden() {
         onze diensten te gebruiken, ga je hiermee akkoord.
       </p>
       <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        WordSwap is een dienst van <strong>AI Backoffice</strong>, handelsnaam
-        van J.K. Klijnhout Holding B.V. · KvK 09190650 ·
-        vestigingsnr. 000013799665 · Lebretweg 72, 6861 ZZ Oosterbeek ·{" "}
-        <a href="mailto:info@aibackoffice.nl" className="text-violet-700 underline underline-offset-2">info@aibackoffice.nl</a>
+        <strong>WordSwap</strong> is een handelsnaam van J.K. Klijnhout Holding
+        B.V. · KvK 09190650 · vestigingsnr. 000013799665 · Lebretweg 72, 6861
+        ZZ Oosterbeek ·{" "}
+        <a href="mailto:info@wordswap.nl" className="text-violet-700 underline underline-offset-2">info@wordswap.nl</a>
       </p>
 
       <Artikel nr={1} kop="Wat we leveren">
