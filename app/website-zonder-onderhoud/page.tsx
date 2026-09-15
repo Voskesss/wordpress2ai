@@ -19,12 +19,12 @@ export default function Pagina() {
         label: "Website zonder onderhoud",
         titel: "Een website zonder WordPress-onderhoud. Wel zelf bijhouden.",
         intro:
-          "Je bent tevreden met je website, maar minder met updates en kleine beheerklusjes. WordSwap neemt je bestaande ontwerp en inhoud zorgvuldig over naar een website zonder WordPress. Daarna pas je de inhoud aan met AI. Het WordPress-onderhoud verdwijnt; je bedrijf en website blijven zich ontwikkelen.",
+          "Je bent tevreden met je website, maar minder met updates en kleine beheerklusjes. WordSwap neemt je bestaande ontwerp en inhoud zorgvuldig over naar een website zonder WordPress (of een ander CMS). Daarna pas je de inhoud aan met AI. Het WordPress-onderhoud verdwijnt; je bedrijf en website blijven zich ontwikkelen.",
         blokken: [
           {
             kop: "Welke updates vervallen?",
             tekst:
-              "De publieke website bestaat uit kant-en-klare webpagina’s. Daarop draaien geen WordPress, PHP, WordPress-thema’s of plugins meer. Je hoeft die onderdelen dus ook niet meer bij te werken. De hosting en SSL zijn inbegrepen in WordSwap.",
+              "De publieke website bestaat uit kant-en-klare webpagina’s. Daarop draaien geen WordPress (of ander CMS), PHP, thema’s of plugins meer. Je hoeft die onderdelen dus ook niet meer bij te werken. De hosting en SSL zijn inbegrepen in WordSwap.",
           },
           {
             kop: "Wat blijft aandacht vragen?",

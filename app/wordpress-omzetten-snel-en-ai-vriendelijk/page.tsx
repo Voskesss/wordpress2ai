@@ -20,7 +20,7 @@ export default function Pagina() {
         titel:
           "WordPress omzetten: snel voor bezoekers, begrijpelijk voor zoekmachines.",
         intro:
-          "Een goede website vertelt duidelijk wat je bedrijf doet en maakt contact opnemen makkelijk. WordSwap zet je bestaande WordPress-site over naar statische webpagina’s, met je ontwerp en SEO-inrichting als uitgangspunt. Daarna houd je de inhoud zelf actueel met AI.",
+          "Een goede website vertelt duidelijk wat je bedrijf doet en maakt contact opnemen makkelijk. WordSwap zet je bestaande WordPress-site (of een site in een ander CMS) over naar statische webpagina’s, met je ontwerp en SEO-inrichting als uitgangspunt. Daarna houd je de inhoud zelf actueel met AI.",
         blokken: [
           {
             kop: "Wat kan er sneller worden?",

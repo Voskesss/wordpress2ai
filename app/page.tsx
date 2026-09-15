@@ -42,7 +42,8 @@ export default function Home() {
           <p className="hero-intro">
             <strong>“Zet onze nieuwe openingstijden erop.”</strong> Voortaan is
             dat alles wat je hoeft te doen. Wij zetten je bestaande
-            WordPress-website eerst over naar een razendsnelle versie — zelfde
+            WordPress-website (of een site in een ander CMS) eerst over naar
+            een razendsnelle versie — zelfde
             ontwerp, zelfde adressen, geen onderhoud meer.
           </p>
           <p className="hero-definition">

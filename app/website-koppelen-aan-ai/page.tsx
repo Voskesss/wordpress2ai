@@ -19,7 +19,7 @@ export default function Pagina() {
         label: "Website koppelen aan AI",
         titel: "Je website aanpassen door te vertellen wat je wilt.",
         intro:
-          "Andere openingstijden, een nieuwe foto of een extra dienst? Bij WordSwap geef je het door in de chat. Eerst zetten we je bestaande WordPress-site zorgvuldig over naar een versie zonder WordPress. Daarna kun je zelf de inhoud bijhouden, met een voorbeeld vóór publicatie.",
+          "Andere openingstijden, een nieuwe foto of een extra dienst? Bij WordSwap geef je het door in de chat. Eerst zetten we je bestaande WordPress-site (of een site in een ander CMS) zorgvuldig over naar een versie zonder beheersysteem. Daarna kun je zelf de inhoud bijhouden, met een voorbeeld vóór publicatie.",
         blokken: [
           {
             kop: "Een assistent voor jou als eigenaar",

@@ -55,8 +55,9 @@ export default function OverWordSwap() {
           </h1>
           <p className="mt-6 text-lg text-stone-600 leading-relaxed">
             Ik ben Jos Klijnhout, oprichter van WordSwap. Ik help je om je
-            bestaande WordPress-website zorgvuldig over te zetten en het
-            dagelijkse beheer eenvoudiger te maken.
+            bestaande WordPress-website (of een site in een ander CMS)
+            zorgvuldig over te zetten en het dagelijkse beheer eenvoudiger te
+            maken.
           </p>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
             We beginnen bij jouw bedrijf en de website die je al hebt. Wat moet
