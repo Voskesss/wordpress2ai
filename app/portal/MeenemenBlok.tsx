@@ -84,9 +84,9 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
                   extra</strong> — zo heb je nooit tijdsdruk bij een verhuizing.
                 </li>
                 <li>
-                  Je domeinnaam staat bij TransIP op <strong>jouw eigen naam</strong>: jij (of je nieuwe webbouwer) kunt hem
-                  altijd verhuizen, ook zonder ons. Je krijgt van ons een overzicht van je domeininstellingen mee, zodat ook je
-                  e-mail gewoon blijft werken.
+                  Je domeinnaam blijft <strong>van jou</strong>, waar hij nu ook staat: jij (of je nieuwe webbouwer) kunt hem
+                  altijd verhuizen, ook zonder ons. Beheren wij je domeininstellingen, dan krijg je daar een overzicht van mee
+                  en letten we erop dat je e-mail blijft werken.
                 </li>
                 <li>Downloaden van je bestanden en gegevens (hierboven) kan tot alles is afgerond.</li>
               </ul>

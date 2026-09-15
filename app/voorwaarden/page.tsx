@@ -78,8 +78,9 @@ export default function Voorwaarden() {
           (teksten, beelden, logo&rsquo;s) en dat die inhoud niet onrechtmatig
           is. Wijzigingen die je via de AI-chat doorgeeft, keur je zelf goed
           voordat ze gepubliceerd worden; jij blijft verantwoordelijk voor de
-          inhoud van je website. Je domeinnaam blijft van jou en staat op jouw
-          naam.
+          inhoud van je website. Je domeinnaam blijft van jou, waar hij ook
+          geregistreerd is. Staat hij nog niet op jouw naam, dan helpen we je
+          daarbij.
         </p>
       </Artikel>
 
@@ -149,8 +150,8 @@ export default function Voorwaarden() {
           extra, zodat je zonder tijdsdruk kunt verhuizen; daarna halen we hem
           offline. Je websitebestanden en gegevens (die zijn en blijven van
           jou) kun je op elk moment zelf downloaden in je portaal, ook na
-          opzegging tot het moment van verwijdering. Je ontvangt van ons een
-          overzicht van je domeininstellingen voor een soepele verhuizing. Wij
+          opzegging tot het moment van verwijdering. Staan je domeininstellingen bij
+          ons, dan ontvang je daarvan een overzicht voor een soepele verhuizing. Wij
           kunnen de overeenkomst beëindigen met een opzegtermijn van drie
           maanden, zodat je ruim de tijd hebt om te verhuizen.
         </p>

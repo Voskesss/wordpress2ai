@@ -56,7 +56,7 @@ const wijRegelen = [
   {
     kop: "Eén pakket, geen losse eindjes",
     tekst:
-      "Website, hosting, beveiligde verbinding, domeinkoppeling en versiegeschiedenis. Mail en domein regelen we op jouw naam. Je hebt één aanspreekpunt.",
+      "Website, hosting, beveiligde verbinding, domeinkoppeling en versiegeschiedenis. Je domein blijft van jou en je mailinstellingen nemen we mee. Je hebt één aanspreekpunt.",
   },
   {
     kop: "Wijzigen door het te typen",
@@ -66,7 +66,7 @@ const wijRegelen = [
   {
     kop: "De site en je gegevens zijn van jou",
     tekst:
-      "Je websitebestanden staan in een eigen omgeving op jouw naam. Je kunt ze op elk moment meenemen. Formulierinzendingen staan in jouw portaal. Maandelijks opzegbaar, zonder dat je iets kwijtraakt.",
+      "Je websitebestanden staan in een eigen omgeving en zijn van jou. Je kunt ze op elk moment meenemen. Formulierinzendingen staan in jouw portaal. Maandelijks opzegbaar, zonder dat je iets kwijtraakt.",
   },
   {
     kop: "Vindbaar vanaf dag één",
@@ -99,12 +99,12 @@ const faq = [
   {
     vraag: "Wat kost het bij WordSwap?",
     antwoord:
-      "Een nieuwe site vanaf €250 eenmalig, een overstap vanaf €150. Daarna vanaf €12 per maand voor hosting en de AI-koppeling. Domein en mail apart, op jouw naam. Alle bedragen exclusief btw en vooraf schriftelijk afgesproken.",
+      "Een nieuwe site vanaf €250 eenmalig, een overstap vanaf €150. Daarna vanaf €12 per maand voor hosting en de AI-koppeling. Domein en mail apart, en die blijven van jou. Alle bedragen exclusief btw en vooraf schriftelijk afgesproken.",
   },
   {
     vraag: "Wat als ik weg wil?",
     antwoord:
-      "Dan neem je je websitebestanden, je domein en je mail gewoon mee — downloaden kan op elk moment zelf in je portaal, en opzeggen ook. De afschrijving stopt direct en je site blijft nog een maand extra online zodat je rustig kunt verhuizen. Er zit niets vast aan ons.",
+      "Dan neem je je websitebestanden gewoon mee — downloaden kan op elk moment zelf in je portaal, en opzeggen ook. Je domein en mail blijven van jou, en we zorgen dat je mailinstellingen meegaan. De afschrijving stopt direct en je site blijft nog een maand extra online zodat je rustig kunt verhuizen. Er zit niets vast aan ons.",
   },
 ];
 
@@ -220,14 +220,14 @@ export default function AiWebsite() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
             Bij WordSwap is je site een map met gewone webbestanden die je op elk moment zelf downloadt in je
-            portaal — ook als je gewoon blijft. Je domein staat op jouw naam. Zeg je op, dan stopt de afschrijving
+            portaal — ook als je gewoon blijft. Je domein blijft van jou, waar het nu ook staat. Zeg je op, dan stopt de afschrijving
             direct en blijft je site nog een maand extra online zodat je rustig kunt verhuizen. Blijven moet zijn
             omdat het bevalt, niet omdat vertrekken niet kan.
           </p>
         </div>
         <p className="mt-6 text-sm text-stone-500">
           Nieuwe site vanaf €250 eenmalig, overstap vanaf €150. Daarna vanaf
-          €12 per maand. Domein en mail apart, op jouw naam. Excl. btw.{" "}
+          €12 per maand. Domein en mail apart; die blijven van jou. Excl. btw.{" "}
           <Link href="/prijzen" className="underline">
             Alle prijzen
           </Link>

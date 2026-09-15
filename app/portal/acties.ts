@@ -289,7 +289,7 @@ ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (factur
 <p>Je opzegging voor <strong>${ontsnap(site.naam)}</strong> is ontvangen. ${
         fout ? "Ik verwerk hem zo snel mogelijk zelf." : "Er wordt vanaf nu niets meer afgeschreven."
       }${einde ? ` Je website blijft online tot ${einde}, en daarna nog één maand extra — zo heb je nooit tijdsdruk bij een verhuizing.` : " Je website blijft nog even online, zodat je rustig kunt verhuizen."}</p>
-<p>Goed om te weten: je domeinnaam staat bij TransIP op jouw eigen naam, dus jij (of je nieuwe webbouwer) kunt hem altijd verhuizen, ook zonder ons. Je krijgt van mij nog een overzicht van je domeininstellingen, zodat ook je e-mail gewoon blijft werken.</p>
+<p>Goed om te weten: je domeinnaam is van jou, waar hij nu ook staat, dus jij (of je nieuwe webbouwer) kunt hem altijd verhuizen, ook zonder ons. Staan je domeininstellingen bij ons, dan krijg je van mij nog een overzicht en let ik erop dat je e-mail blijft werken.</p>
 <p>Ik neem nog even contact met je op over je website: wil je hem meenemen, dan help ik je daarbij. Je bestanden en gegevens kun je tot die tijd gewoon downloaden in je portaal.${
         verwijderen ? " Daarna verwijderen we je account en gegevens, uiterlijk binnen drie maanden (facturen moeten we wettelijk zeven jaar bewaren)." : ""
       }</p>

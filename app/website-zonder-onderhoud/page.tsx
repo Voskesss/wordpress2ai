@@ -29,7 +29,7 @@ export default function Pagina() {
           {
             kop: "Wat moet je dan nog zelf doen?",
             tekst:
-              "Eigenlijk alleen je eigen inhoud actueel houden: kloppen je prijzen, openingstijden en contactgegevens nog? Dat pas je zelf aan door het in de chat te typen. De techniek erachter, zoals hosting, beveiliging en je contactformulier, houden wij in de gaten. Je domeinnaam en e-mail blijven wel aparte abonnementen op jouw naam, bij je eigen provider.",
+              "Eigenlijk alleen je eigen inhoud actueel houden: kloppen je prijzen, openingstijden en contactgegevens nog? Dat pas je zelf aan door het in de chat te typen. De techniek erachter, zoals hosting, beveiliging en je contactformulier, houden wij in de gaten. Je domeinnaam en e-mail blijven wel aparte abonnementen bij je eigen provider.",
           },
           {
             kop: "Een kleine wijziging regel je zelf",

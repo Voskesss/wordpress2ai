@@ -533,7 +533,7 @@ export async function maakOpdrachtbevestigingPdf(o: {
   y -= 4;
   alinea("Wat jij zelf draagt", { vet: true, kleur: GROEN });
   alinea(
-    "Je domeinnaam en e-mailabonnement staan op jouw naam en de kosten daarvan lopen buiten WordSwap om. Voor de inhoud van je website (teksten, foto's, claims en rechten daarop) ben jij verantwoordelijk. Wijzigingen die je via de chat publiceert, zijn jouw keuze; er is altijd eerst een voorbeeld en een eerdere versie kan worden teruggezet. AI-gebruik boven de fair-use-grens en maatwerk spreken we vooraf apart af.",
+    "Je domeinnaam en e-mailabonnement blijven van jou; de kosten daarvan lopen buiten WordSwap om. Voor de inhoud van je website (teksten, foto's, claims en rechten daarop) ben jij verantwoordelijk. Wijzigingen die je via de chat publiceert, zijn jouw keuze; er is altijd eerst een voorbeeld en een eerdere versie kan worden teruggezet. AI-gebruik boven de fair-use-grens en maatwerk spreken we vooraf apart af.",
   );
   if (o.afspraken?.trim()) {
     y -= 4;
