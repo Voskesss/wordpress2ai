@@ -14,7 +14,7 @@ export const aanbod = {
     "Je behoudt je domeinnaam. We nemen inhoud en ontwerp zo nauwkeurig mogelijk over; bijzondere functies en afwijkingen bespreken we vooraf. Je beoordeelt de kopie voordat je akkoord geeft. Zonder akkoord betaal je niet voor de omzetting.",
   seo: "Bestaande URL’s en paginastructuur nemen we waar mogelijk exact over, net als paginatitels en meta-informatie. We vergelijken de oude en nieuwe inrichting, controleren de sitemap en richten bij afgesproken URL-wijzigingen passende doorverwijzingen in. Zoekposities en vermeldingen in AI-antwoorden kunnen we niet garanderen.",
   veiligheid:
-    "De publieke website heeft geen WordPress-database, PHP of WordPress-plugins. Dat verkleint het aanvalsoppervlak. Het beheerportaal, accounts, hosting en formulieren blijven beveiliging nodig hebben. Geen website is risicovrij.",
+    "Een stuk veiliger dan een gewone WordPress-site, al belooft niemand je eerlijk gezegd een website die honderd procent onkwetsbaar is. Je website bestaat uit kant-en-klare pagina’s zonder database, PHP of plugins, dus de inbraakroutes waar de meeste gehackte websites op sneuvelen, bestaan bij jou niet. De rest regelen wij: we houden de hosting, de beveiliging, het portaal en je contactformulier in de gaten en up-to-date. Daar hoef jij niet naar om te kijken.",
   eigenAi:
     "De ingebouwde WordSwap-chat is beschikbaar. Teksten uit ChatGPT of Claude kun je daarin plakken. Een rechtstreekse koppeling vanuit zo’n assistent is nog gepland. Experts kunnen op afspraak eigen AI-codetools gebruiken; zij werken buiten de standaard goedkeuringsroute.",
 };
