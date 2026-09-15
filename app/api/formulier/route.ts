@@ -192,13 +192,28 @@ export async function POST(req: Request) {
       }
     }
 
+    // Alleen als de voorbereidingsmails echt aanstaan, kondigen we ze aan
+    let reeksZin = "";
+    if (formulier === "webinar") {
+      try {
+        const { webinarMailInstellingen } = await import("@/db/schema");
+        const { DAGMAILS } = await import("@/lib/webinar-reeks");
+        const inst = await db.select().from(webinarMailInstellingen);
+        if (inst.some((x) => x.aan && (DAGMAILS as string[]).includes(x.soort))) {
+          reeksZin = "<p>De komende dagen krijg je van mij een paar korte mails, zodat je goed voorbereid binnenkomt.</p>";
+        }
+      } catch {
+        /* tabel ontbreekt nog: geen aankondiging */
+      }
+    }
+
     if (invullerEmail) {
       if (formulier === "webinar") {
         await verstuurSiteMail({
           site: site ?? null,
           naar: invullerEmail,
           onderwerp: `Je bent aangemeld voor het webinar van ${siteNaam}`,
-          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}<p>Tot dan! Zet het vast in je agenda — een reply op deze mail komt gewoon bij ons aan als je vragen hebt.</p>`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}${reeksZin}<p>Tot dan! Zet het vast in je agenda — een reply op deze mail komt gewoon bij ons aan als je vragen hebt.</p>`,
           antwoordNaar: site?.notificatieEmail ?? undefined,
         });
       } else {

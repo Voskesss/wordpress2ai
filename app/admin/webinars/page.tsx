@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { formulierInzendingen, webinars } from "@/db/schema";
+import { formulierInzendingen, webinarMailInstellingen, webinarMails, webinars } from "@/db/schema";
+import { REEKS } from "@/lib/webinar-reeks";
+import { reeksMailZetten, reeksTestNaarMij } from "../acties-webinar-reeks";
 import { requireAdmin } from "@/lib/auth";
 import { formatWanneer, hoortBij } from "@/lib/webinar";
 import ActieKnop from "../klant/[id]/ActieKnop";
@@ -35,6 +37,18 @@ export default async function Webinars() {
     .from(formulierInzendingen)
     .where(eq(formulierInzendingen.formulier, "webinar"))
     .orderBy(desc(formulierInzendingen.id));
+
+  // Mailreeks: welke mails aanstaan, en wat er per inschrijving al verstuurd is
+  const instellingen = await db.select().from(webinarMailInstellingen).catch(() => []);
+  const aanSet = new Set(instellingen.filter((i) => i.aan).map((i) => i.soort));
+  const verzonden = await db.select().from(webinarMails).catch(() => []);
+  const mailsPerInschrijving = new Map<number, string[]>();
+  for (const m of verzonden) {
+    if (!mailsPerInschrijving.has(m.inschrijvingId)) mailsPerInschrijving.set(m.inschrijvingId, []);
+    mailsPerInschrijving.get(m.inschrijvingId)!.push(m.soort);
+  }
+  const korteNaam = (soort: string) =>
+    soort === "afgemeld" ? "afgemeld" : (REEKS.find((r) => r.soort === soort)?.naam.split(" (")[0] ?? soort);
 
   const perWebinar = (w: (typeof lijst)[number]) =>
     inschrijvingen.filter((i) => hoortBij(i.velden as Record<string, unknown>, w));
@@ -98,6 +112,61 @@ export default async function Webinars() {
           />
         </div>
       </form>
+
+      {/* Automatische mailreeks */}
+      <section className="mt-8 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">✉️ Automatische mailreeks</h2>
+        <p className="mt-1 text-sm leading-relaxed text-stone-600">
+          Elke mail staat los aan of uit, en alles staat standaard <strong>uit</strong>. Staat een mail aan, dan verstuurt de
+          controle (elk uur) hem vanzelf op het juiste moment naar de inschrijvers van een komend webinar. Wie zich laat
+          aanmeldt, krijgt eerdere mails niet alsnog; niemand krijgt er twee tegelijk; onderaan staat een afmeldlink.
+          Bekijk en test een mail altijd eerst.
+        </p>
+        <ul className="mt-4 divide-y divide-stone-100">
+          {REEKS.map((r) => {
+            const aan = aanSet.has(r.soort);
+            return (
+              <li key={r.soort} className="flex flex-wrap items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-stone-800">{r.naam}</p>
+                  <p className="text-xs text-stone-500">{r.moment}</p>
+                </div>
+                <span
+                  className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                    aan ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-stone-200 bg-stone-50 text-stone-500"
+                  }`}
+                >
+                  {aan ? "aan" : "uit"}
+                </span>
+                <Link href={`/admin/webinars/reeks/${r.soort}`} className="text-xs font-semibold text-violet-700 hover:underline">
+                  👁 Bekijk
+                </Link>
+                <form action={reeksTestNaarMij}>
+                  <input type="hidden" name="soort" value={r.soort} />
+                  <ActieKnop
+                    label="Test naar mij"
+                    bezigLabel="…"
+                    klaarLabel="✓ Verstuurd"
+                    className="text-xs font-semibold text-violet-700 hover:underline cursor-pointer"
+                  />
+                </form>
+                <form action={reeksMailZetten}>
+                  <input type="hidden" name="soort" value={r.soort} />
+                  <input type="hidden" name="aan" value={aan ? "0" : "1"} />
+                  <ActieKnop
+                    label={aan ? "Zet uit" : "Zet aan"}
+                    bezigLabel="…"
+                    klaarLabel="✓"
+                    className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer ${
+                      aan ? "border border-stone-300 text-stone-700 hover:border-red-300 hover:text-red-700" : "bg-emerald-700 text-white hover:bg-emerald-600"
+                    }`}
+                  />
+                </form>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       {/* Lijst */}
       <div className="mt-8 space-y-4">
@@ -186,6 +255,11 @@ export default async function Webinars() {
                           <span className="font-medium">{v.naam ?? "—"}</span>
                           <span className="text-stone-400">{v.email ?? ""}</span>
                           {v.website && <span className="text-stone-400">· {v.website}</span>}
+                          {(mailsPerInschrijving.get(i.id) ?? []).length > 0 && (
+                            <span className="text-xs text-emerald-700">
+                              ✉ {(mailsPerInschrijving.get(i.id) ?? []).map(korteNaam).join(", ")}
+                            </span>
+                          )}
                           <form action={webinarInschrijvingVerplaatsen} className="ml-auto flex items-center gap-1.5">
                             <input type="hidden" name="inzendingId" value={i.id} />
                             <select name="naar" required defaultValue="" className={keuzeStijl} aria-label="Verplaats naar">
@@ -221,6 +295,10 @@ export default async function Webinars() {
                   <label className="block text-sm font-semibold">
                     Opnamelink (voor de follow-up na afloop)
                     <input name="opnameLink" defaultValue={w.opnameLink ?? ""} placeholder="https://..." className={invoerStijl} />
+                  </label>
+                  <label className="block text-sm font-semibold">
+                    Voorbeeldvideo (optioneel, komt in de mail van de dag vóór het webinar)
+                    <input name="demoVideoLink" defaultValue={w.demoVideoLink ?? ""} placeholder="https://..." className={invoerStijl} />
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="actief" defaultChecked={w.actief} />

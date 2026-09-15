@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/abonnementen",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/webinar-reeks",
+      "schedule": "15 * * * *"
     }
   ]
 }

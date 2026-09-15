@@ -466,8 +466,12 @@ export async function webinarBijwerken(formData: FormData) {
     await db.delete(webinars).where(eq(webinars.id, id));
   } else {
     const opnameLink = String(formData.get("opnameLink") ?? "").trim();
+    const demoVideoLink = String(formData.get("demoVideoLink") ?? "").trim();
     const actief = formData.get("actief") === "on";
-    await db.update(webinars).set({ opnameLink: opnameLink || null, actief }).where(eq(webinars.id, id));
+    await db
+      .update(webinars)
+      .set({ opnameLink: opnameLink || null, demoVideoLink: /^https?:\/\//.test(demoVideoLink) ? demoVideoLink : null, actief })
+      .where(eq(webinars.id, id));
   }
   revalidatePath("/admin/webinars");
   revalidatePath("/webinar");
@@ -563,7 +567,7 @@ export async function webinarMailen(formData: FormData) {
         w.opnameLink
           ? ` Kon je er niet bij zijn of wil je iets terugkijken? <a href="${w.opnameLink}">Hier staat de opname</a>.`
           : ""
-      }</p><p>Wil je weten wat de overstap voor jóuw website betekent? Vraag vrijblijvend de gratis site-check aan op <a href="https://wordswap.nl/contact">wordswap.nl/contact</a> — je krijgt binnen één werkdag een eerlijk antwoord en een vaste prijs. En het is no cure, no pay: pas als je tevreden bent met de kopie van je site betaal je iets.</p><p>Groet,<br>Jos — WordSwap</p>`,
+      }</p><p>Wil je weten of jij van het gedoe af kunt, voor jóuw eigen website? Vraag vrijblijvend de gratis websitecheck aan op <a href="https://wordswap.nl/contact">wordswap.nl/contact</a>. Je krijgt binnen één werkdag een eerlijk antwoord, ook als dat ‘blijf waar je zit’ is.</p><p>Groet,<br>Jos — WordSwap</p>`,
     },
   };
   const sjabloon = teksten[soort] ?? teksten.link;

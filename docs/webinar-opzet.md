@@ -1,6 +1,9 @@
 # Webinar-script: "Weg uit WordPress — zonder gedoe"
 
-Duur: ± 35 minuten + 10 minuten vragen. Publiek: mkb'ers met een bestaande
+Duur: **maximaal 30 minuten, inclusief vragen** (besluit Jos, 15-09-2026 — de
+minutenindeling hieronder naar verhouding inkorten; de automatische mailreeks
+vooraf staat in lib/webinar-reeks.ts en is per mail aan/uit te zetten in
+/admin/webinars). Publiek: mkb'ers met een bestaande
 (WordPress-)site. **Insteek: wat, waarom en wanneer — bewust níét de hoe.**
 Het doel is een overtuigingsverschuiving:
 

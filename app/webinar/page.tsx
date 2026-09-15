@@ -117,7 +117,7 @@ export default async function Webinar() {
                   }) + " uur"
                 : "Nieuwe datum volgt"}
             </p>
-            <p>⏱ ± 45 minuten, inclusief je vragen</p>
+            <p>⏱ Maximaal 30 minuten, inclusief je vragen</p>
             <p>💻 Online, gewoon vanaf je eigen plek</p>
           </div>
           <a
@@ -180,7 +180,7 @@ export default async function Webinar() {
           </ul>
           <p className="mt-4 text-sm leading-relaxed text-stone-600">
             Zit je in een van deze situaties? Dan past onze aanpak waarschijnlijk niet bij je site. Dat zeggen we
-            liever nu dan na drie kwartier. Twijfel je? Doe de{" "}
+            liever nu dan na een half uur. Twijfel je? Doe de{" "}
             <Link href="/contact" className="text-violet-700 underline underline-offset-2">
               gratis websitecheck
             </Link>

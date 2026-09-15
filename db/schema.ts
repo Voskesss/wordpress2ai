@@ -3,6 +3,7 @@ import {
   boolean,
   pgTable,
   primaryKey,
+  unique,
   serial,
   text,
   timestamp,
@@ -257,6 +258,7 @@ export const webinars = pgTable("webinars", {
   wanneer: timestamp("wanneer").notNull(),
   meetLink: text("meet_link"),
   opnameLink: text("opname_link"),
+  demoVideoLink: text("demo_video_link"), // voorbeeldvideo voor de mailreeks (optioneel)
   actief: boolean("actief").notNull().default(true),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
@@ -441,3 +443,23 @@ export const wpBackups = pgTable("wp_backups", {
   omschrijving: text("omschrijving"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Webinar-mailreeks: welke mails aanstaan (alles standaard uit) en wat er per inschrijving verstuurd is.
+// soort "afgemeld" in webinar_mails betekent: deze inschrijver wil geen reeksmails meer.
+export const webinarMailInstellingen = pgTable("webinar_mail_instellingen", {
+  soort: text("soort").primaryKey(),
+  aan: boolean("aan").notNull().default(false),
+  bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+});
+
+export const webinarMails = pgTable(
+  "webinar_mails",
+  {
+    id: serial("id").primaryKey(),
+    inschrijvingId: integer("inschrijving_id").notNull(),
+    webinarId: integer("webinar_id").notNull(),
+    soort: text("soort").notNull(),
+    verzondenOp: timestamp("verzonden_op").notNull().defaultNow(),
+  },
+  (t) => [unique("webinar_mails_inschrijving_soort").on(t.inschrijvingId, t.soort)],
+);
