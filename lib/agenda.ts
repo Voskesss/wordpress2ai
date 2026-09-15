@@ -61,6 +61,12 @@ export function googleAgendaLink(w: Sessie): string {
   return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }
 
+/** Outlook van je werk of school (Microsoft 365): een ander domein dan het persoonlijke Outlook.com. */
+export function outlookWerkAgendaLink(w: Sessie): string {
+  return outlookAgendaLink(w).replace("https://outlook.live.com/", "https://outlook.office.com/");
+}
+
+/** Persoonlijk Outlook.com / Hotmail. */
 export function outlookAgendaLink(w: Sessie): string {
   const q = new URLSearchParams({
     path: "/calendar/action/compose",

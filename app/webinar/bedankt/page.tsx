@@ -3,7 +3,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { webinars } from "@/db/schema";
-import { googleAgendaLink, outlookAgendaLink, WEBINAR_DUUR_MIN } from "@/lib/agenda";
+import { googleAgendaLink, outlookAgendaLink, outlookWerkAgendaLink, WEBINAR_DUUR_MIN } from "@/lib/agenda";
 import { josFoto, josVideoEmbed } from "@/lib/persoonlijk";
 import { formatWanneer } from "@/lib/webinar";
 
@@ -40,18 +40,25 @@ export default async function WebinarBedankt({ searchParams }: { searchParams: P
         <section className="mt-8 rounded-2xl border border-[#dde7d9] bg-[#f6f9f2] p-6">
           <h2 className="font-display text-xl font-semibold">📅 Zet het meteen in je agenda</h2>
           <p className="mt-1 text-sm text-stone-600">Dan vergeet je het niet. Eén klik is genoeg.</p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <a href={googleAgendaLink(w)} target="_blank" rel="noreferrer" className={knop}>
               Google Agenda
             </a>
+            <a href={outlookWerkAgendaLink(w)} target="_blank" rel="noreferrer" className={knop}>
+              Outlook (werk / Microsoft 365)
+            </a>
             <a href={outlookAgendaLink(w)} target="_blank" rel="noreferrer" className={knop}>
-              Outlook
+              Outlook.com / Hotmail
             </a>
             <a href={`/webinar/agenda/${w.id}`} className={knop}>
-              Apple / overig
+              ⬇ Agendabestand (Apple, Outlook-app)
             </a>
           </div>
-          <p className="mt-3 text-xs text-stone-500">Je krijgt ook een bevestiging per mail, met het agendabestand als bijlage.</p>
+          <p className="mt-3 text-xs leading-relaxed text-stone-500">
+            Google en Outlook openen in een nieuw tabblad; log in als daarom gevraagd wordt en klik op Opslaan. Het
+            agendabestand komt in je Downloads: dubbelklik erop, dan zet je computer het webinar in je agenda. Je krijgt
+            het bestand ook als bijlage in de bevestigingsmail.
+          </p>
         </section>
       )}
 

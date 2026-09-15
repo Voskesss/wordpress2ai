@@ -60,7 +60,7 @@ export default async function Webinar() {
       <h1 className="font-display text-center text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
         Je wilde één zin op je website zetten.
         <br />
-        <span className="bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
           Het werd weer een heel gedoe.
         </span>
       </h1>
@@ -73,7 +73,7 @@ export default async function Webinar() {
       {/* Uitgelicht webinar: collage links, inhoud rechts */}
       <div className="mt-12 grid overflow-hidden rounded-[2rem] bg-violet-50/60 border border-violet-100 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="relative hidden min-h-[26rem] lg:block">
-          <div className="absolute left-8 top-8 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-violet-600 to-fuchsia-500 opacity-90" />
+          <div className="absolute left-8 top-8 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-violet-600 to-violet-400 opacity-90" />
           <div className="absolute right-10 top-14 h-14 w-14 rounded-full bg-amber-300" />
           <div className="absolute bottom-24 left-6 h-16 w-28 rounded-2xl bg-white shadow-lg p-3">
             <p className="text-[10px] font-semibold text-stone-500">Jij zegt:</p>
@@ -90,14 +90,14 @@ export default async function Webinar() {
               className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-[2.5rem] border-4 border-white object-cover shadow-2xl"
             />
           ) : (
-            <div className="font-display absolute left-1/2 top-1/2 flex h-44 w-44 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2.5rem] border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-500 text-5xl font-semibold text-white shadow-2xl">
+            <div className="font-display absolute left-1/2 top-1/2 flex h-44 w-44 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2.5rem] border-4 border-white bg-gradient-to-br from-violet-600 to-violet-400 text-5xl font-semibold text-white shadow-2xl">
               JK
             </div>
           )}
         </div>
 
         <div className="p-8 sm:p-12">
-          <span className="rounded-full bg-fuchsia-100 px-3.5 py-1.5 text-sm font-semibold text-fuchsia-700">
+          <span className="rounded-full bg-violet-100 px-3.5 py-1.5 text-sm font-semibold text-violet-700">
             Gratis webinar
           </span>
           <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight">Weg uit WordPress — zonder gedoe</h2>
