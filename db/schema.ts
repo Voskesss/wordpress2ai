@@ -341,3 +341,14 @@ export const leads = pgTable("leads", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
+
+// Acties per lead: Jos voegt ze toe en vinkt ze af; afgevinkte blijven zichtbaar
+export const leadActies = pgTable("lead_acties", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull(),
+  tekst: text("tekst").notNull(),
+  datum: text("datum"), // YYYY-MM-DD, optioneel
+  gedaan: boolean("gedaan").notNull().default(false),
+  gedaanOp: timestamp("gedaan_op"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
