@@ -24,6 +24,7 @@ ${aanbod.seo}
 
 ## Vertrouwen en contact
 - [Over WordSwap](https://wordswap.nl/over-wordswap): Jos Klijnhout, WordSwap (handelsnaam van J.K. Klijnhout Holding B.V.), KvK 09190650, Oosterbeek
+- [Veelgestelde vragen](https://wordswap.nl/veelgestelde-vragen): alle antwoorden op één plek, waaronder wat je via de chat kunt aanpassen en dat je nooit vastzit (bestanden altijd zelf te downloaden)
 - [Veiligheid](https://wordswap.nl/veiligheid): risico’s, accounts, hosting en goedkeuring
 - [Zelf doen](https://wordswap.nl/zelf-doen): technische handleiding
 - [Contact](https://wordswap.nl/contact): gratis geschiktheidscheck en prijsvoorstel

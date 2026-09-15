@@ -104,7 +104,7 @@ const faq = [
   {
     vraag: "Wat als ik weg wil?",
     antwoord:
-      "Dan neem je je websitebestanden, je domein en je mail gewoon mee. De koppeling is maandelijks opzegbaar. Er zit niets vast aan ons.",
+      "Dan neem je je websitebestanden, je domein en je mail gewoon mee — downloaden kan op elk moment zelf in je portaal, en opzeggen ook. De afschrijving stopt direct en je site blijft nog een maand extra online zodat je rustig kunt verhuizen. Er zit niets vast aan ons.",
   },
 ];
 
@@ -207,6 +207,23 @@ export default function AiWebsite() {
               </p>
             </div>
           ))}
+        </div>
+        <div className="mt-10 rounded-xl border border-stone-200 bg-white p-6">
+          <p className="eyebrow">AI WEBSITE BUILDER OF LATEN REGELEN?</p>
+          <h3 className="font-display mt-2 text-xl font-semibold">Let vooral op één ding: kun je er wég?</h3>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Een AI website builder (Wix, Hostinger, Framer en dergelijke) is prima als je klein zit, graag zelf
+            klust en tijd hebt. Maar lees vóór je begint de voorwaarden op één punt: <strong>van wie is de site,
+            en kun je hem meenemen?</strong> Bij veel builders bestaat je website alleen ín hun systeem. Stop je
+            abonnement, dan stopt je site — exporteren kan vaak niet of levert een half werkende kopie op. Dat
+            heet lock-in: niet de prijs houdt je vast, maar de uitgang die ontbreekt.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Bij WordSwap is je site een map met gewone webbestanden die je op elk moment zelf downloadt in je
+            portaal — ook als je gewoon blijft. Je domein staat op jouw naam. Zeg je op, dan stopt de afschrijving
+            direct en blijft je site nog een maand extra online zodat je rustig kunt verhuizen. Blijven moet zijn
+            omdat het bevalt, niet omdat vertrekken niet kan.
+          </p>
         </div>
         <p className="mt-6 text-sm text-stone-500">
           Nieuwe site vanaf €250 eenmalig, overstap vanaf €150. Daarna vanaf

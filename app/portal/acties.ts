@@ -216,3 +216,82 @@ export async function akkoordVerwerkersovereenkomst() {
     .onConflictDoNothing();
   revalidatePath("/portal");
 }
+
+/**
+ * Opzeggen vanuit het portaal: stopt de maandelijkse incasso direct bij Mollie en laat Jos en
+ * de klant het weten. Verwijderen van account en gegevens gebeurt daarna door Jos (binnen drie maanden).
+ */
+export async function zegAbonnementOp(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site || formData.get("bevestig") !== "on") return;
+  const verwijderen = formData.get("verwijderen") === "on";
+  const { abonnementen } = await import("@/db/schema");
+  const { mollie } = await import("@/lib/mollie");
+  const { mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
+  const { currentUser } = await import("@clerk/nextjs/server");
+
+  const [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, site.id)).catch(() => []);
+  let doorlopenTot: string | null = null;
+  let fout = "";
+  const lopend = abo && (abo.status === "actief" || abo.status === "mislukt");
+  if (lopend && abo.mollieCustomerId && abo.mollieSubscriptionId) {
+    const pad = `/customers/${abo.mollieCustomerId}/subscriptions/${abo.mollieSubscriptionId}`;
+    try {
+      const sub = await mollie<{ nextPaymentDate?: string }>(pad);
+      doorlopenTot = sub.nextPaymentDate ?? null;
+      await mollie(pad, { methode: "DELETE" });
+    } catch (e) {
+      fout = e instanceof Error ? e.message : String(e);
+    }
+  }
+  if (abo && abo.status !== "gestopt" && !fout) {
+    await db
+      .update(abonnementen)
+      .set({ status: "gestopt", mollieSubscriptionId: null, betaallink: null, stoptOp: null, nieuwBedragCent: null, nieuwBedragVanaf: null, bijgewerkt: new Date() })
+      .where(eq(abonnementen.id, abo.id));
+  }
+
+  const gebruiker = await currentUser();
+  const klantEmail = abo?.email ?? gebruiker?.emailAddresses?.[0]?.emailAddress ?? null;
+  const naam = abo?.naam ?? ([gebruiker?.firstName, gebruiker?.lastName].filter(Boolean).join(" ") || "klant");
+  const einde = doorlopenTot
+    ? new Date(`${doorlopenTot}T12:00:00`).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  await mailVanJos({
+    naar: "jos@wordswap.nl",
+    bcc: false,
+    onderwerp: `🚪 Opzegging via het portaal: ${site.naam}`,
+    html: `<p><strong>${ontsnap(naam)}</strong> (${ontsnap(klantEmail ?? "onbekend")}) heeft het abonnement voor <strong>${ontsnap(site.naam)}</strong> opgezegd via het portaal.</p>
+<ul>
+<li>Incasso: ${fout ? `<strong>NIET gestopt</strong>, Mollie gaf een fout: ${ontsnap(fout)}. Stop hem handmatig in de admin.` : lopend ? "gestopt bij Mollie" : "er liep geen incasso"}</li>
+<li>Betaald tot: ${einde ?? "onbekend"}</li>
+<li>Account en gegevens verwijderen: <strong>${verwijderen ? "JA, binnen drie maanden" : "nee"}</strong></li>
+</ul>
+<p>Afgesproken vertrek-stappen (checklist):</p>
+<ol>
+<li>DNS-overzicht van het domein naar de klant mailen (vooral de mailrecords)</li>
+<li>Worker offline halen: één maand ná de betaalde periode${einde ? ` (dus rond een maand na ${einde})` : ""}</li>
+<li>Domeinverhuizing: klant regelt het zelf bij TransIP of vraagt hulp</li>
+${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (facturen 7 jaar bewaren)</li>" : ""}
+</ol>`,
+  });
+  if (klantEmail) {
+    await mailVanJos({
+      naar: klantEmail,
+      van: "Jos van WordSwap",
+      onderwerp: "Je opzegging bij WordSwap",
+      html: `<p>Beste ${ontsnap(naam.split(" ")[0])},</p>
+<p>Je opzegging voor <strong>${ontsnap(site.naam)}</strong> is ontvangen. ${
+        fout ? "Ik verwerk hem zo snel mogelijk zelf." : "Er wordt vanaf nu niets meer afgeschreven."
+      }${einde ? ` Je website blijft online tot ${einde}, en daarna nog één maand extra — zo heb je nooit tijdsdruk bij een verhuizing.` : " Je website blijft nog even online, zodat je rustig kunt verhuizen."}</p>
+<p>Goed om te weten: je domeinnaam staat bij TransIP op jouw eigen naam, dus jij (of je nieuwe webbouwer) kunt hem altijd verhuizen, ook zonder ons. Je krijgt van mij nog een overzicht van je domeininstellingen, zodat ook je e-mail gewoon blijft werken.</p>
+<p>Ik neem nog even contact met je op over je website: wil je hem meenemen, dan help ik je daarbij. Je bestanden en gegevens kun je tot die tijd gewoon downloaden in je portaal.${
+        verwijderen ? " Daarna verwijderen we je account en gegevens, uiterlijk binnen drie maanden (facturen moeten we wettelijk zeven jaar bewaren)." : ""
+      }</p>
+<p>Bedankt dat je klant was.</p>
+<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+    });
+  }
+  revalidatePath("/portal");
+}

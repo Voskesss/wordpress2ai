@@ -30,6 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/wordpress-aansturen-met-ai",
     "/wordpress-omzetten-snel-en-ai-vriendelijk",
     "/veiligheid",
+    "/veelgestelde-vragen",
     "/webinar",
     "/privacy",
     "/voorwaarden",

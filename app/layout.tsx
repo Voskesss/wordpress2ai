@@ -228,6 +228,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </nav>
               <nav aria-label="Meer weten">
                 <h3>Goed om te weten</h3>
+                <Link href="/veelgestelde-vragen">Veelgestelde vragen</Link>
                 <Link href="/wordswap-vs-wordpress">
                   WordSwap vs. WordPress
                 </Link>
