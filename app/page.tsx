@@ -34,18 +34,20 @@ export default function Home() {
             WORDPRESS-WEBSITE
           </p>
           <h1>
-            Je website houden.
+            Jij typt het.
             <br />
-            <em>WordPress loslaten.</em>
+            <em>Je website doet het.</em>
           </h1>
           <p className="hero-intro">
-            <strong>Daarna zelf bijhouden met AI.</strong> Wij zetten je
-            bestaande website over naar een versie zonder WordPress. Je ontwerp,
-            teksten, foto’s en pagina-adressen nemen we zorgvuldig mee.
+            <strong>“Zet onze nieuwe openingstijden erop.”</strong> Voortaan is
+            dat alles wat je hoeft te doen. Wij zetten je bestaande
+            WordPress-website eerst over naar een razendsnelle versie — zelfde
+            ontwerp, zelfde adressen, geen onderhoud meer.
           </p>
           <p className="hero-definition">
-            “Zet onze nieuwe openingstijden erop.” Dat vraag je voortaan in de
-            chat. Jij bekijkt het voorstel en beslist wat live gaat.
+            Geen webbouwer meer mailen, geen updates, geen plugins. Je vraagt
+            het gewoon aan je website, bekijkt het voorstel en beslist zelf wat
+            live gaat.
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
