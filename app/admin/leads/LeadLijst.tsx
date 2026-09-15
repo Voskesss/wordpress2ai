@@ -331,11 +331,11 @@ export default function LeadLijst({ leads, acties, nu }: { leads: LeadRij[]; act
                 type="button"
                 onClick={() => setOpenId(isOpen ? null : l.id)}
                 aria-expanded={isOpen}
-                className={`grid w-full grid-cols-1 gap-1 px-4 py-2.5 text-left text-sm hover:bg-violet-50/50 cursor-pointer sm:grid-cols-[1.1fr_1fr_0.9fr_1.6fr] sm:items-center sm:gap-3 ${
+                className={`grid w-full grid-cols-1 gap-1 px-4 py-2.5 text-left text-sm hover:bg-violet-50/50 cursor-pointer sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1.6fr)] sm:items-center sm:gap-3 ${
                   isOpen ? "bg-violet-50/60" : ""
                 }`}
               >
-                <span className="font-semibold text-stone-900">
+                <span className="truncate font-semibold text-stone-900">
                   <span className="mr-1 inline-block w-3 text-stone-400">{isOpen ? "▾" : "▸"}</span>
                   {l.naam}
                   {l.soort === "partner" && <span className="ml-1.5 text-xs font-normal text-stone-400">partner</span>}
@@ -344,11 +344,15 @@ export default function LeadLijst({ leads, acties, nu }: { leads: LeadRij[]; act
                 <span>
                   <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${s.kleur}`}>{s.label}</span>
                 </span>
-                <span className="flex flex-wrap items-center gap-1.5 text-stone-700">
+                <span className="flex min-w-0 items-center gap-1.5 text-stone-700" title={v?.tekst}>
                   {v ? (
                     <>
-                      <span className="truncate">{v.tekst}</span>
-                      {v.datum && <DatumLabel datum={v.datum} nu={nu} />}
+                      <span className="min-w-0 truncate">{v.tekst}</span>
+                      {v.datum && (
+                        <span className="shrink-0">
+                          <DatumLabel datum={v.datum} nu={nu} />
+                        </span>
+                      )}
                     </>
                   ) : (
                     <span className="text-stone-400">—</span>
