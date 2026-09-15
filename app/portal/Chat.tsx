@@ -651,20 +651,20 @@ export default function Chat({
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
-      let res: Response;
-      if (teVersturen.length > 0) {
-        const form = new FormData();
-        form.set("siteId", String(siteId));
-        form.set("bericht", tekst);
-        form.set("huidigePagina", huidigePagina);
-        for (const f of teVersturen) form.append("afbeelding", f);
-        if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
-        if (gekozen) form.set("selectie", JSON.stringify(gekozen));
-        if (gekozenKleur) form.set("kleur", gekozenKleur);
-        if (extra?.controle) { form.set("controle", "1"); form.set("apparaat", apparaat); }
-        res = await fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
-      } else {
-        res = await fetch("/api/chat", {
+      const verstuurNaarServer = () => {
+        if (teVersturen.length > 0) {
+          const form = new FormData();
+          form.set("siteId", String(siteId));
+          form.set("bericht", tekst);
+          form.set("huidigePagina", huidigePagina);
+          for (const f of teVersturen) form.append("afbeelding", f);
+          if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
+          if (gekozen) form.set("selectie", JSON.stringify(gekozen));
+          if (gekozenKleur) form.set("kleur", gekozenKleur);
+          if (extra?.controle) { form.set("controle", "1"); form.set("apparaat", apparaat); }
+          return fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
+        }
+        return fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: stopper.signal,
@@ -679,6 +679,36 @@ export default function Chat({
             apparaat: extra?.controle ? apparaat : undefined,
           }),
         });
+      };
+      // Stopbaar wachten: bij stop breekt ook het wachten meteen af
+      const wachtEven = (ms: number) =>
+        new Promise<void>((klaar, faal) => {
+          const t = setTimeout(klaar, ms);
+          stopper.signal.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(t);
+              faal(new DOMException("Gestopt", "AbortError"));
+            },
+            { once: true },
+          );
+        });
+      let res = await verstuurNaarServer();
+      // Bezet slot (er loopt nog een bewerking op de server)? Geen foutmelding,
+      // maar rustig wachten en vanzelf opnieuw proberen. Het slot vernieuwt
+      // zichzelf elke 30 s en valt na een crash binnen ±1,5 minuut vrij, dus
+      // na hooguit ~2 minuten proberen geven we het pas op.
+      for (let poging = 0; res.status === 409; poging++) {
+        const data = (await res
+          .clone()
+          .json()
+          .catch(() => ({}))) as { slot?: boolean };
+        if (!data.slot || poging >= 11) break;
+        setStatusTekst(
+          "Er wordt nog aan je website gewerkt — ik wacht even en ga daarna vanzelf met jouw opdracht verder...",
+        );
+        await wachtEven(10_000);
+        res = await verstuurNaarServer();
       }
       const data = await readChatResponse(res, (event) => {
         if (event.type === "status" && typeof event.tekst === "string") {
@@ -747,9 +777,14 @@ export default function Chat({
     } catch (error) {
       mislukteOpdracht.current = opdracht;
       const melding = stopper.signal.aborted
-        ? "De opdracht is gestopt. We kunnen niet bevestigen of er al een concept is opgeslagen."
+        ? "De opdracht is gestopt. Je kunt hem hieronder terugzetten, of gewoon een nieuwe opdracht sturen — als er op de achtergrond nog iets afrondt, wacht ik daar vanzelf op."
         : error instanceof Error && !(error instanceof TypeError) ? error.message : "De verbinding viel weg.";
-      setHerstelFout({ soort: "bericht", tekst: melding + " Controleer eerst je websitevoorbeeld. Je kunt de opdracht hieronder terugzetten om hem zelf opnieuw te versturen." });
+      setHerstelFout({
+        soort: "bericht",
+        tekst: stopper.signal.aborted
+          ? melding
+          : melding + " Controleer eerst je websitevoorbeeld. Je kunt de opdracht hieronder terugzetten om hem zelf opnieuw te versturen.",
+      });
       setChatOpen(true);
       setBerichten((b) => [...b, { rol: "assistent", tekst: melding }]);
     } finally {

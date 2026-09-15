@@ -2,18 +2,31 @@ import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 
-/** Database leases work across serverless instances. TTL exceeds route maxDuration. */
+/** Database leases work across serverless instances. Kort slot met hartslag:
+ * zolang de bewerking echt loopt wordt het elke 30 s verlengd; crasht of
+ * verdwijnt de functie, dan valt het slot binnen ±1,5 minuut vanzelf vrij
+ * (voorheen stond het tot 6 minuten vast). */
+const LEASE_SECONDEN = 90;
 export async function claimOperation(scope: string) {
   const owner = randomUUID();
   const result = await db.execute(sql`
     INSERT INTO operation_leases (scope, owner, expires_at)
-    VALUES (${scope}, ${owner}, now() + interval '6 minutes')
+    VALUES (${scope}, ${owner}, now() + make_interval(secs => ${LEASE_SECONDEN}))
     ON CONFLICT (scope) DO UPDATE SET owner = EXCLUDED.owner, expires_at = EXCLUDED.expires_at
     WHERE operation_leases.expires_at < now()
     RETURNING owner
   `);
   if (!result.rows.length) return null;
+  const hartslag = setInterval(() => {
+    void db
+      .execute(
+        sql`UPDATE operation_leases SET expires_at = now() + make_interval(secs => ${LEASE_SECONDEN}) WHERE scope = ${scope} AND owner = ${owner}`,
+      )
+      .catch((e) => console.error("Slot verlengen mislukt:", e));
+  }, 30_000);
+  hartslag.unref?.();
   return async () => {
+    clearInterval(hartslag);
     await db.execute(
       sql`DELETE FROM operation_leases WHERE scope = ${scope} AND owner = ${owner}`,
     );

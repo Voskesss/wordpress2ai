@@ -169,7 +169,7 @@ export async function POST(req: Request) {
   const release = await claimOperation(operationScope(site, userId));
   if (!release)
     return NextResponse.json(
-      { melding: "Er wordt al aan je website gewerkt." },
+      { slot: true, melding: "Er wordt al aan je website gewerkt." },
       { status: 409 },
     );
   try {
