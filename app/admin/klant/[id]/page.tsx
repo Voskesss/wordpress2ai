@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
 import BackupUpload from "./BackupUpload";
+import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import Chat from "@/app/portal/Chat";
@@ -681,6 +682,7 @@ export default async function KlantDetail({
         </p>
         <BackupUpload
           siteId={site.id}
+          klantEmail={(await klantEmailVoorSite(site.id))?.email ?? null}
           rijen={(
             await db
               .select()

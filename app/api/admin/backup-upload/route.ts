@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sites, wpBackups } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { klantEmailVoorSite } from "@/lib/klant-email";
+import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 
 export const maxDuration = 60;
 
@@ -47,12 +49,13 @@ export async function POST(req: Request) {
     }
 
     if (stap === "klaar") {
-      const { siteId, blobUrl, bestandsnaam, grootte, omschrijving } = (await req.json()) as {
+      const { siteId, blobUrl, bestandsnaam, grootte, omschrijving, mailKlant } = (await req.json()) as {
         siteId: number;
         blobUrl: string;
         bestandsnaam: string;
         grootte?: number;
         omschrijving?: string;
+        mailKlant?: boolean;
       };
       const [site] = await db.select().from(sites).where(eq(sites.id, Number(siteId)));
       if (!site) return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
@@ -72,7 +75,32 @@ export async function POST(req: Request) {
         grootteBytes: Number.isFinite(grootte) ? Math.round(grootte!) : null,
         omschrijving: String(omschrijving ?? "").slice(0, 300) || null,
       });
-      return NextResponse.json({ ok: true });
+
+      // Klant laten weten dat zijn kopie klaarstaat. Het adres bepalen we hier zelf,
+      // nooit vanuit de browser, zodat de mail altijd bij de juiste klant komt.
+      let gemaildNaar: string | null = null;
+      let mailMelding: string | null = null;
+      if (mailKlant) {
+        const klant = await klantEmailVoorSite(site.id);
+        if (!klant) {
+          mailMelding = "Opgeslagen, maar niet gemaild: er is (nog) geen klant-e-mailadres bekend voor deze site.";
+        } else {
+          const voornaam = ontsnap(klant.naam.split(" ")[0] || "daar");
+          const gelukt = await mailVanJos({
+            naar: klant.email,
+            van: "Jos van WordSwap",
+            onderwerp: "Je WordPress-kopie staat veilig klaar",
+            html: `<p>Beste ${voornaam},</p>
+<p>De complete kopie van je oude WordPress-site staat nu veilig voor je klaar. Je vindt hem in je portaal, onder <strong>“Je website en gegevens meenemen”</strong>, en je kunt hem daar altijd zelf downloaden.</p>
+<p>Dit is je terugweg-garantie: met deze kopie kun je je WordPress-site later altijd weer terugzetten, en wij helpen je daar desgewenst bij. Alleen jij kunt hem downloaden, na inloggen.</p>
+<p><a href="https://wordswap.nl/portal" style="display:inline-block;background:#31956B;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Naar mijn portaal</a></p>
+<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+          });
+          if (gelukt) gemaildNaar = klant.email;
+          else mailMelding = `Opgeslagen, maar het mailen naar ${klant.email} mislukte. Laat het de klant zelf even weten.`;
+        }
+      }
+      return NextResponse.json({ ok: true, gemaildNaar, mailMelding });
     }
 
     return NextResponse.json({ error: "Onbekende stap" }, { status: 400 });

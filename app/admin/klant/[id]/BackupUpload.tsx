@@ -13,17 +13,28 @@ function grootte(bytes: number | null): string {
 }
 
 /** WordPress-kopieën (terugweg-garantie): uploaden rechtstreeks naar de EU-Blob-opslag, en de lijst beheren. */
-export default function BackupUpload({ siteId, rijen }: { siteId: number; rijen: BackupRij[] }) {
+export default function BackupUpload({
+  siteId,
+  rijen,
+  klantEmail,
+}: {
+  siteId: number;
+  rijen: BackupRij[];
+  klantEmail: string | null;
+}) {
   const router = useRouter();
   const bestandRef = useRef<HTMLInputElement>(null);
   const [omschrijving, setOmschrijving] = useState("");
+  const [mailKlant, setMailKlant] = useState(Boolean(klantEmail));
   const [voortgang, setVoortgang] = useState<number | null>(null);
   const [fout, setFout] = useState<string | null>(null);
+  const [melding, setMelding] = useState<string | null>(null);
 
   async function start() {
     const bestand = bestandRef.current?.files?.[0];
     if (!bestand || voortgang !== null) return;
     setFout(null);
+    setMelding(null);
     setVoortgang(0);
     try {
       const blob = await upload(`wp-backups/site-${siteId}/${bestand.name}`, bestand, {
@@ -35,9 +46,15 @@ export default function BackupUpload({ siteId, rijen }: { siteId: number; rijen:
       const res = await fetch("/api/admin/backup-upload?stap=klaar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, blobUrl: blob.url, bestandsnaam: bestand.name, grootte: bestand.size, omschrijving }),
+        body: JSON.stringify({ siteId, blobUrl: blob.url, bestandsnaam: bestand.name, grootte: bestand.size, omschrijving, mailKlant }),
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "Opslaan mislukt");
+      const uit = (await res.json().catch(() => ({}))) as { error?: string; gemaildNaar?: string | null; mailMelding?: string | null };
+      if (!res.ok) throw new Error(uit.error ?? "Opslaan mislukt");
+      setMelding(
+        uit.gemaildNaar
+          ? `✓ Opgeslagen en de klant is gemaild (${uit.gemaildNaar}).`
+          : (uit.mailMelding ?? "✓ Opgeslagen. De klant is niet gemaild."),
+      );
       if (bestandRef.current) bestandRef.current.value = "";
       setOmschrijving("");
       router.refresh();
@@ -99,7 +116,22 @@ export default function BackupUpload({ siteId, rijen }: { siteId: number; rijen:
           {voortgang !== null ? `Uploaden... ${voortgang}%` : "⬆ Uploaden"}
         </button>
       </div>
+      <label className={`flex items-center gap-2 ${klantEmail ? "" : "text-stone-400"}`}>
+        <input
+          type="checkbox"
+          checked={mailKlant}
+          disabled={!klantEmail}
+          onChange={(e) => setMailKlant(e.target.checked)}
+          className="accent-emerald-700"
+        />
+        {klantEmail ? (
+          <>Mail de klant dat zijn kopie klaarstaat (naar {klantEmail})</>
+        ) : (
+          <>Klant mailen kan niet: er is nog geen klant-e-mailadres bekend voor deze site</>
+        )}
+      </label>
       {fout && <p className="text-red-700">{fout}</p>}
+      {melding && <p className={melding.startsWith("✓") ? "text-emerald-700" : "text-amber-800"}>{melding}</p>}
       <p className="text-xs text-stone-500">
         De klant ziet deze kopieën in zijn portaal onder &quot;Je website en gegevens meenemen&quot; en kan ze zelf downloaden.
       </p>

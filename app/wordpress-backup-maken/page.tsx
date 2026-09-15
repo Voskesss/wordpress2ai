@@ -31,7 +31,7 @@ export default function Pagina() {
           {
             kop: "Stap 3 — Download de bestanden",
             tekst:
-              "Na afloop verschijnt de backup onderaan onder “Bestaande back-ups”, als rijtje knoppen: Database, Plugins, Thema's, Uploads en Overige. Klik ze één voor één aan en download elk bestand naar je computer. Samen vormen deze zipbestanden je complete kopie — bewaar ze in één map met de datum erbij.",
+              "Na afloop verschijnt de backup onderaan onder “Bestaande back-ups”, als rijtje knoppen: Database, Plugins, Thema's, Uploads en Overige. Klik ze één voor één aan en download elk bestand naar je computer. Samen vormen deze zipbestanden je complete kopie: je hebt ze álle vijf nodig om je site terug te zetten. Zet ze daarom in één map met de datum erbij, en maak van die map één zipbestand (rechtermuisklik op de map → Comprimeren of Kopiëren naar → Gecomprimeerde map). Dan heb je één bestand dat je makkelijk bewaart en naar ons kunt sturen.",
           },
           {
             kop: "Stap 4 — Bewaar hem op twee plekken",
