@@ -252,8 +252,8 @@ export default async function Portal({
                   werkversieUrl={
                     site.isDemo
                       ? `${demoWorker(site.githubRepo, userId)}.wordswap.workers.dev`
-                      : site.netlifySiteId
-                        ? `wv-${site.netlifySiteId}.wordswap.workers.dev`
+                      : site.siteSlug
+                        ? `wv-${site.siteSlug}.wordswap.workers.dev`
                         : null
                   }
                   openConcept={openConceptMap[site.id]}
@@ -285,7 +285,7 @@ export default async function Portal({
                   mailHandtekening={site.mailHandtekening}
                   mailLogoUrl={site.mailLogoUrl}
                   mailKleur={site.mailKleur}
-                  online={Boolean(site.netlifySiteId)}
+                  online={Boolean(site.siteSlug)}
                   notificatieEmail={site.notificatieEmail}
                 />
               )}

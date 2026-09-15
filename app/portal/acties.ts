@@ -66,13 +66,13 @@ export async function uploadMailLogo(formData: FormData) {
   const pad = "afbeeldingen/mail-logo.webp";
   const { pushBestanden } = await import("@/lib/github");
   await pushBestanden(site.githubRepo, [{ pad, inhoud: data }], "Logo voor de mailhandtekening");
-  if (site.netlifySiteId) {
+  if (site.siteSlug) {
     const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
-    await deployRepoNaarCloudflare(site.githubRepo, site.netlifySiteId).catch((e) =>
+    await deployRepoNaarCloudflare(site.githubRepo, site.siteSlug).catch((e) =>
       console.error("Deploy na logo-upload mislukt:", e)
     );
   }
-  const host = site.domein && !/\.workers\.dev$/.test(site.domein) ? site.domein : `${site.netlifySiteId ?? site.githubRepo}.wordswap.workers.dev`;
+  const host = site.domein && !/\.workers\.dev$/.test(site.domein) ? site.domein : `${site.siteSlug ?? site.githubRepo}.wordswap.workers.dev`;
   await db
     .update(sites)
     .set({ mailLogoUrl: `https://${host.replace(/^https?:\/\//, "").replace(/\/$/, "")}/${pad}?v=${Date.now().toString(36)}` })

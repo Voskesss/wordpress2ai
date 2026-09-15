@@ -15,7 +15,9 @@ export const sites = pgTable("sites", {
   clerkUserId: text("clerk_user_id").notNull(),
   naam: text("naam").notNull(),
   githubRepo: text("github_repo").notNull(),
-  netlifySiteId: text("netlify_site_id"),
+  // De slug van de site: bepaalt o.a. de Cloudflare-workernamen (wv-<slug>).
+  // Heette vroeger netlify_site_id, uit de tijd dat er naar Netlify werd gedeployd.
+  siteSlug: text("site_slug"),
   domein: text("domein"),
   plan: text("plan", { enum: ["via_ons", "eigen_key"] })
     .notNull()

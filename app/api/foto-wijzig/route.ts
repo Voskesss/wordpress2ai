@@ -96,8 +96,8 @@ export async function POST(req: Request) {
     const eigenBranch = site.isDemo ? demoBranch(userId) : null;
     const wvNaam = site.isDemo
       ? demoWorker(site.githubRepo, userId)
-      : site.netlifySiteId
-        ? `wv-${site.netlifySiteId}`
+      : site.siteSlug
+        ? `wv-${site.siteSlug}`
         : null;
 
     let werkmap: string | null = null;

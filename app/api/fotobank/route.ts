@@ -162,8 +162,8 @@ export async function POST(req: Request) {
     const { demoWorker } = await import("@/lib/demo");
     const wvNaam = site.isDemo
       ? demoWorker(site.githubRepo, userId)
-      : site.netlifySiteId
-        ? `wv-${site.netlifySiteId}`
+      : site.siteSlug
+        ? `wv-${site.siteSlug}`
         : null;
     const wvDeploy = wvNaam
       ? deployMapNaarCloudflare(werkmap, wvNaam, { subdomeinAanzetten: site.isDemo }).catch((e) =>

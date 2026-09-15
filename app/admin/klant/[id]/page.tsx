@@ -23,7 +23,7 @@ import {
   sjabloonVastleggen,
   herstelVersie,
   koppelKlant,
-  koppelNetlify,
+  zetSiteOnline,
   verwijderKlant,
   wisChatGeschiedenis,
 } from "../../acties";
@@ -269,9 +269,9 @@ export default async function KlantDetail({
       </div>
 
       {/* Site online zetten (Cloudflare) */}
-      {!site.netlifySiteId && (
+      {!site.siteSlug && (
         <form
-          action={koppelNetlify}
+          action={zetSiteOnline}
           className="mt-6 rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-6"
         >
           <input type="hidden" name="siteId" value={site.id} />
@@ -304,8 +304,8 @@ export default async function KlantDetail({
           werkversieUrl={
             site.isDemo
               ? `${demoWorker(site.githubRepo, admin.id)}.wordswap.workers.dev`
-              : site.netlifySiteId
-                ? `wv-${site.netlifySiteId}.wordswap.workers.dev`
+              : site.siteSlug
+                ? `wv-${site.siteSlug}.wordswap.workers.dev`
                 : null
           }
           openConcept={
@@ -347,8 +347,8 @@ export default async function KlantDetail({
           <label className="block text-sm font-semibold">
             Hosting-naam (Cloudflare)
             <input
-              name="netlifySiteId"
-              defaultValue={site.netlifySiteId ?? ""}
+              name="siteSlug"
+              defaultValue={site.siteSlug ?? ""}
               placeholder="meestal gelijk aan de repo-naam"
               className={invoerStijl}
             />
@@ -879,7 +879,7 @@ export default async function KlantDetail({
                   mailHandtekening={site.mailHandtekening}
                   mailLogoUrl={site.mailLogoUrl}
                   mailKleur={site.mailKleur}
-                  online={Boolean(site.netlifySiteId)}
+                  online={Boolean(site.siteSlug)}
         notificatieEmail={site.notificatieEmail}
       />
 
@@ -903,8 +903,8 @@ export default async function KlantDetail({
             Ook de bestanden (repo <span className="font-mono">{site.githubRepo}</span>) permanent verwijderen
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" name="ookNetlify" className="h-4 w-4" />
-            Ook de online site (hosting) verwijderen{site.netlifySiteId ? ` (${site.netlifySiteId})` : " (geen gekoppeld)"}
+            <input type="checkbox" name="ookHosting" className="h-4 w-4" />
+            Ook de online site (hosting) verwijderen{site.siteSlug ? ` (${site.siteSlug})` : " (geen gekoppeld)"}
           </label>
           <label className="block font-semibold">
             Typ de naam van de site om te bevestigen:{" "}

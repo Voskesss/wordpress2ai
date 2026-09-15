@@ -113,8 +113,8 @@ export async function POST(req: Request) {
     if (rij.site.isDemo) {
       const { demoWorker } = await import("@/lib/demo");
       wvNaam = demoWorker(repo, rij.change.clerkUserId ?? userId);
-    } else if (rij.site.netlifySiteId) {
-      wvNaam = `wv-${rij.site.netlifySiteId}`;
+    } else if (rij.site.siteSlug) {
+      wvNaam = `wv-${rij.site.siteSlug}`;
     }
     if (wvNaam) {
       await deployRepoNaarCloudflareRef(repo, wvNaam, vorige).catch((e) =>

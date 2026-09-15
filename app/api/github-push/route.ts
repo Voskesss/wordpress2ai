@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   if (!repo) return NextResponse.json({ error: "Geen repo" }, { status: 400 });
 
   const [site] = await db.select().from(sites).where(eq(sites.githubRepo, repo));
-  if (!site?.netlifySiteId) {
+  if (!site?.siteSlug) {
     return NextResponse.json({ ok: true, genegeerd: "site niet online" });
   }
 
@@ -53,12 +53,12 @@ export async function POST(req: Request) {
   // houdt de functie levend tot het werk klaar is).
   waitUntil(
     (async () => {
-      await deployRepoNaarCloudflare(repo, site.netlifySiteId!);
-      await deployRepoNaarCloudflare(repo, `wv-${site.netlifySiteId}`).catch((e) =>
+      await deployRepoNaarCloudflare(repo, site.siteSlug!);
+      await deployRepoNaarCloudflare(repo, `wv-${site.siteSlug}`).catch((e) =>
         console.error("Werkversie-deploy mislukt:", e)
       );
       console.log(`Webhook-deploy klaar: ${repo}`);
     })().catch((e) => console.error(`Webhook-deploy mislukt (${repo}):`, e))
   );
-  return NextResponse.json({ ok: true, deploy: "gestart", site: site.netlifySiteId });
+  return NextResponse.json({ ok: true, deploy: "gestart", site: site.siteSlug });
 }

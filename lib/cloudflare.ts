@@ -84,7 +84,7 @@ export async function echtDomeinVoor(naam: string): Promise<string | null> {
     const [site] = await db
       .select({ domein: sites.domein })
       .from(sites)
-      .where(or(eq(sites.githubRepo, repo), eq(sites.netlifySiteId, naam)))
+      .where(or(eq(sites.githubRepo, repo), eq(sites.siteSlug, naam)))
       .limit(1);
     const d = (site?.domein ?? "").trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "").toLowerCase();
     if (!d || !d.includes(".") || /\.workers\.dev$/.test(d)) return null;

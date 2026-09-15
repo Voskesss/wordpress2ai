@@ -64,7 +64,7 @@ const path = require("node:path");
             isDemo: false,
             status: "actief",
             githubRepo: "test",
-            netlifySiteId: "test",
+            siteSlug: "test",
           },
           change: {
             id: 1,
@@ -108,7 +108,7 @@ const path = require("node:path");
     reset({ failCleanup: true });
     assert.equal((await publish(req())).status, 200);
     reset();
-    testState.row.site.netlifySiteId = null;
+    testState.row.site.siteSlug = null;
     assert.equal((await publish(req())).status, 503);
     assert.equal(testState.merges, 0);
     for (const route of ["publiceer", "verwerp", "ongedaan", "stap-terug"]) {

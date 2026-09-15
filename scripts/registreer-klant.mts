@@ -26,12 +26,12 @@ const { url } = await deployRepoNaarCloudflare(repo, repo);
 await deployRepoNaarCloudflare(repo, `wv-${repo}`);
 const domein = `${repo}.${CF_SUBDOMEIN}.workers.dev`;
 if (bestaand) {
-  await db.update(sites).set({ naam, netlifySiteId: repo, domein }).where(eq(sites.id, bestaand.id));
+  await db.update(sites).set({ naam, siteSlug: repo, domein }).where(eq(sites.id, bestaand.id));
   console.log(`site #${bestaand.id} bijgewerkt`);
 } else {
   const [rij] = await db.insert(sites).values({
     clerkUserId: eigenaar, naam, githubRepo: repo,
-    netlifySiteId: repo, domein, status: 'migratie',
+    siteSlug: repo, domein, status: 'migratie',
   }).returning({ id: sites.id });
   console.log(`site #${rij.id} aangemaakt`);
 }

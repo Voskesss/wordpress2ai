@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         },
         { status: 409 },
       );
-    if (!rij.site.isDemo && !rij.site.netlifySiteId)
+    if (!rij.site.isDemo && !rij.site.siteSlug)
       return NextResponse.json(
         {
           melding:
@@ -137,7 +137,7 @@ export async function POST(req: Request) {
       const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
       await deployRepoNaarCloudflare(
         rij.site.githubRepo,
-        rij.site.netlifySiteId!,
+        rij.site.siteSlug!,
       );
     }
     await db

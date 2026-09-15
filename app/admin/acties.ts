@@ -25,17 +25,17 @@ export async function bewaarSite(formData: FormData) {
   if (!Number.isInteger(siteId)) return;
   const naam = String(formData.get("naam") ?? "").trim();
   const domein = String(formData.get("domein") ?? "").trim();
-  const netlifySiteId = String(formData.get("netlifySiteId") ?? "").trim();
+  const siteSlug = String(formData.get("siteSlug") ?? "").trim();
   const plan = String(formData.get("plan") ?? "via_ons");
   const status = String(formData.get("status") ?? "migratie");
   if (!naam) return;
-  const [vorige] = await db.select({ domein: sites.domein, netlifySiteId: sites.netlifySiteId, githubRepo: sites.githubRepo }).from(sites).where(eq(sites.id, siteId));
+  const [vorige] = await db.select({ domein: sites.domein, siteSlug: sites.siteSlug, githubRepo: sites.githubRepo }).from(sites).where(eq(sites.id, siteId));
   await db
     .update(sites)
     .set({
       naam,
       domein: domein || null,
-      netlifySiteId: netlifySiteId || null,
+      siteSlug: siteSlug || null,
       plan: plan === "eigen_key" ? "eigen_key" : "via_ons",
       status: (["migratie", "actief", "gepauzeerd", "opgezegd"].includes(status)
         ? status
@@ -53,12 +53,12 @@ export async function bewaarSite(formData: FormData) {
       await db.update(sites).set({ mailLogoUrl: rij.logo.replace(/^https:\/\/[^/]+\//, `https://${nieuwDomein.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`) }).where(eq(sites.id, siteId));
     }
   }
-  if (vorige && nieuwDomein !== vorige.domein && vorige.netlifySiteId) {
+  if (vorige && nieuwDomein !== vorige.domein && vorige.siteSlug) {
     const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
-    await deployRepoNaarCloudflare(vorige.githubRepo, vorige.netlifySiteId).catch((e) =>
+    await deployRepoNaarCloudflare(vorige.githubRepo, vorige.siteSlug).catch((e) =>
       console.error("Herdeploy na domeinwijziging mislukt:", e)
     );
-    await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.netlifySiteId}`).catch(() => {});
+    await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.siteSlug}`).catch(() => {});
   }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");
@@ -127,7 +127,7 @@ export async function verwijderKlant(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const ookRepo = formData.get("ookRepo") === "on";
-  const ookNetlify = formData.get("ookNetlify") === "on";
+  const ookHosting = formData.get("ookHosting") === "on";
   if (!Number.isInteger(siteId)) return;
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
@@ -166,10 +166,10 @@ export async function verwijderKlant(formData: FormData) {
     }).catch(() => {});
   }
 
-  if (ookNetlify && site.netlifySiteId) {
+  if (ookHosting && site.siteSlug) {
     const { verwijderCloudflareSite } = await import("@/lib/cloudflare");
-    await verwijderCloudflareSite(site.netlifySiteId);
-    await verwijderCloudflareSite(`wv-${site.netlifySiteId}`);
+    await verwijderCloudflareSite(site.siteSlug);
+    await verwijderCloudflareSite(`wv-${site.siteSlug}`);
   }
 
   revalidatePath("/admin");
@@ -177,12 +177,12 @@ export async function verwijderKlant(formData: FormData) {
 }
 
 /** Zet de site online op Cloudflare (gratis, direct, geen build). */
-export async function koppelNetlify(formData: FormData) {
+export async function zetSiteOnline(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || site.netlifySiteId) return;
+  if (!site || site.siteSlug) return;
 
   const { deployRepoNaarCloudflare, CF_SUBDOMEIN } = await import("@/lib/cloudflare");
   await deployRepoNaarCloudflare(site.githubRepo, site.githubRepo);
@@ -191,7 +191,7 @@ export async function koppelNetlify(formData: FormData) {
   await db
     .update(sites)
     .set({
-      netlifySiteId: site.githubRepo,
+      siteSlug: site.githubRepo,
       domein: `${site.githubRepo}.${CF_SUBDOMEIN}.workers.dev`,
     })
     .where(eq(sites.id, siteId));
@@ -209,9 +209,9 @@ export async function herstelVersie(formData: FormData) {
   if (!site) return;
   const { zetTerugNaarVersie } = await import("@/lib/github");
   await zetTerugNaarVersie(site.githubRepo, sha);
-  if (site.netlifySiteId) {
+  if (site.siteSlug) {
     const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
-    await deployRepoNaarCloudflare(site.githubRepo, site.netlifySiteId).catch((e) =>
+    await deployRepoNaarCloudflare(site.githubRepo, site.siteSlug).catch((e) =>
       console.error("Deploy na terugzetten mislukt:", e)
     );
   }
@@ -786,7 +786,7 @@ export async function siteResetten(formData: FormData) {
     await db.delete(messages).where(eq(messages.siteId, site.id));
 
     await deployMapNaarCloudflare(werkmap, site.githubRepo);
-    const wv = `wv-${site.netlifySiteId ?? site.githubRepo}`;
+    const wv = `wv-${site.siteSlug ?? site.githubRepo}`;
     await deployMapNaarCloudflare(werkmap, wv).catch((e) => console.error("Werkversie-reset mislukt:", e));
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});

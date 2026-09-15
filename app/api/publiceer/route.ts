@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         rij.change.branch,
       );
     } else {
-      if (!rij.site.netlifySiteId)
+      if (!rij.site.siteSlug)
         return NextResponse.json(
           {
             melding:
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       }
       await deployRepoNaarCloudflare(
         rij.site.githubRepo,
-        rij.site.netlifySiteId,
+        rij.site.siteSlug,
       );
     }
     await db

@@ -380,8 +380,8 @@ export async function POST(req: Request) {
     const eigenBranch = site.isDemo ? demoBranch(userId) : null;
     const wvNaam = site.isDemo
       ? demoWorker(site.githubRepo, userId)
-      : site.netlifySiteId
-        ? `wv-${site.netlifySiteId}`
+      : site.siteSlug
+        ? `wv-${site.siteSlug}`
         : null;
 
     // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
@@ -492,7 +492,7 @@ export async function POST(req: Request) {
             const host =
               openConcept && wvNaam
                 ? `${wvNaam}.${CF_SUBDOMEIN}.workers.dev`
-                : (site.domein ?? `${site.netlifySiteId}.${CF_SUBDOMEIN}.workers.dev`);
+                : (site.domein ?? `${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev`);
             try {
               const { maakSchermafbeelding, knipInDelen } = await import("@/lib/schermafbeelding");
               const { CONTROLE_MAP } = await import("@/lib/werkmap");
