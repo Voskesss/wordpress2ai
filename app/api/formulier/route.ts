@@ -198,7 +198,7 @@ export async function POST(req: Request) {
     if (formulier === "webinar" && webinarSessie) {
       const { webinarIcs, googleAgendaLink, outlookAgendaLink, outlookWerkAgendaLink } = await import("@/lib/agenda");
       webinarBijlagen = [{ bestandsnaam: "webinar-wordswap.ics", inhoud: Buffer.from(webinarIcs(webinarSessie)) }];
-      agendaHtml = `<p><strong>Zet het in je agenda:</strong> <a href="${ontsnap(googleAgendaLink(webinarSessie))}">Google Agenda</a> · <a href="${ontsnap(outlookWerkAgendaLink(webinarSessie))}">Outlook (werk)</a> · <a href="${ontsnap(outlookAgendaLink(webinarSessie))}">Outlook.com</a>, of open de bijlage bij deze mail (werkt ook voor Apple Agenda en de Outlook-app).</p>`;
+      agendaHtml = `<p><strong>Zet het in je agenda:</strong> <a href="${ontsnap(googleAgendaLink(webinarSessie))}">Google Agenda</a> · <a href="${ontsnap(outlookWerkAgendaLink(webinarSessie))}">Outlook (werk)</a> · <a href="${ontsnap(outlookAgendaLink(webinarSessie))}">Outlook.com</a> · <a href="https://wordswap.nl/webinar/agenda/${webinarSessie.id}">Apple Agenda</a>, of open de bijlage bij deze mail.</p>`;
     }
 
     // Alleen als de voorbereidingsmails echt aanstaan, kondigen we ze aan
