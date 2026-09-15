@@ -40,7 +40,10 @@ export default function ChatHulp({ onInChat }: { onInChat?: (vraag: string) => v
   return (
     <details className="mb-2 shrink-0 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700">
       <summary className="cursor-pointer font-semibold">
-        Hoe pas ik mijn website aan?
+        🛟 Hulp &amp; support{" "}
+        <span className="font-normal text-stone-500">
+          — uitleg, of stel je vraag
+        </span>
       </summary>
       <div className="mt-3 space-y-3 text-xs leading-relaxed">
         <ol className="list-decimal space-y-2 pl-4">
