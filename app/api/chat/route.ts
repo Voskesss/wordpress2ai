@@ -600,6 +600,10 @@ export async function POST(req: Request) {
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
+          // Pagina's die in deze beurt nieuw worden geschreven bestaan op de
+          // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft
+          // een verwarrende 404. De opleveringsoverlay opent ze wél, na de deploy.
+          const nieuwDezeBeurt = new Set<string>();
           if (snelpad) {
             reply = snelpad.reply;
             await settleAiBudget(scope, maand, requestBudgetUsd, snelpad.kostenUsd);
@@ -636,9 +640,11 @@ export async function POST(req: Request) {
                 if (maker) stuur({ type: "status", tekst: maker(g.invoer) });
                 if (g.naam === "bewerk_bestand" || g.naam === "schrijf_bestand") {
                   const rel = String(g.invoer.pad ?? "").replace(/^\/+/, "");
+                  if (g.naam === "schrijf_bestand") nieuwDezeBeurt.add(rel);
                   // Pagina die bewerkt wordt meesturen: het voorbeeld springt
-                  // er live naartoe, zodat je ziet wáár de wijziging landt.
-                  if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
+                  // er live naartoe, zodat je ziet wáár de wijziging landt —
+                  // maar alleen naar pagina's die al online staan.
+                  if (/\.html?$/i.test(rel) && !rel.startsWith("delen/") && !nieuwDezeBeurt.has(rel)) {
                     const pad =
                       rel === "index.html"
                         ? "/"
