@@ -18,6 +18,7 @@ import {
 } from "../../acties-abonnement";
 import ActieKnop from "./ActieKnop";
 import AfsprakenVeld from "./AfsprakenVeld";
+import VoorbeeldKnop from "./VoorbeeldKnop";
 
 type Site = typeof sites.$inferSelect;
 
@@ -279,7 +280,8 @@ export default async function IncassoBlok({
               Aanvullende afspraken (optioneel — komen als eigen kopje in de opdrachtbevestiging)
               <AfsprakenVeld standaard={abonnement?.afspraken ?? ""} />
             </div>
-            <div className="sm:col-span-4">
+            <div className="sm:col-span-4 flex flex-wrap items-center gap-3">
+              <VoorbeeldKnop siteNaam={site.naam} />
               <ActieKnop label="✉️ Betaallink aanmaken en meteen mailen" bezigLabel="Aanmaken en mailen..." className={knopGroen} />
               <p className="mt-2 text-xs text-stone-500">
                 Eén klik doet alles: de klant krijgt een mail met de betaallink én de opdrachtbevestiging (pdf) als bijlage; jij krijgt een kopie.
