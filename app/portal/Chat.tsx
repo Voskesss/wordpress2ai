@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import Fotobank from "./Fotobank";
 import ChatHulp from "./ChatHulp";
 import { readChatResponse } from "@/lib/chat-response";
@@ -283,6 +283,34 @@ export default function Chat({
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
+  // Wachtbeleving: hoe lang loopt de huidige beurt, en hoe lang duurde het
+  // meestal (mediaan van de laatste beurten, per site in de browser bewaard)?
+  const [wachtSec, setWachtSec] = useState(0);
+  const [duurSchatting, setDuurSchatting] = useState<number | null>(null);
+  const beurtStart = useRef(0);
+  useEffect(() => {
+    if (!bezig) return;
+    beurtStart.current = Date.now();
+    setWachtSec(0);
+    try {
+      const eerder = JSON.parse(localStorage.getItem(`wp2ai-duur-${siteId}`) ?? "[]") as number[];
+      if (eerder.length >= 2) {
+        const sorted = [...eerder].sort((a, b) => a - b);
+        setDuurSchatting(sorted[Math.floor(sorted.length / 2)]);
+      } else setDuurSchatting(null);
+    } catch { setDuurSchatting(null); }
+    const t = setInterval(() => setWachtSec(Math.round((Date.now() - beurtStart.current) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [bezig, siteId]);
+  function bewaarBeurtDuur() {
+    if (!beurtStart.current) return;
+    const duur = Math.round((Date.now() - beurtStart.current) / 1000);
+    if (duur < 2) return;
+    try {
+      const eerder = JSON.parse(localStorage.getItem(`wp2ai-duur-${siteId}`) ?? "[]") as number[];
+      localStorage.setItem(`wp2ai-duur-${siteId}`, JSON.stringify([...eerder, duur].slice(-7)));
+    } catch {}
+  }
   // Bericht dat tijdens een lopende AI-beurt is verstuurd: gaat automatisch
   // de deur uit zodra de beurt klaar is
   const wachtrijRef = useRef<{
@@ -430,13 +458,22 @@ export default function Chat({
 
   // De site alvast ophalen zodra het portaal opent: de eerste chatvraag
   // hoeft dan niet meer op de download te wachten.
-  useEffect(() => {
+  const laatsteVoorverwarm = useRef(0);
+  const voorverwarm = useCallback(() => {
+    // Ook opnieuw bij focus op het invoerveld: wie een tijd rondkeek voordat
+    // hij ging typen, krijgt zo alsnog een warme start.
+    if (Date.now() - laatsteVoorverwarm.current < 3 * 60_000) return;
+    laatsteVoorverwarm.current = Date.now();
     fetch("/api/voorverwarm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ siteId }),
     }).catch(() => {});
   }, [siteId]);
+  useEffect(() => {
+    laatsteVoorverwarm.current = 0;
+    voorverwarm();
+  }, [siteId, voorverwarm]);
 
   useEffect(() => {
     function onMessage(e: MessageEvent) {
@@ -740,6 +777,12 @@ export default function Chat({
             { type: "wp2ai-tekst-live", zoek: event.zoek, vervang: event.vervang }, "*"
           );
         }
+        if (event.type === "tekst-live-plek" && typeof event.zoek === "string") {
+          // Laten zien wáár gewerkt wordt: meescrollen en kort oplichten
+          iframeRef.current?.contentWindow?.postMessage(
+            { type: "wp2ai-werkplek", zoek: event.zoek }, "*"
+          );
+        }
         if (event.type === "bewerkt" && typeof event.pad === "string" && huidigeRef.current !== event.pad) {
           huidigeRef.current = event.pad;
           setHuidigePagina(event.pad);
@@ -795,6 +838,7 @@ export default function Chat({
       setChatOpen(true);
       setBerichten((b) => [...b, { rol: "assistent", tekst: melding }]);
     } finally {
+      if (gelukt) bewaarBeurtDuur();
       stopRef.current = null;
       setBezig(false);
       setLiveTekst(null);
@@ -1913,7 +1957,18 @@ export default function Chat({
                     <span className="text-sm font-medium text-stone-600">
                       {statusTekst ?? "..."}
                     </span>
+                    {wachtSec >= 5 && (
+                      <span className="text-xs text-stone-400">
+                        {wachtSec}s{duurSchatting && duurSchatting > wachtSec ? ` — duurt bij jou meestal ±${duurSchatting}s` : ""}
+                      </span>
+                    )}
                   </div>
+                )}
+                {(bezig || videoBezig) && wachtSec >= 15 && (
+                  <p className="mt-1 max-w-[90%] text-xs text-stone-400">
+                    Je kunt gerust even iets anders doen in een ander tabblad — ik
+                    werk gewoon door en het resultaat verschijnt hier vanzelf.
+                  </p>
                 )}
               </div>
             </div>
@@ -2579,6 +2634,7 @@ export default function Chat({
                 }}
                 onFocus={() => {
                   setHintWeg(true);
+                  voorverwarm();
                   if (berichten.length > 0) setChatOpen(true);
                 }}
                 onKeyDown={(e) => {

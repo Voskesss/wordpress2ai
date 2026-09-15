@@ -17,6 +17,7 @@ import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, schrijfBestand } from "@/lib/github";
 import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
+import { classificeerTekstwissel, pasTekstwisselToe } from "@/lib/snelpad";
 import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
 import {
   gewijzigdeBestanden,
@@ -383,6 +384,13 @@ export async function POST(req: Request) {
         ? `wv-${site.netlifySiteId}`
         : null;
 
+    // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
+    // bericht een pure, letterlijke tekstwissel is die zonder agent kan.
+    const snelBelofte =
+      afbeeldingen.length === 0 && !videoCommandId && !selectie && !kleur && !controle
+        ? classificeerTekstwissel(bericht).catch(() => null)
+        : Promise.resolve(null);
+
     const encoder = new TextEncoder();
     streaming = true;
     const stream = new ReadableStream({
@@ -424,7 +432,48 @@ export async function POST(req: Request) {
           }
           clearTimeout(koudeStart);
           const snapshot = await maakSnapshot(werkmap);
-          const siteOverzicht = await maakSiteOverzicht(werkmap);
+
+          // SNELPAD: pure tekstwissel op precies één plek → direct vervangen,
+          // geen agent. In seconden klaar in plaats van minuten.
+          let snelpad: {
+            reply: string;
+            kostenUsd: number;
+            tokensIn: number;
+            tokensUit: number;
+          } | null = null;
+          {
+            const wissel = await snelBelofte;
+            const raak = wissel
+              ? await pasTekstwisselToe(werkmap, wissel.oud, wissel.nieuw)
+              : null;
+            if (wissel && raak) {
+              stuur({ type: "status", tekst: "Kleine tekstwissel — ik pas hem direct aan..." });
+              const rel = raak.pad;
+              if (/\.html?$/i.test(rel) && !rel.startsWith("delen/")) {
+                const pad =
+                  rel === "index.html"
+                    ? "/"
+                    : "/" + rel.replace(/index\.html$/, "").replace(/\.html?$/, "/");
+                stuur({ type: "bewerkt", pad });
+              }
+              stuur({ type: "tekst-live", zoek: wissel.oud, vervang: wissel.nieuw });
+              const label = (() => {
+                const delen = raak.pad.split("/");
+                const naam = delen.pop() ?? raak.pad;
+                if (naam === "index.html")
+                  return delen.length ? `de pagina ${delen[delen.length - 1]}` : "de homepage";
+                return `de pagina ${naam.replace(/\.html?$/, "")}`;
+              })();
+              snelpad = {
+                reply: `Ik heb "${wissel.oud}" veranderd in "${wissel.nieuw}" op ${label}.`,
+                kostenUsd: wissel.kostenUsd,
+                tokensIn: wissel.tokensIn,
+                tokensUit: wissel.tokensUit,
+              };
+            }
+          }
+
+          const siteOverzicht = snelpad ? "" : await maakSiteOverzicht(werkmap);
           tik("voorbereid");
 
           for (const foto of afbeeldingen) {
@@ -551,6 +600,16 @@ export async function POST(req: Request) {
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
+          if (snelpad) {
+            reply = snelpad.reply;
+            await settleAiBudget(scope, maand, requestBudgetUsd, snelpad.kostenUsd);
+            const { registreerAiKosten } = await import("@/lib/kosten");
+            await registreerAiKosten(site.id, "chat", {
+              tokensIn: snelpad.tokensIn,
+              tokensUit: snelpad.tokensUit,
+              kostenUsd: snelpad.kostenUsd,
+            }).catch((e) => console.error("Kostenregistratie mislukt:", e));
+          } else
           try {
             const uitkomst = await draaiChatAgent({
               werkmap,
@@ -606,6 +665,10 @@ export async function POST(req: Request) {
                       zoek !== vervang
                     ) {
                       stuur({ type: "tekst-live", zoek, vervang });
+                    } else if (zoek.length >= 8) {
+                      // Te groot voor een live tekstwissel, maar wél laten zien
+                      // wáár gewerkt wordt: het voorbeeld scrollt mee en licht op.
+                      stuur({ type: "tekst-live-plek", zoek: zoek.slice(0, 60) });
                     }
                   }
                 }
