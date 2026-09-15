@@ -192,6 +192,15 @@ export async function POST(req: Request) {
       }
     }
 
+    // Webinar: agenda-uitnodiging als bijlage plus klik-links voor Google en Outlook
+    let agendaHtml = "";
+    let webinarBijlagen: { bestandsnaam: string; inhoud: Buffer }[] | undefined;
+    if (formulier === "webinar" && webinarSessie) {
+      const { webinarIcs, googleAgendaLink, outlookAgendaLink } = await import("@/lib/agenda");
+      webinarBijlagen = [{ bestandsnaam: "webinar-wordswap.ics", inhoud: Buffer.from(webinarIcs(webinarSessie)) }];
+      agendaHtml = `<p><strong>Zet het in je agenda:</strong> <a href="${ontsnap(googleAgendaLink(webinarSessie))}">Google Agenda</a> · <a href="${ontsnap(outlookAgendaLink(webinarSessie))}">Outlook</a> · of open de bijlage bij deze mail (werkt ook voor Apple Agenda).</p>`;
+    }
+
     // Alleen als de voorbereidingsmails echt aanstaan, kondigen we ze aan
     let reeksZin = "";
     if (formulier === "webinar") {
@@ -213,8 +222,9 @@ export async function POST(req: Request) {
           site: site ?? null,
           naar: invullerEmail,
           onderwerp: `Je bent aangemeld voor het webinar van ${siteNaam}`,
-          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}${reeksZin}<p>Tot dan! Zet het vast in je agenda — een reply op deze mail komt gewoon bij ons aan als je vragen hebt.</p>`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}${agendaHtml}${reeksZin}<p>Tot dan! Heb je een vraag? Antwoord gewoon op deze mail.</p>`,
           antwoordNaar: site?.notificatieEmail ?? undefined,
+          bijlagen: webinarBijlagen,
         });
       } else {
         // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf
@@ -245,7 +255,62 @@ export async function POST(req: Request) {
     }
   }
 
+  // Webinar-aanmelder op de eigen site: automatisch in de leadlijst met een opvolgactie na het webinar
+  if (formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
+    try {
+      const { leads, leadActies } = await import("@/db/schema");
+      const { and, ilike } = await import("drizzle-orm");
+      const { formatWanneer } = await import("@/lib/webinar");
+      const email = String(velden.email ?? "").trim();
+      if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        const website = String(velden.website ?? "").trim().replace(/^https?:\/\//, "").replace(/\/$/, "") || null;
+        const datum = formatWanneer(webinarSessie.wanneer);
+        const [bestaand] = await db.select().from(leads).where(ilike(leads.email, email));
+        const leadId =
+          bestaand?.id ??
+          (
+            await db
+              .insert(leads)
+              .values({
+                naam: String(velden.naam ?? "").trim() || "Webinar-aanmelder",
+                email,
+                website,
+                bron: `Webinar (${datum})`,
+                soort: "klant",
+                status: "nieuw",
+                notities: `Aangemeld voor het webinar van ${datum}. Let op antwoorden op de voorbereidingsmails: dat zijn de warmste leads.`,
+              })
+              .returning({ id: leads.id })
+          )[0].id;
+        const dagNa = new Date(webinarSessie.wanneer.getTime() + 24 * 3_600_000).toLocaleDateString("sv-SE", {
+          timeZone: "Europe/Amsterdam",
+        });
+        const tekst = website ? `Na het webinar: ${website} checken en opvolgen` : "Na het webinar: opvolgen (vraag naar de website)";
+        const [alActie] = await db
+          .select({ id: leadActies.id })
+          .from(leadActies)
+          .where(and(eq(leadActies.leadId, leadId), eq(leadActies.tekst, tekst)));
+        if (!alActie) await db.insert(leadActies).values({ leadId, tekst, datum: dagNa });
+      }
+    } catch (e) {
+      console.error("Webinar-aanmelder in leadlijst zetten mislukt:", e);
+    }
+  }
+
   if (websitecheckJson) return NextResponse.json({ ok: true });
+
+  // Webinar-inschrijving: naar de eigen bedanktpagina met agenda-knoppen
+  if (formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
+    let host = "wordswap.nl";
+    try {
+      const h = new URL(req.headers.get("referer") ?? "").host;
+      if (/(^|\.)wordswap\.nl$|\.vercel\.app$|^localhost(:\d+)?$/.test(h)) host = h;
+    } catch {
+      /* standaard wordswap.nl */
+    }
+    const protocol = host.startsWith("localhost") ? "http" : "https";
+    return NextResponse.redirect(`${protocol}://${host}/webinar/bedankt?w=${webinarSessie.id}`, 303);
+  }
 
   // Eigen bedankt-pagina van de site? Daarheen doorsturen — naar dezelfde
   // host als waar het formulier werd ingevuld (live domein óf een werkversie/

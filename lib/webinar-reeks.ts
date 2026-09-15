@@ -3,7 +3,7 @@ import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, webinarMailInstellingen, webinarMails, webinars } from "@/db/schema";
 import { formatWanneer, hoortBij } from "@/lib/webinar";
-import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 
 const UUR = 3_600_000;
 const DAG = 24 * UUR;
@@ -57,12 +57,13 @@ export function bouwReeksMail(
 ): { onderwerp: string; html: string } {
   const w = ctx.webinar;
   const hallo = p(`Hallo${ctx.voornaam ? ` ${ontsnap(ctx.voornaam)}` : ""},`);
-  const groet = `<p>Groet,<br>Jos Klijnhout<br>WordSwap</p>`;
-  const voet = `<p style="margin-top:28px;font-size:12px;color:#a8a29e">Je krijgt deze mail omdat je je hebt aangemeld voor het webinar van ${ontsnap(
-    formatWanneer(w.wanneer),
-  )}.${ctx.afmeldUrl ? ` Liever geen voorbereidingsmails? <a href="${ontsnap(ctx.afmeldUrl)}" style="color:#a8a29e">Afmelden</a>; je plek in het webinar blijft gewoon staan.` : ""}</p>`;
+  const voet = `Je krijgt deze mail omdat je je hebt aangemeld voor het webinar van ${ontsnap(formatWanneer(w.wanneer))}.${
+    ctx.afmeldUrl
+      ? ` Liever geen voorbereidingsmails? <a href="${ontsnap(ctx.afmeldUrl)}" style="color:#8a9185">Afmelden</a>; je plek in het webinar blijft gewoon staan.`
+      : ""
+  }`;
   const linkBlok = w.meetLink ? knop(w.meetLink, "Deelnemen aan het webinar") : p("De deelnamelink krijg je op tijd van me.");
-  const kader = (inhoud: string) => `${hallo}${inhoud}${groet}${voet}`;
+  const kader = (inhoud: string) => inWordSwapHuisstijl(`${hallo}${inhoud}<p>Groet,<br>Jos</p>`, voet);
 
   switch (soort) {
     case "waar-sta-je":
