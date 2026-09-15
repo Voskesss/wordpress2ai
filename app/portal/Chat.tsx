@@ -21,6 +21,17 @@ type Concept = {
   paginas: string[];
 };
 
+/** Keuzes die betekenen "dat vertel/typ ik zelf": zo'n knop verstuurt niets,
+ * maar opent alleen het typveld — anders moet de eigenaar eerst een zinloze
+ * AI-beurt afwachten die vraagt wat hij dan wil zeggen. */
+function isZelfTypKeuze(k: string) {
+  return (
+    k.startsWith("\u270F\uFE0F") ||
+    /^ik (vertel|typ|zeg|kies|geef|beschrijf|leg)\b.*\bzelf\b/i.test(k) ||
+    /\bzelf\b.*\b(vertellen|typen|aangeven|kiezen|invullen|uitleggen)\b/i.test(k)
+  );
+}
+
 /** Haalt de KEUZES-regel (snelkeuze-knoppen) uit een assistent-bericht. */
 function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
   const m = tekst.match(/\n?\s*KEUZES:\s*(.+)\s*$/);
@@ -1900,14 +1911,25 @@ export default function Chat({
                           {keuzes.map((keuze, ki) => (
                             <button
                               key={keuze}
-                              onClick={() => verstuur(keuze)}
+                              onClick={() => {
+                                if (isZelfTypKeuze(keuze)) {
+                                  // Niets versturen: gewoon het typveld openen
+                                  invoerRef.current?.focus();
+                                  return;
+                                }
+                                verstuur(keuze);
+                              }}
                               className={`rounded-full px-4 py-2 text-sm font-semibold cursor-pointer ${
                                 ki === 0
                                   ? "bg-violet-700 text-white shadow-md shadow-violet-200 hover:bg-violet-600"
                                   : "border border-violet-300 bg-white text-violet-700 hover:bg-violet-50"
                               }`}
                             >
-                              {ki === 0 ? `✨ ${keuze}` : keuze}
+                              {isZelfTypKeuze(keuze)
+                                ? `✏️ ${keuze.replace(/^\u270F\uFE0F\s*/, "")}`
+                                : ki === 0
+                                  ? `✨ ${keuze}`
+                                  : keuze}
                             </button>
                           ))}
                         </div>
