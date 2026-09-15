@@ -124,6 +124,19 @@ export default async function Contact({
             />
           </div>
         </div>
+        <div>
+          <label htmlFor="telefoon" className="block text-sm font-semibold">
+            Telefoonnummer (optioneel)
+          </label>
+          <input
+            id="telefoon"
+            name="telefoon"
+            type="tel"
+            autoComplete="tel"
+            placeholder="voor als bellen makkelijker praat"
+            className={inputStijl}
+          />
+        </div>
         <ContactVoorkeur />
         <div>
           <label htmlFor="website" className="block text-sm font-semibold">
