@@ -83,58 +83,38 @@ export default function Home() {
           <span>✓ Persoonlijk contact met Jos</span>
         </div>
       </div>
-      <section className="shell verhaal-section">
-        <VerhaalBeeld onderwerp="ondernemer" />
-        <div className="verhaal-copy">
-          <p className="eyebrow">JE BEDRIJF VERANDERT. JE WEBSITE OOK.</p>
-          <h2>
-            Een nieuwe dienst.
-            <br />
-            Andere openingstijden.
-            <br />
-            Zo weer bijgewerkt.
-          </h2>
-          <p>
-            Na de overstap hoef je WordPress niet meer te openen. Vertel de AI
-            wat er op je website anders moet. Je bekijkt de wijziging en zet hem
-            zelf live.
-          </p>
-          <Link href="#zo-werkt-aanpassen" className="button-text">
-            Bekijk een voorbeeld →
-          </Link>
-        </div>
-      </section>
       <section className="section-space shell">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">JE WEBSITE KAN SIMPELER</p>
+            <p className="eyebrow">HERKEN JE DIT?</p>
             <h2>
-              Je hebt al een vak.
+              Blij met je website.
               <br />
-              Websitebeheer hoeft daar niet bij.
+              Klaar met het beheer.
             </h2>
           </div>
           <p>
-            Of je nu tuinen aanlegt, mensen adviseert of elke ochtend de oven
-            aanzet: je website moet meewerken. En niet je avond opslokken.
+            Je site ziet er prima uit — daar ligt het niet aan. Het is alles
+            eromheen: updates, plugins, en dat ene tekstje dat wéér ergens diep
+            in een menu verstopt zit.
           </p>
         </div>
         <div className="benefit-grid">
           {[
             [
               "01",
-              "Een tekstje wijzigen. Weer wachten.",
-              "Je openingstijden zijn veranderd, maar je website nog niet. In WordSwap geef je de wijziging zelf door in de chat. Je bekijkt het voorstel en publiceert wanneer het klopt.",
+              "Waar zat het ook alweer?",
+              "Eén prijsje aanpassen betekent inloggen, zoeken door menu's en blokken, en hopen dat je niets anders verschuift. In WordSwap typ je gewoon wat er anders moet — zoeken doet de AI.",
             ],
             [
               "02",
               "Die update doe ik morgen wel.",
-              "Je weet niet of een plugin-update iets stukmaakt. Na de overstap heeft je publieke website geen WordPress-plugins meer. Hosting en SSL regelen wij.",
+              "Elf plugins met een rood bolletje, en je weet niet of een update iets stukmaakt. Na de overstap heeft je publieke website helemaal geen plugins meer. Hosting en SSL regelen wij.",
             ],
             [
               "03",
               "Ik durf er zelf niet aan te komen.",
-              "Je hoeft geen blokken te verplaatsen of code te begrijpen. Iedere AI-wijziging verschijnt eerst als voorbeeld. Een eerdere versie terugzetten kan ook.",
+              "Dus blijft de site maanden hetzelfde, of wacht je op de webbouwer. Bij WordSwap verschijnt elke wijziging eerst als voorbeeld — en een eerdere versie terugzetten kan altijd.",
             ],
           ].map(([n, t, d]) => (
             <article className="benefit" key={n}>
@@ -145,6 +125,27 @@ export default function Home() {
               <p>{d}</p>
             </article>
           ))}
+        </div>
+      </section>
+      <section className="shell verhaal-section">
+        <VerhaalBeeld onderwerp="ondernemer" />
+        <div className="verhaal-copy">
+          <p className="eyebrow">HET KAN OOK ZO</p>
+          <h2>
+            Een nieuwe dienst.
+            <br />
+            Andere openingstijden.
+            <br />
+            Zo weer bijgewerkt.
+          </h2>
+          <p>
+            Na de overstap hoef je WordPress nooit meer te openen. Vertel je
+            website wat er anders moet, bekijk de wijziging en zet hem zelf
+            live. Meer is het niet.
+          </p>
+          <Link href="#zo-werkt-aanpassen" className="button-text">
+            Bekijk een voorbeeld →
+          </Link>
         </div>
       </section>
       <section className="shell fit-section">
