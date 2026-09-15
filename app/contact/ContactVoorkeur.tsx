@@ -8,7 +8,11 @@ const MANIEREN = [
 ] as const;
 const DAGDELEN = ["ochtend", "middag", "avond"] as const;
 
-/** Hoe wil de aanvrager benaderd worden: mailen en/of bellen, en zo ja op welk dagdeel. */
+const inputStijl =
+  "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-[#31956B] focus:outline-none focus:ring-2 focus:ring-[#e3eedd]";
+
+/** Telefoonnummer plus contactvoorkeur (mailen en/of bellen, met dagdeel).
+ * Het telefoonnummer is optioneel, behalve als de aanvrager kiest voor bellen. */
 export default function ContactVoorkeur() {
   const [manieren, setManieren] = useState<string[]>([]);
   const [dagdelen, setDagdelen] = useState<string[]>([]);
@@ -23,45 +27,62 @@ export default function ContactVoorkeur() {
     }`;
 
   return (
-    <div>
-      <p className="block text-sm font-semibold">Hoe mag Jos contact opnemen? (optioneel, kies er gerust meer)</p>
-      <input type="hidden" name="contactvoorkeur" value={manieren.join(" en ")} />
-      <div className="mt-1.5 flex flex-wrap gap-2">
-        {MANIEREN.map((m) => (
-          <button
-            key={m.waarde}
-            type="button"
-            aria-pressed={manieren.includes(m.waarde)}
-            onClick={() => setManieren((huidig) => wissel(huidig, m.waarde))}
-            className={knopStijl(manieren.includes(m.waarde))}
-          >
-            {m.label}
-          </button>
-        ))}
+    <>
+      <div>
+        <label htmlFor="telefoon" className="block text-sm font-semibold">
+          Telefoonnummer {bellen ? <span className="text-[#244b3d]">(nodig om je te kunnen bellen)</span> : "(optioneel)"}
+        </label>
+        <input
+          id="telefoon"
+          name="telefoon"
+          type="tel"
+          autoComplete="tel"
+          required={bellen}
+          placeholder="voor als bellen makkelijker praat"
+          className={inputStijl}
+        />
       </div>
 
-      {bellen && (
-        <div className="mt-3">
-          <p className="block text-sm font-semibold">Wanneer komt bellen je uit?</p>
-          <input type="hidden" name="belmoment" value={dagdelen.join(", ")} />
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {DAGDELEN.map((d) => (
-              <button
-                key={d}
-                type="button"
-                aria-pressed={dagdelen.includes(d)}
-                onClick={() => setDagdelen((huidig) => wissel(huidig, d))}
-                className={`${knopStijl(dagdelen.includes(d))} capitalize`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-stone-500">
-            Overdag druk met je eigen werk? Geen probleem: Jos belt ook &apos;s avonds. Vul hierboven je telefoonnummer in.
-          </p>
+      <div>
+        <p className="block text-sm font-semibold">Hoe mag Jos contact opnemen? (optioneel, kies er gerust meer)</p>
+        <input type="hidden" name="contactvoorkeur" value={manieren.join(" en ")} />
+        <div className="mt-1.5 flex flex-wrap gap-2">
+          {MANIEREN.map((m) => (
+            <button
+              key={m.waarde}
+              type="button"
+              aria-pressed={manieren.includes(m.waarde)}
+              onClick={() => setManieren((huidig) => wissel(huidig, m.waarde))}
+              className={knopStijl(manieren.includes(m.waarde))}
+            >
+              {m.label}
+            </button>
+          ))}
         </div>
-      )}
-    </div>
+
+        {bellen && (
+          <div className="mt-3">
+            <p className="block text-sm font-semibold">Wanneer komt bellen je uit?</p>
+            <input type="hidden" name="belmoment" value={dagdelen.join(", ")} />
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {DAGDELEN.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  aria-pressed={dagdelen.includes(d)}
+                  onClick={() => setDagdelen((huidig) => wissel(huidig, d))}
+                  className={`${knopStijl(dagdelen.includes(d))} capitalize`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-stone-500">
+              Overdag druk met je eigen werk? Geen probleem: Jos belt ook &apos;s avonds.
+            </p>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

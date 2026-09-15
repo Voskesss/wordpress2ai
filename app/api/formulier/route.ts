@@ -73,6 +73,16 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+  if (
+    websitecheckJson &&
+    (velden.contactvoorkeur ?? "").includes("bellen") &&
+    (velden.telefoon ?? "").replace(/\D/g, "").length < 8
+  ) {
+    return NextResponse.json(
+      { error: "Je koos voor bellen: vul een geldig telefoonnummer in." },
+      { status: 400 },
+    );
+  }
 
   const formulier =
     (velden._formulier ?? "contact")
