@@ -196,3 +196,23 @@ export async function inzendingVerwerken(formData: FormData) {
   revalidatePath("/portal");
   revalidatePath(`/admin/klant/${siteId}`);
 }
+
+/** Akkoord op de verwerkersovereenkomst vastleggen (eerste inlog van een klant). */
+export async function akkoordVerwerkersovereenkomst() {
+  const { userId } = await auth();
+  if (!userId) return;
+  const { akkoorden } = await import("@/db/schema");
+  const { VERWERKERS_VERSIE } = await import("@/lib/verwerkersovereenkomst");
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const gebruiker = await currentUser();
+  await db
+    .insert(akkoorden)
+    .values({
+      clerkUserId: userId,
+      email: gebruiker?.emailAddresses?.[0]?.emailAddress ?? null,
+      soort: "verwerkersovereenkomst",
+      versie: VERWERKERS_VERSIE,
+    })
+    .onConflictDoNothing();
+  revalidatePath("/portal");
+}

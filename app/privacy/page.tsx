@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "Hoe WordSwap omgaat met persoonsgegevens: wat we verzamelen, waarom, waar het staat en wat je rechten zijn.",
 };
 
-const bijgewerkt = "28 augustus 2026";
+const bijgewerkt = "15 september 2026";
 
 function Blok({ kop, children }: { kop: string; children: React.ReactNode }) {
   return (
@@ -59,7 +59,18 @@ export default function Privacy() {
           formulier in op een website die wij hosten, dan slaan we die inzending
           op en mailen we hem door aan de eigenaar van die website. De eigenaar
           is voor die gegevens de verwerkingsverantwoordelijke; wij verwerken ze
-          alleen in opdracht.
+          alleen in opdracht, volgens onze{" "}
+          <Link href="/verwerkersovereenkomst" className="text-violet-700 underline underline-offset-2">
+            verwerkersovereenkomst
+          </Link>
+          .
+        </p>
+        <p>
+          <strong>Betalingen:</strong> ben je klant, dan verwerken we je naam,
+          e-mailadres, factuuradres en betaalgegevens (zoals je IBAN bij een
+          automatische incasso) om te factureren en af te schrijven. De betaling
+          zelf loopt via onze betaaldienst Mollie; wij zien of bewaren nooit je
+          volledige bankgegevens buiten wat Mollie ons daarover meldt.
         </p>
         <p>
           We verzamelen géén advertentie- of trackingprofielen en plaatsen geen
@@ -94,6 +105,8 @@ export default function Privacy() {
           <li><strong>Clerk</strong> — inloggen en accountbeheer</li>
           <li><strong>Anthropic</strong> — de AI die wijzigingen aan websites uitvoert; chatberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen</li>
           <li><strong>Resend</strong> — het versturen van e-mail (bevestigingen en meldingen)</li>
+          <li><strong>Mollie</strong> (Amsterdam) — betalingen en automatische incasso&apos;s</li>
+          <li><strong>Soverin</strong> (Nederland) — onze eigen zakelijke mailbox</li>
           <li><strong>GitHub</strong> — opslag van de websitebestanden (broncode, geen persoonsgegevens)</li>
         </ul>
         <p>
@@ -125,11 +138,17 @@ export default function Privacy() {
         </p>
       </Blok>
 
-      <Blok kop="Beveiliging">
+      <Blok kop="Beveiliging en datalekken">
         <p>
           Alle verbindingen zijn versleuteld (HTTPS), toegang tot systemen is
           beperkt tot wat nodig is en wachtwoorden worden nooit door ons
           opgeslagen (dat doet onze inlogdienst met moderne versleuteling).
+        </p>
+        <p>
+          Gaat er ondanks alles iets mis met persoonsgegevens (een datalek), dan
+          onderzoeken we het direct, melden we het waar de wet dat vereist
+          binnen 72 uur bij de Autoriteit Persoonsgegevens en informeren we de
+          betrokkenen en getroffen klanten zo snel mogelijk.
         </p>
       </Blok>
 

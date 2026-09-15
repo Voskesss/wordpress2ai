@@ -415,3 +415,13 @@ export const betaalverzoeken = pgTable("betaalverzoeken", {
   betaaldOp: timestamp("betaald_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Vastgelegde akkoorden: wie ging wanneer akkoord met welke versie (bewijs voor de AVG)
+export const akkoorden = pgTable("akkoorden", {
+  id: serial("id").primaryKey(),
+  clerkUserId: text("clerk_user_id").notNull(),
+  email: text("email"),
+  soort: text("soort").notNull(), // bijv. "verwerkersovereenkomst"
+  versie: text("versie").notNull(),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});

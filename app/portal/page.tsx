@@ -5,7 +5,8 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { vanafLaatsteNieuwGesprek } from "@/lib/gesprek";
-import { requireUser } from "@/lib/auth";
+import { isBeheerder, requireUser } from "@/lib/auth";
+import VerwerkersAkkoord from "./VerwerkersAkkoord";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
@@ -52,6 +53,24 @@ export default async function Portal({
   const heeftEigenSite = mijnSites.some(
     (s) => !s.isDemo && s.clerkUserId === userId,
   );
+
+  // Klant met een eigen site? Dan eerst één keer akkoord op de verwerkersovereenkomst (AVG).
+  if (heeftEigenSite && !(await isBeheerder())) {
+    const { akkoorden } = await import("@/db/schema");
+    const { VERWERKERS_VERSIE } = await import("@/lib/verwerkersovereenkomst");
+    const akkoord = await db
+      .select({ id: akkoorden.id })
+      .from(akkoorden)
+      .where(
+        and(
+          eq(akkoorden.clerkUserId, userId),
+          eq(akkoorden.soort, "verwerkersovereenkomst"),
+          eq(akkoorden.versie, VERWERKERS_VERSIE),
+        ),
+      )
+      .catch(() => null); // tabel ontbreekt nog? dan niet blokkeren
+    if (akkoord && akkoord.length === 0) return <VerwerkersAkkoord />;
+  }
 
   // Meerdere websites? Eén tegelijk tonen, met een keuzebalk erboven.
   // Standaard de eigen site (niet de demo), anders de eerste.

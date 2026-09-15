@@ -63,6 +63,13 @@ export default async function Betalen({
               altijd per maand.
             </p>
           )}
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Door te betalen ga je akkoord met{" "}
+            {v.soort === "eerste" && <>de opdrachtbevestiging (in je mail), </>}de{" "}
+            <a href="/voorwaarden" className="text-emerald-800 underline underline-offset-2">algemene voorwaarden</a> en de{" "}
+            <a href="/verwerkersovereenkomst" className="text-emerald-800 underline underline-offset-2">verwerkersovereenkomst</a>.
+            We leggen datum en betaling vast als bevestiging.
+          </p>
           {fout && (
             <p className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-800">
               Het starten van de betaling lukte niet. Probeer het zo nog eens, of mail jos@wordswap.nl.

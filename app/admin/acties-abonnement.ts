@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { abonnementen, betaalverzoeken, betalingen, facturen, sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { creditBijTerugbetaling, mailFactuur } from "@/lib/factuur";
+import { creditBijTerugbetaling, maakOpdrachtbevestigingPdf, mailFactuur } from "@/lib/factuur";
 import { handtekening } from "@/lib/mailer";
 import { euro, euroTekst, inclBtwCent, mollie, SITE_URL, vandaagNl, type MolliePayment } from "@/lib/mollie";
 import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
@@ -125,30 +125,48 @@ export async function startAbonnement(formData: FormData) {
   terug(siteId, "Betaallink aangemaakt. Hij verloopt niet: de klant kan betalen wanneer het hem uitkomt.");
 }
 
-/** Mailt de betaallink voor de eerste betaling naar de klant. */
-export async function mailBetaallink(formData: FormData) {
-  await requireAdmin();
-  const siteId = siteIdVan(formData);
-  if (siteId === null) return;
-  const [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, siteId));
-  if (!abo?.betaallink) terug(siteId, "Er is geen openstaande betaallink.");
+/** De betaallink-mail met de opdrachtbevestiging als bijlage; gedeeld door aanmaken en opnieuw mailen. */
+async function verstuurBetaallinkMail(abo: typeof abonnementen.$inferSelect, siteNaam: string): Promise<boolean> {
+  if (!abo.betaallink) return false;
   const eersteIncl = inclBtwCent(abo.maandbedragCent + abo.eenmaligCent);
   const uitleg =
     abo.eenmaligCent > 0
       ? `<p>Via de knop hieronder betaal je in één keer de omzetting van je website (${euroTekst(abo.eenmaligCent)}) en je eerste maand hosting, beheer en AI-portaal (${euroTekst(abo.maandbedragCent)}). Samen is dat <strong>${euroTekst(eersteIncl)} inclusief btw</strong>.</p>
 <p>Daarna wordt alleen het maandbedrag van ${euroTekst(abo.maandbedragCent)} (${euroTekst(inclBtwCent(abo.maandbedragCent))} inclusief btw) automatisch afgeschreven.</p>`
       : `<p>Via de knop hieronder start je je maandbedrag van <strong>${euroTekst(abo.maandbedragCent)} per maand</strong> (${euroTekst(eersteIncl)} inclusief btw) voor hosting, beheer en het AI-portaal.</p>`;
-  const gelukt = await mailVanJos({
+  const pdf = await maakOpdrachtbevestigingPdf({
+    siteNaam,
+    klantNaam: abo.naam,
+    klantBedrijf: abo.klantBedrijf,
+    klantAdres: abo.klantAdres,
+    klantEmail: abo.email,
+    maandbedragCent: abo.maandbedragCent,
+    eenmaligCent: abo.eenmaligCent,
+  });
+  return mailVanJos({
     naar: abo.email,
     van: "Jos van WordSwap",
-    onderwerp: "Je betaling voor WordSwap",
+    onderwerp: "Je betaling voor WordSwap — opdrachtbevestiging bijgesloten",
     html: mailHtml(
       abo.naam,
       `<p>Fijn dat je website bij WordSwap draait!</p>${uitleg}${knop(abo.betaallink, "Betalen via iDEAL")}
+<p>In de bijlage vind je de opdrachtbevestiging: wat we leveren, wat het kost en welke afspraken erbij horen. Door te betalen ga je daarmee akkoord, en met de <a href="https://wordswap.nl/voorwaarden">algemene voorwaarden</a> en de <a href="https://wordswap.nl/verwerkersovereenkomst">verwerkersovereenkomst</a>.</p>
 <p>Met deze betaling geef je ook toestemming om het maandbedrag voortaan automatisch af te schrijven, zodat je er verder niet meer aan hoeft te denken. Je krijgt bij elke betaling automatisch een factuur. Opzeggen kan altijd per maand: een mailtje is genoeg.</p>`,
     ),
+    bijlagen: [{ bestandsnaam: "Opdrachtbevestiging-WordSwap.pdf", inhoud: Buffer.from(pdf) }],
   });
-  terug(siteId, gelukt ? `Betaallink gemaild naar ${abo.email} (kopie naar jos@wordswap.nl).` : "Mailen mislukt, probeer het opnieuw.");
+}
+
+/** Mailt de betaallink (met opdrachtbevestiging) opnieuw naar de klant. */
+export async function mailBetaallink(formData: FormData) {
+  await requireAdmin();
+  const siteId = siteIdVan(formData);
+  if (siteId === null) return;
+  const [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, siteId));
+  if (!abo?.betaallink) terug(siteId, "Er is geen openstaande betaallink.");
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  const gelukt = await verstuurBetaallinkMail(abo, site?.naam ?? "je website");
+  terug(siteId, gelukt ? `Betaallink en opdrachtbevestiging gemaild naar ${abo.email} (kopie naar jos@wordswap.nl).` : "Mailen mislukt, probeer het opnieuw.");
 }
 
 /** Losse opdracht: via een betaallink, of afschrijven met de bestaande machtiging (alleen met akkoord van de klant). */

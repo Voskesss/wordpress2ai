@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/webinar",
     "/privacy",
     "/voorwaarden",
+    "/verwerkersovereenkomst",
   ];
   return paden.map((path) => ({
     url: `${base}${path}`,

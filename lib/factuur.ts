@@ -356,3 +356,104 @@ export async function maakFactuurPdf(f: Factuur): Promise<Uint8Array> {
 
   return doc.save();
 }
+
+/** Opdrachtbevestiging bij de eerste betaallink: het "contract in de mail".
+ * Geen factuurnummer — de echte factuur volgt automatisch na de betaling. */
+export async function maakOpdrachtbevestigingPdf(o: {
+  siteNaam: string;
+  klantNaam: string;
+  klantBedrijf: string | null;
+  klantAdres: string | null;
+  klantEmail: string;
+  maandbedragCent: number;
+  eenmaligCent: number;
+}): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  doc.setTitle(`Opdrachtbevestiging WordSwap — ${o.siteNaam}`);
+  doc.setAuthor("WordSwap");
+  const page = doc.addPage([595.28, 841.89]);
+  const gewoon = await doc.embedFont(StandardFonts.Helvetica);
+  const vet = await doc.embedFont(StandardFonts.HelveticaBold);
+  const L = 56;
+  const R = 595.28 - 56;
+  const datum = datumNl(new Date());
+
+  try {
+    const res = await fetch(`${SITE_URL}/logo-mail-groen.png`, { cache: "force-cache" });
+    if (res.ok) {
+      const logo = await doc.embedPng(await res.arrayBuffer());
+      page.drawImage(logo, { x: L, y: 790 - (logo.height / logo.width) * 150 + 10, width: 150, height: (logo.height / logo.width) * 150 });
+    }
+  } catch {
+    page.drawText("WordSwap", { x: L, y: 780, font: vet, size: 22, color: GROEN });
+  }
+  let y = 780;
+  for (const [t, f] of [[AFZENDER.naam, vet], ...AFZENDER.adres.map((a) => [a, gewoon]), [AFZENDER.email, gewoon], [`KvK ${AFZENDER.kvk}`, gewoon]] as [string, PDFFont][]) {
+    tekstRechts(page, t, R, y, f, 9.5);
+    y -= 13;
+  }
+
+  page.drawText("Opdrachtbevestiging", { x: L, y: 690, font: vet, size: 20, color: DONKER });
+  page.drawText(`Datum: ${datum}`, { x: L, y: 670, font: gewoon, size: 10, color: GRIJS });
+
+  y = 644;
+  for (const t of [
+    ...(o.klantBedrijf ? [o.klantBedrijf, `t.a.v. ${o.klantNaam}`] : [o.klantNaam]),
+    ...(o.klantAdres ?? "").split(/\r?\n/).map((r) => r.trim()).filter(Boolean),
+    o.klantEmail,
+  ]) {
+    page.drawText(t, { x: L, y, font: gewoon, size: 10.5 });
+    y -= 15;
+  }
+  y -= 10;
+
+  const alinea = (tekst: string, opties: { vet?: boolean; kleur?: ReturnType<typeof rgb> } = {}) => {
+    const font = opties.vet ? vet : gewoon;
+    const woorden = tekst.split(" ");
+    let regel = "";
+    for (const w of woorden) {
+      const probeer = regel ? `${regel} ${w}` : w;
+      if (font.widthOfTextAtSize(probeer, 10.5) > R - L) {
+        page.drawText(regel, { x: L, y, font, size: 10.5, color: opties.kleur ?? DONKER });
+        y -= 15;
+        regel = w;
+      } else regel = probeer;
+    }
+    if (regel) {
+      page.drawText(regel, { x: L, y, font, size: 10.5, color: opties.kleur ?? DONKER });
+      y -= 15;
+    }
+    y -= 5;
+  };
+
+  alinea("Wat wij leveren", { vet: true, kleur: GROEN });
+  alinea(
+    `We hebben je bestaande website "${o.siteNaam}" overgezet naar een snelle versie zonder WordPress, met behoud van je ontwerp, inhoud en pagina-adressen. Je hebt de kopie bekeken en goedgekeurd. Na je betaling zetten we hem live op je eigen domeinnaam. Daarna beheer je de site zelf via het WordSwap-portaal met AI-chat; wij verzorgen hosting, beveiligde verbinding en beheer.`,
+  );
+  y -= 4;
+  alinea("De prijs", { vet: true, kleur: GROEN });
+  if (o.eenmaligCent > 0) alinea(`Eenmalige omzetting: ${euroTekst(o.eenmaligCent)} excl. btw.`);
+  alinea(
+    `Maandbedrag voor hosting, beheer en het AI-portaal: ${euroTekst(o.maandbedragCent)} excl. btw per maand, maandelijks opzegbaar. De eerste betaling gaat via iDEAL${o.eenmaligCent > 0 ? " (omzetting en eerste maand samen)" : ""}; daarna wordt het maandbedrag automatisch afgeschreven. Bij elke betaling ontvang je automatisch een factuur. Alle bedragen zijn exclusief 21% btw.`,
+  );
+  y -= 4;
+  alinea("Wat jij zelf draagt", { vet: true, kleur: GROEN });
+  alinea(
+    "Je domeinnaam en e-mailabonnement staan op jouw naam en de kosten daarvan lopen buiten WordSwap om. Voor de inhoud van je website (teksten, foto's, claims en rechten daarop) ben jij verantwoordelijk. Wijzigingen die je via de chat publiceert, zijn jouw keuze; er is altijd eerst een voorbeeld en een eerdere versie kan worden teruggezet. AI-gebruik boven de fair-use-grens en maatwerk spreken we vooraf apart af.",
+  );
+  y -= 4;
+  alinea("Terugweg en einde", { vet: true, kleur: GROEN });
+  alinea(
+    "Vóór je je oude hosting opzegt, zorgen we dat er een complete kopie van je oude WordPress-site veilig staat. Zeg je WordSwap op, dan ontvang je je websitebestanden en gegevens; je site en data blijven van jou.",
+  );
+  y -= 4;
+  alinea("Akkoord", { vet: true, kleur: GROEN });
+  alinea(
+    `Door de betaallink te betalen ga je akkoord met deze opdrachtbevestiging, de algemene voorwaarden (wordswap.nl/voorwaarden) en de verwerkersovereenkomst (wordswap.nl/verwerkersovereenkomst). Wij leggen datum en betaling vast als bevestiging. Vragen? Mail jos@wordswap.nl of bel ${AFZENDER.telefoon}.`,
+  );
+
+  page.drawLine({ start: { x: L, y: 70 }, end: { x: R, y: 70 }, thickness: 0.5, color: LICHT });
+  page.drawText(AFZENDER.juridisch, { x: L, y: 54, font: gewoon, size: 8.5, color: GRIJS });
+  tekstRechts(page, `${AFZENDER.web} · KvK ${AFZENDER.kvk} · btw ${AFZENDER.btw}`, R, 54, gewoon, 8.5, GRIJS);
+  return doc.save();
+}

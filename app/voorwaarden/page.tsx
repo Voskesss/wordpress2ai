@@ -112,6 +112,16 @@ export default function Voorwaarden() {
           kwaliteit en veiligheid van de dienst te bewaken en te verbeteren.
           Zie ook onze privacyverklaring.
         </p>
+        <p>
+          Voor de gegevens die bezoekers op jouw website achterlaten
+          (formulierinzendingen) is WordSwap jouw verwerker. Daarop is de{" "}
+          <Link href="/verwerkersovereenkomst" className="text-violet-700 underline underline-offset-2">
+            verwerkersovereenkomst
+          </Link>{" "}
+          van toepassing; die maakt deel uit van deze overeenkomst en je gaat
+          ermee akkoord bij je eerste inlog op het portaal of bij je eerste
+          betaling.
+        </p>
       </Artikel>
 
       <Artikel nr={7} kop="Aansprakelijkheid">
