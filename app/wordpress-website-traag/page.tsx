@@ -31,7 +31,7 @@ export default function Pagina(){ return <SeoLanding data={{
       "antwoord": aanbod.prijs
     },
     {
-      "vraag": "Kan mijn website mee?",
+      "vraag": "Kan mijn website overgezet worden?",
       "antwoord": aanbod.geschikt
     },
     {

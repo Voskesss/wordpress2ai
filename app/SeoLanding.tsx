@@ -61,7 +61,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
             >
               {data.nieuweWebsite
                 ? "Bespreek mijn nieuwe website →"
-                : "Kan mijn website mee? →"}
+                : "Kan mijn website overgezet worden? →"}
             </Link>
             <Link
               href="/demo"

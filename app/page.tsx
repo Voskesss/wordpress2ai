@@ -53,7 +53,7 @@ export default function Home() {
           </p>
           <div className="button-row">
             <Link className="button-primary" href="/contact">
-              Kan mijn website mee? <span>↗</span>
+              Kan mijn website overgezet worden? <span>↗</span>
             </Link>
             <Link className="button-text" href="#zo-werkt-aanpassen">
               Probeer het voorbeeld <span>→</span>
