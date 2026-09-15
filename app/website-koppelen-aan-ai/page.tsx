@@ -36,6 +36,10 @@ export default function Pagina() {
         ],
         faq: [
           {
+            vraag: "Wat kan ik allemaal aanpassen via de chat? Kan ik ook zelf pagina’s maken?",
+            antwoord: aanbod.wijzigen,
+          },
+          {
             vraag: "Is dit een chatbot voor bezoekers?",
             antwoord:
               "De ingebouwde chat is voor jou als eigenaar, om je site te wijzigen. Een chatbot voor bezoekersvragen is een andere functie en geen onderdeel van deze beheerchat.",

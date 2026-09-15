@@ -50,6 +50,10 @@ export default function Pagina() {
               "Nee. Je site wordt opnieuw opgebouwd zonder WordPress. Ontwerp, inhoud en bestaande pagina-adressen nemen we zo nauwkeurig mogelijk over. Bijzondere functies bespreken we vooraf.",
           },
           {
+            vraag: "Wat kan ik allemaal aanpassen via de chat? Kan ik ook zelf pagina’s maken?",
+            antwoord: aanbod.wijzigen,
+          },
+          {
             vraag: "Wat als een wijziging verkeerd is?",
             antwoord:
               "Je kunt het concept laten aanpassen. Na publicatie kan een eerdere versie worden teruggezet. Controleer daarna ook of het herstel goed zichtbaar is.",

@@ -15,10 +15,16 @@ export const aanbod = {
   seo: "Bestaande URL’s en paginastructuur nemen we waar mogelijk exact over, net als paginatitels en meta-informatie. We vergelijken de oude en nieuwe inrichting, controleren de sitemap en richten bij afgesproken URL-wijzigingen passende doorverwijzingen in. Zoekposities en vermeldingen in AI-antwoorden kunnen we niet garanderen.",
   veiligheid:
     "Een stuk veiliger dan een gewone WordPress-site, al belooft niemand je eerlijk gezegd een website die honderd procent onkwetsbaar is. Je website bestaat uit kant-en-klare pagina’s zonder database, PHP of plugins, dus de inbraakroutes waar de meeste gehackte websites op sneuvelen, bestaan bij jou niet. De rest regelen wij: we houden de hosting, de beveiliging, het portaal en je contactformulier in de gaten en up-to-date. Daar hoef jij niet naar om te kijken.",
+  wijzigen:
+    "Eigenlijk alles wat je op je website ziet. Teksten, prijzen en openingstijden aanpassen; foto’s vervangen of toevoegen; nieuwe pagina’s maken, zoals een extra dienst, een actie of een blogbericht; knoppen, menu-items en formulieren toevoegen; en de titels en omschrijvingen die Google laat zien. Je typt het in gewone woorden, bijvoorbeeld: “maak een pagina over onze workshops met deze foto”. Nieuwe pagina’s en onderdelen bouwt de AI altijd op in de stijl van je eigen site, met dezelfde kleuren, lettertypes en opbouw, zodat alles bij elkaar blijft passen. Wil je bewust iets anders, zoals een andere foto bovenaan of een afwijkende kleur, dan vraag je dat gewoon. Je ziet elke wijziging eerst als voorbeeld en zet hem zelf live. Wat niet via de chat gaat: een webshop, een ledenomgeving met inlog of een compleet nieuw ontwerp; dat bespreken we apart.",
   eigenAi:
     "De ingebouwde WordSwap-chat is beschikbaar. Teksten uit ChatGPT of Claude kun je daarin plakken. Een rechtstreekse koppeling vanuit zo’n assistent is nog gepland. Experts kunnen op afspraak eigen AI-codetools gebruiken; zij werken buiten de standaard goedkeuringsroute.",
 };
 export const aankoopVragen = [
+  [
+    "Wat kan ik allemaal aanpassen via de chat? Kan ik ook zelf pagina’s maken?",
+    aanbod.wijzigen,
+  ],
   [
     "Blijft mijn website op WordPress draaien?",
     "Nee. We bouwen je bestaande website opnieuw op als statische webpagina’s, zonder WordPress. Je herkent je eigen ontwerp en inhoud, maar past die daarna aan in het WordSwap-portaal met AI. Dit is een overstap naar een andere techniek, geen plugin in WordPress.",
