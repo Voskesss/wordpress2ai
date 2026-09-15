@@ -2,6 +2,7 @@ import VerhaalBeeld from "./VerhaalBeeld";
 import Link from "next/link";
 import ProductPreview from "./ProductPreview";
 import { aankoopVragen } from "@/lib/aanbod";
+import { josFoto } from "@/lib/persoonlijk";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
@@ -146,6 +147,45 @@ export default function Home() {
           <Link href="#zo-werkt-aanpassen" className="button-text">
             Bekijk een voorbeeld →
           </Link>
+        </div>
+      </section>
+      <section className="section-space shell speed-proof">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">GEEN BELOFTE, EEN METING</p>
+            <h2>
+              Dezelfde website.
+              <br />
+              De helft van de wachttijd.
+            </h2>
+          </div>
+          <p>
+            We hebben onlangs een WordPress-site overgezet en beide versies
+            gemeten met Google&rsquo;s eigen meetlat (Lighthouse). Zelfde
+            ontwerp, zelfde inhoud — alleen de techniek eronder is anders.
+          </p>
+        </div>
+        <div className="speed-bars" role="img" aria-label="Laadtijdvergelijking: WordPress-versie 6,2 seconden, WordSwap-versie 3,2 seconden">
+          <div className="speed-row">
+            <span className="speed-label">Op WordPress</span>
+            <div className="speed-track">
+              <i className="speed-fill is-oud" style={{ width: "100%" }} />
+            </div>
+            <strong>6,2&nbsp;s</strong>
+          </div>
+          <div className="speed-row">
+            <span className="speed-label">Als WordSwap-site</span>
+            <div className="speed-track">
+              <i className="speed-fill is-nieuw" style={{ width: "52%" }} />
+            </div>
+            <strong>3,2&nbsp;s</strong>
+          </div>
+          <p className="speed-note">
+            Grootste inhoud in beeld (LCP), gemeten in september 2026 bij één
+            overgezette site. Resultaten verschillen per website — daarom meten
+            we bij elke overstap de oude en nieuwe site en krijg je beide
+            uitslagen te zien.
+          </p>
         </div>
       </section>
       <section className="shell fit-section">
@@ -303,11 +343,24 @@ export default function Home() {
       </section>
       <section className="shell founder-section">
         <div className="founder-mark">
-          <span>
-            Hulp bij
-            <br />
-            je overstap.
-          </span>
+          {josFoto() ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={josFoto()!}
+              alt="Jos Klijnhout, oprichter van WordSwap"
+              width={280}
+              height={280}
+              loading="lazy"
+              decoding="async"
+              className="founder-foto"
+            />
+          ) : (
+            <span>
+              Hulp bij
+              <br />
+              je overstap.
+            </span>
+          )}
           <p>
             JOS KLIJNHOUT
             <br />
@@ -318,9 +371,10 @@ export default function Home() {
           <p className="eyebrow">TECHNIEK MAG PERSOONLIJK ZIJN</p>
           <h2>Je stapt over met hulp van Jos.</h2>
           <p>
-            Ik zet je WordPress-website over en controleer samen met jou het
-            resultaat. Daarna pas je zelf je website aan met AI. Heb je een
-            vraag? Dan kun je rechtstreeks bij mij terecht.
+            Ik zet je WordPress-website zelf over en controleer samen met jou
+            het resultaat. Daarna pas je je website aan met AI — en heb je een
+            vraag, dan krijg je mij aan de lijn. Geen ticketsysteem, geen
+            wachtrij.
           </p>
           <Link className="button-text" href="/contact">
             Neem contact op met Jos →

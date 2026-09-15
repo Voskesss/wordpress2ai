@@ -1707,3 +1707,61 @@ main p {
     animation: none;
   }
 }
+
+/* Snelheidsmeting op de homepage */
+.speed-bars {
+  margin-top: 2rem;
+  max-width: 40rem;
+}
+.speed-row {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr 3.5rem;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.speed-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #57534e;
+}
+.speed-track {
+  height: 0.85rem;
+  border-radius: 999px;
+  background: #f0efec;
+  overflow: hidden;
+}
+.speed-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.speed-fill.is-oud {
+  background: #d9a19a;
+}
+.speed-fill.is-nieuw {
+  background: #31956b;
+}
+.speed-row strong {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.speed-note {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #78716c;
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .speed-row {
+    grid-template-columns: 7rem 1fr 3rem;
+  }
+}
+/* Foto van Jos in het oprichtersblok */
+.founder-foto {
+  width: 100%;
+  max-width: 15rem;
+  border-radius: 1rem;
+  object-fit: cover;
+  aspect-ratio: 1;
+}
