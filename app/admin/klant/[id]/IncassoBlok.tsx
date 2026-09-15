@@ -143,11 +143,14 @@ export default async function IncassoBlok({
 
             {abonnement.status === "wacht_op_eerste" && abonnement.betaallink && (
               <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-xs text-stone-500">Betaallink voor de eerste betaling. Hij verloopt niet en geeft meteen de machtiging:</p>
+                <p className="text-xs text-stone-500">
+                  De klant heeft de betaallink en de opdrachtbevestiging (pdf) per mail gekregen; jij een kopie. De link verloopt niet.
+                  Hieronder de link, mocht je hem ook via WhatsApp of telefoon willen delen:
+                </p>
                 <input readOnly value={abonnement.betaallink} className={`${invoer} select-all`} />
                 <form action={mailBetaallink} className="mt-2">
                   <input type="hidden" name="siteId" value={site.id} />
-                  <ActieKnop label="✉️ Mail deze link naar de klant" bezigLabel="Mailen..." className={knopGroen} />
+                  <ActieKnop label="Mail opnieuw versturen" bezigLabel="Mailen..." klaarLabel="✓ Opnieuw gemaild" className={knopRand} />
                 </form>
               </div>
             )}
@@ -265,9 +268,11 @@ export default async function IncassoBlok({
               <input name="eenmalig" inputMode="decimal" placeholder="leeg = geen" className={invoer} />
             </label>
             <div className="sm:col-span-4">
-              <ActieKnop label="Betaallink aanmaken" bezigLabel="Aanmaken..." className={knopGroen} />
+              <ActieKnop label="✉️ Betaallink aanmaken en meteen mailen" bezigLabel="Aanmaken en mailen..." className={knopGroen} />
               <p className="mt-2 text-xs text-stone-500">
-                De klant betaalt via iDEAL in één keer de omzetting en de eerste maand (met 21% btw erbij) en geeft daarmee de machtiging. Daarna wordt alleen het maandbedrag automatisch afgeschreven. Bij elke betaling gaat er vanzelf een factuur naar de klant, met een kopie naar jou.
+                Eén klik doet alles: de klant krijgt een mail met de betaallink én de opdrachtbevestiging (pdf) als bijlage; jij krijgt een kopie.
+                Hij betaalt via iDEAL in één keer de omzetting en de eerste maand (met 21% btw erbij) en geeft daarmee de machtiging — betalen is akkoord.
+                Daarna wordt alleen het maandbedrag automatisch afgeschreven, en bij elke betaling gaat er vanzelf een factuur naar de klant.
               </p>
             </div>
           </form>

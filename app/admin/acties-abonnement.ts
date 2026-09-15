@@ -117,12 +117,19 @@ export async function startAbonnement(formData: FormData) {
     betaallink: betaalUrl(token),
     bijgewerkt: new Date(),
   };
-  await db
+  const [abo] = await db
     .insert(abonnementen)
     .values({ siteId, ...waarden })
-    .onConflictDoUpdate({ target: abonnementen.siteId, set: waarden });
+    .onConflictDoUpdate({ target: abonnementen.siteId, set: waarden })
+    .returning();
   revalidatePath(`/admin/klant/${siteId}`);
-  terug(siteId, "Betaallink aangemaakt. Hij verloopt niet: de klant kan betalen wanneer het hem uitkomt.");
+  const gemaild = await verstuurBetaallinkMail(abo, site.naam);
+  terug(
+    siteId,
+    gemaild
+      ? `Klaar: betaallink en opdrachtbevestiging zijn gemaild naar ${email} (kopie naar jos@wordswap.nl). De link verloopt niet.`
+      : "Betaallink aangemaakt, maar het mailen mislukte. Probeer 'Opnieuw mailen' hieronder.",
+  );
 }
 
 /** De betaallink-mail met de opdrachtbevestiging als bijlage; gedeeld door aanmaken en opnieuw mailen. */
@@ -166,7 +173,7 @@ export async function mailBetaallink(formData: FormData) {
   if (!abo?.betaallink) terug(siteId, "Er is geen openstaande betaallink.");
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   const gelukt = await verstuurBetaallinkMail(abo, site?.naam ?? "je website");
-  terug(siteId, gelukt ? `Betaallink en opdrachtbevestiging gemaild naar ${abo.email} (kopie naar jos@wordswap.nl).` : "Mailen mislukt, probeer het opnieuw.");
+  terug(siteId, gelukt ? `Betaallink en opdrachtbevestiging opnieuw gemaild naar ${abo.email} (kopie naar jos@wordswap.nl).` : "Mailen mislukt, probeer het opnieuw.");
 }
 
 /** Losse opdracht: via een betaallink, of afschrijven met de bestaande machtiging (alleen met akkoord van de klant). */
