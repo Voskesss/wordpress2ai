@@ -303,6 +303,11 @@ export const abonnementen = pgTable("abonnementen", {
   eenmaligCent: integer("eenmalig_cent").notNull().default(0), // omzetting, exclusief btw, zit in de eerste betaling
   klantBedrijf: text("klant_bedrijf"),
   klantAdres: text("klant_adres"), // meerdere regels: straat, postcode en plaats
+  klantBtw: text("klant_btw"),
+  klantKvk: text("klant_kvk"),
+  stoptOp: text("stopt_op"), // YYYY-MM-DD: geplande opzegging, uitgevoerd door de dagelijkse cron
+  nieuwBedragCent: integer("nieuw_bedrag_cent"), // geplande wijziging van het maandbedrag, excl. btw
+  nieuwBedragVanaf: text("nieuw_bedrag_vanaf"), // YYYY-MM-DD
   status: text("status", {
     enum: ["wacht_op_eerste", "actief", "mislukt", "gestopt"],
   })
@@ -320,7 +325,7 @@ export const betalingen = pgTable("betalingen", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").notNull(),
   molliePaymentId: text("mollie_payment_id").notNull().unique(),
-  soort: text("soort", { enum: ["eerste", "maand"] }).notNull(),
+  soort: text("soort", { enum: ["eerste", "maand", "los"] }).notNull(),
   bedragCent: integer("bedrag_cent").notNull(), // inclusief btw, zoals afgeschreven
   status: text("status").notNull(),
   omschrijving: text("omschrijving"),
@@ -373,6 +378,13 @@ export const facturen = pgTable("facturen", {
   btwCent: integer("btw_cent").notNull(),
   totaalCent: integer("totaal_cent").notNull(),
   betaalwijze: text("betaalwijze").notNull(),
+  soort: text("soort", { enum: ["factuur", "credit"] }).notNull().default("factuur"),
+  creditVoorId: integer("credit_voor_id"),
+  creditVoorNummer: text("credit_voor_nummer"),
+  klantBtw: text("klant_btw"),
+  klantKvk: text("klant_kvk"),
+  // De pdf zoals hij verstuurd is; nooit opnieuw opbouwen, zodat een oude factuur niet verandert
+  pdfBase64: text("pdf_base64"),
   verstuurd: boolean("verstuurd").notNull().default(false),
   datum: timestamp("datum").notNull().defaultNow(),
 });
@@ -380,4 +392,26 @@ export const facturen = pgTable("facturen", {
 export const factuurTeller = pgTable("factuur_teller", {
   jaar: integer("jaar").primaryKey(),
   laatste: integer("laatste").notNull(),
+});
+
+// Betaalverzoeken: onze eigen betaallink (/betalen/<token>) maakt pas bij het klikken een
+// verse Mollie-betaling, zodat een gemailde link nooit verloopt. Ook voor losse opdrachten.
+export const betaalverzoeken = pgTable("betaalverzoeken", {
+  id: serial("id").primaryKey(),
+  token: text("token").notNull().unique(),
+  siteId: integer("site_id").notNull(),
+  soort: text("soort", { enum: ["eerste", "los"] }).notNull(),
+  wijze: text("wijze", { enum: ["link", "incasso"] }).notNull().default("link"),
+  omschrijving: text("omschrijving").notNull(),
+  bedragExclCent: integer("bedrag_excl_cent").notNull(),
+  klantNaam: text("klant_naam").notNull(),
+  klantEmail: text("klant_email").notNull(),
+  klantBedrijf: text("klant_bedrijf"),
+  klantAdres: text("klant_adres"),
+  klantBtw: text("klant_btw"),
+  klantKvk: text("klant_kvk"),
+  status: text("status", { enum: ["open", "betaald", "mislukt", "geannuleerd"] }).notNull().default("open"),
+  molliePaymentId: text("mollie_payment_id"),
+  betaaldOp: timestamp("betaald_op"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

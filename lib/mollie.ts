@@ -22,7 +22,7 @@ export function isTestmodus(): boolean {
 
 export async function mollie<T = Record<string, unknown>>(
   pad: string,
-  opties: { methode?: "GET" | "POST" | "DELETE"; body?: unknown } = {},
+  opties: { methode?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown } = {},
 ): Promise<T> {
   const key = process.env.MOLLIE_API_KEY;
   if (!key) throw new Error("MOLLIE_API_KEY ontbreekt");
@@ -52,10 +52,22 @@ export type MolliePayment = {
   customerId?: string;
   mandateId?: string;
   subscriptionId?: string;
-  metadata?: { siteId?: number } | null;
+  method?: string | null;
+  amountRefunded?: { value: string; currency: string };
+  amountChargedBack?: { value: string; currency: string };
+  metadata?: { siteId?: number; verzoekId?: number; soort?: string } | null;
   details?: { bankReasonCode?: string; bankReason?: string } | null;
   _links: { checkout?: { href: string } };
 };
+
+export function centVan(bedrag?: { value: string } | null): number {
+  return bedrag ? Math.round(Number(bedrag.value) * 100) : 0;
+}
+
+/** Vandaag in Nederland als YYYY-MM-DD. */
+export function vandaagNl(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
+}
 
 /** Startdatum voor de maandelijkse incasso: dezelfde dag volgende maand (YYYY-MM-DD). */
 export function volgendeMaand(vanaf = new Date()): string {

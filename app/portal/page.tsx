@@ -11,6 +11,7 @@ import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
 import { demoLiveWorker, demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
+import KlantFacturen from "./KlantFacturen";
 
 export const metadata: Metadata = {
   title: "Mijn websites",
@@ -277,17 +278,20 @@ export default async function Portal({
                   eigen website? Neem contact op!
                 </p>
               ) : (
-                <SiteExtra
-                  siteId={site.id}
-                  siteRepo={site.githubRepo}
-                  siteNaam={site.naam}
-                  domein={site.domein}
-                  mailHandtekening={site.mailHandtekening}
-                  mailLogoUrl={site.mailLogoUrl}
-                  mailKleur={site.mailKleur}
-                  online={Boolean(site.siteSlug)}
-                  notificatieEmail={site.notificatieEmail}
-                />
+                <>
+                  <SiteExtra
+                    siteId={site.id}
+                    siteRepo={site.githubRepo}
+                    siteNaam={site.naam}
+                    domein={site.domein}
+                    mailHandtekening={site.mailHandtekening}
+                    mailLogoUrl={site.mailLogoUrl}
+                    mailKleur={site.mailKleur}
+                    online={Boolean(site.siteSlug)}
+                    notificatieEmail={site.notificatieEmail}
+                  />
+                  <KlantFacturen siteId={site.id} />
+                </>
               )}
             </div>
           ))}

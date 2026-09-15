@@ -10,10 +10,10 @@ function bedrag(cent: number): string {
 }
 
 function cel(w: string): string {
-  return /[;"\n]/.test(w) ? `"${w.replace(/"/g, '""')}"` : w;
+  return /[;"\n\r]/.test(w) ? `"${w.replace(/"/g, '""')}"` : w;
 }
 
-/** Alle WordSwap-facturen van één maand (?maand=2026-09) als Excel-bestand voor SnelStart of de boekhouder. */
+/** Alle WordSwap-facturen en creditfacturen van één maand (?maand=2026-09) als Excel-bestand voor SnelStart of de boekhouder. */
 export async function GET(req: Request) {
   if (!(await isBeheerder())) return new Response("Geen toegang", { status: 403 });
   const maand = new URL(req.url).searchParams.get("maand") ?? "";
@@ -24,20 +24,39 @@ export async function GET(req: Request) {
     (f) => f.nummer && f.datum.toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" }).startsWith(maand),
   );
 
-  const kop = ["Factuurnummer", "Factuurdatum", "Klant", "Bedrijf", "E-mail", "Omschrijving", "Excl. btw", "Btw 21%", "Totaal", "Betaalwijze", "Status", "Mollie-betaling"];
+  const kop = [
+    "Factuurnummer",
+    "Soort",
+    "Credit voor",
+    "Factuurdatum",
+    "Klant",
+    "Bedrijf",
+    "E-mail",
+    "KvK klant",
+    "Btw-nr klant",
+    "Omschrijving",
+    "Excl. btw",
+    "Btw 21%",
+    "Totaal",
+    "Betaalwijze",
+    "Mollie-betaling",
+  ];
   const rijen = vanMaand.map((f) => [
     f.nummer ?? "",
+    f.soort === "credit" ? "Creditfactuur" : "Factuur",
+    f.creditVoorNummer ?? "",
     f.datum.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" }),
     f.klantNaam,
     f.klantBedrijf ?? "",
     f.klantEmail,
+    f.klantKvk ?? "",
+    f.klantBtw ?? "",
     f.regels.map((r) => r.omschrijving).join(" + "),
     bedrag(f.subtotaalCent),
     bedrag(f.btwCent),
     bedrag(f.totaalCent),
     f.betaalwijze,
-    "Betaald",
-    f.molliePaymentId,
+    f.molliePaymentId.replace(/-credit-\d+$/, ""),
   ]);
   const csv = "﻿" + [kop, ...rijen].map((r) => r.map(cel).join(";")).join("\r\n");
   return new Response(csv, {

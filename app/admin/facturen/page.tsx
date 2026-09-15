@@ -79,7 +79,10 @@ export default async function Facturen() {
                       </Link>
                       <span className="ml-2 text-xs text-stone-400">{f.datum.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" })}</span>
                     </span>
-                    <span className="text-right font-medium">{euroTekst(f.totaalCent)}</span>
+                    <span className={`text-right font-medium ${f.soort === "credit" ? "text-red-700" : ""}`}>
+                      {f.soort === "credit" && <span className="mr-1 text-xs font-normal">credit</span>}
+                      {euroTekst(f.totaalCent)}
+                    </span>
                     <span className={`text-right text-xs ${f.verstuurd ? "text-emerald-700" : "text-red-700"}`}>
                       {f.verstuurd ? "✓ gemaild" : "niet gemaild"}
                     </span>
