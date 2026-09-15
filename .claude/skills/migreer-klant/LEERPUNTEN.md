@@ -42,5 +42,8 @@ Lees dit vóór elke migratie. Leer je iets nieuws: voeg het hier direct toe (da
 - `www.` → kaal domein is een 301 in het leesscript; canonical-tags wijzen dus altijd naar het kale domein.
 - Het uurlijkse demo-reset op Vercel deployt met de code die dáár draait: tot de merge naar main zette het de demo-workers terug op assets. Na de merge is dat vanzelf R2.
 
+- **2026-09-15 (ovbuRo):** The7-thema's laten hun Engelse DEMOPAGINA'S (home-2, services, q-a, showcase, agency, blog…) gepubliceerd staan — ze staan wél in de sitemap maar niet in het menu. Herken ze aan Engelse titels ("Brand Management", "Case Studies") en sla ze over; zet wel 301's in `_redirects` zodat elk sitemap-adres landt.
+- **2026-09-15 (ovbuRo):** Een hero als CSS-background wordt door de browser pas laat ontdekt → hoge LCP. Fix: `<link rel="preload" as="image" fetchpriority="high">` in de head van de pagina + hero agressiever comprimeren (q60-65 kan prima bij drukke foto's). Hier: Lighthouse 65→83 alleen door die twee ingrepen.
+
 ## Beelden: 1200px/q78 + lazy-loading (RoelArt, sept 2026)
 Max 2000px/q82 leverde bij schilderij-foto's ~500 kB per beeld op → mobiele LCP van 19s, drie keer trager dan de oude WordPress-site. Voortaan: contentbeelden naar **max 1200px breed, webp q78** (heroes/panorama's mogen 1600px), en élk `<img>` behalve de hero krijgt `loading="lazy" decoding="async"`. Controleer na de bouw: geen beeld boven ~250 kB zonder goede reden, en draai in gedachten de PageSpeed-check — wij verkopen "sneller zonder WordPress", dus de kopie moet dat ook meetbaar zíjn.
