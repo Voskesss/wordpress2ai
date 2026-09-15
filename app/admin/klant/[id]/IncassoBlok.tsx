@@ -381,7 +381,14 @@ export default async function IncassoBlok({
                         {f.soort === "credit" ? "Credit" : "Factuur"} {f.nummer}
                       </a>{" "}
                       · {f.datum.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" })} ·{" "}
-                      <span className={f.soort === "credit" ? "text-red-700" : ""}>{euroTekst(f.totaalCent)}</span>
+                      <span className={f.soort === "credit" ? "text-red-700" : ""}>{euroTekst(f.totaalCent)}</span>{" "}
+                      <span
+                        className={`ml-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                          f.soort === "credit" ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {f.soort === "credit" ? "gecrediteerd" : "✓ betaald"}
+                      </span>
                       <span className="ml-2 text-xs text-stone-500">{f.regels.map((r) => r.omschrijving).join(", ")}</span>
                     </span>
                     <span className="flex items-center gap-3">
