@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
-    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + €5–€20 per maand, excl. btw. Gratis websitecheck.",
+    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €12 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
 };
 const faq = aankoopVragen;
@@ -63,7 +63,7 @@ export default function Home() {
               Overstappen vanaf <strong>€150 eenmalig</strong>
             </span>
             <span>
-              Daarna <strong>€5–€20 / maand</strong>
+              Daarna <strong>vanaf €12 / maand</strong>
             </span>
             <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
           </div>
@@ -280,7 +280,7 @@ export default function Home() {
             <span>vanaf</span> €150<small>eenmalig</small>
           </div>
           <div className="price-month">
-            Daarna <strong>€5–€20 per maand</strong>, afhankelijk van gebruik.
+            Daarna <strong>vanaf €12 per maand</strong>, afhankelijk van gebruik.
           </div>
           <ul className="check-list">
             <li>Je ontwerp en inhoud zorgvuldig overgenomen</li>

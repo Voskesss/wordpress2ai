@@ -51,8 +51,8 @@ export function maakOpvolgmail(
     : `Goed nieuws: technisch ziet je site er netjes uit — geen kapotte dingen gevonden en de snelheid is prima. De winst zit voor jou vooral in het gemak: geen updates, geen hosting-gedoe, en aanpassen door gewoon te typen wat er anders moet.`;
 
   const prijsRegel = prijs
-    ? `Mocht je daarna willen overstappen: voor een site van jouw omvang is dat eenmalig ${prijs}, daarna €5 tot €20 per maand alles inbegrepen.`
-    : `Mocht je daarna willen overstappen: dat is eenmalig vanaf €150, daarna €5 tot €20 per maand alles inbegrepen.`;
+    ? `Mocht je daarna willen overstappen: voor een site van jouw omvang is dat eenmalig ${prijs}, daarna vanaf €12 per maand alles inbegrepen.`
+    : `Mocht je daarna willen overstappen: dat is eenmalig vanaf €150, daarna vanaf €12 per maand alles inbegrepen.`;
 
   return {
     onderwerp: `Je websitecheck van ${r.domein}`,

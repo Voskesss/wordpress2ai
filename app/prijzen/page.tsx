@@ -12,7 +12,7 @@ const extra = [
     "Nee. Voor de ingebouwde WordSwap-chat heb je geen eigen ChatGPT- of Claude-abonnement nodig. Je eigen assistent kan wel teksten voorbereiden. Een rechtstreekse koppeling vanuit die assistent is nog gepland.",
   ],
   [
-    "Wat betekent €5 tot €20 per maand?",
+    "Wat betekent vanaf €12 per maand?",
     "Het maandbedrag hangt af van het afgesproken gebruik. We bespreken dat vooraf, tegelijk met de overstapprijs. Er geldt fair use van maximaal 30 nieuwe concepten per maand, met een aanvullende AI-gebruiksgrens. Heb je meer nodig, dan bespreken we wat past.",
   ],
   ["Welke kosten staan los van de koppeling?", aanbod.aanvullingen],
@@ -77,7 +77,7 @@ export default function Prijzen() {
         <article className="price-card recurring-card">
           <p className="eyebrow">2. HOSTING EN INGEBOUWDE AI-CHAT</p>
           <h2>
-            €5–€20 <small>per maand</small>
+            vanaf €12 <small>per maand</small>
           </h2>
           <p>
             Afhankelijk van het gebruik dat we vooraf met je afspreken. Je hoeft
@@ -133,9 +133,9 @@ export default function Prijzen() {
           <p className="eyebrow">EEN REKENVOORBEELD</p>
           <h2>Wat kost het eerste jaar?</h2>
           <p>
-            Stel: jouw overstap kost €150 en je spreekt €10 per maand af. Dan
-            betaal je €150 + 12 × €10 ={" "}
-            <strong>€270 excl. btw in het eerste jaar</strong>. Daarna €120 per
+            Stel: jouw overstap kost €150 en je spreekt €12 per maand af. Dan
+            betaal je €150 + 12 × €12 ={" "}
+            <strong>€294 excl. btw in het eerste jaar</strong>. Daarna €144 per
             jaar bij hetzelfde maandbedrag.
           </p>
           <p className="fine-print">

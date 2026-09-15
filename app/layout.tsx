@@ -111,7 +111,7 @@ const jsonLd = {
           price: "5",
           priceCurrency: "EUR",
           description:
-            "€5 tot €20 per maand, afgestemd op gebruik; maandelijks opzegbaar",
+            "vanaf €12 per maand, afgestemd op gebruik; maandelijks opzegbaar",
         },
       ],
     },

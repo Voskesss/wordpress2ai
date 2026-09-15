@@ -113,7 +113,7 @@ export default function NieuweWebsite() {
       </div>
 
       <p className="mx-auto max-w-4xl px-6 text-sm text-stone-500">
-        Daarna geldt hetzelfde als voor iedereen: de AI-koppeling voor €5 – €20
+        Daarna geldt hetzelfde als voor iedereen: de AI-koppeling vanaf €12
         per maand, afgestemd op je gebruik. Heb je nog een WordPress-site die
         gewoon goed is? Dan is{" "}
         <Link

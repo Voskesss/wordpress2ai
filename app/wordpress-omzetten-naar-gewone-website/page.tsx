@@ -37,7 +37,7 @@ export default function Pagina() {
           {
             kop: "Wat je bespaart",
             tekst:
-              "Vergelijk je huidige facturen voor hosting, eventuele plugins en onderhoud met het afgesproken WordSwap-bedrag. Hosting en AI-chat kosten €5–€20 per maand excl. btw. Domein, e-mail en extra maatwerk zijn apart. De besparing verschilt per site.",
+              "Vergelijk je huidige facturen voor hosting, eventuele plugins en onderhoud met het afgesproken WordSwap-bedrag. Hosting en AI-chat kosten vanaf €12 per maand excl. btw. Domein, e-mail en extra maatwerk zijn apart. De besparing verschilt per site.",
           },
         ],
         faq: [

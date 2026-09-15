@@ -98,7 +98,7 @@ const faq = [
   {
     vraag: "Wat kost het bij WordSwap?",
     antwoord:
-      "Een nieuwe site vanaf €250 eenmalig, een overstap vanaf €150. Daarna €5 tot €20 per maand voor hosting en de AI-koppeling. Domein en mail apart, op jouw naam. Alle bedragen exclusief btw en vooraf schriftelijk afgesproken.",
+      "Een nieuwe site vanaf €250 eenmalig, een overstap vanaf €150. Daarna vanaf €12 per maand voor hosting en de AI-koppeling. Domein en mail apart, op jouw naam. Alle bedragen exclusief btw en vooraf schriftelijk afgesproken.",
   },
   {
     vraag: "Wat als ik weg wil?",
@@ -208,8 +208,8 @@ export default function AiWebsite() {
           ))}
         </div>
         <p className="mt-6 text-sm text-stone-500">
-          Nieuwe site vanaf €250 eenmalig, overstap vanaf €150. Daarna €5 tot
-          €20 per maand. Domein en mail apart, op jouw naam. Excl. btw.{" "}
+          Nieuwe site vanaf €250 eenmalig, overstap vanaf €150. Daarna vanaf
+          €12 per maand. Domein en mail apart, op jouw naam. Excl. btw.{" "}
           <Link href="/prijzen" className="underline">
             Alle prijzen
           </Link>

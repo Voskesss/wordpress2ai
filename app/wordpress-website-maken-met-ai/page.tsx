@@ -40,7 +40,7 @@ export default function Pagina() {
           {
             kop: "Wat kost een nieuw ontwerp?",
             tekst:
-              "Een AI-ontwerp kost €250 tot 8 pagina’s, €400 tot 20 pagina’s en €650 voor grotere sites. Een ontwerp door een designer begint bij €1.750. Daarna €5–€20 per maand. Alle bedragen zijn excl. btw; domein, e-mail en maatwerk staan daar los van.",
+              "Een AI-ontwerp kost €250 tot 8 pagina’s, €400 tot 20 pagina’s en €650 voor grotere sites. Een ontwerp door een designer begint bij €1.750. Daarna vanaf €12 per maand. Alle bedragen zijn excl. btw; domein, e-mail en maatwerk staan daar los van.",
           },
         ],
         faq: [

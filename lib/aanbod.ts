@@ -3,11 +3,11 @@ export const aanbod = {
   omschrijving:
     "WordSwap zet je bestaande bedrijfswebsite over naar een versie zonder WordPress. Je ontwerp en inhoud worden zorgvuldig overgenomen, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
   prijs:
-    "Overstap €150–€650 eenmalig; daarna €5–€20 per maand voor hosting en de AI-koppeling. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
+    "Overstap €150–€650 eenmalig; daarna vanaf €12 per maand voor hosting, beheer en het AI-portaal. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
   inbegrepen:
     "Ingebouwde AI-chat, hosting, SSL, domeinkoppeling en versiegeschiedenis. Fair use: maximaal 30 nieuwe concepten per maand; AI-gebruik is ook begrensd. Bij intensieve vervolgverzoeken bespreken we een passend gebruikspakket. Maandelijks opzegbaar.",
   aanvullingen:
-    "Domeinregistratie of -verlenging en een e-mailabonnement staan los van de koppeling. E-mailmigratie, extra functies en maatwerk bespreken we apart. Formulierbevestigingen vanaf je eigen domein: optioneel €49 eenmalig exclusief btw.",
+    "Domeinregistratie of -verlenging en een e-mailabonnement staan los van de koppeling. Meer AI-gebruik dan de fair-use-grens spreken we apart af als gebruikspakket. E-mailmigratie, extra functies en maatwerk bespreken we apart. Formulierbevestigingen vanaf je eigen domein: optioneel €49 eenmalig exclusief btw.",
   geschikt:
     "Voor bedrijfswebsites met pagina’s, foto’s, blogs en contactformulieren. Geen migratie van webshops, ledenportalen of zelfstandige boekings- en cursusplatforms. Externe boekingswidgets beoordelen we per site.",
   ontwerp:
