@@ -428,3 +428,16 @@ export const akkoorden = pgTable("akkoorden", {
   versie: text("versie").notNull(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// Terugweg-garantie: WordPress-kopieën die Jos per klant klaarzet in de (EU-)Blob-opslag.
+// De url is een onvindbaar Blob-adres; hij staat nooit in de pagina en is alleen
+// bereikbaar via de ingelogde downloadroute van de eigenaar.
+export const wpBackups = pgTable("wp_backups", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  url: text("url").notNull(),
+  bestandsnaam: text("bestandsnaam").notNull(),
+  grootteBytes: bigint("grootte_bytes", { mode: "number" }),
+  omschrijving: text("omschrijving"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});

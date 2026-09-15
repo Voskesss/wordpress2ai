@@ -5,8 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage } from "@/db/schema";
+import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
+import BackupUpload from "./BackupUpload";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import Chat from "@/app/portal/Chat";
@@ -670,6 +671,32 @@ export default async function KlantDetail({
         klantNaam={klantInfo?.naam ?? ""}
         klantEmail={klantInfo && klantInfo.email !== "onbekend" ? klantInfo.email : (site.uitnodigingEmail ?? "")}
       />
+
+      {/* WordPress-kopie (terugweg-garantie) */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">🛟 WordPress-kopie (terugweg-garantie)</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Zet hier de complete WordPress-backup van vóór de overstap klaar (zip). Hij staat in de beveiligde
+          EU-opslag; alleen deze klant kan hem downloaden, in zijn portaal.
+        </p>
+        <BackupUpload
+          siteId={site.id}
+          rijen={(
+            await db
+              .select()
+              .from(wpBackups)
+              .where(eq(wpBackups.siteId, site.id))
+              .orderBy(desc(wpBackups.id))
+              .catch(() => [])
+          ).map((b) => ({
+            id: b.id,
+            bestandsnaam: b.bestandsnaam,
+            grootteBytes: b.grootteBytes,
+            omschrijving: b.omschrijving,
+            datum: b.aangemaakt.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" }),
+          }))}
+        />
+      </div>
 
       {/* Video-tegoed */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">

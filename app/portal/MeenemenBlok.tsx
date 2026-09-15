@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { abonnementen } from "@/db/schema";
+import { abonnementen, wpBackups } from "@/db/schema";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import { zegAbonnementOp } from "./acties";
 
@@ -8,6 +8,12 @@ import { zegAbonnementOp } from "./acties";
 export default async function MeenemenBlok({ siteId }: { siteId: number }) {
   const [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, siteId)).catch(() => []);
   const opgezegd = abo?.status === "gestopt";
+  const backups = await db
+    .select()
+    .from(wpBackups)
+    .where(eq(wpBackups.siteId, siteId))
+    .orderBy(desc(wpBackups.id))
+    .catch(() => []);
 
   return (
     <div id="meenemen" className="mt-4 rounded-2xl border border-stone-200 bg-white p-5">
@@ -32,6 +38,32 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
       <p className="mt-2 text-xs leading-relaxed text-stone-500">
         De websitebestanden zijn gewone webpagina&apos;s, foto&apos;s en opmaak: je kunt ze bij elke hostingpartij neerzetten.
       </p>
+      {backups.length > 0 && (
+        <div className="mt-4 rounded-xl border border-[#dde7d9] bg-[#f6f9f2] p-4">
+          <p className="text-sm font-semibold text-stone-800">🛟 Je oude WordPress-site (terugweg-garantie)</p>
+          <p className="mt-1 text-xs leading-relaxed text-stone-600">
+            De complete kopie van je WordPress-site van vóór de overstap. Wil je ooit terug, dan heb je hiermee alles;
+            wij helpen je desgewenst met terugzetten.
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {backups.map((b) => (
+              <li key={b.id}>
+                <a
+                  href={`/api/portal/meenemen/wordpress?siteId=${siteId}&id=${b.id}`}
+                  className="font-semibold text-emerald-800 hover:underline"
+                >
+                  ⬇ {b.bestandsnaam}
+                </a>{" "}
+                <span className="text-xs text-stone-500">
+                  {b.grootteBytes ? `${Math.round(b.grootteBytes / (1024 * 1024))} MB · ` : ""}
+                  {b.aangemaakt.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" })}
+                  {b.omschrijving && <> · {b.omschrijving}</>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <details className="mt-4 border-t border-stone-100 pt-3">
         <summary className="cursor-pointer text-sm font-semibold text-stone-600">Abonnement opzeggen</summary>
