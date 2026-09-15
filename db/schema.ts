@@ -300,6 +300,9 @@ export const abonnementen = pgTable("abonnementen", {
   email: text("email").notNull(),
   naam: text("naam").notNull(),
   maandbedragCent: integer("maandbedrag_cent").notNull(), // exclusief btw
+  eenmaligCent: integer("eenmalig_cent").notNull().default(0), // omzetting, exclusief btw, zit in de eerste betaling
+  klantBedrijf: text("klant_bedrijf"),
+  klantAdres: text("klant_adres"), // meerdere regels: straat, postcode en plaats
   status: text("status", {
     enum: ["wacht_op_eerste", "actief", "mislukt", "gestopt"],
   })
@@ -351,4 +354,30 @@ export const leadActies = pgTable("lead_acties", {
   gedaan: boolean("gedaan").notNull().default(false),
   gedaanOp: timestamp("gedaan_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
+// Facturen van WordSwap-abonnementen: automatisch bij elke betaalde Mollie-betaling.
+// Het nummer (WS-JJJJ-NNNN) wordt pas toegekend nadat de betaling geclaimd is, zodat
+// een dubbel webhookverzoek nooit een nummer verbrandt.
+export const facturen = pgTable("facturen", {
+  id: serial("id").primaryKey(),
+  nummer: text("nummer").unique(),
+  siteId: integer("site_id").notNull(),
+  molliePaymentId: text("mollie_payment_id").notNull().unique(),
+  klantNaam: text("klant_naam").notNull(),
+  klantBedrijf: text("klant_bedrijf"),
+  klantAdres: text("klant_adres"),
+  klantEmail: text("klant_email").notNull(),
+  regels: jsonb("regels").$type<{ omschrijving: string; bedragCent: number }[]>().notNull(),
+  subtotaalCent: integer("subtotaal_cent").notNull(),
+  btwCent: integer("btw_cent").notNull(),
+  totaalCent: integer("totaal_cent").notNull(),
+  betaalwijze: text("betaalwijze").notNull(),
+  verstuurd: boolean("verstuurd").notNull().default(false),
+  datum: timestamp("datum").notNull().defaultNow(),
+});
+
+export const factuurTeller = pgTable("factuur_teller", {
+  jaar: integer("jaar").primaryKey(),
+  laatste: integer("laatste").notNull(),
 });

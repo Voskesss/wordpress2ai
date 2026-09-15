@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { abonnementen, betalingen } from "@/db/schema";
-import { mollie, SITE_URL, volgendeMaand, type MolliePayment } from "@/lib/mollie";
+import { factuurBijBetaling } from "@/lib/factuur";
+import { euro, inclBtwCent, mollie, SITE_URL, volgendeMaand, type MolliePayment } from "@/lib/mollie";
 
 export const dynamic = "force-dynamic";
 
@@ -51,16 +52,18 @@ export async function POST(req: Request) {
 
   if (!abo) return new NextResponse("ok");
 
-  // Eerste betaling gelukt → machtiging staat, dan de maandelijkse incasso starten
+  // Eerste betaling gelukt → machtiging staat, dan de maandelijkse incasso starten.
+  // Die bevat alleen het maandbedrag; de eenmalige omzetting zat in de eerste betaling.
   if (betaling.sequenceType === "first" && betaling.status === "paid" && !abo.mollieSubscriptionId) {
+    const maandIncl = inclBtwCent(abo.maandbedragCent);
     try {
       const sub = await mollie<{ id: string }>(`/customers/${abo.mollieCustomerId}/subscriptions`, {
         methode: "POST",
         body: {
-          amount: betaling.amount,
+          amount: { currency: "EUR", value: euro(maandIncl) },
           interval: "1 month",
           startDate: volgendeMaand(),
-          description: `WordSwap maandbedrag — ${abo.naam} (${siteId})`,
+          description: `WordSwap maandbedrag ${abo.naam} (${siteId})`,
           mandateId: betaling.mandateId,
           webhookUrl: `${SITE_URL}/api/mollie/webhook`,
           metadata: { siteId },
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
         .where(eq(abonnementen.id, abo.id));
       await meldJos(
         `💶 Incasso gestart: ${abo.naam}`,
-        `<p>${abo.naam} heeft de eerste betaling gedaan. Vanaf ${volgendeMaand()} schrijft Mollie maandelijks ${betaling.amount.value} euro af.</p>`,
+        `<p>${abo.naam} heeft de eerste betaling gedaan (${betaling.amount.value} euro). Vanaf ${volgendeMaand()} schrijft Mollie maandelijks ${euro(maandIncl)} euro af.</p>`,
       );
     } catch (e) {
       console.error("Abonnement aanmaken mislukt:", e);
@@ -86,6 +89,16 @@ export async function POST(req: Request) {
         `⚠️ Incasso niet gestart: ${abo.naam}`,
         `<p>De eerste betaling van ${abo.naam} is binnen, maar het maandelijkse abonnement kon niet worden aangemaakt: ${String(e)}</p><p>Kijk in de admin bij deze klant.</p>`,
       );
+      return new NextResponse("later opnieuw", { status: 500 });
+    }
+  }
+
+  if (betaling.status === "paid") {
+    try {
+      await factuurBijBetaling(betaling);
+    } catch (e) {
+      console.error("Factuur maken mislukt:", e);
+      await meldJos(`⚠️ Factuur niet gemaakt: ${abo.naam}`, `<p>Betaling ${id} is binnen, maar de factuur kon niet worden gemaakt: ${String(e)}</p>`);
       return new NextResponse("later opnieuw", { status: 500 });
     }
   }
