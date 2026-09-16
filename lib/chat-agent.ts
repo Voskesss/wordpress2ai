@@ -21,7 +21,12 @@ export type AgentGebeurtenis =
   /** Tussen twee werkstappen door denkt het model na; dat duurt bij een grote
    * site seconden tot minuten. Zonder dit signaal blijft de laatste
    * stap-melding staan en lijkt de chat vast te zitten. */
-  | { soort: "denkt" };
+  | { soort: "denkt" }
+  /** Een werkstap is begonnen, maar wordt nog opgesteld. Bij een grote pagina
+   * duurt alleen het schrijven al minuten; zonder dit signaal staat er al die
+   * tijd "ik denk na", terwijl er gewoon gewerkt wordt. `pad` volgt zodra het
+   * uit de binnenkomende gegevens te halen is. */
+  | { soort: "toolStart"; naam: string; pad?: string };
 
 export type AgentUitkomst = {
   reply: string;
@@ -255,6 +260,12 @@ export async function draaiChatAgent(opties: {
 
   for await (const beurtStream of runner) {
     let beurtTekst = "";
+    // Werkstappen die nog worden opgesteld, per blok bijgehouden: zodra het
+    // pad in de binnenkomende gegevens staat, melden we waar het over gaat.
+    const inAanbouw = new Map<
+      number,
+      { naam: string; ruw: string; gemeld: boolean }
+    >();
     for await (const event of beurtStream) {
       if (
         event.type === "content_block_delta" &&
@@ -262,6 +273,29 @@ export async function draaiChatAgent(opties: {
       ) {
         beurtTekst += event.delta.text;
         opGebeurtenis({ soort: "tekst", delta: event.delta.text });
+        continue;
+      }
+      if (
+        event.type === "content_block_start" &&
+        event.content_block.type === "tool_use"
+      ) {
+        const naam = event.content_block.name;
+        inAanbouw.set(event.index, { naam, ruw: "", gemeld: false });
+        opGebeurtenis({ soort: "toolStart", naam });
+        continue;
+      }
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "input_json_delta"
+      ) {
+        const blok = inAanbouw.get(event.index);
+        if (!blok || blok.gemeld) continue;
+        blok.ruw += event.delta.partial_json;
+        const pad = blok.ruw.match(/"pad"\s*:\s*"([^"]{1,200})"/)?.[1];
+        if (pad) {
+          blok.gemeld = true;
+          opGebeurtenis({ soort: "toolStart", naam: blok.naam, pad });
+        }
       }
     }
     const bericht = await beurtStream.finalMessage();

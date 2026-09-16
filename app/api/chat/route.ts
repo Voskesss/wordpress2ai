@@ -126,6 +126,20 @@ DE KNOPPEN VAN DEZE OMGEVING (de enige bron voor uitleg over de interface; besch
 ${HUISREGELS}${siteCode ? `\n\nDe site-code voor formulieren (het verborgen veld _site) van deze website is: ${siteCode}` : ""}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
 }
 
+/** Meldingen voor een werkstap die nét begint. Generiek gehouden: we weten op
+ * dat moment alleen wélke soort stap het is, nog niet wat eruit komt. */
+const STATUS_BIJ_START: Record<string, (pad?: string) => string> = {
+  lees_bestand: (pad) => (pad ? `Ik pak ${paginaNaam(pad)} erbij...` : "Ik pak er iets bij..."),
+  lijst_bestanden: () => "Ik kijk even welke pagina's ik heb...",
+  zoek_tekst: () => "Ik zoek waar dat bij mij staat...",
+  bewerk_bestand: (pad) =>
+    pad ? `Ik stel de aanpassing op voor ${paginaNaam(pad)}...` : "Ik stel de aanpassing op...",
+  schrijf_bestand: (pad) =>
+    pad
+      ? `Ik ben ${paginaNaam(pad)} aan het schrijven — bij een grote pagina duurt dat even...`
+      : "Ik ben een pagina aan het schrijven — dat duurt even...",
+};
+
 const STATUS_PER_TOOL: Record<
   string,
   (input: Record<string, unknown>) => string
@@ -861,6 +875,17 @@ export async function POST(req: Request) {
               opGebeurtenis: (g) => {
                 if (g.soort === "tekst") {
                   stuur({ type: "tekst-delta", tekst: g.delta });
+                  return;
+                }
+                if (g.soort === "toolStart") {
+                  const maker = STATUS_BIJ_START[g.naam];
+                  if (maker)
+                    stuur({
+                      type: "status",
+                      // Geen nieuw stapnummer: dit is dezelfde stap, alleen
+                      // eerder gemeld dan toen hij werd uitgevoerd.
+                      tekst: `${maker(g.pad)} (stap ${stapTeller + 1})`,
+                    });
                   return;
                 }
                 if (g.soort === "denkt") {
