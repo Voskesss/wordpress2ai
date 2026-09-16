@@ -14,6 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   bouwArtikelPagina,
+  bouwIndex,
   bouwOverzichtPagina,
   nlDatum,
   platteTekst,
@@ -146,6 +147,24 @@ for (const bestand of bestanden) {
   });
 }
 
+// Al eerder via de feed binnengekomen berichten behouden: die staan niet in de
+// snapshot, maar hun pagina's bestaan wel. Zo is dit script veilig te herhalen.
+const archiefPad = path.join(siteMap, 'sjablonen/actueel-archief.json');
+if (fs.existsSync(archiefPad)) {
+  const eerder = JSON.parse(fs.readFileSync(archiefPad, 'utf8')) as {
+    slug: string; titel: string; samenvatting: string; datumIso: string; afbeelding: string | null;
+  }[];
+  const uitSnapshot = new Set(artikelen.map((a) => a.slug));
+  const behouden = eerder.filter((e) => !uitSnapshot.has(e.slug));
+  for (const e of behouden) {
+    artikelen.push({
+      slug: e.slug, titel: e.titel, samenvatting: e.samenvatting,
+      inhoudHtml: '', datumIso: e.datumIso, auteur: '', afbeeldingUrl: e.afbeelding,
+    });
+  }
+  if (behouden.length) console.log(`eerder via de feed binnengekomen, behouden: ${behouden.length}`);
+}
+
 artikelen.sort((a, b) => b.datumIso.localeCompare(a.datumIso));
 console.log(`gevonden artikelen: ${artikelen.length}`);
 console.log(`met afbeelding: ${artikelen.filter((a) => a.afbeeldingUrl).length}`);
@@ -179,12 +198,23 @@ if (ontbrekend.length) {
   console.log(`beelden alsnog opgehaald: ${gelukt} van ${ontbrekend.length}`);
 }
 
-for (const a of artikelen) {
-  const html = bouwArtikelPagina(artikelSjabloon, a, inst, a.afbeeldingUrl);
+const beeldVoor = (slug: string) => artikelen.find((a) => a.slug === slug)?.afbeeldingUrl ?? null;
+
+artikelen.forEach((a, i) => {
+  // Berichten zonder inhoud komen uit een eerdere feed-sync: hun pagina bestaat
+  // al en wordt niet overschreven, ze tellen alleen mee in de overzichten.
+  if (!a.inhoudHtml) return;
+  // Gerelateerd = de eerstvolgende oudere berichten; bij de oudste vullen we
+  // aan vanaf het begin, zodat elk bericht doorverwijst.
+  const buren = [...artikelen.slice(i + 1), ...artikelen.slice(0, i)];
+  const html = bouwArtikelPagina(artikelSjabloon, a, inst, a.afbeeldingUrl, {
+    artikelen: buren,
+    beeldVoor,
+  });
   const map = inst.artikelPad ? path.join(siteMap, inst.artikelPad, a.slug) : path.join(siteMap, a.slug);
   fs.mkdirSync(map, { recursive: true });
   fs.writeFileSync(path.join(map, 'index.html'), html);
-}
+});
 
 const overzicht = bouwOverzichtPagina(overzichtSjabloon, artikelen, inst, (slug) => {
   return artikelen.find((a) => a.slug === slug)?.afbeeldingUrl ?? null;
@@ -216,6 +246,12 @@ const archief = artikelen.map((a) => ({
 fs.writeFileSync(
   path.join(siteMap, 'sjablonen/actueel-archief.json'),
   JSON.stringify(archief, null, 1)
+);
+
+// Publieke index voor de vorige/volgende-navigatie op artikelpagina's
+fs.writeFileSync(
+  path.join(siteMap, inst.overzichtPad, 'index.json'),
+  JSON.stringify(bouwIndex(artikelen, inst))
 );
 
 // Sitemap aanvullen met het overzicht en alle artikelen

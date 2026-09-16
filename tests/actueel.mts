@@ -6,6 +6,7 @@ import {
   bouwOverzichtPagina,
   nlDatum,
   platteTekst,
+  bouwIndex,
   slugVanLink,
   vulSitemapAan,
   vulSjabloon,
@@ -19,6 +20,8 @@ const inst: ActueelInstellingen = {
   afbeeldingPad: "afbeeldingen",
   maxOverzicht: 2,
   maxHome: 0,
+  categorie: "Financieel Nieuws",
+  maxGerelateerd: 2,
 };
 
 const artikel: FeedArtikel = {
@@ -89,6 +92,32 @@ assert.equal((twee.match(/<loc>https:\/\/VERVANG\.nl\/a\/<\/loc>/g) ?? []).lengt
 
 // Een overzichtssjabloon zonder kaart-markers is een fout, geen stille lege pagina
 assert.throws(() => bouwOverzichtPagina("<div></div>", drie, inst, () => null));
+
+// Categorie komt uit de instellingen (feeds leveren die niet mee)
+assert.ok(bouwArtikelPagina("<span>{{categorie}}</span>", artikel, inst, null).includes("Financieel Nieuws"));
+
+// Gerelateerde berichten: blok gevuld, en zonder buren helemaal weg
+const metGerelateerd = bouwArtikelPagina(
+  "A<!--gerelateerd--><section><!--kaart--><i>{{titel}}</i><!--/kaart--></section><!--/gerelateerd-->B",
+  artikel,
+  inst,
+  null,
+  { artikelen: drie, beeldVoor: () => null }
+);
+assert.equal((metGerelateerd.match(/<i>/g) ?? []).length, 2, "maxGerelateerd moet gelden");
+assert.ok(!metGerelateerd.includes("<!--gerelateerd-->"), "markers horen weg te zijn");
+const zonderGerelateerd = bouwArtikelPagina(
+  "A<!--gerelateerd--><section>X</section><!--/gerelateerd-->B",
+  artikel,
+  inst,
+  null
+);
+assert.equal(zonderGerelateerd, "AB", "zonder buren vervalt het hele blok");
+
+// Navigatie-index: nieuwste eerst, paden volgens de instellingen
+const index = bouwIndex(drie, inst);
+assert.deepEqual(index[0], { pad: "/a/", titel: "A" });
+assert.equal(index.length, 3, "de index bevat alle artikelen, niet alleen de getoonde");
 
 console.log(
   "PASS: feed-slugs, datum/samenvatting, sjabloonvulling, artikel- en overzichtspagina, sitemap-idempotentie."

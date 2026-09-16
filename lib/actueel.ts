@@ -36,6 +36,10 @@ export type ActueelInstellingen = {
   maxOverzicht: number;
   /** Hoeveel artikelen in het gedeelde blok (bv. op de homepage). 0 = geen blok. */
   maxHome: number;
+  /** Vaste rubrieknaam bij een artikel (feeds leveren die meestal niet mee). */
+  categorie: string;
+  /** Hoeveel "gerelateerde berichten" onder een artikel. 0 = geen. */
+  maxGerelateerd: number;
 };
 
 const STANDAARD: ActueelInstellingen = {
@@ -44,6 +48,8 @@ const STANDAARD: ActueelInstellingen = {
   afbeeldingPad: "afbeeldingen",
   maxOverzicht: 60,
   maxHome: 0,
+  categorie: "",
+  maxGerelateerd: 0,
 };
 
 const MAANDEN = [
@@ -175,17 +181,46 @@ export function vulSjabloon(sjabloon: string, velden: Record<string, string>): s
   );
 }
 
-/** Eén artikelpagina bouwen uit het sjabloon van de site. */
+/**
+ * Eén artikelpagina bouwen uit het sjabloon van de site.
+ *
+ * `gerelateerd` vult het blok tussen <!--gerelateerd--> en <!--/gerelateerd-->;
+ * die kaarten worden vastgezet op het moment dat het artikel gemaakt wordt, zodat
+ * bestaande pagina's niet bij elke sync hoeven te worden herschreven.
+ */
 export function bouwArtikelPagina(
   sjabloon: string,
   artikel: FeedArtikel,
   inst: ActueelInstellingen,
-  afbeeldingBestand: string | null
+  afbeeldingBestand: string | null,
+  gerelateerd: { artikelen: FeedArtikel[]; beeldVoor: (slug: string) => string | null } = {
+    artikelen: [],
+    beeldVoor: () => null,
+  }
 ): string {
   const afbeelding = afbeeldingBestand
     ? `/${inst.afbeeldingPad}/${afbeeldingBestand}`
     : "";
-  return vulSjabloon(sjabloon, {
+
+  // Blok met gerelateerde berichten invullen of in z'n geheel weglaten
+  let met = sjabloon;
+  const blok = met.match(/<!--gerelateerd-->([\s\S]*?)<!--\/gerelateerd-->/);
+  if (blok) {
+    const zichtbaar = gerelateerd.artikelen.slice(0, inst.maxGerelateerd);
+    met = zichtbaar.length
+      ? met.replace(
+          /<!--gerelateerd-->[\s\S]*?<!--\/gerelateerd-->/,
+          bouwOverzichtPagina(
+            blok[1],
+            zichtbaar,
+            { ...inst, maxOverzicht: inst.maxGerelateerd },
+            gerelateerd.beeldVoor
+          )
+        )
+      : met.replace(/<!--gerelateerd-->[\s\S]*?<!--\/gerelateerd-->/, "");
+  }
+
+  return vulSjabloon(met, {
     titel: ontsnapHtml(artikel.titel),
     titel_plat: artikel.titel.replace(/"/g, "'"),
     omschrijving: ontsnapHtml(platteTekst(artikel.samenvatting || artikel.inhoudHtml)),
@@ -196,6 +231,7 @@ export function bouwArtikelPagina(
     auteur: ontsnapHtml(artikel.auteur),
     slug: artikel.slug,
     pad: artikelUrl(artikel.slug, inst),
+    categorie: ontsnapHtml(inst.categorie),
     afbeelding,
     // Hele blokken die alleen nodig zijn als er een afbeelding is
     afbeelding_blok: afbeelding
@@ -260,6 +296,14 @@ export function vulSitemapAan(sitemap: string, paden: string[]): string {
     .map((p) => `  <url><loc>https://VERVANG.nl${p}</loc><priority>0.5</priority></url>`)
     .join("\n");
   return sitemap.replace("</urlset>", `${regels}\n</urlset>`);
+}
+
+/** Compacte lijst (nieuwste eerst) voor de vorige/volgende-navigatie op artikelpagina's. */
+export function bouwIndex(
+  artikelen: FeedArtikel[],
+  inst: ActueelInstellingen
+): { pad: string; titel: string }[] {
+  return artikelen.map((a) => ({ pad: artikelUrl(a.slug, inst), titel: a.titel }));
 }
 
 /** Eerste URL uit de lijst die een geldig antwoord geeft. */
@@ -368,21 +412,35 @@ export async function syncActueel(opties: {
 
   const teSchrijven: { pad: string; inhoud: Buffer }[] = [];
   const beeldVoorSlug = new Map<string, string>();
+  const archief = await leesArchief(repo, inst);
 
-  for (const artikel of nieuwe) {
-    let beeldBestand: string | null = null;
-    if (artikel.afbeeldingUrl) {
-      const beeld = await haalAfbeelding(artikel.afbeeldingUrl, artikel.slug);
-      if (beeld) {
-        beeldBestand = beeld.pad;
-        beeldVoorSlug.set(artikel.slug, beeld.pad);
-        teSchrijven.push({
-          pad: `${inst.afbeeldingPad}/${beeld.pad}`,
-          inhoud: beeld.inhoud,
-        });
-      }
+  // Nieuwste eerst, zodat "gerelateerde berichten" de dichtstbijzijnde oudere zijn
+  const nieuwOpDatum = [...nieuwe].sort((a, b) => b.datumIso.localeCompare(a.datumIso));
+
+  // Eerst alle beelden ophalen, dan pas de pagina's bouwen: anders missen
+  // artikelen uit dezelfde run elkaars beeld bij "gerelateerde berichten".
+  for (const artikel of nieuwOpDatum) {
+    if (!artikel.afbeeldingUrl) continue;
+    const beeld = await haalAfbeelding(artikel.afbeeldingUrl, artikel.slug);
+    if (beeld) {
+      beeldVoorSlug.set(artikel.slug, beeld.pad);
+      teSchrijven.push({
+        pad: `${inst.afbeeldingPad}/${beeld.pad}`,
+        inhoud: beeld.inhoud,
+      });
     }
-    const html = bouwArtikelPagina(artikelSjabloon, artikel, inst, beeldBestand);
+  }
+
+  for (const artikel of nieuwOpDatum) {
+    const beeldBestand = beeldVoorSlug.get(artikel.slug) ?? null;
+    const buren = [...nieuwOpDatum, ...archief]
+      .filter((a) => a.slug !== artikel.slug && a.datumIso <= artikel.datumIso)
+      .sort((a, b) => b.datumIso.localeCompare(a.datumIso));
+    const html = bouwArtikelPagina(artikelSjabloon, artikel, inst, beeldBestand, {
+      artikelen: buren,
+      beeldVoor: (slug) =>
+        beeldVoorSlug.get(slug) ?? archief.find((a) => a.slug === slug)?.afbeeldingUrl ?? null,
+    });
     teSchrijven.push({
       pad: artikelBestandspad(artikel.slug, inst),
       inhoud: Buffer.from(html, "utf8"),
@@ -391,7 +449,6 @@ export async function syncActueel(opties: {
   }
 
   // Overzicht opnieuw opbouwen uit het archief (alle artikelen, nieuwste eerst)
-  const archief = await leesArchief(repo, inst);
   const alles = [
     ...nieuwe.map((a) => ({
       slug: a.slug,
@@ -448,6 +505,13 @@ export async function syncActueel(opties: {
   teSchrijven.push({
     pad: "sjablonen/actueel-archief.json",
     inhoud: Buffer.from(JSON.stringify(nieuwArchief, null, 1), "utf8"),
+  });
+
+  // Kleine publieke index: de artikelpagina's gebruiken hem voor hun
+  // vorige/volgende-navigatie, zodat oudere pagina's ongewijzigd kunnen blijven.
+  teSchrijven.push({
+    pad: `${inst.overzichtPad}/index.json`,
+    inhoud: Buffer.from(JSON.stringify(bouwIndex(alles, inst)), "utf8"),
   });
 
   // Nieuwe artikelen ook in de sitemap, anders vindt Google ze niet
