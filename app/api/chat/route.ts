@@ -150,6 +150,79 @@ function paginaNaam(pad: string) {
   return `mijn ${naam.replace(/\.html?$/, "")}-pagina`;
 }
 
+/** Eén foto klaarmaken: origineel meten (scherpte/afmetingen), dan verkleinen
+ * naar de maat die op de site komt. Gedeeld door de gewone upload en de route
+ * via de Blob-opslag, zodat beide precies hetzelfde opleveren. */
+async function verwerkFoto(
+  origineel: Buffer,
+  bestandsnaam: string,
+  gebruikteNamen: Set<string>,
+) {
+  let basisnaam =
+    bestandsnaam
+      .replace(/\.[^.]+$/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "afbeelding";
+  let naam = basisnaam;
+  let n = 2;
+  while (gebruikteNamen.has(naam)) naam = `${basisnaam}-${n++}`;
+  gebruikteNamen.add(naam);
+  // 1600px/q78 houdt ook een herofoto scherp maar licht (~200 kB);
+  // zwaardere instellingen gaven meetbaar trage sites (RoelArt-leerpunt).
+  const data = await sharp(origineel)
+    .rotate()
+    .resize({ width: 1600, withoutEnlargement: true })
+    .webp({ quality: 78 })
+    .toBuffer();
+  const { meetFotoKwaliteit, kwaliteitsWaarschuwing } = await import(
+    "@/lib/foto-kwaliteit"
+  );
+  return {
+    naam: `afbeeldingen/${naam}.webp`,
+    data,
+    kwaliteit: kwaliteitsWaarschuwing(await meetFotoKwaliteit(origineel)),
+  };
+}
+
+/** Foto's ophalen die de browser rechtstreeks in de Blob-opslag zette (grote
+ * of veel foto's passen niet in één verzoek aan onze server). Adressen worden
+ * gecontroleerd op onze eigen opslag en na het ophalen meteen opgeruimd. */
+async function haalFotosUitOpslag(ruweUrls: unknown, maximum: number) {
+  const urls = (Array.isArray(ruweUrls) ? ruweUrls : [])
+    .filter((u): u is string => typeof u === "string")
+    .slice(0, maximum)
+    .filter((u) => {
+      try {
+        return /\.public\.blob\.vercel-storage\.com$/.test(new URL(u).host);
+      } catch {
+        return false;
+      }
+    });
+  const uit: { naam: string; data: Buffer; kwaliteit?: string | null }[] = [];
+  if (!urls.length) return uit;
+  const gebruikteNamen = new Set<string>();
+  for (const url of urls) {
+    const res = await fetch(url).catch(() => null);
+    if (!res?.ok) continue;
+    const buf = Buffer.from(await res.arrayBuffer());
+    const naam = decodeURIComponent(
+      new URL(url).pathname.split("/").pop() ?? "foto",
+    );
+    uit.push(await verwerkFoto(buf, naam, gebruikteNamen));
+  }
+  const token =
+    process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
+  if (token) {
+    const { del } = await import("@vercel/blob");
+    void del(urls, { token }).catch((e) =>
+      console.error("Foto-opslag opruimen:", e),
+    );
+  }
+  return uit;
+}
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId)
@@ -204,6 +277,16 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+    {
+      const ruw = form.get("fotoUrls");
+      if (typeof ruw === "string" && ruw) {
+        try {
+          afbeeldingen.push(
+            ...(await haalFotosUitOpslag(JSON.parse(ruw), MAX_FOTOS)),
+          );
+        } catch {}
+      }
+    }
     const gebruikteNamen = new Set<string>();
     for (const file of files) {
       if (file.size > 8 * 1024 * 1024) {
@@ -212,75 +295,13 @@ export async function POST(req: Request) {
           { status: 400 },
         );
       }
-      let basisnaam =
-        file.name
-          .replace(/\.[^.]+$/, "")
-          .toLowerCase()
-          .replace(/[^a-z0-9-]+/g, "-")
-          .replace(/^-+|-+$/g, "")
-          .slice(0, 60) || "afbeelding";
-      let naam = basisnaam;
-      let n = 2;
-      while (gebruikteNamen.has(naam)) naam = `${basisnaam}-${n++}`;
-      gebruikteNamen.add(naam);
-      // 1600px/q78 houdt ook een herofoto scherp maar licht (~200 kB);
-      // zwaardere instellingen gaven meetbaar trage sites (RoelArt-leerpunt).
-      const origineel = Buffer.from(await file.arrayBuffer());
-      const data = await sharp(origineel)
-        .rotate()
-        .resize({ width: 1600, withoutEnlargement: true })
-        .webp({ quality: 78 })
-        .toBuffer();
-      const { meetFotoKwaliteit, kwaliteitsWaarschuwing } = await import("@/lib/foto-kwaliteit");
-      afbeeldingen.push({
-        naam: `afbeeldingen/${naam}.webp`,
-        data,
-        kwaliteit: kwaliteitsWaarschuwing(await meetFotoKwaliteit(origineel)),
-      });
-    }
-    const docs = form
-      .getAll("document")
-      .filter((f): f is File => f instanceof File && f.size > 0);
-    if (docs.length > MAX_DOCS_PER_BERICHT) {
-      return NextResponse.json(
-        { error: `Maximaal ${MAX_DOCS_PER_BERICHT} documenten per bericht` },
-        { status: 400 },
+      afbeeldingen.push(
+        await verwerkFoto(
+          Buffer.from(await file.arrayBuffer()),
+          file.name,
+          gebruikteNamen,
+        ),
       );
-    }
-    const gebruikteDocnamen = new Set<string>();
-    for (const file of docs) {
-      if (file.size > MAX_DOC_BYTES) {
-        return NextResponse.json(
-          {
-            error: `${file.name} is te groot (max ${MAX_DOC_BYTES / 1024 / 1024} MB). Sla de pdf op als kleiner bestand en stuur hem opnieuw.`,
-          },
-          { status: 400 },
-        );
-      }
-      const data = Buffer.from(await file.arrayBuffer());
-      // Echt een pdf? Een andersoortig bestand met .pdf-naam hoort niet op de site.
-      if (data.subarray(0, 5).toString("latin1") !== "%PDF-") {
-        return NextResponse.json(
-          { error: `${file.name} is geen echt pdf-bestand. Je kunt alleen pdf’s meesturen.` },
-          { status: 400 },
-        );
-      }
-      const basisnaam =
-        file.name
-          .replace(/\.[^.]+$/, "")
-          .toLowerCase()
-          .replace(/[^a-z0-9-]+/g, "-")
-          .replace(/^-+|-+$/g, "")
-          .slice(0, 60) || "document";
-      let naam = basisnaam;
-      let n = 2;
-      while (gebruikteDocnamen.has(naam)) naam = `${basisnaam}-${n++}`;
-      gebruikteDocnamen.add(naam);
-      documenten.push({
-        naam: `${DOCUMENTEN_MAP}/${naam}.pdf`,
-        data,
-        kb: Math.round(data.length / 1024),
-      });
     }
   } else {
     const body = (await req.json()) as {
@@ -290,6 +311,9 @@ export async function POST(req: Request) {
       huidigePagina?: string;
       selectie?: Selectie;
       fotobankPad?: string;
+      /** Adressen van foto's die de browser rechtstreeks in de Blob-opslag
+       * heeft gezet (grote of veel foto's passen niet in één verzoek). */
+      fotoUrls?: string[];
       kleur?: string;
       controle?: boolean;
       apparaat?: string;
@@ -301,6 +325,9 @@ export async function POST(req: Request) {
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
+    afbeeldingen.push(
+      ...(await haalFotosUitOpslag(body.fotoUrls, MAX_FOTOS)),
+    );
     {
       const f = String(body.fotobankPad ?? "");
       if (/^[\w./-]{1,200}$/.test(f) && !f.includes("..")) fotobankPad = f;

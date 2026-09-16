@@ -818,13 +818,36 @@ export default function Chat({
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
+      // Een verzoek aan de server mag hooguit ~4,5 MB zijn. Passen de foto's
+      // daar (ook na het verkleinen in de browser) niet in — een telefoonfoto
+      // is zo 10 MB en een galerij bestaat uit tientallen foto's — dan gaan ze
+      // eerst rechtstreeks naar de opslag en sturen we alleen de adressen mee.
+      const samen = teVersturen.reduce((som, f) => som + f.size, 0);
+      let fotoUrls: string[] | null = null;
+      if (teVersturen.length > 0 && samen > 3_500_000) {
+        setStatusTekst(
+          `Ik zet je ${teVersturen.length} foto${teVersturen.length > 1 ? "'s" : ""} klaar...`,
+        );
+        const { upload } = await import("@vercel/blob/client");
+        fotoUrls = await Promise.all(
+          teVersturen.map(async (f) => {
+            const res = await upload(`chat/${Date.now()}-${f.name}`, f, {
+              access: "public",
+              handleUploadUrl: "/api/foto-upload",
+              clientPayload: JSON.stringify({ siteId }),
+            });
+            return res.url;
+          }),
+        );
+      }
       const verstuurNaarServer = () => {
-        if (teVersturen.length > 0 || teVersturenDocs.length > 0) {
+        if ((teVersturen.length > 0 && !fotoUrls) || teVersturenDocs.length > 0) {
           const form = new FormData();
           form.set("siteId", String(siteId));
           form.set("bericht", tekst);
           form.set("huidigePagina", huidigePagina);
-          for (const f of teVersturen) form.append("afbeelding", f);
+          if (fotoUrls) form.set("fotoUrls", JSON.stringify(fotoUrls));
+          else for (const f of teVersturen) form.append("afbeelding", f);
           for (const f of teVersturenDocs) form.append("document", f);
           if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
           if (gekozen) form.set("selectie", JSON.stringify(gekozen));
@@ -844,6 +867,7 @@ export default function Chat({
             selectie: gekozen ?? undefined,
             kleur: gekozenKleur ?? undefined,
             fotobankPad: gekozenBankFoto ?? undefined,
+            fotoUrls: fotoUrls ?? undefined,
             videoCommandId: meegestuurdeVideo?.commandId,
             controle: extra?.controle || undefined,
             apparaat: extra?.controle ? apparaat : undefined,
