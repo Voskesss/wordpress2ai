@@ -131,17 +131,23 @@ const STATUS_PER_TOOL: Record<
   (input: Record<string, unknown>) => string
 > = {
   lees_bestand: (i) => `Ik lees ${paginaNaam(String(i.pad ?? ""))}...`,
-  lijst_bestanden: () => "Ik kijk welke pagina's je site heeft...",
-  zoek_tekst: () => "Ik zoek waar het staat...",
+  lijst_bestanden: () => "Ik kijk even welke pagina's ik heb...",
+  zoek_tekst: () => "Ik zoek waar dat bij mij staat...",
   bewerk_bestand: (i) => `Ik pas ${paginaNaam(String(i.pad ?? ""))} aan...`,
   schrijf_bestand: (i) => `Ik werk ${paginaNaam(String(i.pad ?? ""))} bij...`,
 };
 
 function paginaNaam(pad: string) {
-  const naam = path.basename(pad);
-  if (naam === "index.html") return "de homepage";
-  if (naam.endsWith(".css") || naam.endsWith(".js")) return "de vormgeving";
-  return `de pagina ${naam.replace(/\.html?$/, "")}`;
+  const schoon = pad.replace(/^\/+|\/+$/g, "");
+  const delen = schoon.split("/");
+  const naam = delen.pop() ?? schoon;
+  if (naam.endsWith(".css") || naam.endsWith(".js")) return "mijn vormgeving";
+  if (naam === "index.html") {
+    // contact/index.html is de contactpagina, niet de homepage — alleen een
+    // index.html in de wortel is dat.
+    return delen.length ? `mijn ${delen[delen.length - 1]}-pagina` : "mijn homepage";
+  }
+  return `mijn ${naam.replace(/\.html?$/, "")}-pagina`;
 }
 
 export async function POST(req: Request) {
@@ -526,7 +532,7 @@ export async function POST(req: Request) {
           const koudeStart = setTimeout(() => {
             stuur({
               type: "status",
-              tekst: "Ik haal de nieuwste versie van je site op...",
+              tekst: "Ik haal mijn nieuwste versie op...",
             });
           }, 2500);
           if (openConcept?.branch) {
@@ -647,7 +653,7 @@ export async function POST(req: Request) {
           // eigen werk kan beoordelen in plaats van blind te raden
           let controleRegel: string | null = null;
           if (controle) {
-            stuur({ type: "status", tekst: "Ik maak een schermafbeelding van wat jij nu ziet..." });
+            stuur({ type: "status", tekst: "Ik maak een schermafbeelding van wat jij nu van mij ziet..." });
             const pad = huidigePagina && huidigePagina.startsWith("/") ? huidigePagina : "/";
             const host =
               openConcept && wvNaam
@@ -988,7 +994,7 @@ export async function POST(req: Request) {
             // anders leest de eigenaar "ik heb het gedaan" en ziet hij niets.
             stuur({
               type: "status",
-              tekst: "Nog héél even: ik sla dit op en zet je voorbeeld klaar...",
+              tekst: "Nog héél even: ik sla dit op en zet mijn voorbeeld klaar...",
             });
           }
           const alleenOngebruikteUploads =
@@ -1136,7 +1142,7 @@ export async function POST(req: Request) {
                 .values({ siteId: site.id, maand, wijzigingen: 1 });
             }
 
-            stuur({ type: "status", tekst: "Je voorbeeld wordt bijgewerkt — een paar tellen nog..." });
+            stuur({ type: "status", tekst: "Ik werk mijn voorbeeld bij — een paar tellen nog..." });
             await deployKlaar;
           }
           tik("afgerond");
