@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import LeadForm from "./LeadForm";
 import ContactVoorkeur from "./ContactVoorkeur";
 import { josFoto, TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
+import { vindHoek } from "@/lib/hoeken";
 
 export const metadata: Metadata = {
   title: "Gratis WordPress-websitecheck: geschiktheid en prijs",
@@ -16,9 +17,11 @@ const inputStijl =
 export default async function Contact({
   searchParams,
 }: {
-  searchParams: Promise<{ onderwerp?: string | string[] }>;
+  searchParams: Promise<{ onderwerp?: string | string[]; hoek?: string | string[] }>;
 }) {
-  const { onderwerp } = await searchParams;
+  const { onderwerp, hoek: hoekParam } = await searchParams;
+  // Kwam de bezoeker via een advertentie-hoek op de homepage? Dan gaat die mee
+  const hoek = vindHoek(hoekParam);
   const samenwerken = onderwerp === "samenwerken";
   // Ingelogde bezoekers (bv. vanuit de demo): naam en e-mail alvast invullen
   const gebruiker = await currentUser().catch(() => null);
@@ -107,6 +110,7 @@ export default async function Contact({
         <input type="hidden" name="_site" value="wordswap" />
         <input type="hidden" name="_formulier" value="kennismaken" />
         <input type="hidden" name="_bedankt" value="/bedankt" />
+        {hoek && <input type="hidden" name="_hoek" value={hoek.sleutel} />}
         <input
           type="text"
           name="_extra"

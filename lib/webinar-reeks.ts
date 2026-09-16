@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { formulierInzendingen, webinarMailInstellingen, webinarMails, webinars } from "@/db/schema";
 import { formatWanneer, hoortBij } from "@/lib/webinar";
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { type Hoek, vindHoekOpNaam } from "@/lib/hoeken";
 
 const UUR = 3_600_000;
 const DAG = 24 * UUR;
@@ -53,9 +54,11 @@ function tijd(d: Date): string {
 /** Onderwerp en HTML van één mail uit de reeks. */
 export function bouwReeksMail(
   soort: ReeksSoort,
-  ctx: { voornaam: string; webinar: Webinar; afmeldUrl: string | null },
+  ctx: { voornaam: string; webinar: Webinar; afmeldUrl: string | null; hoek?: Hoek | null },
 ): { onderwerp: string; html: string } {
   const w = ctx.webinar;
+  // Via welke advertentie-hoek iemand kwam: die reden lees je terug in de eerste mail
+  const hoekZin = ctx.hoek ? p(ontsnap(ctx.hoek.mail)) : "";
   const hallo = p(`Hallo${ctx.voornaam ? ` ${ontsnap(ctx.voornaam)}` : ""},`);
   const voet = `Je krijgt deze mail omdat je je hebt aangemeld voor het webinar van ${ontsnap(formatWanneer(w.wanneer))}.${
     ctx.afmeldUrl
@@ -73,6 +76,7 @@ export function bouwReeksMail(
           p(
             `Over een week zien we elkaar online in het webinar. Het duurt maximaal een half uur, en daarna wil ik dat je precies weet of jij van het gedoe rond je website af kunt.`,
           ) +
+            hoekZin +
             p("Daarom alvast een klein lijstje. Neem er een minuutje voor, en wees eerlijk tegen jezelf:") +
             lijst([
               "Wanneer heb je voor het laatst zelf iets op je website veranderd?",
@@ -219,6 +223,7 @@ export async function verstuurWebinarReeks(nu = new Date()): Promise<{ verstuurd
           voornaam: (v.naam ?? "").trim().split(/\s+/)[0] ?? "",
           webinar: w,
           afmeldUrl: token ? `https://wordswap.nl/webinar/afmelden?i=${i.id}&t=${token}` : null,
+          hoek: vindHoekOpNaam(v.invalshoek),
         });
         const gelukt = await mailVanJos({ naar: v.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, bcc: false });
         if (!gelukt) {

@@ -103,6 +103,15 @@ export async function POST(req: Request) {
   delete velden._formulier;
   delete velden._bedankt;
   delete velden._bevestiging;
+  // Invalshoek van de advertentie (/webinar?hoek=...): leesbaar meesturen, zodat
+  // in de melding en de leadlijst te zien is welke snaar iemand raakte
+  const hoek =
+    siteRepo === "wordswap"
+      ? (await import("@/lib/hoeken")).vindHoek(velden._hoek)
+      : null;
+  const hoekNaam = hoek?.naam ?? null;
+  delete velden._hoek;
+  if (hoekNaam) velden.invalshoek = hoekNaam;
 
   const [site] = siteRepo
     ? await db.select().from(sites).where(eq(sites.githubRepo, siteRepo))
@@ -222,7 +231,7 @@ export async function POST(req: Request) {
           site: site ?? null,
           naar: invullerEmail,
           onderwerp: `Je bent aangemeld voor het webinar van ${siteNaam}`,
-          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${webinarInfo}${agendaHtml}${reeksZin}<p>Tot dan! Heb je een vraag? Antwoord gewoon op deze mail.</p>`,
+          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>Leuk dat je erbij bent! Je plek voor het webinar <strong>${ontsnap(velden.webinar ?? "")}</strong> is gereserveerd.</p>${hoek ? `<p>${ontsnap(hoek.mail)}</p>` : ""}${webinarInfo}${agendaHtml}${reeksZin}<p>Tot dan! Heb je een vraag? Antwoord gewoon op deze mail.</p>`,
           antwoordNaar: site?.notificatieEmail ?? undefined,
           bijlagen: webinarBijlagen,
         });
@@ -275,7 +284,7 @@ export async function POST(req: Request) {
                 naam: String(velden.naam ?? "").trim() || "Webinar-aanmelder",
                 email,
                 website,
-                bron: `Webinar (${datum})`,
+                bron: `Webinar (${datum})${hoekNaam ? ` · hoek: ${hoekNaam}` : ""}`,
                 soort: "klant",
                 status: "nieuw",
                 notities: `Aangemeld voor het webinar van ${datum}. Let op antwoorden op de voorbereidingsmails: dat zijn de warmste leads.`,

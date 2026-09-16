@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, webinarMailInstellingen, webinarMails, webinars } from "@/db/schema";
 import { REEKS } from "@/lib/webinar-reeks";
+import { HOEKEN } from "@/lib/hoeken";
 import { reeksMailZetten, reeksTestNaarMij } from "../acties-webinar-reeks";
 import { requireAdmin } from "@/lib/auth";
 import { formatWanneer, hoortBij } from "@/lib/webinar";
@@ -168,6 +169,40 @@ export default async function Webinars() {
         </ul>
       </section>
 
+      {/* Advertentielinks per invalshoek */}
+      <details className="mt-8 rounded-3xl border border-stone-200 bg-white p-6">
+        <summary className="cursor-pointer font-display text-xl font-semibold">🎯 Advertentielinks per invalshoek</summary>
+        <p className="mt-2 text-sm leading-relaxed text-stone-600">
+          Dezelfde pagina, alleen de kop verschilt. Zet in elke advertentie de link van die invalshoek: naar het webinar
+          of naar de homepage. Wie zich aanmeldt of de gratis check aanvraagt, krijgt de hoek mee in je melding (en bij
+          het webinar ook in de leadlijst, bij <em>bron</em>). Zo zie je welke snaar het hardst binnenkomt.
+        </p>
+        <ul className="mt-4 divide-y divide-stone-100">
+          {Object.entries(HOEKEN).map(([sleutel, h]) => (
+            <li key={sleutel} className="py-3">
+              <p className="text-sm font-semibold text-stone-800">{h.naam}</p>
+              <p className="text-sm text-stone-600">{h.kop}</p>
+              {(
+                [
+                  ["Webinar", `/webinar?hoek=${sleutel}`],
+                  ["Homepage", `/?hoek=${sleutel}`],
+                ] as const
+              ).map(([soort, pad]) => (
+                <div key={soort} className="mt-1 flex flex-wrap items-center gap-3">
+                  <span className="w-20 text-xs text-stone-500">{soort}</span>
+                  <code className="select-all break-all rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-700">
+                    https://wordswap.nl{pad}
+                  </code>
+                  <a href={pad} target="_blank" rel="noreferrer" className="text-xs font-semibold text-violet-700 hover:underline">
+                    👁 Bekijk
+                  </a>
+                </div>
+              ))}
+            </li>
+          ))}
+        </ul>
+      </details>
+
       {/* Lijst */}
       <div className="mt-8 space-y-4">
         {lijst.length === 0 && <p className="text-stone-500">Nog geen webinars ingepland.</p>}
@@ -247,6 +282,25 @@ export default async function Webinars() {
                   <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
                     Inschrijvers bekijken en verplaatsen ({inschr.length})
                   </summary>
+                  {(() => {
+                    // Welke advertentie-hoek leverde deze aanmeldingen op?
+                    const telling = new Map<string, number>();
+                    for (const i of inschr) {
+                      const h = (i.velden as Record<string, string>).invalshoek || "Zonder hoek (direct of oud)";
+                      telling.set(h, (telling.get(h) ?? 0) + 1);
+                    }
+                    return (
+                      <p className="mt-2 flex flex-wrap gap-1.5 text-xs">
+                        {[...telling.entries()]
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([h, n]) => (
+                            <span key={h} className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-stone-600">
+                              🎯 {h}: <strong>{n}</strong>
+                            </span>
+                          ))}
+                      </p>
+                    );
+                  })()}
                   <ul className="mt-2 space-y-1.5 text-sm text-stone-600">
                     {inschr.map((i) => {
                       const v = i.velden as Record<string, string>;
@@ -255,6 +309,11 @@ export default async function Webinars() {
                           <span className="font-medium">{v.naam ?? "—"}</span>
                           <span className="text-stone-400">{v.email ?? ""}</span>
                           {v.website && <span className="text-stone-400">· {v.website}</span>}
+                          {v.invalshoek && (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                              🎯 {v.invalshoek}
+                            </span>
+                          )}
                           {(mailsPerInschrijving.get(i.id) ?? []).length > 0 && (
                             <span className="text-xs text-emerald-700">
                               ✉ {(mailsPerInschrijving.get(i.id) ?? []).map(korteNaam).join(", ")}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import ProductPreview from "./ProductPreview";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
+import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
@@ -11,7 +12,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 const faq = aankoopVragen;
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ hoek?: string | string[] }>;
+}) {
+  // Kop per advertentie (/?hoek=vakman); zonder hoek de vaste merkbelofte.
+  // De hoek gaat mee naar de gratis check, zodat hij in de melding staat.
+  const hoek = vindHoek((await searchParams).hoek);
+  const checkLink = hoek ? `/contact?hoek=${hoek.sleutel}` : "/contact";
   return (
     <div className="marketing-home">
       <script
@@ -34,25 +43,43 @@ export default function Home() {
             <span className="status-dot" /> VOOR ONDERNEMERS MET EEN
             WORDPRESS-WEBSITE
           </p>
-          <h1>
-            Jij typt het.
-            <br />
-            <em>Je website doet het.</em>
-          </h1>
+          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
+            <h1 className="hero-hoek">
+              {hoek.kop}
+              <br />
+              <em>Mijn website regelt zichzelf. Ik hoef het alleen maar te vragen.</em>
+            </h1>
+          ) : (
+            <h1>
+              Mijn website regelt zichzelf.
+              <br />
+              <em>Ik hoef het alleen maar te vragen.</em>
+            </h1>
+          )}
+          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
+            <p className="hero-intro">
+              {hoek.tekst}
+              <strong className="hero-hoek-slot">
+                Behoud je website. Vervang het gedoe.
+              </strong>
+            </p>
+          ) : (
           <p className="hero-intro">
-            <strong>“Zet onze nieuwe openingstijden erop.”</strong> Voortaan is
-            dat alles wat je hoeft te doen. Wij zetten je bestaande
-            WordPress-website (of een site in een ander CMS) eerst over naar
-            een razendsnelle versie — zelfde
-            ontwerp, zelfde adressen, geen onderhoud meer.
+            <strong>Behoud je website. Vervang het gedoe.</strong> Je houdt je
+            huidige website: je ontwerp, je teksten en je plek in Google. Wij
+            vervangen de WordPress-techniek erachter (of die van een ander CMS)
+            door een razendsnelle versie zonder onderhoud. Daarna is één zin
+            als “Zet onze nieuwe openingstijden erop.” alles wat je hoeft te
+            doen.
           </p>
+          )}
           <p className="hero-definition">
             Geen webbouwer meer mailen, geen updates, geen plugins. Je vraagt
             het gewoon aan je website, bekijkt het voorstel en beslist zelf wat
             live gaat.
           </p>
           <div className="button-row">
-            <Link className="button-primary" href="/contact">
+            <Link className="button-primary" href={checkLink}>
               Kan mijn website overgezet worden? <span>↗</span>
             </Link>
             <Link className="button-text" href="#zo-werkt-aanpassen">
@@ -141,9 +168,16 @@ export default function Home() {
             Zo weer bijgewerkt.
           </h2>
           <p>
-            Na de overstap hoef je WordPress nooit meer te openen. Vertel je
-            website wat er anders moet, bekijk de wijziging en zet hem zelf
-            live. Meer is het niet.
+            Na de overstap hoef je WordPress nooit meer te openen. Geen CMS
+            leren, geen pagina-builder. Je vraagt het gewoon:
+          </p>
+          <ul className="vraag-voorbeelden">
+            <li>“Zet deze vacature online.”</li>
+            <li>“Voeg dit project toe aan ons werk.”</li>
+            <li>“Verander onze openingstijden.”</li>
+          </ul>
+          <p>
+            Je bekijkt de wijziging en zet hem zelf live. Meer is het niet.
           </p>
           <Link href="#zo-werkt-aanpassen" className="button-text">
             Bekijk een voorbeeld →
@@ -331,7 +365,7 @@ export default function Home() {
             <li>Domeinkoppeling en SEO-structuur gecontroleerd</li>
             <li>Wijzigingen eerst bekijken, dan publiceren</li>
           </ul>
-          <Link className="button-primary" href="/contact">
+          <Link className="button-primary" href={checkLink}>
             Ontvang een prijs voor mijn site ↗
           </Link>
           <p className="fine-print">
@@ -377,7 +411,7 @@ export default function Home() {
             vraag, dan krijg je mij aan de lijn. Geen ticketsysteem, geen
             wachtrij.
           </p>
-          <Link className="button-text" href="/contact">
+          <Link className="button-text" href={checkLink}>
             Neem contact op met Jos →
           </Link>
         </div>
@@ -391,7 +425,7 @@ export default function Home() {
             <br />
             Stel gerust je vragen.
           </p>
-          <Link href="/contact" className="button-text">
+          <Link href={checkLink} className="button-text">
             Neem contact op →
           </Link>
         </div>
@@ -419,7 +453,7 @@ export default function Home() {
             Je krijgt antwoord op drie vragen: kan mijn site mee, wat vraagt
             aandacht en wat kost het? Binnen één werkdag, persoonlijk van Jos.
           </p>
-          <Link className="button-primary" href="/contact">
+          <Link className="button-primary" href={checkLink}>
             Laat mijn website gratis checken ↗
           </Link>
           <small>Geen verplichtingen. Wel duidelijkheid.</small>

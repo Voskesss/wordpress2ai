@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { webinars } from "@/db/schema";
 import { josFoto } from "@/lib/persoonlijk";
 import { formatWanneer } from "@/lib/webinar";
+import { vindHoek } from "@/lib/hoeken";
 
 export const metadata: Metadata = {
   title: "Gratis webinar: kun jij van het websitegedoe af?",
@@ -45,7 +46,13 @@ const voorWieNiet = [
   "Je plaatst bijna elke dag een nieuw blog.",
 ];
 
-export default async function Webinar() {
+export default async function Webinar({
+  searchParams,
+}: {
+  searchParams: Promise<{ hoek?: string | string[] }>;
+}) {
+  // Kop per advertentie (?hoek=vakman); zonder of met onbekende hoek de standaardkop
+  const hoek = vindHoek((await searchParams).hoek);
   const komende = await db
     .select()
     .from(webinars)
@@ -57,17 +64,24 @@ export default async function Webinar() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="font-display text-center text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
-        Je wilde één zin op je website zetten.
-        <br />
-        <span className="bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
-          Het werd weer een heel gedoe.
-        </span>
+      <h1 className="mx-auto max-w-4xl font-display text-center text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
+        {hoek ? (
+          hoek.kop
+        ) : (
+          <>
+            Je wilde één zin op je website zetten.
+            <br />
+            <span className="bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
+              Het werd weer een heel gedoe.
+            </span>
+          </>
+        )}
       </h1>
       <p className="mx-auto mt-5 max-w-2xl text-center text-lg text-stone-600 leading-relaxed">
-        Wachtwoord kwijt, negen updates die klaarstaan, dus toch maar een mailtje naar je bouwer. Twee weken later
-        staat het erop, met een factuur voor die ene zin. <strong>Na dit webinar weet je of jij van het gedoe af
-        kunt.</strong>
+        {hoek
+          ? hoek.tekst
+          : "Wachtwoord kwijt, negen updates die klaarstaan, dus toch maar een mailtje naar je bouwer. Twee weken later staat het erop, met een factuur voor die ene zin."}{" "}
+        <strong>Na dit webinar weet je of jij van het gedoe af kunt.</strong>
       </p>
 
       {/* Uitgelicht webinar: collage links, inhoud rechts */}
@@ -205,6 +219,7 @@ export default async function Webinar() {
               <input type="hidden" name="_site" value="wordswap" />
               <input type="hidden" name="_formulier" value="webinar" />
               <input type="hidden" name="_bedankt" value="/bedankt" />
+              {hoek && <input type="hidden" name="_hoek" value={hoek.sleutel} />}
               <input type="text" name="_extra" defaultValue="" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
 
               <div>

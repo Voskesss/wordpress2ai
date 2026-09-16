@@ -1659,6 +1659,14 @@ main p {
 .verhaal-copy h2 { font-size: clamp(28px, 3vw, 40px); line-height: 1.16; letter-spacing: -.035em; margin: 18px 0; }
 .verhaal-copy > p:not(.eyebrow) { font-size: 17px; line-height: 1.8; color: #566054; margin-bottom: 24px; }
 .verhaal-wide { max-width: 920px; padding-bottom: 20px; }
+/* Homepage met advertentie-hoek (/?hoek=...): de vraag is langer dan de
+   standaardkop, dus iets kleiner, met de merkbelofte eronder */
+.hero-copy h1.hero-hoek { font-size: clamp(30px, 3.1vw, 42px); }
+.hero-copy h1.hero-hoek em { display: block; margin-top: 14px; font-size: 0.62em; line-height: 1.3; }
+.hero-intro strong.hero-hoek-slot { margin-top: 12px; }
+/* Voorbeelden van wat je gewoon aan je website vraagt: als chatbubbels */
+.vraag-voorbeelden { list-style: none; padding: 0; margin: -8px 0 24px; display: grid; gap: 10px; }
+.vraag-voorbeelden li { justify-self: start; background: #fff; border: 1px solid #dde7d9; border-radius: 18px 18px 18px 4px; padding: 10px 16px; font-size: 16px; font-weight: 600; color: #244b3d; box-shadow: 0 1px 2px rgba(36, 75, 61, .06); }
 @media(max-width: 767px) {
   .verhaal-section { grid-template-columns: 1fr; gap: 24px; padding-block: 38px; }
   .verhaal-copy > p:not(.eyebrow) { font-size: 16px; }
