@@ -432,6 +432,33 @@ export default function Chat({
     setOplevering(null);
   }
 
+  /** Foto's bijvoegen: verkleinen, aanvullen tot het maximum, en eerlijk
+   * zeggen wat er niet paste. Tot nu toe verdwenen foto's boven het maximum
+   * zonder één woord, waarna de chat meldde "ik bekijk je 30 foto's". */
+  function voegFotosToe(nieuwe: File[]) {
+    if (!nieuwe.length) return;
+    void Promise.all(nieuwe.map(verkleinVoorUpload)).then((klein) => {
+      setAfbeeldingen((vorige) => {
+        const ruimte = Math.max(0, MAX_FOTOS - vorige.length);
+        const teveel = klein.length - ruimte;
+        if (teveel > 0) {
+          setChatOpen(true);
+          setBerichten((b) => [
+            ...b,
+            {
+              rol: "assistent",
+              tekst:
+                ruimte === 0
+                  ? `Er staan al ${MAX_FOTOS} foto's klaar — dat is het maximum dat ik in één bericht kan meenemen. Stuur dit bericht eerst; daarna zet ik de volgende ${teveel} er graag bij.`
+                  : `Ik kan er maximaal ${MAX_FOTOS} per bericht meenemen. De eerste ${ruimte} heb ik klaargezet; stuur dit bericht eerst en daarna de andere ${teveel}, dan zet ik ze er gewoon bij.`,
+            },
+          ]);
+        }
+        return [...vorige, ...klein.slice(0, ruimte)];
+      });
+    });
+  }
+
   function stop() {
     stopRef.current?.abort();
   }
@@ -2610,9 +2637,7 @@ export default function Chat({
               if (video) videoUploaden(video);
               const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
               if (plaatjes.length > 0) {
-                void Promise.all(plaatjes.map(verkleinVoorUpload)).then((klein) =>
-                  setAfbeeldingen((v) => [...v, ...klein].slice(0, MAX_FOTOS)),
-                );
+                voegFotosToe(plaatjes);
                 setHintWeg(true);
                 setChatOpen(true);
               }
@@ -2768,9 +2793,7 @@ export default function Chat({
                       },
                     ]);
                   } else if (bestanden.length > 0) {
-                    void Promise.all(bestanden.map(verkleinVoorUpload)).then((klein) =>
-                      setAfbeeldingen((vorige) => [...vorige, ...klein].slice(0, MAX_FOTOS)),
-                    );
+                    voegFotosToe(bestanden);
                   }
                   e.target.value = "";
                 }}
@@ -2951,9 +2974,7 @@ export default function Chat({
                     .filter((f): f is File => Boolean(f));
                   if (plaatjes.length > 0) {
                     e.preventDefault();
-                    void Promise.all(plaatjes.map(verkleinVoorUpload)).then((klein) =>
-                  setAfbeeldingen((v) => [...v, ...klein].slice(0, MAX_FOTOS)),
-                );
+                    voegFotosToe(plaatjes);
                     setHintWeg(true);
                   }
                 }}
