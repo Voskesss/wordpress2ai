@@ -49,6 +49,9 @@ export const sites = pgTable("sites", {
   smtpGebruiker: text("smtp_gebruiker"),
   smtpWachtwoord: text("smtp_wachtwoord"),
   smtpAfzender: text("smtp_afzender"),
+  // Externe nieuwsfeed (bv. Accountantsportal) waarvan de actualiteiten
+  // dagelijks als statische pagina's op de site worden gezet. Leeg = uit.
+  nieuwsFeedUrl: text("nieuws_feed_url"),
   chatGeheugen: text("chat_geheugen"),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
