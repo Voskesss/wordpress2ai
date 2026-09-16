@@ -745,6 +745,18 @@ export async function POST(req: Request) {
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
+          // TIJDBEWAKER: Vercel kapt de functie hard af op maxDuration (300 s)
+          // — dan gaat álles verloren: geen antwoord, geen concept, en
+          // meegestuurde foto's kwijt. Daarom stoppen we de agent zelf ruim
+          // op tijd, leveren we op wat er al staat, en zeggen we dat eerlijk.
+          let tijdOp = false;
+          const wekker = setTimeout(
+            () => {
+              tijdOp = true;
+              stopper.abort();
+            },
+            Math.max(30_000, 220_000 - (Date.now() - klok)),
+          );
           // Pagina's die in deze beurt nieuw worden geschreven bestaan op de
           // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft
           // een verwarrende 404. De opleveringsoverlay opent ze wél, na de deploy.
@@ -840,13 +852,20 @@ export async function POST(req: Request) {
               kostenUsd: uitkomst.kostenUsd,
             }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           } catch (e) {
-            if (stopper.signal.aborted) {
+            if (stopper.signal.aborted && !tijdOp) {
               // Gestopt door de eigenaar: niets opslaan, geen concept maken
               return;
             }
-            throw e;
+            if (!tijdOp) throw e;
+            stuur({
+              type: "status",
+              tekst: "Dit is een grote klus — ik zet alvast klaar wat er al staat...",
+            });
+            reply =
+              "Dit was een grote klus en ik liep tegen mijn tijdslimiet aan. Wat ik al af had, zet ik nu voor je klaar — bekijk het gerust. Stuur daarna gewoon een berichtje als er iets mist of af te maken valt, dan ga ik verder waar ik gebleven ben.";
           }
-          if (stopper.signal.aborted) return;
+          clearTimeout(wekker);
+          if (stopper.signal.aborted && !tijdOp) return;
           tik("ai");
 
           // Meegestuurde foto's die de AI (nog) niet heeft gebruikt horen niet
@@ -905,6 +924,13 @@ export async function POST(req: Request) {
           }
 
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+          if (tijdOp && gewijzigd.length === 0) {
+            // De "je foto's zijn wel bewaard"-toevoeging van hierboven behouden
+            const bewaarNotitie = reply.match(/\n\n\(Je [^)]*\)$/)?.[0] ?? "";
+            reply =
+              "Dit was een grote klus en ik liep tegen mijn tijdslimiet aan voordat er iets af was. Knip hem in stukjes, dan lukt het wél: vraag bijvoorbeeld eerst om de pagina, en daarna om de foto's in een paar kleinere groepjes." +
+              bewaarNotitie;
+          }
           if (gewijzigd.length > 0) {
             // Het antwoord hierboven staat er al, maar het concept moet nog
             // worden opgeslagen en het voorbeeld uitgerold — zeg dat expliciet,
