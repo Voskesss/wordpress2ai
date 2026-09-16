@@ -905,6 +905,15 @@ export async function POST(req: Request) {
           }
 
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+          if (gewijzigd.length > 0) {
+            // Het antwoord hierboven staat er al, maar het concept moet nog
+            // worden opgeslagen en het voorbeeld uitgerold — zeg dat expliciet,
+            // anders leest de eigenaar "ik heb het gedaan" en ziet hij niets.
+            stuur({
+              type: "status",
+              tekst: "Nog héél even: ik sla dit op en zet je voorbeeld klaar...",
+            });
+          }
           const alleenOngebruikteUploads =
             gewijzigd.length > 0 &&
             gewijzigd.every((p) => ongebruikteUploads.includes(p));
@@ -1050,7 +1059,7 @@ export async function POST(req: Request) {
                 .values({ siteId: site.id, maand, wijzigingen: 1 });
             }
 
-            stuur({ type: "status", tekst: "Werkversie bijwerken..." });
+            stuur({ type: "status", tekst: "Je voorbeeld wordt bijgewerkt — een paar tellen nog..." });
             await deployKlaar;
           }
           tik("afgerond");
