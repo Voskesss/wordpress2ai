@@ -51,6 +51,10 @@ function isEchtePagina(pad: string) {
   return /\.html?$/i.test(pad) && !pad.replace(/^\/+/, "").startsWith("delen/");
 }
 
+/** Zoveel foto's mogen er in één bericht mee — genoeg voor een hele galerij.
+ * Moet gelijk blijven aan MAX_FOTOS in de chat-route. */
+const MAX_FOTOS = 30;
+
 function paginaLabel(pad: string) {
   const schoon = pad.replace(/^\/+|\/+$/g, "");
   if (!schoon) return "homepage";
@@ -726,7 +730,7 @@ export default function Chat({
       const q = wachtrijRef.current;
       wachtrijRef.current = {
         tekst: q ? `${q.tekst}\n${tekst}` : tekst,
-        fotos: [...(q?.fotos ?? []), ...(overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen)].slice(0, 12),
+        fotos: [...(q?.fotos ?? []), ...(overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen)].slice(0, MAX_FOTOS),
         docs: [...(q?.docs ?? []), ...(overrideAfbeelding ? [] : documenten)].slice(0, 4),
         video: videoKlaarRef.current ?? q?.video ?? null,
         sel: selectie ?? q?.sel ?? null,
@@ -2541,7 +2545,7 @@ export default function Chat({
               if (video) videoUploaden(video);
               const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
               if (plaatjes.length > 0) {
-                setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, 12));
+                setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, MAX_FOTOS));
                 setHintWeg(true);
                 setChatOpen(true);
               }
@@ -2589,7 +2593,10 @@ export default function Chat({
                   </div>
                 ))}
                 <span className="text-xs text-stone-400">
-                  {afbeeldingen.length} foto{afbeeldingen.length > 1 ? "'s" : ""} — je kunt er meer toevoegen
+                  {afbeeldingen.length} foto{afbeeldingen.length > 1 ? "'s" : ""}
+                  {afbeeldingen.length >= MAX_FOTOS
+                    ? ` — dit is het maximum per bericht; stuur de rest in een volgend bericht`
+                    : ` — je kunt er tot ${MAX_FOTOS} per bericht meesturen`}
                 </span>
               </div>
             )}
@@ -2694,7 +2701,7 @@ export default function Chat({
                       },
                     ]);
                   } else if (bestanden.length > 0) {
-                    setAfbeeldingen((vorige) => [...vorige, ...bestanden].slice(0, 12));
+                    setAfbeeldingen((vorige) => [...vorige, ...bestanden].slice(0, MAX_FOTOS));
                   }
                   e.target.value = "";
                 }}
@@ -2875,7 +2882,7 @@ export default function Chat({
                     .filter((f): f is File => Boolean(f));
                   if (plaatjes.length > 0) {
                     e.preventDefault();
-                    setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, 12));
+                    setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, MAX_FOTOS));
                     setHintWeg(true);
                   }
                 }}

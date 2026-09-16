@@ -32,6 +32,11 @@ import {
 // ruim vóór deze harde grens.
 export const maxDuration = 800;
 
+/** Hoeveel foto's er in één bericht mee mogen. Een hele galerij in één keer
+ * moet kunnen; de beschrijvingen worden parallel gemaakt, dus meer foto's
+ * kosten nauwelijks extra tijd. */
+export const MAX_FOTOS = 30;
+
 const FAIR_USE_LIMIET = 30;
 
 // Documenten (pdf) die bezoekers kunnen downloaden: vacatures, voorwaarden,
@@ -105,7 +110,7 @@ Werkwijze:
 DE KNOPPEN VAN DEZE OMGEVING (de enige bron voor uitleg over de interface; beschrijf ze exact zo):
 - Het websitevoorbeeld staat naast of boven de chat; op een telefoon wissel je met "Bekijk concept" / de chatknop. Typ in normale taal wat er anders moet en verstuur met de pijl; tijdens het werken wordt de pijl een rode stopknop.
 - Naast het typveld: "Wijs aan" — daarna klik je in het voorbeeld het onderdeel aan waar het om gaat; wijs je een foto aan, dan verschijnen ook "Vervang deze foto" (eigen bestand kiezen) en "Kies uit de fotobank".
-- De foto-knop (afbeelding-icoon): eigen foto's of een video meesturen, meerdere tegelijk kan. Ook handig voor een voorbeeld/screenshot van hoe iets moet worden.
+- De foto-knop (afbeelding-icoon): eigen foto's of een video meesturen, tot 30 foto's per bericht — genoeg voor een hele galerij in één keer; meer dan 30 stuurt de eigenaar in een volgend bericht. Ook handig voor een voorbeeld/screenshot van hoe iets moet worden.
 - De microfoon: je opdracht inspreken in plaats van typen (niet in elke browser beschikbaar).
 - De kleurkiezer: een exacte kleur kiezen die met je bericht wordt meegestuurd.
 - De fotobank (groene foto-knop): alles wat ooit op de site stond; per foto is er "Gebruik in opdracht" — daarna typ je wat ermee moet gebeuren.
@@ -187,9 +192,9 @@ export async function POST(req: Request) {
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
-    if (files.length > 12) {
+    if (files.length > MAX_FOTOS) {
       return NextResponse.json(
-        { error: "Maximaal 12 foto's per bericht" },
+        { error: `Maximaal ${MAX_FOTOS} foto's per bericht` },
         { status: 400 },
       );
     }
@@ -479,6 +484,15 @@ export async function POST(req: Request) {
         ? `wv-${site.siteSlug}`
         : null;
 
+    // Foto's alvast laten beschrijven door een klein, snel model — parallel met
+    // het ophalen van de site. Zo hoeft de site-AI ze niet één voor één te
+    // openen (twintig leesrondes = minuten; parallel beschrijven = seconden).
+    const fotoBelofte = afbeeldingen.length
+      ? import("@/lib/foto-beschrijving").then((m) =>
+          m.beschrijfFotos(afbeeldingen, req.signal),
+        )
+      : Promise.resolve({ beschrijvingen: [], kostenUsd: 0 });
+
     // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
     // bericht een pure, letterlijke tekstwissel is die zonder agent kan.
     const snelBelofte =
@@ -578,6 +592,16 @@ export async function POST(req: Request) {
               ),
             );
           }
+
+          if (afbeeldingen.length > 3)
+            stuur({
+              type: "status",
+              tekst: `Ik bekijk je ${afbeeldingen.length} foto's...`,
+            });
+          const { beschrijvingen: fotoBeschrijvingen, kostenUsd: fotoKosten } =
+            await fotoBelofte;
+          if (fotoKosten > 0)
+            await settleAiBudget(scope, maand, 0, fotoKosten).catch(() => {});
 
           const siteOverzicht = snelpad ? "" : await maakSiteOverzicht(werkmap);
           tik("voorbereid");
@@ -722,7 +746,12 @@ export async function POST(req: Request) {
               ? `De eigenaar heeft een VIDEO meegestuurd; die is al gecomprimeerd voor het web en staat op ${videoPaden.video}${videoPaden.poster ? ` met poster-afbeelding ${videoPaden.poster}` : ""}. Plaats hem waar het bericht om vraagt. Als achtergrond/hero-video: <video autoplay muted loop playsinline preload="metadata"${videoPaden.poster ? ` poster="/${videoPaden.poster}"` : ""}> met <source src="/${videoPaden.video}" type="video/mp4">, netjes gepositioneerd achter de tekst, en respecteer prefers-reduced-motion (dan alleen de poster). Als gewone video op een pagina: <video controls preload="metadata" poster=...>. Verwijder een eventuele oude hero-video-verwijzing die hij vervangt, maar laat het oude bestand staan.`
               : null,
             afbeeldingen.length > 1
-              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => `${a.naam}${a.kwaliteit ? ` [LET OP: ${a.kwaliteit}]` : ""}`).join(", ")} (geoptimaliseerd, max 1600px breed). BEKIJK ze eerst met lees_bestand. Staat er een LET OP bij een foto, beoordeel dan bij het bekijken of hij echt te onscherp of te klein is voor de gevraagde plek — zo ja, plaats hem niet stilzwijgend groot maar waarschuw kort en bied een keuze (kleiner plaatsen, een scherpere foto uit de fotobank, of een nieuwe foto vragen). Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
+              ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan al klaar in de werkmap (geoptimaliseerd, max 1600px breed) en zijn voor je bekeken — hieronder staat per foto wat erop te zien is:\n${afbeeldingen
+                  .map((a) => {
+                    const b = fotoBeschrijvingen.find((x) => x.naam === a.naam);
+                    return `- ${a.naam}: ${b?.beschrijving ?? "(nog niet bekeken)"}${a.kwaliteit ? ` [LET OP: ${a.kwaliteit}]` : ""}`;
+                  })
+                  .join("\n")}\nGebruik deze beschrijvingen voor je alt-teksten en om te bepalen welke foto waar past. Open ze NIET met lees_bestand — dat kost de eigenaar onnodig veel wachttijd; alleen als je over één specifieke foto echt twijfelt mag je die ene openen. Staat er een LET OP bij een foto, beoordeel dan of hij te onscherp of te klein is voor de gevraagde plek — zo ja, plaats hem niet stilzwijgend groot maar waarschuw kort en bied een keuze (kleiner plaatsen, een scherpere foto uit de fotobank, of een nieuwe foto vragen). Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
               : afbeeldingen.length === 1
                 ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met lees_bestand. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
                 : null,
