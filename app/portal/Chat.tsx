@@ -426,7 +426,10 @@ export default function Chat({
   /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
   function gaNaar(pad: string) {
     if (isMobiel) setMobielWeergave("site");
-    const p = pad === "index.html" ? "" : pad;
+    // Het basisadres eindigt al op een slash: een pad dat er ook mee begint
+    // gaf "site.nl//galerij/" — en dat is een 404.
+    const schoon = pad.replace(/^\/+/, "");
+    const p = schoon === "index.html" ? "" : schoon;
     huidigeRef.current = "/" + p;
     setHuidigePagina("/" + p);
     setIframeSrc(basisVoor(true) + p);
@@ -1280,7 +1283,13 @@ export default function Chat({
         herlaad(true);
         toonWerkversie();
         setOngedaanKans(null);
-        setOplevering({ paden: [huidigeRef.current === "/" ? "index.html" : huidigeRef.current] });
+        setOplevering({
+          paden: [
+            huidigeRef.current === "/"
+              ? "index.html"
+              : `${huidigeRef.current.replace(/^\/+|\/+$/g, "")}/index.html`,
+          ],
+        });
         setChatOpen(false);
       } else if (data.fallback) {
         setLaderTekst(null);
