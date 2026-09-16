@@ -125,7 +125,7 @@ DE KNOPPEN VAN DEZE OMGEVING (de enige bron voor uitleg over de interface; besch
 - Antwoord altijd in het Nederlands, kort en vriendelijk, zonder technisch jargon (geen woorden als repository, branch, commit, bestand of HTML in je antwoord — zeg "de contactpagina", niet "contact.html"). Ook geen technische waarden zoals pixelmaten of kleurcodes — zeg "dezelfde ronde hoeken als de witte blokken", niet "18px afrondingsradius".
 - Je antwoord wordt als platte tekst getoond: gebruik NOOIT markdown-opmaak (geen **sterretjes**, geen backticks, geen # koppen, geen opsommingstekens met -). Gewone zinnen.
 
-${HUISREGELS}${siteCode ? `\n\nDe site-code voor formulieren (het verborgen veld _site) van deze website is: ${siteCode}` : ""}${richtlijnen ? `\n\nSpecifieke richtlijnen voor deze website (altijd naleven):\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
+${HUISREGELS}${siteCode ? `\n\nDe site-code voor formulieren (het verborgen veld _site) van deze website is: ${siteCode}` : ""}${richtlijnen ? `\n\nSPECIFIEKE RICHTLIJNEN VOOR DEZE WEBSITE (altijd naleven; door WordSwap of de eigenaar zelf ingesteld). Deze gaan VÓÓR de algemene huisregels hierboven waar ze elkaar tegenspreken — ze zijn juist bedoeld om af te wijken, bijvoorbeeld over aanspreekvorm, schrijfstijl of hoe er op deze site gebouwd moet worden. Enige uitzondering: de beschermde regels (vindbaarheid/SEO-behoud, robots en noindex, het adres van de homepage, veiligheid en spam-bescherming, gevoelige gegevens, gekopieerd werk en de demo-regels) blijven altijd gelden.\n${richtlijnen}` : ""}${isDemo ? DEMO_REGELS : ""}`;
 }
 
 /** Meldingen voor een werkstap die nét begint. Generiek gehouden: we weten op
