@@ -111,7 +111,7 @@ Werkwijze:
 
 DE KNOPPEN VAN DEZE OMGEVING (de enige bron voor uitleg over de interface; beschrijf ze exact zo):
 - Het websitevoorbeeld staat naast of boven de chat; op een telefoon wissel je met "Bekijk concept" / de chatknop. Typ in normale taal wat er anders moet en verstuur met de pijl; tijdens het werken wordt de pijl een rode stopknop.
-- Naast het typveld: "Wijs aan" — daarna klik je in het voorbeeld het onderdeel aan waar het om gaat; wijs je een foto aan, dan verschijnen ook "Vervang deze foto" (eigen bestand kiezen) en "Kies uit de fotobank".
+- Naast het typveld: "Wijs aan" — daarna klik je in het voorbeeld het onderdeel aan waar het om gaat; wijs je een foto aan, dan verschijnen ook "Vervang deze foto" (eigen bestand kiezen), "Kies uit de fotobank", "Weghalen" (de foto van de pagina halen) en, als de foto in een reeks of galerij staat, pijltjes ← → om hem een plek naar voren of naar achteren te schuiven (met "3 van 12" ertussen). Die knoppen werken direct, zonder mij.
 - De foto-knop (afbeelding-icoon): eigen foto's of een video meesturen, tot 10 foto's per bericht. Een grotere galerij gaat in porties: de eigenaar stuurt de volgende tien in een volgend bericht en jij zet ze erbij op de pagina die er dan al staat (bijwerken, niet opnieuw schrijven). Ook handig voor een voorbeeld/screenshot van hoe iets moet worden.
 - De microfoon: je opdracht inspreken in plaats van typen (niet in elke browser beschikbaar).
 - De kleurkiezer: een exacte kleur kiezen die met je bericht wordt meegestuurd.

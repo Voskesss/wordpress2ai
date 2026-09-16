@@ -482,6 +482,67 @@ export default function Chat({
     } catch {}
   }
 
+  // Directe foto-acties (weghalen, een plek opschuiven). De pijltjes tonen we
+  // alleen als de foto echt in een reeks staat — anders wordt de balk een
+  // knoppenfabriek voor niets.
+  const [fotoReeks, setFotoReeks] = useState<{ positie: number; totaal: number } | null>(null);
+  const [fotoActieBezig, setFotoActieBezig] = useState(false);
+  async function fotoActie(actie: "info" | "verwijder" | "voor" | "achter") {
+    const src = selectie?.html.match(/src=["']([^"']+)["']/)?.[1];
+    if (!src) return;
+    if (actie !== "info") {
+      if (fotoActieBezig || bezig) return;
+      if (
+        actie === "verwijder" &&
+        !window.confirm("Deze foto van de pagina halen? Je ziet het eerst als concept.")
+      )
+        return;
+      setFotoActieBezig(true);
+      setLaderTekst(actie === "verwijder" ? "Foto weghalen..." : "Foto verplaatsen...");
+    }
+    try {
+      const res = await fetch("/api/foto-ordenen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, src, pagina: huidigePagina, actie }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean; inReeks?: boolean; positie?: number; totaal?: number;
+        reply?: string; melding?: string; previewUrl?: string; changeId?: number; bestanden?: string[];
+      };
+      if (actie === "info") {
+        setFotoReeks(data.ok && data.inReeks ? { positie: data.positie ?? 1, totaal: data.totaal ?? 1 } : null);
+        return;
+      }
+      if (!res.ok || !data.ok) {
+        setBerichten((b) => [...b, { rol: "assistent", tekst: data.melding ?? "Dat lukte niet — vraag het gerust in de chat." }]);
+        setChatOpen(true);
+        return;
+      }
+      setBerichten((b) => [
+        ...b,
+        { rol: "klant", tekst: actie === "verwijder" ? "🗑️ Foto weggehaald" : "↔️ Foto verplaatst" },
+        { rol: "assistent", tekst: data.reply ?? "Aangepast!", metVerversTip: true },
+      ]);
+      if (data.previewUrl && data.changeId) {
+        setConcept({ changeId: data.changeId, previewUrl: data.previewUrl, prompt: "Foto-actie", paginas: data.bestanden ?? [] });
+      }
+      setSelectie(null);
+      setFotoReeks(null);
+      herlaad(true);
+      toonWerkversie();
+    } finally {
+      setFotoActieBezig(false);
+      setLaderTekst(null);
+    }
+  }
+  // Zodra de eigenaar een foto aanwijst: één keer opvragen of hij in een reeks staat
+  useEffect(() => {
+    if (selectie?.tag === "img") void fotoActie("info");
+    else setFotoReeks(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectie?.html]);
+
   function stop() {
     stopRef.current?.abort();
     meldStopAanServer();
@@ -2530,6 +2591,38 @@ export default function Chat({
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
                   >
                     🎬 Vervang deze video
+                  </button>
+                )}
+                {selectie.tag === "img" && fotoReeks && (
+                  <span className="flex shrink-0 items-center gap-1">
+                    <button
+                      onClick={() => fotoActie("voor")}
+                      disabled={bezig || fotoActieBezig || fotoReeks.positie <= 1}
+                      title="Een plek naar voren"
+                      className="rounded-full border border-violet-400 px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-40 cursor-pointer"
+                    >
+                      ←
+                    </button>
+                    <span className="text-xs text-violet-700">
+                      {fotoReeks.positie} van {fotoReeks.totaal}
+                    </span>
+                    <button
+                      onClick={() => fotoActie("achter")}
+                      disabled={bezig || fotoActieBezig || fotoReeks.positie >= fotoReeks.totaal}
+                      title="Een plek naar achteren"
+                      className="rounded-full border border-violet-400 px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-40 cursor-pointer"
+                    >
+                      →
+                    </button>
+                  </span>
+                )}
+                {selectie.tag === "img" && (
+                  <button
+                    onClick={() => fotoActie("verwijder")}
+                    disabled={bezig || fotoActieBezig}
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    🗑️ Weghalen
                   </button>
                 )}
                 {selectie.tag === "img" && (
