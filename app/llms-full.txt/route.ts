@@ -30,7 +30,7 @@ Wijzigingen via de ingebouwde chat verschijnen als concept. De eigenaar controle
 ${aanbod.eigenAi}
 
 ## Wie zit erachter?
-Jos Klijnhout is de oprichter en het persoonlijke aanspreekpunt. WordSwap is een handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, Lebretweg 72, 6861 ZZ Oosterbeek, Nederland. Actief sinds 2026. Contact: info@wordswap.nl.
+Jos Klijnhout is de oprichter en het persoonlijke aanspreekpunt. WordSwap is een handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, Lebretweg 72, 6861 ZZ Oosterbeek, Nederland. Actief sinds 2026. Contact: info@wordswap.nl, telefoon 026 234 01 22 (+31 26 234 01 22).
 
 ## Veelgestelde vragen
 ${aankoopVragen.map(([q, a]) => `### ${q}\n${a}`).join("\n\n")}

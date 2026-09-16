@@ -9,6 +9,7 @@ import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
+import { TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,6 +83,15 @@ const jsonLd = {
         addressCountry: "NL",
       },
       email: "info@wordswap.nl",
+      telephone: "+31262340122",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "klantenservice",
+        telephone: "+31262340122",
+        email: "info@wordswap.nl",
+        areaServed: "NL",
+        availableLanguage: "nl",
+      },
       areaServed: { "@type": "Country", name: "Nederland" },
       knowsLanguage: "nl",
     },
@@ -217,6 +227,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 </p>
                 <p>
                   <a href="mailto:info@wordswap.nl">info@wordswap.nl ↗</a>
+                  <br />
+                  <a href={`tel:${TELEFOON_LINK}`}>{TELEFOON}</a>
                 </p>
               </div>
               <nav aria-label="Ontdek WordSwap">

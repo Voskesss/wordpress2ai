@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
 import LeadForm from "./LeadForm";
 import ContactVoorkeur from "./ContactVoorkeur";
-import { josFoto } from "@/lib/persoonlijk";
+import { josFoto, TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
   title: "Gratis WordPress-websitecheck: geschiktheid en prijs",
@@ -62,7 +62,7 @@ export default async function Contact({
             "Geschiktheid: welke pagina’s en functies kunnen mee?",
             "Aandachtspunten: je domein, mail en SEO-structuur",
             "Een voorstel met overstapprijs, maandbedrag en eventuele extra’s",
-            "Liever even bellen? Dat kan, ook ’s avonds: jij kiest het moment",
+            "Een terugbelmoment dat jou uitkomt, ook ’s avonds",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
               <span className="mt-1 text-[#31956B] shrink-0">✓</span>
@@ -70,6 +70,21 @@ export default async function Contact({
             </li>
           ))}
         </ul>
+        <div className="mt-8 rounded-xl border border-stone-200 bg-white px-4 py-3">
+          <p className="text-sm font-semibold text-stone-800">Liever meteen bellen?</p>
+          <p className="mt-1">
+            <a
+              href={`tel:${TELEFOON_LINK}`}
+              className="text-xl font-semibold text-[#244b3d] underline-offset-4 hover:underline"
+            >
+              {TELEFOON}
+            </a>
+          </p>
+          <p className="mt-1 text-sm text-stone-500">
+            Je krijgt Jos zelf aan de lijn. Niet bereikbaar? Laat je nummer achter in het
+            formulier, dan belt hij je terug op het moment dat jou uitkomt.
+          </p>
+        </div>
         {josFoto() && (
           <div className="mt-10 flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}

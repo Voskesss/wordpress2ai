@@ -27,7 +27,7 @@ ${aanbod.seo}
 - [Veelgestelde vragen](https://wordswap.nl/veelgestelde-vragen): alle antwoorden op één plek, waaronder wat je via de chat kunt aanpassen en dat je nooit vastzit (bestanden altijd zelf te downloaden)
 - [Veiligheid](https://wordswap.nl/veiligheid): risico’s, accounts, hosting en goedkeuring
 - [Zelf doen](https://wordswap.nl/zelf-doen): technische handleiding
-- [Contact](https://wordswap.nl/contact): gratis geschiktheidscheck en prijsvoorstel
+- [Contact](https://wordswap.nl/contact): gratis geschiktheidscheck en prijsvoorstel — telefoon 026 234 01 22, e-mail info@wordswap.nl
 - [Voorwaarden](https://wordswap.nl/voorwaarden): afspraken, prijzen en eigendom
 - [Sitemap](https://wordswap.nl/sitemap.xml): alle openbare pagina’s
 `;

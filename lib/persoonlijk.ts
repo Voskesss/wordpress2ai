@@ -6,6 +6,11 @@ import path from "node:path";
  * YouTube-link hieronder in (wordt cookie-vrij ingesloten). */
 export const JOS_VIDEO_URL = ""; // bv. "https://www.youtube.com/watch?v=XXXX"
 
+/** Zakelijk telefoonnummer. TELEFOON is wat de bezoeker leest, TELEFOON_LINK
+ * wat in de tel:-link staat — één plek, zodat het overal gelijk blijft. */
+export const TELEFOON = "026 234 01 22";
+export const TELEFOON_LINK = "+31262340122";
+
 export function josFoto(): string | null {
   return existsSync(path.join(process.cwd(), "public", "team", "jos.webp"))
     ? "/team/jos.webp"
