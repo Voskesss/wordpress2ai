@@ -31,6 +31,14 @@ export const maxDuration = 300;
 
 const FAIR_USE_LIMIET = 30;
 
+// Documenten (pdf) die bezoekers kunnen downloaden: vacatures, voorwaarden,
+// menukaarten. Ze gaan gewoon mee in de repo van de site — grenzen houden dat
+// gezond (een site blijft zo klein genoeg om snel te laden en te klonen).
+const DOCUMENTEN_MAP = "bestanden";
+const MAX_DOC_BYTES = 10 * 1024 * 1024;
+const MAX_DOCS_PER_BERICHT = 4;
+const MAX_DOCUMENTEN_TOTAAL_BYTES = 100 * 1024 * 1024;
+
 const DEMO_REGELS = `
 
 DIT IS EEN OPENBARE PROBEER-DEMO. Extra regels, zonder uitzondering:
@@ -138,6 +146,9 @@ export async function POST(req: Request) {
   let huidigePagina: string | undefined;
   let videoCommandId: string | undefined;
   let afbeeldingen: { naam: string; data: Buffer; kwaliteit?: string | null }[] = [];
+  // Meegestuurde documenten (pdf) — komen in bestanden/ en worden op de site
+  // een downloadlink; ze gaan nooit door sharp heen.
+  let documenten: { naam: string; data: Buffer; kb: number }[] = [];
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
@@ -211,6 +222,50 @@ export async function POST(req: Request) {
         naam: `afbeeldingen/${naam}.webp`,
         data,
         kwaliteit: kwaliteitsWaarschuwing(await meetFotoKwaliteit(origineel)),
+      });
+    }
+    const docs = form
+      .getAll("document")
+      .filter((f): f is File => f instanceof File && f.size > 0);
+    if (docs.length > MAX_DOCS_PER_BERICHT) {
+      return NextResponse.json(
+        { error: `Maximaal ${MAX_DOCS_PER_BERICHT} documenten per bericht` },
+        { status: 400 },
+      );
+    }
+    const gebruikteDocnamen = new Set<string>();
+    for (const file of docs) {
+      if (file.size > MAX_DOC_BYTES) {
+        return NextResponse.json(
+          {
+            error: `${file.name} is te groot (max ${MAX_DOC_BYTES / 1024 / 1024} MB). Sla de pdf op als kleiner bestand en stuur hem opnieuw.`,
+          },
+          { status: 400 },
+        );
+      }
+      const data = Buffer.from(await file.arrayBuffer());
+      // Echt een pdf? Een andersoortig bestand met .pdf-naam hoort niet op de site.
+      if (data.subarray(0, 5).toString("latin1") !== "%PDF-") {
+        return NextResponse.json(
+          { error: `${file.name} is geen echt pdf-bestand. Je kunt alleen pdf’s meesturen.` },
+          { status: 400 },
+        );
+      }
+      const basisnaam =
+        file.name
+          .replace(/\.[^.]+$/, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 60) || "document";
+      let naam = basisnaam;
+      let n = 2;
+      while (gebruikteDocnamen.has(naam)) naam = `${basisnaam}-${n++}`;
+      gebruikteDocnamen.add(naam);
+      documenten.push({
+        naam: `${DOCUMENTEN_MAP}/${naam}.pdf`,
+        data,
+        kb: Math.round(data.length / 1024),
       });
     }
   } else {
@@ -304,6 +359,11 @@ export async function POST(req: Request) {
       );
     // Demo: geen foto-uploads en een daglimiet per gebruiker
     if (site.isDemo) {
+      if (documenten.length > 0) {
+        return NextResponse.json({
+          reply: "In de demo kun je geen document meesturen. Bij je eigen website kun je wel pdf’s (bijvoorbeeld een vacature of de voorwaarden) meesturen in de chat; ik zet ze dan op je site met een nette downloadlink.",
+        }, { status: 403 });
+      }
       if (afbeeldingen.length > 0) {
         return NextResponse.json({
           reply: "In de demo kun je geen foto meesturen met een chatopdracht. Wijs een bestaande foto aan en kies Vervang deze foto. Bij je eigen website kun je wel foto’s meesturen in de chat.",
@@ -419,7 +479,7 @@ export async function POST(req: Request) {
     // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
     // bericht een pure, letterlijke tekstwissel is die zonder agent kan.
     const snelBelofte =
-      afbeeldingen.length === 0 && !videoCommandId && !selectie && !kleur && !controle && !fotobankPad
+      afbeeldingen.length === 0 && documenten.length === 0 && !videoCommandId && !selectie && !kleur && !controle && !fotobankPad
         ? classificeerTekstwissel(bericht).catch(() => null)
         : Promise.resolve(null);
 
@@ -523,6 +583,36 @@ export async function POST(req: Request) {
             const doel = path.join(werkmap, foto.naam);
             await mkdir(path.dirname(doel), { recursive: true });
             await writeFile(doel, foto.data);
+          }
+
+          // Meegestuurde documenten wegschrijven, maar niet als de documentmap
+          // daarmee over de grens gaat: een site moet klein en snel blijven.
+          let documentenVol = false;
+          if (documenten.length > 0) {
+            const { stat, readdir } = await import("node:fs/promises");
+            const map = path.join(werkmap, DOCUMENTEN_MAP);
+            const bestaandeBytes = await readdir(map)
+              .then(async (namen) =>
+                (
+                  await Promise.all(
+                    namen.map((n) =>
+                      stat(path.join(map, n))
+                        .then((s) => (s.isFile() ? s.size : 0))
+                        .catch(() => 0),
+                    ),
+                  )
+                ).reduce((a, b) => a + b, 0),
+              )
+              .catch(() => 0);
+            const nieuweBytes = documenten.reduce((a, d) => a + d.data.length, 0);
+            if (bestaandeBytes + nieuweBytes > MAX_DOCUMENTEN_TOTAAL_BYTES) {
+              documentenVol = true;
+            } else {
+              await mkdir(map, { recursive: true });
+              for (const doc of documenten) {
+                await writeFile(path.join(werkmap, doc.naam), doc.data);
+              }
+            }
           }
 
           // "Klopt niet, kijk zelf even": schermafbeelding van precies wat de
@@ -632,6 +722,15 @@ export async function POST(req: Request) {
               ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan op: ${afbeeldingen.map((a) => `${a.naam}${a.kwaliteit ? ` [LET OP: ${a.kwaliteit}]` : ""}`).join(", ")} (geoptimaliseerd, max 1600px breed). BEKIJK ze eerst met lees_bestand. Staat er een LET OP bij een foto, beoordeel dan bij het bekijken of hij echt te onscherp of te klein is voor de gevraagde plek — zo ja, plaats hem niet stilzwijgend groot maar waarschuw kort en bied een keuze (kleiner plaatsen, een scherpere foto uit de fotobank, of een nieuwe foto vragen). Gaat het om een verzameling (portfolio, galerij, projecten, "ons werk")? Behandel dit dan als iets NIEUWS volgens de webdesigner-regel: stel eerst je vragen mét KEUZES-regel — aparte pagina of sectie op een bestaande pagina? menu-item en waar? wil de eigenaar een titel/tekstje per foto (stel er per foto zelf één voor op basis van wat je op de foto ziet), of alleen de foto's? Bouw daarna het geheel in de stijl van de site, met alt-teksten per foto.`
               : afbeeldingen.length === 1
                 ? `De eigenaar heeft een afbeelding meegestuurd; die staat op het pad ${afbeeldingen[0].naam} (geoptimaliseerd, max 2000px breed). BEKIJK hem eerst met lees_bestand. Bepaal uit het bericht wat de bedoeling is: (a) een foto om op de site te plaatsen — zet hem dan op de gevraagde plek met een passende alt-tekst; (b) een VOORBEELD van hoe iets eruit moet zien (schets, screenshot van een andere site, gewenste stijl) — bouw na wat er te zien is en plaats de afbeelding zelf NIET op de site; of (c) een SCREENSHOT VAN DE EIGEN SITE waarop iets niet goed staat (scheve uitlijning, verkeerde kleur, kapotte sectie) — herken om welke pagina en welk onderdeel het gaat, zoek die plek op in de bestanden en los precies dát probleem op; ook hier de afbeelding NIET plaatsen.`
+                : null,
+            documenten.length > 0 && documentenVol
+              ? `De eigenaar heeft ${documenten.length === 1 ? "een document" : `${documenten.length} documenten`} meegestuurd, maar de documentenmap van deze site zit vol (grens: ${MAX_DOCUMENTEN_TOTAAL_BYTES / 1024 / 1024} MB). Het bestand is NIET opgeslagen. Zeg dat eerlijk en vriendelijk, noem welke documenten er nu op de site staan (zie de plattegrond) en stel voor om er eerst een paar weg te halen die niet meer nodig zijn, of om contact op te nemen met WordSwap voor meer ruimte. Doe verder niets met het document.`
+              : documenten.length > 0
+                ? `De eigenaar heeft ${documenten.length === 1 ? "een document" : `${documenten.length} documenten`} meegestuurd (pdf). ${documenten.length === 1 ? `Het staat op ${documenten[0].naam} (${documenten[0].kb} kB).` : `Ze staan op: ${documenten.map((d) => `${d.naam} (${d.kb} kB)`).join(", ")}.`} Open een pdf NOOIT met lees_bestand — dat is een binair bestand en levert onleesbare tekens op; je hoeft de inhoud niet te kennen. Wat je wél doet:
+1. Weet je uit het bericht waar het document moet komen (bijvoorbeeld "zet de vacature op de vacaturepagina")? Zet er dan een duidelijke downloadlink neer, in de stijl van de site: <a href="/${documenten[0].naam}" target="_blank" rel="noopener">Download de vacature (PDF, ${documenten[0].kb} kB)</a>. Altijd beschrijvende linktekst (nooit "klik hier" of alleen de bestandsnaam), altijd het soort bestand en de grootte erbij, en altijd in een nieuw tabblad.
+2. Staat er niet bij waar het heen moet? Vraag dat dan kort, met een KEUZES-regel met de meest logische plekken (bestaande pagina's uit de plattegrond, of een nieuwe pagina). Het bestand blijft gewoon bewaard — vraag NOOIT om het opnieuw mee te sturen.
+3. Gaat het om een vacature, en staat er nog geen vacaturepagina op de site? Dan mag je één keer voorstellen om de tekst óók als gewone webpagina te zetten (beter vindbaar in Google, prettiger op mobiel) met de pdf als download erbij. De eigenaar beslist; hij hoeft het niet, en je dringt niet aan.
+4. Kan het document persoonsgegevens van anderen bevatten (een ingevuld formulier, een lijst met namen, een cv, een offerte)? Waarschuw dan kort dat alles op de site voor iedereen te downloaden is, en vraag of hij dat zeker weet vóór je het plaatst.`
                 : null,
             openConcept
               ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
@@ -773,6 +872,22 @@ export async function POST(req: Request) {
               if (!gebruikt) ongebruikteUploads.push(foto.naam);
             }
           }
+          // Zelfde voor een meegestuurd document: heeft de AI er nog geen link
+          // naar gemaakt (bijvoorbeeld omdat hij eerst vraagt waar het moet
+          // komen), dan is het geen wijziging — het bestand blijft wel bewaard.
+          if (documenten.length > 0 && !documentenVol) {
+            const { alleHtmlBestanden } = await import("@/lib/werkmap");
+            const htmls = await alleHtmlBestanden(werkmap);
+            for (const doc of documenten) {
+              const bestandsnaam = path.basename(doc.naam);
+              let gebruikt = false;
+              for (const rel of htmls) {
+                const inhoud = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
+                if (inhoud.includes(bestandsnaam)) { gebruikt = true; break; }
+              }
+              if (!gebruikt) ongebruikteUploads.push(doc.naam);
+            }
+          }
           // Zelfde voor een meegestuurde video: staat hij nergens in de site,
           // dan is het (nog) geen wijziging — alleen een bewaard bestand
           if (videoPaden) {
@@ -807,8 +922,15 @@ export async function POST(req: Request) {
                 ),
                 "Meegestuurd bestand bewaard (nog niet geplaatst)",
               );
-              const alleenVideo = afbeeldingen.length === 0 && Boolean(videoPaden);
-              reply = `${reply}\n\n(${alleenVideo ? "Je video is wel bewaard op je site" : "Je foto is wel bewaard in de fotobank van je site"}, dus opnieuw meesturen hoeft niet.)`;
+              const alleenVideo = afbeeldingen.length === 0 && documenten.length === 0 && Boolean(videoPaden);
+              const alleenDocument = afbeeldingen.length === 0 && !videoPaden && documenten.length > 0;
+              reply = `${reply}\n\n(${
+                alleenDocument
+                  ? `Je ${documenten.length > 1 ? "documenten staan" : "document staat"} wel al veilig op je site`
+                  : alleenVideo
+                    ? "Je video is wel bewaard op je site"
+                    : "Je foto is wel bewaard in de fotobank van je site"
+              }, dus opnieuw meesturen hoeft niet.)`;
             } catch (e) {
               console.error("Fotobank-bewaren mislukt:", e);
             }

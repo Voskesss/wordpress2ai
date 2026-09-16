@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as tar from "tar";
@@ -110,6 +110,7 @@ export async function maakSiteOverzicht(dir: string): Promise<string> {
   const paden = await alleBestanden(dir);
   const regels: string[] = [];
   const afbeeldingen: string[] = [];
+  const documenten: string[] = [];
   const overig: string[] = [];
 
   const kaal = (s: string) =>
@@ -145,6 +146,13 @@ export async function maakSiteOverzicht(dir: string): Promise<string> {
       }
     } else if (/\.svg$/i.test(pad)) {
       afbeeldingen.push(pad);
+    } else if (/\.(pdf|docx?|xlsx?|pptx?)$/i.test(pad)) {
+      // Documenten die bezoekers kunnen downloaden (vacatures, voorwaarden,
+      // menukaarten). Met de grootte erbij, want die hoort in de linktekst.
+      const kb = await stat(path.join(dir, pad))
+        .then((s) => Math.round(s.size / 1024))
+        .catch(() => 0);
+      documenten.push(`${pad}${kb ? ` (${kb} kB)` : ""}`);
     } else if (/\.(css|js|json|xml|txt)$/i.test(pad)) {
       overig.push(pad);
     }
@@ -156,6 +164,8 @@ Pagina's:
 ${regels.join("\n")}
 
 Overige bestanden: ${overig.join(", ") || "geen"}
+
+Documenten om naar te linken (${documenten.length}): ${documenten.slice(0, 40).join(", ") || "geen"}${documenten.length > 40 ? ", ..." : ""}
 
 Afbeeldingen (${afbeeldingen.length}): ${afbeeldingen.slice(0, 60).join(", ")}${afbeeldingen.length > 60 ? ", ..." : ""}`;
 

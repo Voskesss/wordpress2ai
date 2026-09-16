@@ -123,7 +123,7 @@ export default function Chat({
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
   const [herstelFout, setHerstelFout] = useState<{ soort: "gesprek" | "bericht" | "publiceer" | "verwerp"; tekst: string } | null>(null);
-  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto: string | null; pagina: string } | null>(null);
+  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto: string | null; pagina: string } | null>(null);
 
   const [bezig, setBezigState] = useState(false);
   const bezigRef = useRef(false);
@@ -162,6 +162,9 @@ export default function Chat({
     }
   }
   const [afbeeldingen, setAfbeeldingen] = useState<File[]>([]);
+  // Meegestuurde pdf's (vacature, voorwaarden, menukaart): worden op de site
+  // een downloadlink — ze gaan apart mee, niet door de fotoverwerking heen
+  const [documenten, setDocumenten] = useState<File[]>([]);
   // Video via Rendi: na uploaden+comprimeren staat hier het opdracht-id klaar
   const [videoKlaar, setVideoKlaarState] = useState<{ commandId: string; naam: string } | null>(null);
   // Ref ernaast: verstuur() wordt soms direct na het zetten aangeroepen en
@@ -358,6 +361,7 @@ export default function Chat({
   const wachtrijRef = useRef<{
     tekst: string;
     fotos: File[];
+    docs?: File[];
     video: { commandId: string; naam: string } | null;
     sel: Selectie | null;
     kleur: string | null;
@@ -695,7 +699,7 @@ export default function Chat({
   async function verstuur(
     overrideTekst?: unknown,
     overrideAfbeelding?: File,
-    uitWachtrij?: { fotos: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto?: string | null },
+    uitWachtrij?: { fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto?: string | null },
     extra?: { controle?: boolean }
   ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
@@ -706,6 +710,7 @@ export default function Chat({
       wachtrijRef.current = {
         tekst: q ? `${q.tekst}\n${tekst}` : tekst,
         fotos: [...(q?.fotos ?? []), ...(overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen)].slice(0, 12),
+        docs: [...(q?.docs ?? []), ...(overrideAfbeelding ? [] : documenten)].slice(0, 4),
         video: videoKlaarRef.current ?? q?.video ?? null,
         sel: selectie ?? q?.sel ?? null,
         kleur: kleur ?? q?.kleur ?? null,
@@ -713,6 +718,7 @@ export default function Chat({
       };
       setInvoer("");
       setAfbeeldingen([]);
+      setDocumenten([]);
       setVideoKlaar(null);
       setSelectie(null);
       setKleur(null);
@@ -730,6 +736,8 @@ export default function Chat({
     setChatOpen(true);
     const teVersturen = uitWachtrij ? uitWachtrij.fotos : overrideAfbeelding ? [overrideAfbeelding] : afbeeldingen;
     setAfbeeldingen([]);
+    const teVersturenDocs = uitWachtrij ? (uitWachtrij.docs ?? []) : overrideAfbeelding ? [] : documenten;
+    setDocumenten([]);
     const meegestuurdeVideo = uitWachtrij ? uitWachtrij.video : videoKlaarRef.current;
     setVideoKlaar(null);
     const gekozen = uitWachtrij ? uitWachtrij.sel : selectie;
@@ -741,23 +749,30 @@ export default function Chat({
     if (!uitWachtrij) {
       setBerichten((b) => [
         ...b,
-        { rol: "klant", tekst: teVersturen.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
+        { rol: "klant", tekst: teVersturen.length > 0 || teVersturenDocs.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
       ]);
     }
     setBezig(true);
-    setStatusTekst(teVersturen.length > 0 ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...` : null);
-    const opdracht = { tekst, fotos: teVersturen, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, bankFoto: gekozenBankFoto, pagina: huidigePagina };
+    setStatusTekst(
+      teVersturen.length > 0
+        ? `Ik verwerk je foto${teVersturen.length > 1 ? "\u2019s" : ""}...`
+        : teVersturenDocs.length > 0
+          ? `Ik zet je ${teVersturenDocs.length > 1 ? "documenten" : "document"} klaar...`
+          : null,
+    );
+    const opdracht = { tekst, fotos: teVersturen, docs: teVersturenDocs, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, bankFoto: gekozenBankFoto, pagina: huidigePagina };
     let gelukt = false;
     const stopper = new AbortController();
     stopRef.current = stopper;
     try {
       const verstuurNaarServer = () => {
-        if (teVersturen.length > 0) {
+        if (teVersturen.length > 0 || teVersturenDocs.length > 0) {
           const form = new FormData();
           form.set("siteId", String(siteId));
           form.set("bericht", tekst);
           form.set("huidigePagina", huidigePagina);
           for (const f of teVersturen) form.append("afbeelding", f);
+          for (const f of teVersturenDocs) form.append("document", f);
           if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
           if (gekozen) form.set("selectie", JSON.stringify(gekozen));
           if (gekozenKleur) form.set("kleur", gekozenKleur);
@@ -903,7 +918,7 @@ export default function Chat({
       const q = wachtrijRef.current;
       if (q && gelukt) {
         wachtrijRef.current = null;
-        void verstuur(q.tekst, undefined, { fotos: q.fotos, video: q.video, sel: q.sel, kleur: q.kleur, bankFoto: q.bankFoto });
+        void verstuur(q.tekst, undefined, { fotos: q.fotos, docs: q.docs, video: q.video, sel: q.sel, kleur: q.kleur, bankFoto: q.bankFoto });
       }
       setStatusTekst(null);
     }
@@ -1257,6 +1272,7 @@ export default function Chat({
     if ((invoer.trim() || afbeeldingen.length || videoKlaarRef.current) && !window.confirm("Je huidige invoer vervangen door de bewaarde opdracht?")) return;
     setInvoer(opdracht.tekst);
     setAfbeeldingen(opdracht.fotos);
+    setDocumenten(opdracht.docs ?? []);
     setVideoKlaar(opdracht.video);
     setSelectie(opdracht.sel);
     setKleur(opdracht.kleur);
@@ -2560,6 +2576,30 @@ export default function Chat({
                 </span>
               </div>
             )}
+            {documenten.length > 0 && (
+              <div className="mx-2 mt-1 mb-2 flex flex-wrap items-center gap-2">
+                {documenten.map((doc, di) => (
+                  <div
+                    key={`${doc.name}-${di}`}
+                    className="flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-2.5 py-1.5"
+                  >
+                    <span aria-hidden className="text-base">📄</span>
+                    <span className="max-w-[10rem] truncate text-xs text-stone-600">{doc.name}</span>
+                    <span className="text-xs text-stone-400">{Math.max(1, Math.round(doc.size / 1024))} kB</span>
+                    <button
+                      onClick={() => setDocumenten((v) => v.filter((_, i) => i !== di))}
+                      aria-label={`${doc.name} verwijderen`}
+                      className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <span className="text-xs text-stone-400">
+                  Typ erbij waar het document moet komen — ik maak er een downloadlink van
+                </span>
+              </div>
+            )}
             <div className={`flex items-center gap-x-2 gap-y-1 ${smalleBalk ? "flex-wrap" : "flex-nowrap"}`}>
               {!chatOpen && berichten.length > 0 && (
                 <button
@@ -2579,7 +2619,7 @@ export default function Chat({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,video/mp4,video/quicktime,video/webm"
+                accept="image/*,video/mp4,video/quicktime,video/webm,application/pdf,.pdf"
                 multiple
                 className="hidden"
                 onChange={(e) => {
@@ -2587,7 +2627,40 @@ export default function Chat({
                   // Video: apart uploaden en comprimeren (via Rendi), daarna meesturen
                   const video = alles.find((f) => f.type.startsWith("video/"));
                   if (video) videoUploaden(video);
-                  const bestanden = alles.filter((f) => !f.type.startsWith("video/"));
+                  // Pdf's gaan als document mee: ze worden een downloadlink op de
+                  // site, dus ze horen niet in de fotoverwerking
+                  const isPdf = (f: File) =>
+                    f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+                  const pdfs = alles.filter(isPdf);
+                  if (pdfs.length > 0) {
+                    const teGroot = pdfs.find((f) => f.size > 10 * 1024 * 1024);
+                    if (teGroot) {
+                      setChatOpen(true);
+                      setBerichten((b) => [
+                        ...b,
+                        {
+                          rol: "assistent",
+                          tekst: `"${teGroot.name}" is groter dan 10 MB. Sla de pdf op in een kleiner formaat (in Word of Acrobat: "verkleinde grootte" of "geoptimaliseerd voor web") en stuur hem dan opnieuw — dan blijft je site ook snel voor bezoekers.`,
+                        },
+                      ]);
+                    } else if (isDemo) {
+                      setChatOpen(true);
+                      setBerichten((b) => [
+                        ...b,
+                        {
+                          rol: "assistent",
+                          tekst:
+                            "In deze demo kun je geen document meesturen. Bij je eigen website stuur je gewoon een pdf mee — bijvoorbeeld een vacature of je voorwaarden — en zet ik hem op je site met een nette downloadlink.",
+                        },
+                      ]);
+                    } else {
+                      setDocumenten((vorige) => [...vorige, ...pdfs].slice(0, 4));
+                    }
+                  }
+                  const bestanden = alles.filter((f) => !f.type.startsWith("video/") && !isPdf(f));
+                  // Alleen een pdf gekozen tijdens "vervang deze foto"? Dan is
+                  // die flow hier klaar — anders zou de volgende foto er stil in vallen.
+                  if (bestanden.length === 0 && pdfs.length > 0) fotoVervangRef.current = false;
                   if (bestanden[0] && fotoVervangRef.current) {
                     // Foto-vervangen-flow: eerste bestand direct verwerken (zonder AI)
                     fotoVervangRef.current = false;
@@ -2629,11 +2702,11 @@ export default function Chat({
                 <span className="hidden sm:inline whitespace-nowrap">Wijs aan</span>
               </button>
               </Tip>
-              <Tip tekst="Stuur eigen foto's mee om op de site te zetten (meerdere tegelijk kan — bijv. voor een portfolio)">
+              <Tip tekst="Stuur eigen foto's, een video of een pdf mee (meerdere tegelijk kan — bijv. voor een portfolio). Een pdf, zoals een vacature of je voorwaarden, zet ik op de site met een downloadlink.">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={bezig}
-                aria-label="Afbeelding toevoegen"
+                aria-label="Foto, video of document toevoegen"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
