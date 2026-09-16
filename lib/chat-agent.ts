@@ -29,6 +29,9 @@ export type AgentUitkomst = {
   tokensIn: number;
   tokensUit: number;
   kostenUsd: number;
+  /** Uit de cache gelezen invoertokens — maat voor hoeveel herhaald leeswerk
+   * we besparen (zichtbaar in de Vercel-logs). */
+  cacheGelezen: number;
 };
 
 const MAX_LEES = 60_000; // tekens per bestand richting het model
@@ -246,6 +249,7 @@ export async function draaiChatAgent(opties: {
   let tokensIn = 0;
   let tokensUit = 0;
   let kostenUsd = 0;
+  let cacheGelezen = 0;
   let limietBereikt = false;
   const [prijsIn, prijsUit] = PRIJZEN[opties.model] ?? [2, 10];
 
@@ -274,6 +278,7 @@ export async function draaiChatAgent(opties: {
     const cacheLees = (u.cache_read_input_tokens ?? 0) as number;
     const uitTok = (u.output_tokens ?? 0) as number;
     tokensIn += inTok + cacheSchrijf + cacheLees;
+    cacheGelezen += cacheLees;
     tokensUit += uitTok;
     kostenUsd +=
       (inTok * prijsIn +
@@ -291,5 +296,5 @@ export async function draaiChatAgent(opties: {
   // max_iterations bereikt terwijl het model nog tools wilde gebruiken
   if (laatste && laatste.stop_reason === "tool_use") limietBereikt = true;
 
-  return { reply, limietBereikt, tokensIn, tokensUit, kostenUsd };
+  return { reply, limietBereikt, tokensIn, tokensUit, kostenUsd, cacheGelezen };
 }

@@ -745,6 +745,7 @@ export async function POST(req: Request) {
           await assertNoSymlinks(werkmap);
           let reply = "";
           let limietBereikt = false;
+          let cacheGelezen = 0;
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
@@ -859,6 +860,7 @@ export async function POST(req: Request) {
             });
             reply = uitkomst.reply;
             limietBereikt = uitkomst.limietBereikt;
+            cacheGelezen = uitkomst.cacheGelezen;
             await settleAiBudget(
               scope,
               maand,
@@ -1110,7 +1112,7 @@ export async function POST(req: Request) {
           }
           tik("afgerond");
           console.log(
-            `[chat-tijd] site=${site.id} voorbereid=${tijden.voorbereid ?? "?"}s ai=${
+            `[chat-tijd] cache-gelezen=${cacheGelezen} site=${site.id} voorbereid=${tijden.voorbereid ?? "?"}s ai=${
               tijden.ai ?? "?"
             }s totaal=${tijden.afgerond ?? "?"}s bestanden=${gewijzigd.length}`,
           );
