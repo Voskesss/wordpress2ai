@@ -26,7 +26,7 @@ const fraunces = Fraunces({
   preload: false,
 });
 
-const siteUrl = "https://wordswap.nl";
+const siteUrl = "https://www.wordswap.nl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

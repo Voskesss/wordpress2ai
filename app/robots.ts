@@ -23,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "*", allow: "/" },
       ...aiBots.map((bot) => ({ userAgent: bot, allow: "/" })),
     ],
-    sitemap: "https://wordswap.nl/sitemap.xml",
+    sitemap: "https://www.wordswap.nl/sitemap.xml",
   };
 }
