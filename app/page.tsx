@@ -47,11 +47,11 @@ export default async function Home({
             <h1 className="hero-hoek">
               {hoek.kop}
               <br />
-              <em>Mijn website regelt zichzelf. Ik hoef het alleen maar te vragen.</em>
+              <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
             </h1>
           ) : (
             <h1>
-              Mijn website regelt zichzelf.
+              Mijn website regelt het.
               <br />
               <em>Ik hoef het alleen maar te vragen.</em>
             </h1>
