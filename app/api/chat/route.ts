@@ -32,10 +32,12 @@ import {
 // ruim vóór deze harde grens.
 export const maxDuration = 800;
 
-/** Hoeveel foto's er in één bericht mee mogen. Een hele galerij in één keer
- * moet kunnen; de beschrijvingen worden parallel gemaakt, dus meer foto's
- * kosten nauwelijks extra tijd. */
-export const MAX_FOTOS = 30;
+/** Hoeveel foto's er in één bericht mee mogen. Bewust klein gehouden: niet het
+ * aantal foto's is traag, maar de pagina die eruit volgt — één pagina met
+ * dertig foto's schrijven duurde gemeten 94 seconden in één stap. Met kleine
+ * porties ziet de eigenaar snel resultaat, en de volgende porties zijn kleine
+ * aanvullingen op een pagina die al bestaat. */
+export const MAX_FOTOS = 10;
 
 const FAIR_USE_LIMIET = 30;
 
@@ -110,7 +112,7 @@ Werkwijze:
 DE KNOPPEN VAN DEZE OMGEVING (de enige bron voor uitleg over de interface; beschrijf ze exact zo):
 - Het websitevoorbeeld staat naast of boven de chat; op een telefoon wissel je met "Bekijk concept" / de chatknop. Typ in normale taal wat er anders moet en verstuur met de pijl; tijdens het werken wordt de pijl een rode stopknop.
 - Naast het typveld: "Wijs aan" — daarna klik je in het voorbeeld het onderdeel aan waar het om gaat; wijs je een foto aan, dan verschijnen ook "Vervang deze foto" (eigen bestand kiezen) en "Kies uit de fotobank".
-- De foto-knop (afbeelding-icoon): eigen foto's of een video meesturen, tot 30 foto's per bericht — genoeg voor een hele galerij in één keer; meer dan 30 stuurt de eigenaar in een volgend bericht. Ook handig voor een voorbeeld/screenshot van hoe iets moet worden.
+- De foto-knop (afbeelding-icoon): eigen foto's of een video meesturen, tot 10 foto's per bericht. Een grotere galerij gaat in porties: de eigenaar stuurt de volgende tien in een volgend bericht en jij zet ze erbij op de pagina die er dan al staat (bijwerken, niet opnieuw schrijven). Ook handig voor een voorbeeld/screenshot van hoe iets moet worden.
 - De microfoon: je opdracht inspreken in plaats van typen (niet in elke browser beschikbaar).
 - De kleurkiezer: een exacte kleur kiezen die met je bericht wordt meegestuurd.
 - De fotobank (groene foto-knop): alles wat ooit op de site stond; per foto is er "Gebruik in opdracht" — daarna typ je wat ermee moet gebeuren.

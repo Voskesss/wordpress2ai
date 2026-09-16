@@ -83,9 +83,11 @@ async function verkleinVoorUpload(bestand: File): Promise<File> {
   }
 }
 
-/** Zoveel foto's mogen er in één bericht mee — genoeg voor een hele galerij.
- * Moet gelijk blijven aan MAX_FOTOS in de chat-route. */
-const MAX_FOTOS = 30;
+/** Zoveel foto's mogen er in één bericht mee. Klein gehouden omdat niet de
+ * foto's traag zijn, maar de pagina die eruit volgt; in porties ziet de
+ * eigenaar veel sneller resultaat. Moet gelijk blijven aan MAX_FOTOS in de
+ * chat-route. */
+const MAX_FOTOS = 10;
 
 function paginaLabel(pad: string) {
   const schoon = pad.replace(/^\/+|\/+$/g, "");
@@ -449,8 +451,8 @@ export default function Chat({
               rol: "assistent",
               tekst:
                 ruimte === 0
-                  ? `Er staan al ${MAX_FOTOS} foto's klaar — dat is het maximum dat ik in één bericht kan meenemen. Stuur dit bericht eerst; daarna zet ik de volgende ${teveel} er graag bij.`
-                  : `Ik kan er maximaal ${MAX_FOTOS} per bericht meenemen. De eerste ${ruimte} heb ik klaargezet; stuur dit bericht eerst en daarna de andere ${teveel}, dan zet ik ze er gewoon bij.`,
+                  ? `Er staan al ${MAX_FOTOS} foto's klaar — meer neem ik niet in één bericht mee, anders duurt het onnodig lang. Stuur dit bericht eerst; daarna zet ik de volgende ${teveel} er zo bij.`
+                  : `Ik neem er maximaal ${MAX_FOTOS} per bericht mee, anders duurt het onnodig lang. De eerste ${ruimte} staan klaar; stuur dit bericht eerst en daarna de andere ${teveel}, dan zet ik ze er gewoon bij op dezelfde pagina.`,
             },
           ]);
         }
@@ -2687,8 +2689,8 @@ export default function Chat({
                 <span className="text-xs text-stone-400">
                   {afbeeldingen.length} foto{afbeeldingen.length > 1 ? "'s" : ""}
                   {afbeeldingen.length >= MAX_FOTOS
-                    ? ` — dit is het maximum per bericht; stuur de rest in een volgend bericht`
-                    : ` — je kunt er tot ${MAX_FOTOS} per bericht meesturen`}
+                    ? ` — het maximum per bericht. Stuur dit eerst; daarna kun je er zo weer ${MAX_FOTOS} bij doen`
+                    : ` — tot ${MAX_FOTOS} per bericht; heb je er meer, dan stuur je ze in porties`}
                 </span>
               </div>
             )}
