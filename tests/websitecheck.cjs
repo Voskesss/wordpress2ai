@@ -34,7 +34,7 @@ const path = require("node:path");
                   ? `export const db={select(fields){return {from(){return {where(){globalThis.__form.reads++;return Promise.resolve(fields?[{n:globalThis.__form.rate}]:[{naam:'Test',domein:'example.invalid',notificatieEmail:'owner@example.invalid'}]);}}}}},insert(){return {values(){globalThis.__form.writes++;return globalThis.__form.failSave?Promise.reject(Error('offline')):Promise.resolve();}}}};`
                   : args.path === "@/lib/mail"
                     ? `export async function verstuurSiteMail(){globalThis.__form.mails++;}`
-                    : `export const sites={},formulierInzendingen={},webinars={};`,
+                    : `export const sites={},formulierInzendingen={},webinars={},webinarMails={},webinarMailInstellingen={};`,
             }));
           },
         },
