@@ -175,6 +175,23 @@ export default function Chat({
     setVideoKlaarState(v);
   }
   const [videoBezig, setVideoBezig] = useState(false);
+  // Keuzemenu onder de paperclip: zo is meteen duidelijk dat er naast foto's
+  // ook een video of een pdf mee kan
+  const [bijlageMenu, setBijlageMenu] = useState(false);
+  /** Opent de bestandskiezer, met alleen het gekozen soort bestand erin. */
+  function kiesBijlage(soort: "foto" | "video" | "pdf") {
+    setBijlageMenu(false);
+    const invoerveld = fileInputRef.current;
+    if (!invoerveld) return;
+    invoerveld.accept =
+      soort === "foto"
+        ? "image/*"
+        : soort === "video"
+          ? "video/mp4,video/quicktime,video/webm"
+          : "application/pdf,.pdf";
+    invoerveld.multiple = soort !== "video";
+    invoerveld.click();
+  }
   // Werkbalk rustig houden: extra gereedschap pas na een klik op ⋯
   const [meerOpties, setMeerOpties] = useState(false);
   // Aanwijs-flow: na de upload automatisch "vervang de aangewezen video" sturen
@@ -2350,7 +2367,7 @@ export default function Chat({
                   <button
                     onClick={() => {
                       fotoVervangRef.current = true;
-                      fileInputRef.current?.click();
+                      kiesBijlage("foto");
                     }}
                     disabled={bezig}
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
@@ -2376,7 +2393,7 @@ export default function Chat({
                   <button
                     onClick={() => {
                       videoVervangRef.current = true;
-                      fileInputRef.current?.click();
+                      kiesBijlage("video");
                     }}
                     disabled={bezig || videoBezig}
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
@@ -2702,20 +2719,62 @@ export default function Chat({
                 <span className="hidden sm:inline whitespace-nowrap">Wijs aan</span>
               </button>
               </Tip>
-              <Tip tekst="Stuur eigen foto's, een video of een pdf mee (meerdere tegelijk kan — bijv. voor een portfolio). Een pdf, zoals een vacature of je voorwaarden, zet ik op de site met een downloadlink.">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={bezig}
-                aria-label="Foto, video of document toevoegen"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="9" cy="10" r="1.8" fill="currentColor" />
-                  <path d="M5 17l4.5-4 3.5 3 2.5-2L19 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              </Tip>
+              <div className="relative shrink-0">
+                {bijlageMenu && (
+                  <>
+                    {/* Klik ernaast = menu dicht */}
+                    <button
+                      onClick={() => setBijlageMenu(false)}
+                      aria-label="Menu sluiten"
+                      className="fixed inset-0 z-30 cursor-default"
+                    />
+                    <div className="absolute bottom-12 left-0 z-40 w-64 overflow-hidden rounded-2xl border border-stone-200 bg-white py-1 shadow-xl">
+                      {(
+                        [
+                          { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
+                          { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt automatisch verkleind" },
+                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
+                        ] as const
+                      ).map((k) => (
+                        <button
+                          key={k.soort}
+                          onClick={() => kiesBijlage(k.soort)}
+                          className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                        >
+                          <span aria-hidden className="mt-0.5 text-base">{k.icoon}</span>
+                          <span>
+                            <span className="block text-sm font-semibold text-stone-800">{k.titel}</span>
+                            <span className="block text-xs text-stone-500">{k.uitleg}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <Tip tekst="Stuur een foto, video of pdf mee. Een pdf — bijvoorbeeld een vacature of je voorwaarden — zet ik op je site met een nette downloadlink.">
+                <button
+                  onClick={() => setBijlageMenu((v) => !v)}
+                  disabled={bezig}
+                  aria-label="Bestand toevoegen: foto, video of pdf"
+                  aria-expanded={bijlageMenu}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                    bijlageMenu ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"
+                  }`}
+                >
+                  {/* Paperclip: deze knop is niet meer alleen voor foto's — er
+                      kunnen ook video's en pdf's mee */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path
+                      d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                </Tip>
+              </div>
               {!meerOpties && (
                 <Tip tekst="Meer gereedschap: inspreken, kleur kiezen, fotobank en SEO">
                 <button
