@@ -2552,8 +2552,10 @@ export default function Chat({
           {/* Aangewezen onderdeel */}
           {selectie && (
             <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              <div className="flex items-center justify-between gap-3">
-                <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
+              {/* Mag afbreken naar een volgende regel: bij een foto in een reeks
+                  staan er vijf knoppen, en die passen niet op één regel. */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <p className="min-w-0 flex-1 basis-full truncate text-sm text-violet-900 sm:basis-auto">
                   <span className="font-semibold">Aangewezen:</span>{" "}
                   {selectie.tag === "img"
                     ? `foto: ${selectie.tekst || "zonder omschrijving"}`
