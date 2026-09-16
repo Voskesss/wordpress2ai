@@ -2538,9 +2538,9 @@ export default function Chat({
 
           {/* Uit de fotobank gekozen foto */}
           {fotobankKeuze && (
-            <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              <div className="flex items-center justify-between gap-3">
-                <p className="min-w-0 flex-1 truncate text-sm text-violet-900">
+            <div className="mb-3 min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <p className="line-clamp-2 min-w-0 flex-1 break-words text-sm text-violet-900">
                   <span className="font-semibold">Foto uit de bank:</span>{" "}
                   {fotobankKeuze.split("/").pop()}
                   <span className="text-violet-600"> — vertel hieronder wat ermee moet gebeuren</span>
@@ -2557,11 +2557,13 @@ export default function Chat({
           )}
           {/* Aangewezen onderdeel */}
           {selectie && (
-            <div className="mb-3 rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              {/* Mag afbreken naar een volgende regel: bij een foto in een reeks
-                  staan er vijf knoppen, en die passen niet op één regel. */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="min-w-0 flex-1 basis-full truncate text-sm text-violet-900 sm:basis-auto">
+            <div className="mb-3 min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+              {/* Knoppen breken af naar een volgende regel. De omschrijving mag
+                  over twee regels lopen in plaats van op één regel te blijven:
+                  een lange foto-omschrijving op één regel maakte de balk (en de
+                  hele chatkolom) breder dan het scherm. */}
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                <p className="line-clamp-2 min-w-0 basis-full break-words text-sm text-violet-900">
                   <span className="font-semibold">Aangewezen:</span>{" "}
                   {selectie.tag === "img"
                     ? `foto: ${selectie.tekst || "zonder omschrijving"}`
