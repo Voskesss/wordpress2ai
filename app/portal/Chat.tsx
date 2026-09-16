@@ -452,6 +452,15 @@ export default function Chat({
   }
 
   function basisVoor(conceptActief: boolean) {
+    // Klantsites staan inlijsten alleen toe vanaf wordswap.nl (beveiligingsregel
+    // frame-ancestors in hun _headers). Op de dev- of voorbeeldomgeving zou het
+    // venster dus leeg blijven; daar tonen we de site via onze eigen
+    // voorbeeldweg, die op hetzelfde adres draait en dus wél mag.
+    const eigenWeg =
+      typeof window !== "undefined" &&
+      !/(^|\.)wordswap\.nl$/.test(window.location.hostname) &&
+      window.location.hostname !== "localhost";
+    if (eigenWeg) return `/site-weergave/${previewAccess}/`;
     return conceptActief && werkversieUrl
       ? `https://${werkversieUrl}/`
       : liveUrl
