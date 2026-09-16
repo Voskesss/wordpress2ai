@@ -12,12 +12,22 @@ export async function readChatResponse(
   onEvent: (event: Record<string, unknown>) => void,
 ): Promise<ChatResult> {
   if (!response.ok) {
+    // Te grote upload wordt door het platform geweigerd vóór onze code, met
+    // een antwoord dat geen JSON is. Zonder deze uitleg kreeg de eigenaar
+    // alleen "De opdracht kon niet worden verwerkt" te zien.
+    if (response.status === 413) {
+      throw new Error(
+        "Je foto's zijn samen te groot om in één bericht mee te sturen. Stuur er een paar tegelijk, dan lukt het wel.",
+      );
+    }
     const data = await response.json().catch(() => ({}));
     const message = data.reply ?? data.error ?? data.melding;
     throw new Error(
       typeof message === "string"
         ? message
-        : "De opdracht kon niet worden verwerkt.",
+        : response.status >= 500
+          ? "Er ging iets mis op de server; je opdracht is niet uitgevoerd. Probeer het zo nog eens."
+          : "De opdracht kon niet worden verwerkt.",
     );
   }
   if (!response.body) throw new Error("Er kwam geen antwoord terug.");

@@ -27,9 +27,17 @@ const dir = mkdtempSync(path.join(os.tmpdir(), "ws-response-"));
           ),
         /Wacht op vorige opdracht/,
       );
+    // Serverfout zonder leesbaar antwoord: zeg dát er iets misging, en dat de
+    // opdracht niet is uitgevoerd — niet alleen "kon niet worden verwerkt".
     await assert.rejects(
       () => read(new Response("Service unavailable", { status: 503 })),
-      /niet worden verwerkt/,
+      /niet uitgevoerd/,
+    );
+    // Te grote upload: het platform weigert vóór onze code, met een antwoord
+    // dat geen JSON is. De eigenaar moet horen dat het aan de omvang ligt.
+    await assert.rejects(
+      () => read(new Response("Request Entity Too Large", { status: 413 })),
+      /samen te groot/,
     );
     await assert.rejects(
       () => read(new Response('{"type":"status","tekst":"Bezig"}\n')),

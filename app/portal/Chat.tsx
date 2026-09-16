@@ -51,6 +51,38 @@ function isEchtePagina(pad: string) {
   return /\.html?$/i.test(pad) && !pad.replace(/^\/+/, "").startsWith("delen/");
 }
 
+/** Foto's in de browser verkleinen vóór het versturen. Nodig omdat de server
+ * een verzoek boven ~4,5 MB helemaal weigert (met een melding die geen JSON is,
+ * dus die kwam bij de eigenaar aan als "De opdracht kon niet worden verwerkt").
+ * Een telefoonfoto van 5 MB wordt zo ~200 kB; de server verkleint daarna nog
+ * naar zijn eigen maat. Lukt het verkleinen niet, dan gaat het origineel mee. */
+async function verkleinVoorUpload(bestand: File): Promise<File> {
+  if (!bestand.type.startsWith("image/") || bestand.type === "image/svg+xml")
+    return bestand;
+  try {
+    const beeld = await createImageBitmap(bestand, { imageOrientation: "from-image" });
+    const schaal = Math.min(1, 1600 / Math.max(beeld.width, beeld.height));
+    const breedte = Math.round(beeld.width * schaal);
+    const hoogte = Math.round(beeld.height * schaal);
+    const doek = document.createElement("canvas");
+    doek.width = breedte;
+    doek.height = hoogte;
+    const ctx = doek.getContext("2d");
+    if (!ctx) return bestand;
+    ctx.drawImage(beeld, 0, 0, breedte, hoogte);
+    beeld.close?.();
+    const blob = await new Promise<Blob | null>((ok) =>
+      doek.toBlob(ok, "image/webp", 0.8),
+    );
+    if (!blob || blob.size >= bestand.size) return bestand;
+    return new File([blob], bestand.name.replace(/\.[^.]+$/, "") + ".webp", {
+      type: "image/webp",
+    });
+  } catch {
+    return bestand;
+  }
+}
+
 /** Zoveel foto's mogen er in één bericht mee — genoeg voor een hele galerij.
  * Moet gelijk blijven aan MAX_FOTOS in de chat-route. */
 const MAX_FOTOS = 30;
@@ -2545,7 +2577,9 @@ export default function Chat({
               if (video) videoUploaden(video);
               const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
               if (plaatjes.length > 0) {
-                setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, MAX_FOTOS));
+                void Promise.all(plaatjes.map(verkleinVoorUpload)).then((klein) =>
+                  setAfbeeldingen((v) => [...v, ...klein].slice(0, MAX_FOTOS)),
+                );
                 setHintWeg(true);
                 setChatOpen(true);
               }
@@ -2701,7 +2735,9 @@ export default function Chat({
                       },
                     ]);
                   } else if (bestanden.length > 0) {
-                    setAfbeeldingen((vorige) => [...vorige, ...bestanden].slice(0, MAX_FOTOS));
+                    void Promise.all(bestanden.map(verkleinVoorUpload)).then((klein) =>
+                      setAfbeeldingen((vorige) => [...vorige, ...klein].slice(0, MAX_FOTOS)),
+                    );
                   }
                   e.target.value = "";
                 }}
@@ -2882,7 +2918,9 @@ export default function Chat({
                     .filter((f): f is File => Boolean(f));
                   if (plaatjes.length > 0) {
                     e.preventDefault();
-                    setAfbeeldingen((v) => [...v, ...plaatjes].slice(0, MAX_FOTOS));
+                    void Promise.all(plaatjes.map(verkleinVoorUpload)).then((klein) =>
+                  setAfbeeldingen((v) => [...v, ...klein].slice(0, MAX_FOTOS)),
+                );
                     setHintWeg(true);
                   }
                 }}
