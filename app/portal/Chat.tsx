@@ -461,9 +461,42 @@ export default function Chat({
     });
   }
 
+  /** Stoppen dat écht stopt: het afbreken van het verzoek bereikt de server
+   * niet altijd, dus halen we ook het bewerkingsslot weg. De lopende bewerking
+   * ziet dat binnen tien seconden en stopt zonder iets op te slaan — anders
+   * moet een volgende opdracht minutenlang wachten op een beurt die niemand
+   * meer wil. */
+  function meldStopAanServer() {
+    try {
+      const body = JSON.stringify({ siteId });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/stop", new Blob([body], { type: "application/json" }));
+        return;
+      }
+      void fetch("/api/stop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
+  }
+
   function stop() {
     stopRef.current?.abort();
+    meldStopAanServer();
   }
+
+  // Pagina verlaten of verversen tijdens een beurt: ook dan het slot vrijgeven,
+  // anders blijft een beurt draaien die niemand meer ziet.
+  useEffect(() => {
+    function bijVerlaten() {
+      if (bezigRef.current) meldStopAanServer();
+    }
+    window.addEventListener("pagehide", bijVerlaten);
+    return () => window.removeEventListener("pagehide", bijVerlaten);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteId]);
 
   function meldAanwijzen(aan: boolean) {
     iframeRef.current?.contentWindow?.postMessage(

@@ -380,7 +380,10 @@ export async function POST(req: Request) {
   }
 
   const scope = operationScope(site, userId);
-  const release = await claimOperation(scope);
+  // Haalt de eigenaar het slot weg (stopknop of pagina verlaten), dan stopt
+  // deze bewerking meteen — zonder slot mag er niet geschreven worden.
+  const slotKwijt = new AbortController();
+  const release = await claimOperation(scope, () => slotKwijt.abort());
   if (!release) {
     const { leaseRestMinuten } = await import("@/lib/operation-guards");
     const minuten = await leaseRestMinuten(scope);
@@ -827,6 +830,7 @@ export async function POST(req: Request) {
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
           req.signal.addEventListener("abort", () => stopper.abort());
+          slotKwijt.signal.addEventListener("abort", () => stopper.abort());
           // TIJDBEWAKER: Vercel kapt de functie hard af op maxDuration (300 s)
           // — dan gaat álles verloren: geen antwoord, geen concept, en
           // meegestuurde foto's kwijt. Daarom stoppen we de agent zelf ruim
@@ -964,6 +968,7 @@ export async function POST(req: Request) {
             }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           } catch (e) {
             if (stopper.signal.aborted && !tijdOp) {
+              // (ook bij een weggehaald slot: niets opslaan, geen concept)
               // Gestopt door de eigenaar: niets opslaan, geen concept maken
               return;
             }
@@ -976,6 +981,7 @@ export async function POST(req: Request) {
               "Dit was een grote klus en ik liep tegen mijn tijdslimiet aan. Wat ik al af had, zet ik nu voor je klaar — bekijk het gerust. Stuur daarna gewoon een berichtje als er iets mist of af te maken valt, dan ga ik verder waar ik gebleven ben.";
           }
           clearTimeout(wekker);
+          if (slotKwijt.signal.aborted) return;
           if (stopper.signal.aborted && !tijdOp) return;
           tik("ai");
 

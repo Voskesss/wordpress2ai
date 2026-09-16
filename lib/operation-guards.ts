@@ -7,7 +7,13 @@ import { db } from "@/db";
  * verdwijnt de functie, dan valt het slot binnen ±1,5 minuut vanzelf vrij
  * (voorheen stond het tot 6 minuten vast). */
 const LEASE_SECONDEN = 90;
-export async function claimOperation(scope: string) {
+/** @param opVerloren wordt aangeroepen als het slot is weggehaald (de eigenaar
+ * drukte op stop of verliet de pagina). De lopende bewerking hoort dan te
+ * stoppen: zonder slot mag er niet meer geschreven worden. */
+export async function claimOperation(
+  scope: string,
+  opVerloren?: () => void,
+) {
   const owner = randomUUID();
   const result = await db.execute(sql`
     INSERT INTO operation_leases (scope, owner, expires_at)
@@ -17,13 +23,22 @@ export async function claimOperation(scope: string) {
     RETURNING owner
   `);
   if (!result.rows.length) return null;
+  let verlorenGemeld = false;
   const hartslag = setInterval(() => {
     void db
       .execute(
-        sql`UPDATE operation_leases SET expires_at = now() + make_interval(secs => ${LEASE_SECONDEN}) WHERE scope = ${scope} AND owner = ${owner}`,
+        sql`UPDATE operation_leases SET expires_at = now() + make_interval(secs => ${LEASE_SECONDEN}) WHERE scope = ${scope} AND owner = ${owner} RETURNING owner`,
       )
+      .then((r) => {
+        // Geen rij meer: het slot is weggehaald. Meteen stoppen met werken.
+        if (!r.rows.length && !verlorenGemeld) {
+          verlorenGemeld = true;
+          clearInterval(hartslag);
+          opVerloren?.();
+        }
+      })
       .catch((e) => console.error("Slot verlengen mislukt:", e));
-  }, 30_000);
+  }, 10_000);
   hartslag.unref?.();
   return async () => {
     clearInterval(hartslag);
