@@ -764,6 +764,10 @@ export async function POST(req: Request) {
           // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft
           // een verwarrende 404. De opleveringsoverlay opent ze wél, na de deploy.
           const nieuwDezeBeurt = new Set<string>();
+          // Loopt mee met elke werkstap, zodat een herhaalde stap ("Ik zoek waar
+          // het staat...") toch zichtbaar verandert en de eigenaar ziet dat er
+          // vooruitgang is in plaats van een bevroren melding.
+          let stapTeller = 0;
           if (snelpad) {
             reply = snelpad.reply;
             await settleAiBudget(scope, maand, requestBudgetUsd, snelpad.kostenUsd);
@@ -796,8 +800,21 @@ export async function POST(req: Request) {
                   stuur({ type: "tekst-delta", tekst: g.delta });
                   return;
                 }
+                if (g.soort === "denkt") {
+                  // Denkronde tussen twee stappen: even geen gereedschap, wel
+                  // wachttijd. Zonder deze melding lijkt de vorige stap te hangen.
+                  stuur({
+                    type: "status",
+                    tekst: `Ik denk na over de volgende stap... (stap ${++stapTeller})`,
+                  });
+                  return;
+                }
                 const maker = STATUS_PER_TOOL[g.naam];
-                if (maker) stuur({ type: "status", tekst: maker(g.invoer) });
+                if (maker)
+                  stuur({
+                    type: "status",
+                    tekst: `${maker(g.invoer)} (stap ${++stapTeller})`,
+                  });
                 if (g.naam === "bewerk_bestand" || g.naam === "schrijf_bestand") {
                   const rel = String(g.invoer.pad ?? "").replace(/^\/+/, "");
                   if (g.naam === "schrijf_bestand") nieuwDezeBeurt.add(rel);

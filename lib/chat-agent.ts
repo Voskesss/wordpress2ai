@@ -17,7 +17,11 @@ const PRIJZEN: Record<string, [number, number]> = {
 
 export type AgentGebeurtenis =
   | { soort: "tekst"; delta: string }
-  | { soort: "tool"; naam: string; invoer: Record<string, unknown> };
+  | { soort: "tool"; naam: string; invoer: Record<string, unknown> }
+  /** Tussen twee werkstappen door denkt het model na; dat duurt bij een grote
+   * site seconden tot minuten. Zonder dit signaal blijft de laatste
+   * stap-melding staan en lijkt de chat vast te zitten. */
+  | { soort: "denkt" };
 
 export type AgentUitkomst = {
   reply: string;
@@ -257,6 +261,10 @@ export async function draaiChatAgent(opties: {
       }
     }
     const bericht = await beurtStream.finalMessage();
+    // Gebruikte het model gereedschap? Dan volgt nu een denkronde vóór de
+    // volgende stap — dat melden we, anders lijkt de vorige stap te hangen.
+    if (bericht.content.some((b) => b.type === "tool_use"))
+      opGebeurtenis({ soort: "denkt" });
     // Alleen de tekst van de laatste beurt is het eindantwoord; tussenteksten
     // ("Ik ga eerst kijken...") horen bij de voortgang.
     if (beurtTekst.trim()) reply = beurtTekst.trim();
