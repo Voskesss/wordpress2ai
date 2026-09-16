@@ -98,12 +98,13 @@ export const HOEKEN = {
       "Een website laten maken is tegenwoordig snel en goedkoop. Maar daarna begint het pas: teksten bijwerken, foto’s vervangen, updates bijhouden. Juist de jaren ná de bouw bepalen of je website blijft kloppen.",
     mail: "Een website maken kan iedereen tegenwoordig. De echte vraag is wie hem daarna bijhoudt. Daar gaat het webinar over.",
   },
+  // Sleutel blijft "regelt-zichzelf", zodat al gekopieerde advertentielinks blijven werken
   "regelt-zichzelf": {
-    naam: "Regelt zichzelf",
-    kop: "Mijn website regelt zichzelf. Ik hoef het alleen maar te vragen.",
+    naam: "Regelt het",
+    kop: "Mijn website regelt het. Ik hoef het alleen maar te vragen.",
     tekst:
       "Geen updates, geen plugins, geen webbouwer die je moet mailen. Wil je iets veranderen, dan zeg je gewoon wat er anders moet. Jij kijkt of het klopt en beslist wat er live gaat.",
-    mail: "Een website die zichzelf regelt en die je alleen maar iets hoeft te vragen: dat laat ik je in het webinar zien.",
+    mail: "Een website die het voor je regelt, zodra je het vraagt: dat laat ik je in het webinar zien.",
   },
 } as const;
 
@@ -120,6 +121,8 @@ export function vindHoek(waarde: unknown): Hoek | null {
 /** Leesbare naam (zoals bewaard bij een inschrijving) → hoek. */
 export function vindHoekOpNaam(naam: unknown): Hoek | null {
   if (typeof naam !== "string") return null;
+  // Oude naam van vóór de hernoeming, voor inschrijvingen die hem al hebben
+  if (naam === "Regelt zichzelf") naam = "Regelt het";
   const s = (Object.keys(HOEKEN) as HoekSleutel[]).find((k) => HOEKEN[k].naam === naam);
   return s ? { ...HOEKEN[s], sleutel: s } : null;
 }
