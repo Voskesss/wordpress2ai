@@ -27,7 +27,10 @@ import {
   ruimWerkmapOp,
 } from "@/lib/werkmap";
 
-export const maxDuration = 300;
+// Pro-abonnement: langere functies mogen. 800 s dekt ook grote klussen
+// (galerij met veel foto's); de tijdbewaker hieronder stopt de agent zelf
+// ruim vóór deze harde grens.
+export const maxDuration = 800;
 
 const FAIR_USE_LIMIET = 30;
 
@@ -755,7 +758,7 @@ export async function POST(req: Request) {
               tijdOp = true;
               stopper.abort();
             },
-            Math.max(30_000, 220_000 - (Date.now() - klok)),
+            Math.max(30_000, (maxDuration - 80) * 1000 - (Date.now() - klok)),
           );
           // Pagina's die in deze beurt nieuw worden geschreven bestaan op de
           // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft
