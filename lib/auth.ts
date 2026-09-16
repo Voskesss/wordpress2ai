@@ -14,6 +14,13 @@ export async function requireAdmin() {
   return user;
 }
 
+/** Is deze gebruiker admin? Voor werk zonder ingelogde sessie (WhatsApp). */
+export async function isBeheerderId(userId: string): Promise<boolean> {
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const user = await (await clerkClient()).users.getUser(userId).catch(() => null);
+  return user?.publicMetadata?.role === "admin";
+}
+
 /** Is de huidige gebruiker admin? (zonder redirect) */
 export async function isBeheerder(): Promise<boolean> {
   const user = await currentUser();

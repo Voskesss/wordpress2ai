@@ -4,6 +4,7 @@ import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
 import InzendingKnop from "./InzendingKnop";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
+import WhatsappBlok from "./WhatsappBlok";
 import { zoekLogo } from "@/lib/logo-zoeken";
 import { isBeheerder } from "@/lib/auth";
 import {
@@ -63,6 +64,7 @@ export default async function SiteExtra({
 
   return (
     <div data-site-extra className="mt-6 grid gap-6 lg:grid-cols-2">
+      <WhatsappBlok siteId={siteId} />
       {/* Formulier-inzendingen */}
       <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

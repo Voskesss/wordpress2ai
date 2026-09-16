@@ -726,6 +726,18 @@ export async function bewaarAiBudget(formData: FormData) {
 }
 
 
+/** WhatsApp-kanaal (betaalde extra) aan- of uitzetten voor een site. */
+export async function bewaarWhatsapp(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const aan = formData.get("aan") === "1";
+  await db.update(sites).set({ whatsappActief: aan }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
+
 /** Sjabloon vastleggen: de huidige live-versie (main) wordt het punt waarnaar
  * "Reset naar sjabloon" terugzet. Handig voor demo-/webinarsites. */
 export async function sjabloonVastleggen(formData: FormData) {

@@ -22,6 +22,11 @@ const path = require("node:path");
                 path: require.resolve(a.path),
                 external: true,
               }));
+              // De routes zijn dunne schillen; de echte logica (gedeeld met
+              // WhatsApp) staat hier en wordt wél getest, met de mocks eronder.
+              b.onResolve({ filter: /^@\/lib\/concept-acties$/ }, () => ({
+                path: path.resolve("lib/concept-acties.ts"),
+              }));
               b.onResolve({ filter: /^(?:@\/|@clerk\/|drizzle-orm)/ }, (a) => ({
                 path: a.path,
                 namespace: "mock",

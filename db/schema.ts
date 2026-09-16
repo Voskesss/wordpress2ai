@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  index,
   pgTable,
   primaryKey,
   unique,
@@ -53,9 +54,52 @@ export const sites = pgTable("sites", {
   // dagelijks als statische pagina's op de site worden gezet. Leeg = uit.
   nieuwsFeedUrl: text("nieuws_feed_url"),
   chatGeheugen: text("chat_geheugen"),
+  // Betaalde extra: de eigenaar kan zijn website via WhatsApp aansturen.
+  whatsappActief: boolean("whatsapp_actief").notNull().default(false),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
+
+// WhatsApp-kanaal: welk telefoonnummer bij welke site hoort. Een rij begint
+// met alleen een koppelcode (in het portaal getoond); zodra de eigenaar
+// "KOPPEL <code>" appt, komt zijn nummer erin en vervalt de code.
+export const whatsappKoppelingen = pgTable("whatsapp_koppelingen", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id")
+    .notNull()
+    .references(() => sites.id),
+  // Wie de koppeling maakte; namens deze gebruiker lopen de chatbeurten
+  clerkUserId: text("clerk_user_id").notNull(),
+  // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678)
+  telefoon: text("telefoon").unique(),
+  koppelcode: text("koppelcode"),
+  codeVerloopt: timestamp("code_verloopt"),
+  gekoppeldOp: timestamp("gekoppeld_op"),
+  aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+});
+
+// Elk binnenkomend WhatsApp-bericht, ook om dubbele aflevering door Meta te
+// herkennen (wa_message_id) en losse foto's samen te nemen tot één opdracht.
+export const whatsappBerichten = pgTable("whatsapp_berichten", {
+  id: serial("id").primaryKey(),
+  waMessageId: text("wa_message_id").notNull().unique(),
+  telefoon: text("telefoon").notNull(),
+  siteId: integer("site_id").references(() => sites.id),
+  soort: text("soort", {
+    enum: ["tekst", "foto", "document", "spraak", "knop", "keuze", "anders"],
+  }).notNull(),
+  // Tekst, bijschrift, knop-id of (na omzetten) de uitgeschreven spraak
+  inhoud: text("inhoud"),
+  mediaId: text("media_id"),
+  mimeType: text("mime_type"),
+  bestandsnaam: text("bestandsnaam"),
+  status: text("status", {
+    enum: ["wacht", "bezig", "klaar", "genegeerd", "mislukt"],
+  })
+    .notNull()
+    .default("wacht"),
+  ontvangen: timestamp("ontvangen", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("whatsapp_berichten_telefoon_status").on(t.telefoon, t.status)]);
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),

@@ -20,6 +20,7 @@ import {
   bewaarSmtp,
   bewaarVideoLimiet,
   bewaarAiBudget,
+  bewaarWhatsapp,
   siteResetten,
   sjabloonVastleggen,
   herstelVersie,
@@ -733,6 +734,26 @@ export default async function KlantDetail({
             <input name="budget" type="number" min={1} max={1000} defaultValue={site.aiMaandbudgetUsd} className={`${invoerStijl} w-28`} />
           </label>
           <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+      </div>
+
+      {/* WhatsApp-kanaal */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="font-display text-xl font-semibold">💬 WhatsApp</h2>
+          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${site.whatsappActief ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-stone-200 bg-stone-50 text-stone-500"}`}>
+            {site.whatsappActief ? "aan" : "uit"}
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-stone-600">
+          Betaalde extra: de klant koppelt in het portaal zijn telefoon en stuurt zijn website
+          daarna wijzigingen via WhatsApp (tekst, foto&apos;s, pdf, spraak). Publiceren blijft een
+          bewuste knop. Uitzetten stopt het kanaal direct; koppelingen blijven bewaard.
+        </p>
+        <form action={bewaarWhatsapp} className="mt-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          <input type="hidden" name="aan" value={site.whatsappActief ? "0" : "1"} />
+          <ActieKnop label={site.whatsappActief ? "Zet uit" : "Zet aan"} bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>
       </div>
 

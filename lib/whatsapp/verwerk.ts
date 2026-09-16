@@ -1,0 +1,433 @@
+import { and, desc, eq, gt, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  changes,
+  sites,
+  whatsappBerichten,
+  whatsappKoppelingen,
+} from "@/db/schema";
+import { isBeheerderId } from "@/lib/auth";
+import { CF_SUBDOMEIN } from "@/lib/cloudflare";
+import { readChatResponse } from "@/lib/chat-response";
+import {
+  haalMediaOp,
+  markeerGelezen,
+  stuurKeuzelijst,
+  stuurKnoppen,
+  stuurTekst,
+} from "./api";
+import {
+  KEUZE,
+  KNOP_PUBLICEER,
+  KNOP_WEGGOOIEN,
+  conceptCommando,
+  koppelcodeUit,
+  leesKnop,
+  paginaVoorConcept,
+  splitsKeuzes,
+  voegSamen,
+  type Binnenkomend,
+} from "./berichten";
+
+/** Moet gelijk zijn aan maxDuration van app/api/whatsapp/webhook/route.ts. */
+export const WEBHOOK_MAX_DUUR_S = 800;
+/** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
+ * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
+const BUNDEL_MS = 8_000;
+const MAX_FOTOS = 10;
+
+type Rij = typeof whatsappBerichten.$inferSelect;
+type Koppeling = typeof whatsappKoppelingen.$inferSelect;
+type Site = typeof sites.$inferSelect;
+
+const slaap = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function zetStatus(ids: number[], status: Rij["status"], siteId?: number) {
+  if (!ids.length) return;
+  await db
+    .update(whatsappBerichten)
+    .set({ status, ...(siteId ? { siteId } : {}) })
+    .where(inArray(whatsappBerichten.id, ids));
+}
+
+/** Alles wat één webhook-aanroep binnenbracht, per afzender afhandelen. */
+export async function verwerkWebhook(nieuw: Rij[], gestart: number) {
+  const perTelefoon = new Map<string, Rij[]>();
+  for (const r of nieuw)
+    perTelefoon.set(r.telefoon, [...(perTelefoon.get(r.telefoon) ?? []), r]);
+  await Promise.all(
+    [...perTelefoon].map(([telefoon, rijen]) =>
+      verwerkAfzender(telefoon, rijen, gestart).catch((e) =>
+        console.error(`WhatsApp-verwerking ${telefoon.slice(-4)}:`, e),
+      ),
+    ),
+  );
+}
+
+async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) {
+  const laatste = rijen.at(-1);
+  if (laatste) void markeerGelezen(laatste.waMessageId).catch(() => {});
+
+  // 1. Koppelen gaat vóór alles: dan is het nummer nog niet bekend
+  for (const rij of rijen.filter((r) => r.soort === "tekst")) {
+    const code = koppelcodeUit(rij.inhoud);
+    if (!code) continue;
+    await koppel(telefoon, code, rij);
+    rijen = rijen.filter((r) => r.id !== rij.id);
+  }
+  if (!rijen.length) return;
+
+  const [koppeling] = await db
+    .select()
+    .from(whatsappKoppelingen)
+    .where(eq(whatsappKoppelingen.telefoon, telefoon));
+  if (!koppeling) return nietGekoppeld(telefoon, rijen);
+  const [site] = await db.select().from(sites).where(eq(sites.id, koppeling.siteId));
+  if (!site || site.isDemo || !site.whatsappActief) {
+    await zetStatus(rijen.map((r) => r.id), "genegeerd", site?.id);
+    await stuurTekst(
+      telefoon,
+      "WhatsApp staat voor je website op dit moment niet aan. Je kunt je wijzigingen gewoon in het WordSwap-portaal doorgeven.",
+    );
+    return;
+  }
+
+  // 2. Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
+  for (const rij of rijen) {
+    const commando = rij.soort === "tekst" ? conceptCommando(rij.inhoud) : null;
+    if (rij.soort !== "knop" && !commando) continue;
+    const knop = commando ? { actie: commando, changeId: null } : leesKnop(rij.inhoud);
+    rijen = rijen.filter((r) => r.id !== rij.id);
+    if (!(await claim([rij.id])).length) continue;
+    try {
+      if (knop) await voerConceptActieUit(telefoon, koppeling, site, knop);
+      await zetStatus([rij.id], "klaar", site.id);
+    } catch (e) {
+      console.error("WhatsApp-knop:", e);
+      await zetStatus([rij.id], "mislukt", site.id);
+      await stuurTekst(telefoon, "Dat lukte niet. Probeer het zo nog eens, of doe het in het portaal.");
+    }
+  }
+  if (!rijen.length) return;
+
+  // 3. Even wachten op meer berichten; de láátste aanroep neemt alles mee
+  await slaap(BUNDEL_MS);
+  const nieuwer = await db
+    .select({ id: whatsappBerichten.id })
+    .from(whatsappBerichten)
+    .where(
+      and(
+        eq(whatsappBerichten.telefoon, telefoon),
+        eq(whatsappBerichten.status, "wacht"),
+        gt(
+          whatsappBerichten.ontvangen,
+          sql`now() - make_interval(secs => ${(BUNDEL_MS - 1000) / 1000})`,
+        ),
+      ),
+    )
+    .limit(1);
+  if (nieuwer.length) return;
+  const bundel = await claimAlleWachtende(telefoon);
+  if (bundel.length) await chatBeurt(telefoon, koppeling, site, bundel, gestart);
+}
+
+/** Atomisch overnemen: bij gelijktijdige aanroepen krijgt er maar één de rij. */
+function claim(ids: number[]) {
+  return db
+    .update(whatsappBerichten)
+    .set({ status: "bezig" })
+    .where(and(inArray(whatsappBerichten.id, ids), eq(whatsappBerichten.status, "wacht")))
+    .returning();
+}
+
+async function claimAlleWachtende(telefoon: string) {
+  const rijen = await db
+    .update(whatsappBerichten)
+    .set({ status: "bezig" })
+    .where(
+      and(
+        eq(whatsappBerichten.telefoon, telefoon),
+        eq(whatsappBerichten.status, "wacht"),
+        ne(whatsappBerichten.soort, "knop"),
+      ),
+    )
+    .returning();
+  return rijen.sort((a, b) => a.id - b.id);
+}
+
+async function koppel(telefoon: string, code: string, rij: Rij) {
+  // Raden afremmen: hooguit vijf koppelpogingen per uur per nummer
+  const pogingen = await db
+    .select({ id: whatsappBerichten.id })
+    .from(whatsappBerichten)
+    .where(
+      and(
+        eq(whatsappBerichten.telefoon, telefoon),
+        sql`${whatsappBerichten.inhoud} ~* '^\\s*koppel'`,
+        gt(whatsappBerichten.ontvangen, sql`now() - interval '1 hour'`),
+      ),
+    );
+  const [koppeling] =
+    pogingen.length > 5
+      ? []
+      : await db
+          .select()
+          .from(whatsappKoppelingen)
+          .where(
+            and(
+              eq(whatsappKoppelingen.koppelcode, code),
+              gt(whatsappKoppelingen.codeVerloopt, sql`now()`),
+            ),
+          );
+  if (!koppeling) {
+    await zetStatus([rij.id], "genegeerd");
+    await stuurTekst(
+      telefoon,
+      pogingen.length > 5
+        ? "Te veel koppelpogingen. Probeer het over een uur opnieuw."
+        : "Die code klopt niet of is verlopen. Maak in het WordSwap-portaal een nieuwe code aan en stuur die opnieuw.",
+    );
+    return;
+  }
+  // Een nummer hoort bij één website: een oude koppeling vervalt
+  await db
+    .delete(whatsappKoppelingen)
+    .where(and(eq(whatsappKoppelingen.telefoon, telefoon), ne(whatsappKoppelingen.id, koppeling.id)));
+  await db
+    .update(whatsappKoppelingen)
+    .set({ telefoon, koppelcode: null, codeVerloopt: null, gekoppeldOp: new Date() })
+    .where(eq(whatsappKoppelingen.id, koppeling.id));
+  await zetStatus([rij.id], "klaar", koppeling.siteId);
+  const [site] = await db.select().from(sites).where(eq(sites.id, koppeling.siteId));
+  await stuurTekst(
+    telefoon,
+    `Gelukt! Dit nummer is gekoppeld aan ${site?.naam ?? "je website"}.\n\nStuur me voortaan gewoon een appje: een tekst, foto's, een pdf of een spraakbericht. Ik maak er een concept van, en jij beslist met één tik of het live gaat.`,
+  );
+}
+
+async function nietGekoppeld(telefoon: string, rijen: Rij[]) {
+  // Eén keer uitleggen is genoeg; niet op elk bericht opnieuw antwoorden
+  const [eerder] = await db
+    .select({ id: whatsappBerichten.id })
+    .from(whatsappBerichten)
+    .where(
+      and(
+        eq(whatsappBerichten.telefoon, telefoon),
+        eq(whatsappBerichten.status, "genegeerd"),
+        gt(whatsappBerichten.ontvangen, sql`now() - interval '6 hours'`),
+      ),
+    )
+    .limit(1);
+  await zetStatus(rijen.map((r) => r.id), "genegeerd");
+  if (!eerder)
+    await stuurTekst(
+      telefoon,
+      "Hoi! Dit nummer is nog niet gekoppeld aan een website. Log in op het WordSwap-portaal, kies bij je website voor WhatsApp koppelen en stuur de code die je daar krijgt.",
+    );
+}
+
+async function voerConceptActieUit(
+  telefoon: string,
+  koppeling: Koppeling,
+  site: Site,
+  knop: { actie: "publiceer" | "weggooien"; changeId: number | null },
+) {
+  // Getypt commando: het openstaande concept van deze site
+  const [concept] = await db
+    .select()
+    .from(changes)
+    .where(
+      knop.changeId
+        ? eq(changes.id, knop.changeId)
+        : and(
+            eq(changes.siteId, site.id),
+            inArray(changes.status, ["concept", "publicatie_mislukt"]),
+          ),
+    )
+    .orderBy(desc(changes.id))
+    .limit(1);
+  if (!concept || concept.siteId !== site.id) {
+    await stuurTekst(telefoon, "Er staat op dit moment geen concept klaar.");
+    return;
+  }
+  const isBeheerder = () => isBeheerderId(koppeling.clerkUserId);
+  if (knop.actie === "publiceer") {
+    if (concept.status === "gepubliceerd") {
+      await stuurTekst(telefoon, "Dit concept staat al live.");
+      return;
+    }
+    await stuurTekst(telefoon, "Ik zet het live, momentje...");
+    const { publiceerConcept } = await import("@/lib/concept-acties");
+    const res = await publiceerConcept(concept.id, koppeling.clerkUserId, isBeheerder);
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (res.ok && data.ok) {
+      const adres = site.domein ? `https://${site.domein.replace(/^https?:\/\//, "")}` : "";
+      await stuurTekst(telefoon, `Staat live! 🎉${adres ? `\n${adres}` : ""}`);
+    } else {
+      await stuurTekst(telefoon, foutTekst(res.status, data));
+    }
+    return;
+  }
+  if (concept.status !== "concept") {
+    await stuurTekst(telefoon, "Dit concept is al gepubliceerd of weggegooid.");
+    return;
+  }
+  const { verwerpConcept } = await import("@/lib/concept-acties");
+  const res = await verwerpConcept(concept.id, koppeling.clerkUserId, isBeheerder);
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  await stuurTekst(
+    telefoon,
+    res.ok && data.ok ? "Concept weggegooid. Je website is niet veranderd." : foutTekst(res.status, data),
+  );
+}
+
+function foutTekst(status: number, data: Record<string, unknown>) {
+  if (typeof data.melding === "string") return data.melding;
+  if (status === 409) return "Dit concept is al gepubliceerd of weggegooid.";
+  if (status === 403) return "Je website staat op dit moment niet actief. Neem contact op met WordSwap.";
+  if (status === 404 || status === 410) return "Dit concept bestaat niet meer.";
+  return "Dat lukte niet. Probeer het zo nog eens, of doe het in het portaal.";
+}
+
+async function chatBeurt(
+  telefoon: string,
+  koppeling: Koppeling,
+  site: Site,
+  rijen: Rij[],
+  gestart: number,
+) {
+  const eindtijd = gestart + WEBHOOK_MAX_DUUR_S * 1000;
+  const ids = rijen.map((r) => r.id);
+  try {
+    const opmerkingen: string[] = [];
+
+    // Spraak eerst omzetten, zodat het als gewone tekst meegaat
+    for (const rij of rijen.filter((r) => r.soort === "spraak" && r.mediaId)) {
+      if (!process.env.OPENAI_API_KEY) {
+        opmerkingen.push("Spraakberichten kan ik nog niet verwerken. Wil je het even typen?");
+        continue;
+      }
+      const { spraakNaarTekst } = await import("./spraak");
+      const audio = await haalMediaOp(rij.mediaId!);
+      const { tekst, seconden } = await spraakNaarTekst(audio.data, rij.mimeType ?? audio.mimeType);
+      rij.inhoud = tekst;
+      await db.update(whatsappBerichten).set({ inhoud: tekst }).where(eq(whatsappBerichten.id, rij.id));
+      const { registreerAiKosten } = await import("@/lib/kosten");
+      await registreerAiKosten(site.id, "chat", { kostenUsd: (seconden / 60) * 0.006 }).catch(() => {});
+      if (tekst) await stuurTekst(telefoon, `🎙️ Ik verstond: “${tekst}”`);
+    }
+
+    const fotoRijen = rijen.filter((r) => r.soort === "foto" && r.mediaId);
+    if (fotoRijen.length > MAX_FOTOS)
+      opmerkingen.push(`Ik neem de eerste ${MAX_FOTOS} foto's mee. Stuur de rest daarna in een volgend bericht.`);
+    const fotos: File[] = [];
+    for (const [i, rij] of fotoRijen.slice(0, MAX_FOTOS).entries()) {
+      const { data, mimeType } = await haalMediaOp(rij.mediaId!);
+      const ext = /png/.test(mimeType) ? "png" : /webp/.test(mimeType) ? "webp" : "jpg";
+      fotos.push(new File([new Uint8Array(data)], `whatsapp-foto-${i + 1}.${ext}`, { type: mimeType }));
+    }
+
+    const documenten: File[] = [];
+    for (const rij of rijen.filter((r) => r.soort === "document" && r.mediaId)) {
+      const isPdf = /pdf/.test(rij.mimeType ?? "") || /\.pdf$/i.test(rij.bestandsnaam ?? "");
+      if (!isPdf) {
+        opmerkingen.push(`${rij.bestandsnaam ?? "Dat document"} kan ik niet op je site zetten: alleen pdf's werken.`);
+        continue;
+      }
+      const { data } = await haalMediaOp(rij.mediaId!);
+      documenten.push(
+        new File([new Uint8Array(data)], rij.bestandsnaam || "document.pdf", { type: "application/pdf" }),
+      );
+    }
+    if (rijen.some((r) => r.soort === "anders"))
+      opmerkingen.push("Video's, stickers en locaties kan ik via WhatsApp nog niet verwerken. Een video kun je in het portaal meesturen.");
+
+    const bericht = voegSamen(
+      rijen.filter((r) =>
+        r.soort === "spraak"
+          ? true
+          : r.soort === "document"
+            ? documenten.length > 0
+            : r.soort !== "anders",
+      ),
+    );
+    if (opmerkingen.length) await stuurTekst(telefoon, opmerkingen.join("\n\n"));
+    if (!bericht.trim()) {
+      await zetStatus(ids, "klaar", site.id);
+      return;
+    }
+
+    const form = new FormData();
+    form.set("siteId", String(site.id));
+    form.set("bericht", bericht);
+    for (const f of fotos) form.append("afbeelding", f);
+    for (const f of documenten) form.append("document", f);
+
+    const { voerChatBeurtUit } = await import("@/lib/chat-beurt");
+    const beurt = () =>
+      voerChatBeurtUit(
+        new Request("https://whatsapp.intern/api/chat", { method: "POST", body: form }),
+        koppeling.clerkUserId,
+        { isBeheerder: () => isBeheerderId(koppeling.clerkUserId), eindtijd, kanaal: "whatsapp" },
+      );
+    let res = await beurt();
+    // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Rustig wachten.
+    for (let gemeld = false; res.status === 409; ) {
+      const data = (await res.clone().json().catch(() => ({}))) as { slot?: boolean };
+      if (!data.slot || Date.now() > eindtijd - 6 * 60_000) break;
+      if (!gemeld) {
+        gemeld = true;
+        await stuurTekst(telefoon, "Er loopt nog een andere aanpassing aan je website. Zodra die klaar is, pak ik jouw bericht op.");
+      }
+      await slaap(15_000);
+      res = await beurt();
+    }
+    const uitkomst = await readChatResponse(res, () => {});
+    await stuurAntwoord(telefoon, site, uitkomst);
+    await zetStatus(ids, "klaar", site.id);
+  } catch (e) {
+    console.error("WhatsApp-chatbeurt:", e);
+    await zetStatus(ids, "mislukt", site.id);
+    const melding = e instanceof Error && e.message && !/^(WhatsApp|Media|Whisper)/.test(e.message)
+      ? e.message
+      : "Er ging iets mis; je bericht is niet verwerkt. Probeer het zo nog eens.";
+    await stuurTekst(telefoon, melding).catch(() => {});
+  }
+}
+
+async function stuurAntwoord(
+  telefoon: string,
+  site: Site,
+  uitkomst: { reply: string; changeId?: number | null; bestanden?: string[] },
+) {
+  const { schoon, keuzes } = splitsKeuzes(uitkomst.reply);
+  if (keuzes.length) {
+    await stuurKeuzelijst(
+      telefoon,
+      schoon || "Wat wil je?",
+      "Kies een antwoord",
+      keuzes.map((k) => ({
+        id: `${KEUZE}${k}`,
+        titel: k,
+        omschrijving: k.length > 24 ? k : undefined,
+      })),
+    );
+  } else if (schoon.trim()) {
+    await stuurTekst(telefoon, schoon);
+  }
+  if (uitkomst.changeId && site.siteSlug) {
+    const url = `https://wv-${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev${paginaVoorConcept(uitkomst.bestanden)}`;
+    await stuurKnoppen(telefoon, `Bekijk het concept:\n${url}\n\nNog niet goed? App me gewoon wat er anders moet.`, [
+      { id: `${KNOP_PUBLICEER}${uitkomst.changeId}`, titel: "Publiceren" },
+      { id: `${KNOP_WEGGOOIEN}${uitkomst.changeId}`, titel: "Weggooien" },
+    ]);
+  }
+}
+
+/** Voor het portaal: gekoppelde nummers van een site. */
+export function koppelingenVanSite(siteId: number) {
+  return db
+    .select()
+    .from(whatsappKoppelingen)
+    .where(and(eq(whatsappKoppelingen.siteId, siteId), isNotNull(whatsappKoppelingen.telefoon)));
+}
