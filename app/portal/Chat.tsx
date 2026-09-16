@@ -2166,7 +2166,7 @@ export default function Chat({
                     <span className="ml-1 inline-block h-3.5 w-0.5 animate-pulse bg-violet-500 align-middle" aria-hidden />
                   </div>
                 )}
-                {(bezig || videoBezig) && !liveTekst && (
+                {(bezig || videoBezig) && (
                   <div className="flex w-fit items-center gap-3 rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-3">
                     <span className="flex items-center gap-1" aria-hidden>
                       {[0, 1, 2].map((i) => (
