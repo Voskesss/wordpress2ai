@@ -501,6 +501,7 @@ export default function Chat({
       )
         return;
       setFotoActieBezig(true);
+      setOplevering(null);
       setLaderTekst(actie === "verwijder" ? "Foto weghalen..." : "Foto verplaatsen...");
     }
     try {
@@ -1142,6 +1143,7 @@ export default function Chat({
     const nieuw = zelfTekst.trim();
     if (!oud || !nieuw || oud === nieuw) return;
     setZelfBezig(true);
+    setOplevering(null);
     setLaderTekst("Even geduld — je tekst wordt aangepast...");
     try {
       const res = await fetch("/api/tekst-wijzig", {
@@ -1219,7 +1221,8 @@ export default function Chat({
     if (!src || bezig) return;
     let pad = src.replace(/^https?:\/\/[^/]+/, "").split("?")[0].split("#")[0];
     pad = pad.replace(/^\/preview\/\d+\//, "/").replace(/^\/+/, "");
-    setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser en duurt ±15 seconden...");
+    setOplevering(null);
+    setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser, even geduld...");
     try {
       const { removeBackground } = await import("@imgly/background-removal");
       const bron = await fetch(`/site-weergave/${previewAccess}/${pad}`).then((r) => r.blob());
@@ -1227,7 +1230,8 @@ export default function Chat({
       const bestand = new File([uit], pad.split("/").pop()?.replace(/\.[^.]+$/, ".png") ?? "foto.png", {
         type: "image/png",
       });
-      setLaderTekst(null);
+      // Niet eerst leegmaken: dan flikkert de melding weg en lijkt het of er
+      // niets gebeurt. fotoDirect zet er meteen zijn eigen tekst overheen.
       await fotoDirect(bestand);
     } catch {
       setLaderTekst(null);
@@ -1250,6 +1254,7 @@ export default function Chat({
       return;
     }
     setZelfBezig(true);
+    setOplevering(null);
     setLaderTekst("Even geduld — je nieuwe foto wordt geplaatst...");
     setChatOpen(true);
     setBerichten((b) => [...b, { rol: "klant", tekst: "📷 Foto vervangen (zelf gekozen bestand)" }]);
@@ -1320,6 +1325,7 @@ export default function Chat({
   async function kleurDirect(oudeKleur: string) {
     if (!kleur || zelfBezig) return;
     setZelfBezig(true);
+    setOplevering(null);
     setLaderTekst("Even geduld — de kleur wordt overal doorgevoerd...");
     try {
       const res = await fetch("/api/tekst-wijzig", {
