@@ -6,14 +6,12 @@ import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: {
-    absolute: "Zet je WordPress-website om naar een website die het zelf regelt | WordSwap",
-  },
+  title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
-    "Wij zetten je WordPress-website om: zelfde ontwerp, teksten en plek in Google. Daarna vraag je gewoon wat er anders moet. Vanaf €150, daarna vanaf €12 per maand, excl. btw.",
+    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €12 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
-  // Eigen deelvoorbeeld (WhatsApp, LinkedIn, Facebook) voor de homepage
-  // (een eigen openGraph vervangt die van de layout helemaal, dus alles opnieuw)
+  // Deelvoorbeeld (LinkedIn, WhatsApp, Facebook), los van de paginatitel hierboven.
+  // Een eigen openGraph vervangt die van de layout helemaal, dus alles opnieuw.
   openGraph: {
     type: "website",
     locale: "nl_NL",
