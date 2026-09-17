@@ -7,10 +7,14 @@ export default function WebsiteAkkoord({
   siteId,
   siteNaam,
   bekijkUrl,
+  voorbeeldSrc,
 }: {
   siteId: number;
   siteNaam: string;
   bekijkUrl: string;
+  /** Eigen voorbeeldweg (zelfde adres als het portaal): klantsites staan inlijsten
+   * alleen toe vanaf wordswap.nl, dus rechtstreeks laden blijft op dev leeg. */
+  voorbeeldSrc: string;
 }) {
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-14">
@@ -23,15 +27,17 @@ export default function WebsiteAkkoord({
         en je pagina&apos;s. Je huidige website blijft online tot we samen de overstap afronden.
       </p>
 
-      {bekijkUrl && (
+      {(
         <div className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-stone-200 bg-stone-50 px-4 py-2 text-sm">
-            <span className="truncate text-stone-500">{bekijkUrl.replace(/^https:\/\//, "")}</span>
-            <a href={bekijkUrl} target="_blank" rel="noopener" className="shrink-0 font-semibold text-emerald-800 hover:underline">
-              Open in nieuw tabblad ↗
-            </a>
+            <span className="truncate text-stone-500">{(bekijkUrl || siteNaam).replace(/^https:\/\//, "")}</span>
+            {bekijkUrl && (
+              <a href={bekijkUrl} target="_blank" rel="noopener" className="shrink-0 font-semibold text-emerald-800 hover:underline">
+                Open in nieuw tabblad ↗
+              </a>
+            )}
           </div>
-          <iframe src={bekijkUrl} title={`Nieuwe website van ${siteNaam}`} className="h-[55vh] min-h-[22rem] w-full bg-white" />
+          <iframe src={voorbeeldSrc} title={`Nieuwe website van ${siteNaam}`} className="h-[55vh] min-h-[22rem] w-full bg-white" />
         </div>
       )}
 

@@ -104,6 +104,7 @@ export default async function Portal({
             siteId={getoondeSite.id}
             siteNaam={getoondeSite.naam}
             bekijkUrl={standaardBekijkLink(getoondeSite)}
+            voorbeeldSrc={`/site-weergave/${createPreviewAccess(getoondeSite.id, userId)}/`}
           />
         );
       }
