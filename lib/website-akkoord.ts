@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { akkoorden } from "@/db/schema";
+import { akkoorden, messages } from "@/db/schema";
 import { inWordSwapHuisstijl, ontsnap } from "@/lib/wordswap-mail";
 import { TELEFOON } from "@/lib/persoonlijk";
 
@@ -147,4 +147,16 @@ export function bouwAkkoordBevestiging(o: { siteNaam: string; domein?: string | 
         p("Groet,<br>Jos"),
     ),
   };
+}
+
+/**
+ * Heeft dit account het portaal echt gebruikt? Bij de eerste echte inlog legt het portaal het
+ * akkoord op de verwerkersovereenkomst vast; wie chat, laat berichten achter. Clerks eigen
+ * "laatst ingelogd" zegt niets: aanmelden via een uitnodiging telt daar al als inloggen.
+ */
+export async function heeftPortaalGebruikt(clerkUserId: string): Promise<boolean> {
+  const [akkoord] = await db.select({ id: akkoorden.id }).from(akkoorden).where(eq(akkoorden.clerkUserId, clerkUserId)).limit(1);
+  if (akkoord) return true;
+  const [bericht] = await db.select({ id: messages.id }).from(messages).where(eq(messages.clerkUserId, clerkUserId)).limit(1);
+  return Boolean(bericht);
 }

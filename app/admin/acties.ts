@@ -141,9 +141,10 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 }
 
 /**
- * Koppeling intrekken zolang de klant nog nooit heeft ingelogd: openstaande Clerk-uitnodiging
- * intrekken, een nog ongebruikt account verwijderen (alleen als het aan geen andere site hangt)
- * en de site terugzetten naar Jos. Heeft de klant al ingelogd, dan gebeurt er niets.
+ * Koppeling intrekken zolang de klant het portaal nog niet echt heeft gebruikt (geen akkoord op de
+ * verwerkersovereenkomst, geen chatberichten): openstaande Clerk-uitnodiging intrekken, het
+ * ongebruikte account verwijderen (nooit een beheerder, en alleen als het aan geen andere site
+ * hangt) en de site terugzetten naar Jos. Heeft de klant het portaal al gebruikt, dan gebeurt er niets.
  */
 export async function trekKoppelingIn(formData: FormData): Promise<void> {
   const admin = await requireAdmin();
@@ -157,7 +158,11 @@ export async function trekKoppelingIn(formData: FormData): Promise<void> {
       ...init,
       headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     });
-  type ClerkUser = { id: string; last_sign_in_at: number | null; email_addresses?: { email_address: string }[] };
+  type ClerkUser = {
+    id: string;
+    public_metadata?: { role?: string };
+    email_addresses?: { email_address: string }[];
+  };
 
   // Welk account hoort erbij: het gekoppelde (als dat niet Jos zelf is) of dat van het uitnodigingsadres
   let gebruiker: ClerkUser | null = null;
@@ -169,7 +174,10 @@ export async function trekKoppelingIn(formData: FormData): Promise<void> {
     const lijst = r.ok ? ((await r.json()) as ClerkUser[]) : [];
     gebruiker = lijst[0] ?? null;
   }
-  if (gebruiker?.last_sign_in_at) redirect(`/admin/klant/${siteId}?koppel=intrekken-ingelogd`);
+  const { heeftPortaalGebruikt } = await import("@/lib/website-akkoord");
+  if (gebruiker && (gebruiker.public_metadata?.role === "admin" || (await heeftPortaalGebruikt(gebruiker.id)))) {
+    redirect(`/admin/klant/${siteId}?koppel=intrekken-ingelogd`);
+  }
 
   // Openstaande uitnodiging(en) intrekken
   const email = site.uitnodigingEmail ?? gebruiker?.email_addresses?.[0]?.email_address ?? null;

@@ -54,12 +54,10 @@ async function clerkGebruiker(userId: string) {
       email_addresses?: { email_address: string }[];
       first_name?: string;
       last_name?: string;
-      last_sign_in_at?: number | null;
     };
     return {
       email: u.email_addresses?.[0]?.email_address ?? "onbekend",
       naam: [u.first_name, u.last_name].filter(Boolean).join(" "),
-      ooitIngelogd: Boolean(u.last_sign_in_at),
     };
   } catch {
     return null;
@@ -135,6 +133,9 @@ export default async function KlantDetail({
   const gebruiker = await clerkGebruiker(site.clerkUserId);
   const { opleveringsAkkoord, standaardBekijkLink, vraagtOpleveringsAkkoord } = await import("@/lib/website-akkoord");
   const oplevering = await opleveringsAkkoord(site.id);
+  const { heeftPortaalGebruikt } = await import("@/lib/website-akkoord");
+  const klantGebruiktPortaal =
+    site.clerkUserId && site.clerkUserId !== admin.id ? await heeftPortaalGebruikt(site.clerkUserId).catch(() => true) : false;
   const bekijkLink = standaardBekijkLink(site);
   const versies = await lijstVersies(site.githubRepo).catch(() => []);
   const chatHistorie = await db
@@ -413,7 +414,7 @@ export default async function KlantDetail({
                 : koppelMelding === "ingetrokken"
                   ? "✓ Koppeling ingetrokken: de uitnodiging is vervallen, een ongebruikt account is verwijderd en de site hangt weer aan jou."
                   : koppelMelding === "intrekken-ingelogd"
-                    ? "Intrekken kan niet meer: deze klant heeft al ingelogd. Gebruik 'Site overdragen' als de site naar een ander account moet."
+                    ? "Intrekken kan niet meer: dit account heeft het portaal al gebruikt (of is een beheerder), dus het wordt niet verwijderd. Gebruik 'Site overdragen' als de site naar een ander account moet."
                     : koppelMelding === "mail-mislukt"
                   ? "Gekoppeld, maar de mail kon niet worden verstuurd. Probeer het opnieuw."
                   : "De uitnodiging kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
@@ -443,13 +444,13 @@ export default async function KlantDetail({
             eerst inlogt, wordt de site automatisch gekoppeld.
           </p>
         )}
-        {(site.uitnodigingEmail || (gebruiker && site.clerkUserId !== admin.id && !gebruiker.ooitIngelogd)) && (
+        {(site.uitnodigingEmail || (gebruiker && site.clerkUserId !== admin.id && !klantGebruiktPortaal)) && (
           <form action={trekKoppelingIn} className="mt-2">
             <input type="hidden" name="siteId" value={site.id} />
             <BevestigKnop
-              label="↩ Koppeling intrekken (klant heeft nog niet ingelogd)"
+              label="↩ Koppeling intrekken (klant heeft het portaal nog niet gebruikt)"
               bezigLabel="Intrekken..."
-              vraag="Koppeling intrekken? De uitnodiging vervalt, een nog nooit gebruikt account wordt verwijderd, en de site hangt weer aan jou. Dit kan alleen zolang de klant nog niet heeft ingelogd."
+              vraag="Koppeling intrekken? De uitnodiging vervalt, het nog niet gebruikte account wordt verwijderd, en de site hangt weer aan jou. Dit kan alleen zolang de klant het portaal nog niet echt heeft gebruikt."
               className="text-xs font-semibold text-red-700 hover:underline cursor-pointer"
             />
           </form>
