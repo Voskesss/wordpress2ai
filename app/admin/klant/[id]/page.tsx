@@ -474,6 +474,7 @@ export default async function KlantDetail({
                 placeholder="nieuw@bedrijf.nl"
                 className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
               />
+              <UitnodigingVoorbeeldKnop siteId={site.id} />
               <ActieKnop
                 label="Draag over"
                 bezigLabel="Bezig..."
@@ -481,7 +482,8 @@ export default async function KlantDetail({
               />
             </form>
             <p className="mt-2 text-xs text-stone-500">
-              Let op: de huidige koppeling wordt hiermee vervangen, en het nieuwe account krijgt de mail met de link.
+              Let op: de huidige koppeling wordt hiermee vervangen. Het nieuwe account krijgt een mail
+              {vraagtOpleveringsAkkoord(site) ? " met de link naar de website en het akkoordverzoek" : " dat hij toegang heeft tot de website"}; klik op ⓘ om hem te bekijken.
             </p>
           </details>
           </>

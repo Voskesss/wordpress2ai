@@ -66,9 +66,11 @@ export function bouwOpleveringsMail(o: {
         p(
           `Goed nieuws: je nieuwe website van <strong>${site}</strong> staat klaar. We hebben je e-mailadres eraan gekoppeld, dus je kunt nu rustig kijken of je tevreden bent.`,
         ) +
-        p("<strong>1. Bekijk je website</strong><br>Zo ziet hij eruit. Klik gerust overal doorheen, ook op je telefoon.") +
-        knop(o.bekijkUrl, "Bekijk je website") +
-        `<p style="margin:-6px 0 18px;font-size:13px;color:#657164">${bekijkTekst}</p>` +
+        (o.bekijkUrl
+          ? p("<strong>1. Bekijk je website</strong><br>Zo ziet hij eruit. Klik gerust overal doorheen, ook op je telefoon.") +
+            knop(o.bekijkUrl, "Bekijk je website") +
+            `<p style="margin:-6px 0 18px;font-size:13px;color:#657164">${bekijkTekst}</p>`
+          : "") +
         p(
           "<strong>2. Log in en geef je akkoord</strong><br>In je eigen omgeving geef je akkoord als alles klopt. Wil je eerst uitproberen hoe makkelijk aanpassen gaat? Dat kan ook: typ gewoon in de chat wat je anders wilt.",
         ) +
@@ -81,6 +83,40 @@ export function bouwOpleveringsMail(o: {
       "Je krijgt deze mail omdat je website door WordSwap wordt overgezet.",
     ),
   };
+}
+
+/** Voor een site die al draait (overdragen aan een ander account): toegang, zonder akkoordverhaal. */
+export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlogUrl: string }): {
+  onderwerp: string;
+  html: string;
+} {
+  const site = ontsnap(o.siteNaam);
+  return {
+    onderwerp: `Je hebt toegang tot je website: ${o.siteNaam}`,
+    html: inWordSwapHuisstijl(
+      p("Hoi,") +
+        p(
+          `Je e-mailadres is gekoppeld aan de website van <strong>${site}</strong>. Vanaf nu kun je hem zelf bijhouden: typ in de chat wat er anders moet, bekijk het voorbeeld en zet het live wanneer jij wilt.`,
+        ) +
+        (o.bekijkUrl ? knop(o.bekijkUrl, "Bekijk de website", false) : "") +
+        knop(o.inlogUrl, "Inloggen") +
+        p(
+          "Je hebt geen wachtwoord nodig: je krijgt bij het inloggen een code op dit e-mailadres. <strong>Zie je die code niet binnen een minuut? Kijk dan even in je spam of ongewenste mail.</strong>",
+        ) +
+        p("Vragen? Antwoord gewoon op deze mail of bel me op " + TELEFOON + ".") +
+        p("Groet,<br>Jos"),
+    ),
+  };
+}
+
+/** Welke mail hoort bij deze site: in opbouw = oplevering met akkoord, anders = toegang. */
+export function bouwKoppelMail(
+  site: { naam: string; status: string; isDemo: boolean },
+  links: { bekijkUrl: string; inlogUrl: string },
+) {
+  return vraagtOpleveringsAkkoord(site)
+    ? bouwOpleveringsMail({ siteNaam: site.naam, ...links })
+    : bouwToegangsMail({ siteNaam: site.naam, ...links });
 }
 
 /** Bevestiging aan de klant na het akkoord. */

@@ -74,10 +74,10 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
-  const { bouwOpleveringsMail, isVeiligeLink, standaardBekijkLink } = await import("@/lib/website-akkoord");
+  const { bouwKoppelMail, isVeiligeLink, standaardBekijkLink } = await import("@/lib/website-akkoord");
   const opgegevenLink = String(formData.get("bekijkLink") ?? "").trim();
   const bekijkUrl = isVeiligeLink(opgegevenLink) ? opgegevenLink : standaardBekijkLink(site);
-  const mailSturen = formData.get("mail") !== "nee" && Boolean(bekijkUrl);
+  const mailSturen = formData.get("mail") !== "nee";
 
   const secret = process.env.CLERK_SECRET_KEY;
   const res = await fetch(
@@ -118,7 +118,7 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwOpleveringsMail({ siteNaam: site.naam, bekijkUrl, inlogUrl });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl });
     const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }

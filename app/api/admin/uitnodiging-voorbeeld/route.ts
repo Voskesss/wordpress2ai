@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
-import { bouwOpleveringsMail, isVeiligeLink, standaardBekijkLink } from "@/lib/website-akkoord";
+import { bouwKoppelMail, isVeiligeLink, standaardBekijkLink } from "@/lib/website-akkoord";
 import { ontsnap } from "@/lib/wordswap-mail";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +19,7 @@ export async function GET(req: Request) {
   const link = q.get("link")?.trim() ?? "";
   const bekijkUrl = isVeiligeLink(link) ? link : standaardBekijkLink(site);
   const email = q.get("email")?.trim() || "klant@voorbeeld.nl";
-  const mail = bouwOpleveringsMail({
-    siteNaam: site.naam,
+  const mail = bouwKoppelMail(site, {
     bekijkUrl: bekijkUrl || "https://voorbeeld.wordswap.workers.dev",
     // De echte inloglink (uitnodiging) ontstaat pas bij het koppelen
     inlogUrl: "https://www.wordswap.nl/portal",
