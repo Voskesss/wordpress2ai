@@ -1140,6 +1140,7 @@ export async function POST(req: Request) {
           }
           let previewUrl: string | null = null;
           let changeRowId: number | null = null;
+          let conceptBranch: string | null = null;
 
           if (gewijzigd.length > 0) {
             stuur({
@@ -1188,6 +1189,7 @@ export async function POST(req: Request) {
               changeRowId = openConcept.id;
               previewUrl =
                 openConcept.previewUrl ?? `/preview/${openConcept.id}/`;
+              conceptBranch = openConcept.branch;
             } else {
               const branch = eigenBranch ?? `wijziging-${Date.now()}`;
               let baseSha: string | null = null;
@@ -1227,6 +1229,7 @@ export async function POST(req: Request) {
                 .returning({ id: changes.id });
               changeRowId = row.id;
               previewUrl = `/preview/${row.id}/`;
+              conceptBranch = branch;
               await db
                 .update(changes)
                 .set({ previewUrl })
@@ -1248,6 +1251,84 @@ export async function POST(req: Request) {
 
             stuur({ type: "status", tekst: "Ik werk mijn voorbeeld bij — een paar tellen nog..." });
             await deployKlaar;
+
+            // Visuele mobielcontrole: de gewijzigde pagina's van het zojuist
+            // bijgewerkte voorbeeld écht op telefoonbreedte laten renderen.
+            // Kost ±1–4 s; alleen als een pagina te breed is volgt één korte
+            // herstelbeurt. Lukt meten niet (limiet, storing), dan gaat alles
+            // gewoon door.
+            if (
+              wvNaam &&
+              conceptBranch &&
+              changeRowId &&
+              !snelpad &&
+              !tijdOp &&
+              !limietBereikt &&
+              !stopper.signal.aborted &&
+              !slotKwijt.signal.aborted
+            ) {
+              try {
+                const { meetMobieleWeergave, paginasOmTeMeten, teBredePaginas, beschrijfProblemen } =
+                  await import("@/lib/mobiel-render");
+                const metingen = await meetMobieleWeergave(
+                  `https://${wvNaam}.${CF_SUBDOMEIN}.workers.dev`,
+                  paginasOmTeMeten(gewijzigd),
+                );
+                const teBreed = metingen ? teBredePaginas(metingen) : [];
+                if (teBreed.length > 0 && !stopper.signal.aborted) {
+                  stuur({ type: "status", tekst: "Ik controleer of het ook goed staat op een telefoon..." });
+                  const voorHerstel = await maakSnapshot(werkmap);
+                  const herstel = await draaiChatAgent({
+                    werkmap,
+                    model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                    systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                    opdracht: `MOBIELCONTROLE (automatisch, na je vorige wijziging). Ik heb de gewijzigde pagina's echt laten zien op een telefoon (390px breed). Ze zijn breder dan het scherm, waardoor je op een telefoon horizontaal moet schuiven:\n${beschrijfProblemen(
+                      teBreed,
+                    )}\n\nHerstel dit zonder het ontwerp op een computer te veranderen. Veelvoorkomende oorzaken: vaste breedtes of kolommen in een style-attribuut, een raster zonder media query, of een foto/iframe/tabel met een vaste breedte. Regel het via klassen in de bestaande stylesheet met een @media-regel voor smalle schermen (bijv. max-width: 700px: één kolom, max-width: 100%). Gebruik eerst een bestaande klasse als die dit al doet. Pas verder niets aan. Antwoord met één korte zin.`,
+                    budgetUsd: 0.15,
+                    signal: stopper.signal,
+                    opGebeurtenis: () => {},
+                  });
+                  const { registreerAiKosten } = await import("@/lib/kosten");
+                  await registreerAiKosten(site.id, "chat", {
+                    tokensIn: herstel.tokensIn,
+                    tokensUit: herstel.tokensUit,
+                    kostenUsd: herstel.kostenUsd,
+                  }).catch(() => {});
+                  const hersteld = await gewijzigdeBestanden(werkmap, voorHerstel);
+                  if (hersteld.length > 0 && !stopper.signal.aborted && !slotKwijt.signal.aborted) {
+                    const { pushBestanden } = await import("@/lib/github");
+                    await pushBestanden(
+                      site.githubRepo,
+                      await Promise.all(
+                        hersteld.map(async (pad) => ({ pad, inhoud: await readFile(path.join(werkmap!, pad)) })),
+                      ),
+                      "Mobielcontrole: pagina past weer op een telefoon",
+                      conceptBranch,
+                    );
+                    const [rij] = await db
+                      .select({ bestanden: changes.bestanden })
+                      .from(changes)
+                      .where(eq(changes.id, changeRowId));
+                    gewijzigd = [...new Set([...gewijzigd, ...hersteld])];
+                    await db
+                      .update(changes)
+                      .set({
+                        bestanden: [
+                          ...new Set([...(Array.isArray(rij?.bestanden) ? (rij.bestanden as string[]) : []), ...hersteld]),
+                        ],
+                      })
+                      .where(eq(changes.id, changeRowId));
+                    await deployMapNaarCloudflare(werkmap!, wvNaam, { subdomeinAanzetten: site.isDemo });
+                  }
+                  console.log(
+                    `Mobiele weergave ${site.githubRepo}: ${teBreed.map((p) => `${p.pad}=${p.breedte}px`).join(", ")} te breed, ${hersteld.length} bestand(en) hersteld`,
+                  );
+                }
+              } catch (e) {
+                console.error("Visuele mobielcontrole mislukt (wijziging gaat gewoon door):", e);
+              }
+            }
           }
           tik("afgerond");
           console.log(

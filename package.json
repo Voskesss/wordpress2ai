@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node tests/publiceren.cjs && node tests/agent-boundary.cjs && node tests/preview-access.cjs && node tests/websitecheck.cjs && node tests/marketing-consent.cjs && node tests/chat-response.cjs && node tests/nieuw-gesprek.cjs && node --import tsx tests/site-onderhoud.mts && node --import tsx tests/actueel.mts && node --import tsx tests/foto-ordenen.mts && node --import tsx tests/chat-bestandsslot.mts && node --import tsx tests/slot-wacht.mts && node --import tsx tests/deploy-slot.mts && node --import tsx tests/whatsapp.mts",
+    "test": "node tests/publiceren.cjs && node tests/agent-boundary.cjs && node tests/preview-access.cjs && node tests/websitecheck.cjs && node tests/marketing-consent.cjs && node tests/chat-response.cjs && node tests/nieuw-gesprek.cjs && node --import tsx tests/site-onderhoud.mts && node --import tsx tests/actueel.mts && node --import tsx tests/foto-ordenen.mts && node --import tsx tests/chat-bestandsslot.mts && node --import tsx tests/slot-wacht.mts && node --import tsx tests/deploy-slot.mts && node --import tsx tests/mobiel-render.mts && node --import tsx tests/whatsapp.mts",
     "test:seo": "node tests/seo-vergelijk.cjs",
     "typecheck": "next typegen && tsc --noEmit",
     "test:chat-ui": "node tests/chat-recovery.cjs && node tests/demo-funnel.cjs && node tests/product-preview.cjs",
