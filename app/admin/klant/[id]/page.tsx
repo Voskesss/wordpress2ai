@@ -139,13 +139,16 @@ export default async function KlantDetail({
     site.clerkUserId && site.clerkUserId !== admin.id ? await heeftPortaalGebruikt(site.clerkUserId).catch(() => true) : false;
   const bekijkLink = standaardBekijkLink(site);
   const versies = await lijstVersies(site.githubRepo).catch(() => []);
+  // Alleen jouw eigen gesprek: precies wat de AI in de chatroute als historie meekrijgt.
+  // Gesprekken van de klant staan per persoon onder Chatgeschiedenis.
+  const { vanafLaatsteNieuwGesprek } = await import("@/lib/gesprek");
   const chatHistorie = await db
     .select()
     .from(messages)
-    .where(eq(messages.siteId, site.id))
+    .where(and(eq(messages.siteId, site.id), eq(messages.clerkUserId, admin.id)))
     .orderBy(messages.id)
     .then((rows) =>
-      rows.slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
+      vanafLaatsteNieuwGesprek(rows).slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
     );
   const herstel = laatsteChanges.find((c) => c.status === "herstel_mislukt");
   const openConcept = laatsteChanges.find((c) => c.status === "concept" || c.status === "publicatie_mislukt");
