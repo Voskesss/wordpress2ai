@@ -72,11 +72,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -220,6 +220,12 @@ export default async function KlantDetail({
       <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
         ← Alle klanten
       </Link>
+      {slotMelding === "bezet" && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
+          Er wordt op dit moment aan deze site gewerkt (chat, foto of publicatie). Je actie is niet uitgevoerd,
+          zodat er niets door elkaar gaat. Probeer het over een minuut opnieuw.
+        </p>
+      )}
       <div className="mt-3 flex items-center justify-between gap-4 flex-wrap">
         <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">
           {site.naam}

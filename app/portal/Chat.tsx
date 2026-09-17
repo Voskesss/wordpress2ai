@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useRef, useState, useCallback } from "react"
 import Fotobank from "./Fotobank";
 import ChatHulp from "./ChatHulp";
 import { readChatResponse } from "@/lib/chat-response";
+import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -505,11 +506,15 @@ export default function Chat({
       setLaderTekst(actie === "verwijder" ? "Foto weghalen..." : "Foto verplaatsen...");
     }
     try {
-      const res = await fetch("/api/foto-ordenen", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, src, pagina: huidigePagina, actie }),
-      });
+      const res = await metSlotWacht(
+        () =>
+          fetch("/api/foto-ordenen", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteId, src, pagina: huidigePagina, actie }),
+          }),
+        { opWacht: () => actie !== "info" && setLaderTekst(SLOT_WACHTTEKST) },
+      );
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean; inReeks?: boolean; positie?: number; totaal?: number;
         reply?: string; melding?: string; previewUrl?: string; changeId?: number; bestanden?: string[];
@@ -1146,11 +1151,15 @@ export default function Chat({
     setOplevering(null);
     setLaderTekst("Even geduld — je tekst wordt aangepast...");
     try {
-      const res = await fetch("/api/tekst-wijzig", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, oud, nieuw }),
-      });
+      const res = await metSlotWacht(
+        () =>
+          fetch("/api/tekst-wijzig", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteId, oud, nieuw }),
+          }),
+        { opWacht: () => setLaderTekst(SLOT_WACHTTEKST) },
+      );
       const data = (await res.json()) as {
         ok?: boolean;
         fallback?: boolean;
@@ -1159,6 +1168,7 @@ export default function Chat({
         changeId?: number;
         bestanden?: string[];
         error?: string;
+        melding?: string;
       };
       if (data.ok && data.previewUrl && data.changeId) {
         setSelectie(null);
@@ -1199,7 +1209,7 @@ export default function Chat({
         setChatOpen(true);
         setBerichten((b) => [
           ...b,
-          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+          { rol: "assistent", tekst: data.error ?? data.melding ?? "Er ging iets mis, probeer het opnieuw." },
         ]);
       }
     } catch {
@@ -1263,7 +1273,10 @@ export default function Chat({
       form.set("siteId", String(siteId));
       form.set("pad", src);
       form.set("afbeelding", bestand);
-      const res = await fetch("/api/foto-wijzig", { method: "POST", body: form });
+      const res = await metSlotWacht(
+        () => fetch("/api/foto-wijzig", { method: "POST", body: form }),
+        { opWacht: () => setLaderTekst(SLOT_WACHTTEKST) },
+      );
       const data = (await res.json()) as {
         ok?: boolean;
         fallback?: boolean;
@@ -1272,6 +1285,7 @@ export default function Chat({
         changeId?: number;
         bestanden?: string[];
         error?: string;
+        melding?: string;
       };
       if (data.ok && data.previewUrl && data.changeId) {
         setSelectie(null);
@@ -1309,7 +1323,7 @@ export default function Chat({
       } else {
         setBerichten((b) => [
           ...b,
-          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+          { rol: "assistent", tekst: data.error ?? data.melding ?? "Er ging iets mis, probeer het opnieuw." },
         ]);
       }
     } catch {
@@ -1328,11 +1342,15 @@ export default function Chat({
     setOplevering(null);
     setLaderTekst("Even geduld — de kleur wordt overal doorgevoerd...");
     try {
-      const res = await fetch("/api/tekst-wijzig", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, oud: oudeKleur, nieuw: kleur, kleur: true }),
-      });
+      const res = await metSlotWacht(
+        () =>
+          fetch("/api/tekst-wijzig", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteId, oud: oudeKleur, nieuw: kleur, kleur: true }),
+          }),
+        { opWacht: () => setLaderTekst(SLOT_WACHTTEKST) },
+      );
       const data = (await res.json()) as {
         ok?: boolean;
         fallback?: boolean;
@@ -1341,6 +1359,7 @@ export default function Chat({
         changeId?: number;
         bestanden?: string[];
         error?: string;
+        melding?: string;
       };
       if (data.ok && data.previewUrl && data.changeId) {
         const nieuweKleur = kleur;
@@ -1380,7 +1399,7 @@ export default function Chat({
         setChatOpen(true);
         setBerichten((b) => [
           ...b,
-          { rol: "assistent", tekst: data.error ?? "Er ging iets mis, probeer het opnieuw." },
+          { rol: "assistent", tekst: data.error ?? data.melding ?? "Er ging iets mis, probeer het opnieuw." },
         ]);
       }
     } catch {

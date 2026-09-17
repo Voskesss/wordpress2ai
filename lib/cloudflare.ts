@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { laadDelen, vouwUit } from "./delen";
+import { deployTotActueel, metSlot } from "./deploy-slot";
 import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
 const API = "https://api.cloudflare.com/client/v4";
@@ -56,18 +57,47 @@ export async function deployRepoNaarCloudflare(repo: string, naam: string) {
   return deployRepoNaarCloudflareRef(repo, naam);
 }
 
-/** Als deployRepoNaarCloudflare, maar vanaf een specifieke branch/commit. */
+/** Als deployRepoNaarCloudflare, maar vanaf een specifieke branch/commit.
+ * Laden en neerzetten gebeuren samen binnen het deploy-slot van de worker,
+ * vanaf een exacte commit. Is de branch na afloop verder gegaan (een push
+ * tijdens de deploy), dan volgt meteen nog een ronde met de nieuwste versie. */
 export async function deployRepoNaarCloudflareRef(
   repo: string,
   naam: string,
   ref?: string
 ) {
-  const werkmap = await laadWerkmap(repo, ref);
+  return metDeploySlot(naam, () =>
+    deployTotActueel({
+      leesSha: () => commitShaVan(repo, ref),
+      deploy: async (sha) => {
+        const werkmap = await laadWerkmap(repo, sha ?? ref);
+        try {
+          return await deployMapZonderSlot(werkmap, naam);
+        } finally {
+          await ruimWerkmapOp(werkmap).catch(() => {});
+        }
+      },
+    })
+  );
+}
+
+/** Huidige commit van een branch (of HEAD); null als GitHub het niet weet. */
+async function commitShaVan(repo: string, ref?: string): Promise<string | null> {
   try {
-    return await deployMapNaarCloudflare(werkmap, naam);
-  } finally {
-    await ruimWerkmapOp(werkmap).catch(() => {});
+    const { gh, GITHUB_ORG } = await import("./github");
+    const commit = (await gh(
+      `/repos/${GITHUB_ORG}/${repo}/commits/${ref ? encodeURIComponent(ref) : "HEAD"}`
+    )) as { sha?: string };
+    return commit?.sha ?? null;
+  } catch {
+    return null;
   }
+}
+
+/** Eén deploy tegelijk per worker, over alle serverless instanties heen. */
+async function metDeploySlot<T>(naam: string, werk: () => Promise<T>): Promise<T> {
+  const { claimOperation } = await import("./operation-guards");
+  return metSlot(() => claimOperation(`deploy:${naam}`), naam, werk);
 }
 
 /** Het echte klantdomein bij een worker-naam (live of wv-werkversie), zoals
@@ -178,6 +208,14 @@ async function bereidBestandenVoor(
  * site (of bij een nieuwe scriptversie) publiceren. R2 is direct consistent,
  * dus de nieuwe versie is meteen overal zichtbaar. Zie docs/r2-architectuur.md. */
 export async function deployMapNaarCloudflare(
+  werkmap: string,
+  naam: string,
+  opties: { subdomeinAanzetten?: boolean } = {}
+) {
+  return metDeploySlot(naam, () => deployMapZonderSlot(werkmap, naam, opties));
+}
+
+async function deployMapZonderSlot(
   werkmap: string,
   naam: string,
   opties: { subdomeinAanzetten?: boolean } = {}

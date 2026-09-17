@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 
 type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean };
 
@@ -59,21 +60,28 @@ export default function Fotobank({
     setBezigMet(pad);
     setFout(null);
     try {
-      const res = await fetch("/api/fotobank", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, pad, vervangDoel: vervangDoel ?? undefined }),
-      });
+      const res = await metSlotWacht(
+        () =>
+          fetch("/api/fotobank", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteId, pad, vervangDoel: vervangDoel ?? undefined }),
+          }),
+        { opWacht: () => setFout(SLOT_WACHTTEKST) },
+      );
       const data = (await res.json()) as {
         ok?: boolean;
         error?: string;
+        melding?: string;
         reply?: string;
         previewUrl?: string;
         changeId?: number;
         bestanden?: string[];
       };
-      if (data.ok) onKlaar(data);
-      else setFout(data.error ?? "Vervangen lukte niet.");
+      if (data.ok) {
+        setFout(null);
+        onKlaar(data);
+      } else setFout(data.error ?? data.melding ?? "Vervangen lukte niet.");
     } finally {
       setBezigMet(null);
     }

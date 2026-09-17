@@ -7,6 +7,20 @@ import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 
+/** Zelfde bewerkingsslot als de chat, foto's en publiceren: een admin-actie
+ * die main of de branches aanpast mag niet tegelijk met een klantbewerking
+ * lopen. Bezet? Dan terug naar de klantpagina met een melding. */
+async function metSiteSlot(siteId: number, werk: () => Promise<void>) {
+  const { claimOperation } = await import("@/lib/operation-guards");
+  const vrijgeven = await claimOperation(`site:${siteId}`);
+  if (!vrijgeven) redirect(`/admin/klant/${siteId}?slot=bezet`);
+  try {
+    await werk();
+  } finally {
+    await vrijgeven();
+  }
+}
+
 export async function bewaarRichtlijnen(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -288,17 +302,19 @@ export async function zetSiteOnline(formData: FormData) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site || site.siteSlug) return;
 
-  const { deployRepoNaarCloudflare, CF_SUBDOMEIN } = await import("@/lib/cloudflare");
-  await deployRepoNaarCloudflare(site.githubRepo, site.githubRepo);
-  // Werkversie-adres alvast klaarzetten (SSL heeft even nodig bij eerste keer)
-  await deployRepoNaarCloudflare(site.githubRepo, `wv-${site.githubRepo}`).catch(() => {});
-  await db
-    .update(sites)
-    .set({
-      siteSlug: site.githubRepo,
-      domein: `${site.githubRepo}.${CF_SUBDOMEIN}.workers.dev`,
-    })
-    .where(eq(sites.id, siteId));
+  await metSiteSlot(siteId, async () => {
+    const { deployRepoNaarCloudflare, CF_SUBDOMEIN } = await import("@/lib/cloudflare");
+    await deployRepoNaarCloudflare(site.githubRepo, site.githubRepo);
+    // Werkversie-adres alvast klaarzetten (SSL heeft even nodig bij eerste keer)
+    await deployRepoNaarCloudflare(site.githubRepo, `wv-${site.githubRepo}`).catch(() => {});
+    await db
+      .update(sites)
+      .set({
+        siteSlug: site.githubRepo,
+        domein: `${site.githubRepo}.${CF_SUBDOMEIN}.workers.dev`,
+      })
+      .where(eq(sites.id, siteId));
+  });
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");
 }
@@ -311,14 +327,16 @@ export async function herstelVersie(formData: FormData) {
   if (!Number.isInteger(siteId) || !/^[0-9a-f]{7,40}$/i.test(sha)) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
-  const { zetTerugNaarVersie } = await import("@/lib/github");
-  await zetTerugNaarVersie(site.githubRepo, sha);
-  if (site.siteSlug) {
-    const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
-    await deployRepoNaarCloudflare(site.githubRepo, site.siteSlug).catch((e) =>
-      console.error("Deploy na terugzetten mislukt:", e)
-    );
-  }
+  await metSiteSlot(siteId, async () => {
+    const { zetTerugNaarVersie } = await import("@/lib/github");
+    await zetTerugNaarVersie(site.githubRepo, sha);
+    if (site.siteSlug) {
+      const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
+      await deployRepoNaarCloudflare(site.githubRepo, site.siteSlug).catch((e) =>
+        console.error("Deploy na terugzetten mislukt:", e)
+      );
+    }
+  });
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
@@ -850,20 +868,22 @@ export async function sjabloonVastleggen(formData: FormData) {
   if (!Number.isInteger(siteId)) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
-  const { gh, GITHUB_ORG } = await import("@/lib/github");
-  const main = (await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/main`)) as { object: { sha: string } };
-  const bestaat = await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/sjabloon`).then(() => true).catch(() => false);
-  if (bestaat) {
-    await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/sjabloon`, {
-      method: "PATCH",
-      body: JSON.stringify({ sha: main.object.sha, force: true }),
-    });
-  } else {
-    await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs`, {
-      method: "POST",
-      body: JSON.stringify({ ref: "refs/heads/sjabloon", sha: main.object.sha }),
-    });
-  }
+  await metSiteSlot(siteId, async () => {
+    const { gh, GITHUB_ORG } = await import("@/lib/github");
+    const main = (await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/main`)) as { object: { sha: string } };
+    const bestaat = await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/ref/heads/sjabloon`).then(() => true).catch(() => false);
+    if (bestaat) {
+      await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs/heads/sjabloon`, {
+        method: "PATCH",
+        body: JSON.stringify({ sha: main.object.sha, force: true }),
+      });
+    } else {
+      await gh(`/repos/${GITHUB_ORG}/${site.githubRepo}/git/refs`, {
+        method: "POST",
+        body: JSON.stringify({ ref: "refs/heads/sjabloon", sha: main.object.sha }),
+      });
+    }
+  });
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
@@ -882,6 +902,8 @@ export async function siteResetten(formData: FormData) {
   const path = (await import("node:path")).default;
   const { changes, messages } = await import("@/db/schema");
 
+  const vrijgeven = await (await import("@/lib/operation-guards")).claimOperation(`site:${siteId}`);
+  if (!vrijgeven) redirect(`/admin/klant/${siteId}?slot=bezet`);
   let werkmap: string | null = null;
   try {
     werkmap = await laadWerkmap(site.githubRepo, "sjabloon");
@@ -912,6 +934,7 @@ export async function siteResetten(formData: FormData) {
     await deployMapNaarCloudflare(werkmap, wv).catch((e) => console.error("Werkversie-reset mislukt:", e));
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
+    await vrijgeven();
   }
   revalidatePath(`/admin/klant/${siteId}`);
 }
