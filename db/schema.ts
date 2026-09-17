@@ -30,6 +30,9 @@ export const sites = pgTable("sites", {
     .notNull()
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
+  // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
+  // (betaalde periode plus één maand). Leeg = gewoon klant.
+  offlineNa: text("offline_na"),
   notificatieEmail: text("notificatie_email"),
   // Handtekening onder formuliermails (bevestiging aan de invuller): regels
   // met adres/telefoon, logo-adres en accentkleur. Leeg = naam + website.
@@ -45,6 +48,10 @@ export const sites = pgTable("sites", {
   videoLimiet: integer("video_limiet").notNull().default(10),
   // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de admin.
   aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(5),
+  // Eenmalige extra ruimte bovenop het maandbudget, alleen voor de maand
+  // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
+  aiExtraUsd: integer("ai_extra_usd").notNull().default(0),
+  aiExtraMaand: text("ai_extra_maand"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),
@@ -383,6 +390,7 @@ export const abonnementen = pgTable("abonnementen", {
   // uitsplitsing van het maandbedrag); komt als eigen kopje in de opdrachtbevestiging
   afspraken: text("afspraken"),
   stoptOp: text("stopt_op"), // YYYY-MM-DD: geplande opzegging, uitgevoerd door de dagelijkse cron
+  betaaldTot: text("betaald_tot"), // YYYY-MM-DD: t/m wanneer is er betaald (vastgelegd bij opzeggen)
   nieuwBedragCent: integer("nieuw_bedrag_cent"), // geplande wijziging van het maandbedrag, excl. btw
   nieuwBedragVanaf: text("nieuw_bedrag_vanaf"), // YYYY-MM-DD
   status: text("status", {

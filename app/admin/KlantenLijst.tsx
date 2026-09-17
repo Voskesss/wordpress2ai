@@ -14,6 +14,8 @@ export type KlantRij = {
   openConcepten: number;
   wijzigingen: number;
   aiUsd: number;
+  /** YYYY-MM-DD: opgezegd, website mag na deze datum offline */
+  offlineNa: string | null;
 };
 
 /** Klantenlijst in groepen (migratie, live, overig), compact en doorzoekbaar. */
@@ -31,12 +33,14 @@ export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
     {
       titel: "✅ Live",
       uitleg: "draait op het eigen domein",
-      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "actief"),
+      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "actief" && !r.offlineNa),
     },
     {
       titel: "⏸ Gepauzeerd of opgezegd",
       uitleg: "",
-      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status !== "migratie" && r.status !== "actief"),
+      rijen: gevonden.filter(
+        (r) => !r.isDemo && !r.eigen && (Boolean(r.offlineNa) || (r.status !== "migratie" && r.status !== "actief")),
+      ),
     },
     {
       titel: "Demo en eigen site",
@@ -97,6 +101,15 @@ export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
                               }`}
                             >
                               🚀 {r.livegang!.klaar}/{r.livegang!.totaal}
+                            </span>
+                          )}
+                          {r.offlineNa && (
+                            <span
+                              title="Opgezegd: dit is de dag waarop de website offline mag"
+                              className="rounded-full border border-red-300 bg-red-50 px-2.5 py-0.5 font-medium text-red-800"
+                            >
+                              🚪 offline na{" "}
+                              {new Date(`${r.offlineNa}T12:00:00`).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
                             </span>
                           )}
                           {r.openConcepten > 0 && (

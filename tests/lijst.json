@@ -1,0 +1,34 @@
+{
+  "_uitleg": "Welke tests wanneer draaien. Eén bestand per regel: zo kunnen twee sessies tegelijk een test toevoegen zonder botsing in package.json. Een test toevoegen = hier één regel erbij.",
+  "test": [
+    "publiceren.cjs",
+    "agent-boundary.cjs",
+    "preview-access.cjs",
+    "websitecheck.cjs",
+    "marketing-consent.cjs",
+    "chat-response.cjs",
+    "nieuw-gesprek.cjs",
+    "inzending-bijlage.cjs",
+    "site-onderhoud.mts",
+    "actueel.mts",
+    "foto-ordenen.mts",
+    "chat-bestandsslot.mts",
+    "slot-wacht.mts",
+    "deploy-slot.mts",
+    "mobiel-render.mts",
+    "formulier-adres.mts",
+    "opzegging.mts",
+    "ai-budget.mts",
+    "whatsapp.mts"
+  ],
+  "chat-ui": [
+    "chat-recovery.cjs",
+    "demo-funnel.cjs",
+    "product-preview.cjs"
+  ],
+  "_los": {
+    "_uitleg": "Draaien niet mee: deze hebben een echte database of een sleutel nodig.",
+    "operation-guards.mts": "node --env-file=.env.development.local --import tsx tests/operation-guards.mts",
+    "seo-vergelijk.cjs": "npm run test:seo"
+  }
+}

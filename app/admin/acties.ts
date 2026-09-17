@@ -847,6 +847,21 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+/** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de
+ * volgende maand, dus je hoeft hem niet terug te zetten. 0 = meteen weg. */
+export async function bewaarAiExtra(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const extra = Number(formData.get("extra"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(extra) || extra < 0 || extra > 1000) return;
+  const { huidigeMaand } = await import("@/lib/ai-budget");
+  await db
+    .update(sites)
+    .set(extra > 0 ? { aiExtraUsd: extra, aiExtraMaand: huidigeMaand() } : { aiExtraUsd: 0, aiExtraMaand: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 
 /** WhatsApp-kanaal (betaalde extra) aan- of uitzetten voor een site. */
 export async function bewaarWhatsapp(formData: FormData) {

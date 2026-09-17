@@ -1,5 +1,7 @@
 import HerstelMelding from "@/app/portal/HerstelMelding";
 import { createPreviewAccess } from "@/lib/preview-access";
+import { extraGeldt, huidigeMaand, maandbudgetVoor, vervaltOp } from "@/lib/ai-budget";
+import { datumInWoorden } from "@/lib/opzegging";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -25,6 +27,7 @@ import {
   bewaarVideoLimiet,
   bewaarAiBudget,
   bewaarWhatsapp,
+  bewaarAiExtra,
   siteResetten,
   sjabloonVastleggen,
   herstelVersie,
@@ -169,6 +172,8 @@ export default async function KlantDetail({
     .from(aiKosten)
     .where(eq(aiKosten.siteId, site.id));
   const maandNu = new Date().toISOString().slice(0, 7);
+  const dezeMaand = huidigeMaand();
+  const extraActief = extraGeldt(site, dezeMaand);
   const usd = (micro: number) => `$${(micro / 1_000_000).toFixed(2)}`;
   const kostenDezeMaand = kostenRijen
     .filter((r) => r.maand === maandNu)
@@ -844,8 +849,11 @@ export default async function KlantDetail({
         <h2 className="font-display text-xl font-semibold">🤖 AI-maandbudget</h2>
         <p className="mt-2 text-sm text-stone-600">
           Deze maand verbruikt: <strong>{usd(kostenDezeMaand)}</strong> van maximaal{" "}
-          <strong>${site.aiMaandbudgetUsd}</strong>. Loopt de klant hier tegenaan,
-          dan zegt de chat dat de AI-gebruiksruimte op is en verwijst hij naar jou.
+          <strong>${maandbudgetVoor(site, dezeMaand)}</strong>
+          {extraActief && (
+            <> (${site.aiMaandbudgetUsd} vast + ${site.aiExtraUsd} eenmalig deze maand)</>
+          )}
+          . Loopt de klant hier tegenaan, dan zegt de chat dat de AI-gebruiksruimte op is en verwijst hij naar jou.
           Verhoog het budget hier (hele dollars).
         </p>
         <form action={bewaarAiBudget} className="mt-3 flex flex-wrap items-end gap-3">
@@ -855,6 +863,19 @@ export default async function KlantDetail({
             <input name="budget" type="number" min={1} max={1000} defaultValue={site.aiMaandbudgetUsd} className={`${invoerStijl} w-28`} />
           </label>
           <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+        <form action={bewaarAiExtra} className="mt-4 flex flex-wrap items-end gap-3 border-t border-stone-100 pt-4">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            Eenmalig extra deze maand ($)
+            <input name="extra" type="number" min={0} max={1000} defaultValue={extraActief ? site.aiExtraUsd : 0} className={`${invoerStijl} w-28`} />
+          </label>
+          <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+          <p className="w-full text-xs text-stone-500">
+            {extraActief
+              ? `Er staat nu $${site.aiExtraUsd} extra klaar voor deze maand. Dat vervalt vanzelf op ${datumInWoorden(vervaltOp(dezeMaand))} — je hoeft niets terug te zetten. Op 0 zetten haalt het meteen weg.`
+              : "Voor een drukke maand: dit komt bovenop het vaste budget en geldt alleen deze maand. Op de 1e van de volgende maand vervalt het vanzelf."}
+          </p>
         </form>
       </div>
 
