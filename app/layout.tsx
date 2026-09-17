@@ -31,7 +31,7 @@ const siteUrl = "https://www.wordswap.nl";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    default: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     template: "%s | WordSwap",
   },
   description: aanbod.omschrijving,
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: siteUrl,
     siteName: "WordSwap",
-    title: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     description: aanbod.omschrijving,
   },
   robots: { index: true, follow: true },
