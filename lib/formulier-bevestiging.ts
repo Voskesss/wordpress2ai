@@ -49,7 +49,6 @@ const ontsnapTerug = (t: string) =>
     .replace(/&amp;/g, "&");
 
 function paginaVanBestand(rel: string): string {
-  if (rel.startsWith("delen/")) return "op elke pagina (menu/footer)";
   const p = "/" + rel.replace(/index\.html?$/i, "").replace(/\.html?$/i, "/");
   return p.replace(/\/+$/, "/") || "/";
 }
@@ -58,7 +57,21 @@ function paginaVanBestand(rel: string): string {
 export async function herkenFormulieren(werkmap: string): Promise<HerkendFormulier[]> {
   const { alleHtmlBestanden } = await import("@/lib/werkmap");
   const perNaam = new Map<string, HerkendFormulier>();
-  for (const rel of await alleHtmlBestanden(werkmap)) {
+  const bestanden = await alleHtmlBestanden(werkmap);
+  // Een formulier in delen/ staat op de pagina's die dat onderdeel invoegen;
+  // zit het in het menu of de footer, dan is dat (vrijwel) elke pagina
+  const paginasVanDeel = async (rel: string): Promise<string[]> => {
+    const naam = rel.replace(/^delen\//, "").replace(/\.html?$/i, "").toLowerCase();
+    const marker = new RegExp(`<!--\\s*invoeg:${naam}\\s*-->`, "i");
+    const gebruikt: string[] = [];
+    for (const p of bestanden) {
+      if (p.startsWith("delen/")) continue;
+      if (marker.test(await readFile(path.join(werkmap, p), "utf8").catch(() => ""))) gebruikt.push(paginaVanBestand(p));
+    }
+    const paginaTotaal = bestanden.filter((p) => !p.startsWith("delen/") && p !== "404.html").length;
+    return gebruikt.length >= Math.max(5, paginaTotaal * 0.8) ? ["op elke pagina"] : gebruikt;
+  };
+  for (const rel of bestanden) {
     if (rel === "404.html" || rel.includes("bedankt")) continue;
     const html = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
     for (const m of html.matchAll(/<form\b[^>]*action=["'][^"']*\/api\/formulier[^"']*["'][^>]*>([\s\S]*?)<\/form>/gi)) {
@@ -78,8 +91,9 @@ export async function herkenFormulieren(werkmap: string): Promise<HerkendFormuli
       ];
       const bevestiging = waarde("_bevestiging");
       const bestaand = perNaam.get(naam) ?? { formulier: naam, paginas: [], velden: [], bevestiging: null };
-      const pagina = paginaVanBestand(rel);
-      if (!bestaand.paginas.includes(pagina)) bestaand.paginas.push(pagina);
+      for (const pagina of rel.startsWith("delen/") ? await paginasVanDeel(rel) : [paginaVanBestand(rel)]) {
+        if (!bestaand.paginas.includes(pagina)) bestaand.paginas.push(pagina);
+      }
       bestaand.velden = [...new Set([...bestaand.velden, ...velden])];
       bestaand.bevestiging ??= bevestiging ? ontsnapTerug(bevestiging) : null;
       perNaam.set(naam, bestaand);
