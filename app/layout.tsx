@@ -1,6 +1,8 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import CookieKeuze from "./CookieKeuze";
+import InlogVenster from "./InlogVenster";
+import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import { currentUser } from "@clerk/nextjs/server";
@@ -28,6 +30,15 @@ const fraunces = Fraunces({
 });
 
 const siteUrl = "https://www.wordswap.nl";
+
+// Nederlandse Clerk-teksten, met bij de codestap de tip om in spam te kijken
+// (we loggen in met een code per mail, en die belandt soms in de spammap)
+const spamTip = "Geen code binnen een minuut? Kijk ook even in je spam of ongewenste mail.";
+const inlogTeksten = {
+  ...nlNL,
+  signIn: { ...nlNL.signIn, emailCode: { ...nlNL.signIn?.emailCode, subtitle: spamTip } },
+  signUp: { ...nlNL.signUp, emailCode: { ...nlNL.signUp?.emailCode, subtitle: spamTip } },
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -198,7 +209,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         {/* Analytics laadt pas na expliciete toestemming (zie CookieKeuze) */}
         {!isDev && <CookieKeuze />}
-        <ClerkProvider localization={nlNL}>
+        <ClerkProvider localization={inlogTeksten}>
+          <Suspense fallback={null}>
+            <InlogVenster />
+          </Suspense>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

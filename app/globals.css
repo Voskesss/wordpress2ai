@@ -863,7 +863,7 @@ main p {
   margin-top: 15px;
 }
 @media (min-width: 1024px) {
-  main > div:not(.marketing-home):first-child h1 {
+  main > div:not(.marketing-home):not(.clerk-pagina):first-child h1 {
     font-size: 56px;
     line-height: 1.1;
   }
