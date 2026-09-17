@@ -179,19 +179,22 @@ async function claimAlleWachtende(telefoon: string) {
 }
 
 async function koppel(telefoon: string, code: string, rij: Rij) {
-  // Raden afremmen: hooguit vijf koppelpogingen per uur per nummer
+  // Raden afremmen: na vijf MISLUKTE koppelpogingen binnen een uur even niet.
+  // Gelukte pogingen en dit bericht zelf tellen niet mee.
   const pogingen = await db
     .select({ id: whatsappBerichten.id })
     .from(whatsappBerichten)
     .where(
       and(
         eq(whatsappBerichten.telefoon, telefoon),
+        eq(whatsappBerichten.status, "genegeerd"),
+        ne(whatsappBerichten.id, rij.id),
         sql`${whatsappBerichten.inhoud} ~* '^\\s*koppel'`,
         gt(whatsappBerichten.ontvangen, sql`now() - interval '1 hour'`),
       ),
     );
   const [koppeling] =
-    pogingen.length > 5
+    pogingen.length >= 5
       ? []
       : await db
           .select()
@@ -206,7 +209,7 @@ async function koppel(telefoon: string, code: string, rij: Rij) {
     await zetStatus([rij.id], "genegeerd");
     await stuurTekst(
       telefoon,
-      pogingen.length > 5
+      pogingen.length >= 5
         ? "Te veel koppelpogingen. Probeer het over een uur opnieuw."
         : "Die code klopt niet of is verlopen. Maak in het WordSwap-portaal een nieuwe code aan en stuur die opnieuw.",
     );
