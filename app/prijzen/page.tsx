@@ -13,7 +13,7 @@ const extra = [
   ],
   [
     "Wat betekent vanaf €19 per maand?",
-    "Het basispakket begint bij €19 per maand. Daarin zitten hosting, beveiliging, de AI-chat en hulp per e-mail, met fair use van maximaal 30 nieuwe concepten per maand en een aanvullende AI-gebruiksgrens. Heeft je site meer nodig, dan spreken we dat vooraf af, tegelijk met de overstapprijs.",
+    "Het basispakket begint bij €19 per maand. Daarin zitten hosting, beveiliging, de AI-chat en hulp per e-mail, met fair use van maximaal 30 nieuwe concepten per maand en een aanvullende AI-gebruiksgrens. Een groot deel daarvan verdien je vaak terug, omdat je je oude hosting (meestal zo’n €8 tot €15 per maand) na de overstap kunt opzeggen. Heeft je site meer nodig, dan spreken we dat vooraf af, tegelijk met de overstapprijs.",
   ],
   [
     "Zit hulp bij het maandbedrag in?",
@@ -87,6 +87,12 @@ export default function Prijzen() {
           <p>
             Je hebt ons niet nodig om je website bij te houden: je vraagt het
             gewoon, en je website regelt het. Geen eigen AI-abonnement nodig.
+          </p>
+          <p className="price-reassurance">
+            <strong>Een groot deel verdien je vaak terug:</strong> je oude
+            hosting, meestal zo&rsquo;n €8 tot €15 per maand, kun je na de
+            overstap opzeggen. Draait je e-mail daar nog, dan kijken we eerst
+            samen waar die heen kan.
           </p>
           <ul className="check-list">
             {[
@@ -176,7 +182,8 @@ export default function Prijzen() {
             jaar. Met Optimaal ontzorgd is dat €150 + 12 × €39 ={" "}
             <strong>€618</strong>, met elke maand 30 minuten ondersteuning.
             Ter vergelijking: alleen de hosting van een WordPress-site kost vaak
-            al €8 tot €15 per maand, en dan doe je alles nog zelf.
+            al €8 tot €15 per maand, en dan doe je alles nog zelf. Die hosting
+            kun je na de overstap meestal opzeggen.
           </p>
           <p className="fine-print">
             Dit is een voorbeeld, geen apart pakket of klantresultaat.

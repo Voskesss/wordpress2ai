@@ -109,7 +109,10 @@ export default async function Home({
             <span>
               Daarna <strong>vanaf €19 / maand</strong>
             </span>
-            <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
+            <small>
+              Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
+              €8–€15 per maand) kun je daarna meestal opzeggen
+            </small>
           </div>
         </div>
         <div className="hero-example" id="zo-werkt-aanpassen">
