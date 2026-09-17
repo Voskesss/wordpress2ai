@@ -1766,11 +1766,23 @@ export default function Chat({
                 Open live site
               </a>
             )}
-            <Tip tekst={volledigScherm ? "Terug naar normale weergave" : "Voorbeeld schermvullend maken"}>
+            <Tip
+              tekst={
+                volledigScherm
+                  ? "Terug naar de normale weergave (kan ook met Esc)"
+                  : "Voorbeeld schermvullend maken"
+              }
+            >
+              {/* Schermvullend krijgt er tekst bij: een los icoontje wordt niet
+                  door iedereen herkend als "hier kom je er weer uit". */}
               <button
                 onClick={() => setVolledigScherm(!volledigScherm)}
                 aria-label={volledigScherm ? "Volledig scherm sluiten" : "Volledig scherm"}
-                className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                className={`hidden sm:flex items-center justify-center rounded-full border cursor-pointer ${
+                  volledigScherm
+                    ? "gap-1.5 border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-700"
+                    : "h-8 w-8 border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700"
+                }`}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
                   {volledigScherm ? (
@@ -1779,6 +1791,7 @@ export default function Chat({
                     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   )}
                 </svg>
+                {volledigScherm && <span className="hidden md:inline">Volledig scherm uit</span>}
               </button>
             </Tip>
           </div>
