@@ -12,13 +12,17 @@ const extra = [
     "Nee. Voor de ingebouwde WordSwap-chat heb je geen eigen ChatGPT- of Claude-abonnement nodig. Je eigen assistent kan wel teksten voorbereiden. Een rechtstreekse koppeling vanuit die assistent is nog gepland.",
   ],
   [
-    "Wat betekent vanaf €12 per maand?",
-    "Het maandbedrag hangt af van het afgesproken gebruik. We bespreken dat vooraf, tegelijk met de overstapprijs. Er geldt fair use van maximaal 30 nieuwe concepten per maand, met een aanvullende AI-gebruiksgrens. Heb je meer nodig, dan bespreken we wat past.",
+    "Wat betekent vanaf €19 per maand?",
+    "Het basispakket begint bij €19 per maand. Daarin zitten hosting, beveiliging, de AI-chat en hulp per e-mail, met fair use van maximaal 30 nieuwe concepten per maand en een aanvullende AI-gebruiksgrens. Heeft je site meer nodig, dan spreken we dat vooraf af, tegelijk met de overstapprijs.",
+  ],
+  [
+    "Zit hulp bij het maandbedrag in?",
+    "Meestal heb je geen hulp nodig: je vraagt het aan je website en die regelt het. Vragen stel je in het basispakket per e-mail. Wil je dat wij iets voor je doen, dan rekenen we €15 per kwartier, altijd eerst in overleg. Bij Optimaal ontzorgd zit elke maand 30 minuten ondersteuning inbegrepen; niet gebruikte minuten vervallen aan het eind van de maand. Storingen die bij ons liggen lossen we altijd kosteloos op.",
   ],
   ["Welke kosten staan los van de koppeling?", aanbod.aanvullingen],
   [
     "Welke hulp krijg ik?",
-    "Jos is je aanspreekpunt voor de overstap en vragen over WordSwap. Het maandbedrag is voor hosting en de AI-koppeling. Een nieuw ontwerp of extra functies vallen onder een aparte afspraak. Ondersteuning voor je e-mail loopt via je e-mailprovider.",
+    "Jos is je aanspreekpunt voor de overstap en voor vragen over WordSwap. In het basispakket stel je vragen per e-mail; bij Optimaal ontzorgd krijg je voorrang en 30 minuten ondersteuning per maand, ook voor advies en meedenken. Een nieuw ontwerp of extra functies vallen onder een aparte afspraak. Ondersteuning voor je e-mailbox loopt via je e-mailprovider.",
   ],
   [
     "Wanneer betaal ik voor de overstap?",
@@ -35,14 +39,15 @@ export default function Prijzen() {
       <section className="shell section-space pricing-heading">
         <p className="eyebrow">DE PRIJS, ZONDER ZOEKWERK</p>
         <h1>
-          Eenmalig overstappen.
+          Je website regelt het.
           <br />
-          <em>Daarna bijhouden met AI.</em>
+          <em>Wil je nóg minder doen? Dat kan ook.</em>
         </h1>
         <p className="section-intro">
-          Je totaal bestaat uit twee delen: je huidige website overzetten zonder
-          WordPress en een maandbedrag voor hosting en de AI-chat. Alle bedragen
-          zijn exclusief btw.
+          Je betaalt één keer voor de overstap. Daarna gaat alles vanzelf:
+          hosting, beveiliging en updates regelen wij, en aanpassen doe je door
+          het gewoon te vragen. Wil je er helemaal niet meer naar omkijken, kies
+          dan Optimaal ontzorgd. Alle bedragen zijn exclusief btw.
         </p>
       </section>
       <section
@@ -75,21 +80,22 @@ export default function Prijzen() {
           </p>
         </article>
         <article className="price-card recurring-card">
-          <p className="eyebrow">2. HOSTING EN INGEBOUWDE AI-CHAT</p>
+          <p className="eyebrow">2. BASISPAKKET · ALLES GAAT VANZELF</p>
           <h2>
-            vanaf €12 <small>per maand</small>
+            vanaf €19 <small>per maand</small>
           </h2>
           <p>
-            Afhankelijk van het gebruik dat we vooraf met je afspreken. Je hoeft
-            voor deze chat geen eigen AI-abonnement af te sluiten.
+            Je hebt ons niet nodig om je website bij te houden: je vraagt het
+            gewoon, en je website regelt het. Geen eigen AI-abonnement nodig.
           </p>
           <ul className="check-list">
             {[
-              "Hosting, SSL en domeinkoppeling inbegrepen",
-              "Wijzigingen aanvragen in gewone taal",
-              "Eerst een voorbeeld, dan zelf publiceren",
-              "Versiegeschiedenis om een eerdere versie terug te zetten",
-              "Fair use: maximaal 30 nieuwe concepten per maand, met een aanvullende AI-gebruiksgrens",
+              "Hosting, beveiliging en SSL: geregeld",
+              "Geen updates of plugins meer",
+              "Aanpassen door het gewoon te vragen, eerst een voorbeeld",
+              "Een eerdere versie terugzetten kan altijd",
+              "Hulp en vragen per e-mail",
+              "Fair use: maximaal 30 nieuwe concepten per maand",
               "Maandelijks opzegbaar; je bestanden blijven van jou",
             ].map((x) => (
               <li key={x}>{x}</li>
@@ -97,10 +103,41 @@ export default function Prijzen() {
           </ul>
         </article>
       </section>
+      <section className="shell pricing-pair mt-6" aria-label="Optimaal ontzorgd">
+        <article className="price-card ontzorgd-card md:col-span-2">
+          <p className="eyebrow">3. OPTIMAAL ONTZORGD · AANRADER</p>
+          <h2>
+            €39 <small>per maand</small>
+          </h2>
+          <p>
+            Je hoeft er zelfs niet meer naar te kijken. Stuur een mailtje, app
+            of bel, en wij regelen het voor je.
+          </p>
+          <ul className="check-list ontzorgd-lijst">
+            {[
+              "Alles uit het basispakket",
+              "Voorrang: wij reageren als eerste op jouw vraag",
+              "Elke maand 30 minuten ondersteuning: advies, meedenken of een wijziging die wij voor je doen",
+              "Niet gebruikte minuten vervallen aan het eind van de maand",
+            ].map((x) => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+          <p className="ontzorgd-noot">
+            Meer nodig in een maand? Daarboven €15 per kwartier, altijd eerst in
+            overleg.
+          </p>
+        </article>
+      </section>
       <div className="shell pricing-next">
         <Link href="/contact" className="button-primary">
           Wat kost het voor mijn website? ↗
         </Link>
+        <p>
+          Wil je in het basispakket een keer iets laten doen door ons? Dat kan
+          altijd, voor €15 per kwartier. Storingen die bij ons liggen lossen we
+          altijd kosteloos op.
+        </p>
         <p>Gratis websitecheck · Vooraf een schriftelijke prijs · Excl. btw</p>
       </div>
       <section className="shell section-space faq-layout">
@@ -133,10 +170,13 @@ export default function Prijzen() {
           <p className="eyebrow">EEN REKENVOORBEELD</p>
           <h2>Wat kost het eerste jaar?</h2>
           <p>
-            Stel: jouw overstap kost €150 en je spreekt €12 per maand af. Dan
-            betaal je €150 + 12 × €12 ={" "}
-            <strong>€294 excl. btw in het eerste jaar</strong>. Daarna €144 per
-            jaar bij hetzelfde maandbedrag.
+            Stel: jouw overstap kost €150. Met het basispakket van €19 per
+            maand betaal je €150 + 12 × €19 ={" "}
+            <strong>€378 excl. btw in het eerste jaar</strong>, daarna €228 per
+            jaar. Met Optimaal ontzorgd is dat €150 + 12 × €39 ={" "}
+            <strong>€618</strong>, met elke maand 30 minuten ondersteuning.
+            Ter vergelijking: alleen de hosting van een WordPress-site kost vaak
+            al €8 tot €15 per maand, en dan doe je alles nog zelf.
           </p>
           <p className="fine-print">
             Dit is een voorbeeld, geen apart pakket of klantresultaat.

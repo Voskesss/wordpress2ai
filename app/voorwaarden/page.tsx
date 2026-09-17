@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "De algemene voorwaarden van WordSwap: wat we leveren, no cure no pay, aansprakelijkheid en opzegging.",
 };
 
-const bijgewerkt = "28 augustus 2026";
+const bijgewerkt = "17 september 2026";
 
 function Artikel({ nr, kop, children }: { nr: number; kop: string; children: React.ReactNode }) {
   return (
@@ -65,7 +65,15 @@ export default function Voorwaarden() {
         <p>
           Prijzen worden vooraf schriftelijk (per e-mail of offerte) afgesproken
           en zijn exclusief btw, tenzij anders vermeld. De AI-koppeling is een
-          maandelijks abonnement, afgestemd op het gebruik. Facturen betaal je
+          maandelijks abonnement, afgestemd op het gebruik. In het basispakket
+          stel je vragen per e-mail. Werk dat wij op jouw verzoek voor je doen
+          buiten je pakket (zoals een wijziging, advies of het regelen van een
+          koppeling) rekenen we per begonnen kwartier tegen het afgesproken
+          tarief, na overleg vooraf. Bij Optimaal ontzorgd zijn voorrang en een
+          vast aantal minuten ondersteuning per maand inbegrepen; niet
+          gebruikte minuten vervallen aan het eind van de maand en worden niet
+          meegenomen naar een volgende maand. Storingen die aan ons te wijten
+          zijn lossen we kosteloos op. Facturen betaal je
           binnen 14 dagen. Bij uitblijvende betaling kunnen we de AI-koppeling
           pauzeren nadat we je daarover hebben geïnformeerd; de website zelf
           blijft dan gewoon online zolang de overeenkomst loopt.

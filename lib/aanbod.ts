@@ -1,13 +1,21 @@
+/** De pakketten (bedragen excl. btw). Eén plek, zodat pagina's, llms.txt en Google-gegevens gelijk blijven.
+ * Geldt voor nieuwe klanten vanaf 17-09-2026; bestaande klanten houden hun afgesproken bedrag. */
+export const PAKKETTEN = {
+  basis: { naam: "Basispakket", vanaf: 19 },
+  ontzorgd: { naam: "Optimaal ontzorgd", prijs: 39, minutenPerMaand: 30 },
+  kwartiertarief: 15,
+} as const;
+
 /** Shared public product facts; keep visible pages and machine-readable summaries aligned. */
 export const aanbod = {
   omschrijving:
     "WordSwap zet je bestaande bedrijfswebsite over naar een versie zonder WordPress. Je ontwerp en inhoud worden zorgvuldig overgenomen, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
   prijs:
-    "Overstap €150–€650 eenmalig; daarna vanaf €12 per maand voor hosting, beheer en het AI-portaal. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
+    "Overstap €150–€650 eenmalig. Daarna het basispakket vanaf €19 per maand (hosting, beheer, de AI-chat en hulp per e-mail), of Optimaal ontzorgd voor €39 per maand (daarbovenop voorrang en 30 minuten persoonlijke ondersteuning per maand). Ander werk dat wij voor je doen: €15 per kwartier. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
   inbegrepen:
-    "Ingebouwde AI-chat, hosting, SSL, domeinkoppeling en versiegeschiedenis. Fair use: maximaal 30 nieuwe concepten per maand; AI-gebruik is ook begrensd. Bij intensieve vervolgverzoeken bespreken we een passend gebruikspakket. Maandelijks opzegbaar.",
+    "Basispakket: ingebouwde AI-chat, hosting, SSL, domeinkoppeling, versiegeschiedenis en hulp per e-mail. Fair use: maximaal 30 nieuwe concepten per maand; AI-gebruik is ook begrensd. Optimaal ontzorgd: alles uit het basispakket, plus voorrang bij reacties en elke maand 30 minuten ondersteuning op diverse vlakken, zoals advies, meedenken of een wijziging die wij voor je doen; niet gebruikte minuten vervallen aan het eind van de maand. Beide pakketten zijn maandelijks opzegbaar.",
   aanvullingen:
-    "Domeinregistratie of -verlenging en een e-mailabonnement staan los van de koppeling. Meer AI-gebruik dan de fair-use-grens spreken we apart af als gebruikspakket. E-mailmigratie, extra functies en maatwerk bespreken we apart. Formulierbevestigingen vanaf je eigen domein: optioneel €49 eenmalig exclusief btw.",
+    "Domeinregistratie of -verlenging en een e-mailabonnement staan los van het pakket. Werk dat wij voor je doen buiten je pakket (bijvoorbeeld een wijziging, advies of een koppeling regelen) rekenen we per kwartier: €15 exclusief btw, altijd eerst in overleg. Meer AI-gebruik dan de fair-use-grens spreken we apart af. E-mailmigratie, extra functies en maatwerk bespreken we apart. Formulierbevestigingen vanaf je eigen domein: optioneel €49 eenmalig exclusief btw.",
   geschikt:
     "Voor bedrijfswebsites met pagina’s, foto’s, blogs en contactformulieren. Geen migratie van webshops, ledenportalen of zelfstandige boekings- en cursusplatforms. Externe boekingswidgets beoordelen we per site. We richten ons op WordPress, maar een site in een ander CMS kan vaak ook mee; dat bekijken we in de gratis websitecheck.",
   ontwerp:
@@ -46,6 +54,10 @@ export const aankoopVragen = [
   [
     "Wat betaal ik, en wat komt erbij?",
     aanbod.prijs + " " + aanbod.aanvullingen,
+  ],
+  [
+    "Heb ik hulp nodig om mijn website bij te houden?",
+    "Meestal niet: je vraagt het aan je website en die regelt het. Vragen stel je in het basispakket gewoon per e-mail. Wil je dat wij iets voor je doen, dan kan dat per kwartier (€15 exclusief btw), of je kiest Optimaal ontzorgd (€39 per maand) met voorrang en elke maand 30 minuten ondersteuning. Storingen die bij ons liggen lossen we altijd kosteloos op.",
   ],
   [
     "Heb ik een eigen ChatGPT- of Claude-abonnement nodig?",

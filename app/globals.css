@@ -1478,6 +1478,40 @@ main p {
 .recurring-card {
   background: #edf2e7;
 }
+/* Prijzenpagina: Optimaal ontzorgd als donkergroene kaart over de volle breedte */
+.price-card.ontzorgd-card {
+  background: #245747;
+  border-color: #245747;
+  color: #f4f8f0;
+}
+.ontzorgd-card .eyebrow {
+  color: #c9dcc0;
+}
+.ontzorgd-card h2,
+.ontzorgd-card h2 small {
+  color: #ffffff;
+}
+.pricing-pair .ontzorgd-card > p:not(.eyebrow),
+.pricing-pair .ontzorgd-card .check-list li {
+  color: #e3ecdd;
+}
+.ontzorgd-card .check-list li:before {
+  color: #b8d8a8;
+}
+.ontzorgd-lijst {
+  display: grid;
+  column-gap: 32px;
+}
+@media (min-width: 768px) {
+  .ontzorgd-lijst {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.pricing-pair .ontzorgd-card > p.ontzorgd-noot {
+  font-size: 13px;
+  color: #c9dcc0;
+  margin-top: 0;
+}
 .price-reassurance {
   padding-top: 15px;
   border-top: 1px solid #dbe2d0;
