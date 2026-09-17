@@ -1,6 +1,8 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import CookieKeuze from "./CookieKeuze";
+import InlogVenster from "./InlogVenster";
+import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import { currentUser } from "@clerk/nextjs/server";
@@ -9,6 +11,7 @@ import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
+import { deelAfbeelding } from "./deel-afbeelding";
 import { TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
 
 const geistSans = Geist({
@@ -26,7 +29,16 @@ const fraunces = Fraunces({
   preload: false,
 });
 
-const siteUrl = "https://wordswap.nl";
+const siteUrl = "https://www.wordswap.nl";
+
+// Nederlandse Clerk-teksten, met bij de codestap de tip om in spam te kijken
+// (we loggen in met een code per mail, en die belandt soms in de spammap)
+const spamTip = "Geen code binnen een minuut? Kijk ook even in je spam of ongewenste mail.";
+const inlogTeksten = {
+  ...nlNL,
+  signIn: { ...nlNL.signIn, emailCode: { ...nlNL.signIn?.emailCode, subtitle: spamTip } },
+  signUp: { ...nlNL.signUp, emailCode: { ...nlNL.signUp?.emailCode, subtitle: spamTip } },
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -48,8 +60,14 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: siteUrl,
     siteName: "WordSwap",
-    title: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     description: aanbod.omschrijving,
+    images: [deelAfbeelding],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
+    images: [deelAfbeelding.url],
   },
   robots: { index: true, follow: true },
 };
@@ -191,7 +209,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         {/* Analytics laadt pas na expliciete toestemming (zie CookieKeuze) */}
         {!isDev && <CookieKeuze />}
-        <ClerkProvider localization={nlNL}>
+        <ClerkProvider localization={inlogTeksten}>
+          <Suspense fallback={null}>
+            <InlogVenster />
+          </Suspense>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

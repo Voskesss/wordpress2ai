@@ -124,6 +124,13 @@ export async function publiceerConcept(
               "Nabewerking bij publicatie: sitemap.xml en llms.txt bijgewerkt",
             );
           }
+          // Formulieren herkennen voor de bevestigingsmails (nieuw formulier = één AI-voorstel)
+          try {
+            const { synchroniseerFormulieren } = await import("@/lib/formulier-bevestiging");
+            await synchroniseerFormulieren(rij.site, map);
+          } catch (e) {
+            console.error("Formulieren herkennen bij publicatie:", e);
+          }
         } finally {
           await ruimWerkmapOp(map).catch(() => {});
         }

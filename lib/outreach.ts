@@ -22,7 +22,7 @@ export function afmeldToken(prospectId: number): string {
 function afmeldRegel(p: Prospect): string {
   const link = `https://wordswap.nl/api/afmelden?p=${p.id}&t=${afmeldToken(p.id)}`;
   return `<div style="margin-top:32px;padding-top:20px;border-top:1px solid #e7e5e4;text-align:center">
-<a href="${link}" style="display:inline-block;background:#f5f5f4;color:#57534e;padding:10px 20px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid #e7e5e4">Val mij niet meer lastig</a>
+<a href="${link}" style="display:inline-block;background:#f5f5f4;color:#57534e !important;padding:10px 20px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid #e7e5e4"><span style="color:#57534e !important;text-decoration:none">Val mij niet meer lastig</span></a>
 <p style="margin-top:10px;font-size:12px;color:#a8a29e">Eén klik en je hoort nooit meer iets van ons — geen bevestiging nodig.</p>
 </div>`;
 }

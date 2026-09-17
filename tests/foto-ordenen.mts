@@ -1,6 +1,7 @@
 /** Test voor de directe foto-acties (verwijderen en een plek opschuiven).
  * Draaien: node --import tsx tests/foto-ordenen.mts — geen database of AI nodig. */
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { vindFotoInReeks, verwijderKaart, wisselKaarten } from "../lib/foto-ordenen";
 
@@ -39,22 +40,25 @@ assert.ok(!verwijderKaart(los, alleen.kaarten[0]).includes("solo.webp"));
 // 5) Onbekende foto geeft niets terug
 assert.equal(vindFotoInReeks(raster, "afbeeldingen/bestaat-niet.webp"), null);
 
-// 6) Echte klantpagina: tegels met foto's worden als reeks herkend
-const echt = await readFile(
-  "/Users/josklijnhout/wordswap-klanten/ovburo/projecten/index.html",
-  "utf8",
-);
-const eersteSrc = echt.match(/<img[^>]+src="([^"]+)"/)?.[1];
-assert.ok(eersteSrc, "testpagina heeft een foto");
-const echtGevonden = vindFotoInReeks(echt, eersteSrc);
-assert.ok(echtGevonden, "foto gevonden op de echte pagina");
-const naEcht = verwijderKaart(echt, echtGevonden.kaarten[echtGevonden.index]);
-assert.ok(naEcht.length < echt.length, "er is iets weggehaald");
-assert.ok(
-  (naEcht.match(/<img/g) ?? []).length === (echt.match(/<img/g) ?? []).length - 1,
-  "precies één foto minder",
-);
+// 6) Echte klantpagina: tegels met foto's worden als reeks herkend.
+// Die pagina staat alleen lokaal (~/wordswap-klanten); in CI slaan we dit deel over.
+const echtPad = "/Users/josklijnhout/wordswap-klanten/ovburo/projecten/index.html";
+let echtKaarten: number | null = null;
+if (existsSync(echtPad)) {
+  const echt = await readFile(echtPad, "utf8");
+  const eersteSrc = echt.match(/<img[^>]+src="([^"]+)"/)?.[1];
+  assert.ok(eersteSrc, "testpagina heeft een foto");
+  const echtGevonden = vindFotoInReeks(echt, eersteSrc);
+  assert.ok(echtGevonden, "foto gevonden op de echte pagina");
+  const naEcht = verwijderKaart(echt, echtGevonden.kaarten[echtGevonden.index]);
+  assert.ok(naEcht.length < echt.length, "er is iets weggehaald");
+  assert.ok(
+    (naEcht.match(/<img/g) ?? []).length === (echt.match(/<img/g) ?? []).length - 1,
+    "precies één foto minder",
+  );
+  echtKaarten = echtGevonden.kaarten.length;
+}
 
 console.log(
-  `PASS: reeks herkend (${echtGevonden.kaarten.length} kaarten op de echte projectenpagina), verwijderen haalt de hele kaart weg, wisselen behoudt de rest, losse foto en onbekende foto correct afgehandeld.`,
+  `PASS: reeks herkend (${echtKaarten === null ? "echte projectenpagina niet aanwezig, overgeslagen" : `${echtKaarten} kaarten op de echte projectenpagina`}), verwijderen haalt de hele kaart weg, wisselen behoudt de rest, losse foto en onbekende foto correct afgehandeld.`,
 );

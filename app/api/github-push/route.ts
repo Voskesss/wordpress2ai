@@ -54,9 +54,22 @@ export async function POST(req: Request) {
   waitUntil(
     (async () => {
       await deployRepoNaarCloudflare(repo, site.siteSlug!);
-      await deployRepoNaarCloudflare(repo, `wv-${site.siteSlug}`).catch((e) =>
-        console.error("Werkversie-deploy mislukt:", e)
-      );
+      // De werkversie (wv-*) draagt een open concept van de klant: dan niet
+      // overschrijven met main, anders verdwijnt zijn voorbeeld (zelfde regel
+      // als scripts/deploy-klant.mts)
+      const { changes } = await import("@/db/schema");
+      const { and, inArray } = await import("drizzle-orm");
+      const open = await db
+        .select({ id: changes.id })
+        .from(changes)
+        .where(and(eq(changes.siteId, site.id), inArray(changes.status, ["concept", "publicatie_mislukt"])));
+      if (open.length > 0) {
+        console.log(`Webhook: werkversie ${repo} overgeslagen, open concept #${open[0].id}`);
+      } else {
+        await deployRepoNaarCloudflare(repo, `wv-${site.siteSlug}`).catch((e) =>
+          console.error("Werkversie-deploy mislukt:", e)
+        );
+      }
       console.log(`Webhook-deploy klaar: ${repo}`);
     })().catch((e) => console.error(`Webhook-deploy mislukt (${repo}):`, e))
   );

@@ -11,8 +11,12 @@ import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
+import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
+import BevestigKnop from "./BevestigKnop";
+import LivegangChecklist from "./LivegangChecklist";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
+import BevestigingsMails from "@/app/portal/BevestigingsMails";
 import { messages } from "@/db/schema";
 import {
   bewaarRichtlijnen,
@@ -25,6 +29,7 @@ import {
   sjabloonVastleggen,
   herstelVersie,
   koppelKlant,
+  trekKoppelingIn,
   zetSiteOnline,
   verwijderKlant,
   wisChatGeschiedenis,
@@ -67,11 +72,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -129,14 +134,31 @@ export default async function KlantDetail({
     .from(migrations)
     .where(eq(migrations.siteId, site.id));
   const gebruiker = await clerkGebruiker(site.clerkUserId);
+  const { opleveringsAkkoord, standaardBekijkLink, vraagtOpleveringsAkkoord } = await import("@/lib/website-akkoord");
+  const oplevering = await opleveringsAkkoord(site.id);
+  const { heeftPortaalGebruikt } = await import("@/lib/website-akkoord");
+  const klantGebruiktPortaal =
+    site.clerkUserId && site.clerkUserId !== admin.id ? await heeftPortaalGebruikt(site.clerkUserId).catch(() => true) : false;
+  const bekijkLink = standaardBekijkLink(site);
+  const { heeftLivegang, livegangChecks } = await import("@/lib/livegang");
+  const livegang = heeftLivegang(site)
+    ? await livegangChecks(site, {
+        adminId: admin.id,
+        adminEmails: admin.emailAddresses.map((e) => e.emailAddress),
+        online: true,
+      })
+    : null;
   const versies = await lijstVersies(site.githubRepo).catch(() => []);
+  // Alleen jouw eigen gesprek: precies wat de AI in de chatroute als historie meekrijgt.
+  // Gesprekken van de klant staan per persoon onder Chatgeschiedenis.
+  const { vanafLaatsteNieuwGesprek } = await import("@/lib/gesprek");
   const chatHistorie = await db
     .select()
     .from(messages)
-    .where(eq(messages.siteId, site.id))
+    .where(and(eq(messages.siteId, site.id), eq(messages.clerkUserId, admin.id)))
     .orderBy(messages.id)
     .then((rows) =>
-      rows.slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
+      vanafLaatsteNieuwGesprek(rows).slice(-30).map((m) => ({ rol: m.rol, tekst: m.tekst }))
     );
   const herstel = laatsteChanges.find((c) => c.status === "herstel_mislukt");
   const openConcept = laatsteChanges.find((c) => c.status === "concept" || c.status === "publicatie_mislukt");
@@ -312,6 +334,8 @@ export default async function KlantDetail({
         />
       </div>
 
+      {livegang && <LivegangChecklist checks={livegang} />}
+
       {/* Instellingen */}
       <form
         action={bewaarSite}
@@ -383,11 +407,52 @@ export default async function KlantDetail({
             <span className="font-medium text-stone-900">
               {gebruiker.naam ? `${gebruiker.naam} — ` : ""}
               {gebruiker.email}
+              {site.clerkUserId === admin.id && (
+                <span className="font-normal text-stone-400"> (jijzelf, nog geen klant gekoppeld)</span>
+              )}
             </span>
           ) : (
             <span className="text-stone-400">onbekend account</span>
           )}
         </p>
+        {koppelMelding && (
+          <p
+            className={`mt-2 rounded-xl border px-3.5 py-2 text-sm ${
+              koppelMelding === "verstuurd" || koppelMelding === "gekoppeld" || koppelMelding === "ingetrokken"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-red-200 bg-red-50 text-red-900"
+            }`}
+          >
+            {koppelMelding === "verstuurd"
+              ? "✓ Gekoppeld en de mail met de link naar de website is verstuurd."
+              : koppelMelding === "gekoppeld"
+                ? "✓ Gekoppeld (zonder mail)."
+                : koppelMelding === "ingetrokken"
+                  ? "✓ Koppeling ingetrokken: de uitnodiging is vervallen, een ongebruikt account is verwijderd en de site hangt weer aan jou."
+                  : koppelMelding === "intrekken-ingelogd"
+                    ? "Intrekken kan niet meer: dit account heeft het portaal al gebruikt (of is een beheerder), dus het wordt niet verwijderd. Gebruik 'Site overdragen' als de site naar een ander account moet."
+                    : koppelMelding === "mail-mislukt"
+                  ? "Gekoppeld, maar de mail kon niet worden verstuurd. Probeer het opnieuw."
+                  : "Het account kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
+          </p>
+        )}
+        {vraagtOpleveringsAkkoord(site) || oplevering ? (
+          <p
+            className={`mt-2 rounded-xl border px-3.5 py-2 text-sm ${
+              oplevering ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-stone-200 bg-stone-50 text-stone-700"
+            }`}
+          >
+            {oplevering ? (
+              <>
+                ✓ <strong>Akkoord op de website</strong> gegeven op{" "}
+                {oplevering.aangemaakt.toLocaleString("nl-NL", { timeZone: "Europe/Amsterdam", dateStyle: "long", timeStyle: "short" })}
+                {oplevering.email ? ` door ${oplevering.email}` : ""}. Tijd voor de betaallink en het live zetten.
+              </>
+            ) : (
+              <>⏳ Nog geen akkoord op de website. De klant krijgt het akkoordscherm bij het inloggen zolang de status <em>Migratie</em> is.</>
+            )}
+          </p>
+        ) : null}
         {site.uitnodigingEmail && (
           <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
             ✉️ Uitnodiging verstuurd naar{" "}
@@ -395,9 +460,43 @@ export default async function KlantDetail({
             eerst inlogt, wordt de site automatisch gekoppeld.
           </p>
         )}
-        {gebruiker ? (
+        {(site.uitnodigingEmail || (gebruiker && site.clerkUserId !== admin.id && !klantGebruiktPortaal)) && (
+          <form action={trekKoppelingIn} className="mt-2">
+            <input type="hidden" name="siteId" value={site.id} />
+            <BevestigKnop
+              label="↩ Koppeling intrekken (klant heeft het portaal nog niet gebruikt)"
+              bezigLabel="Intrekken..."
+              vraag="Koppeling intrekken? De uitnodiging vervalt, het nog niet gebruikte account wordt verwijderd, en de site hangt weer aan jou. Dit kan alleen zolang de klant het portaal nog niet echt heeft gebruikt."
+              className="text-xs font-semibold text-red-700 hover:underline cursor-pointer"
+            />
+          </form>
+        )}
+        {gebruiker && site.clerkUserId !== admin.id ? (
           // Al netjes gekoppeld: koppel-formulier uit het zicht, alleen nog
           // bereikbaar voor het uitzonderingsgeval (overdracht naar ander account)
+          <>
+          {gebruiker.email !== "onbekend" && vraagtOpleveringsAkkoord(site) && !oplevering && (
+            <form action={koppelKlant} className="mt-4 flex flex-wrap items-end gap-3">
+              <input type="hidden" name="siteId" value={site.id} />
+              <input type="hidden" name="email" value={gebruiker.email} />
+              <label className="flex-1 min-w-[16rem] text-xs text-stone-500">
+                Mail met de link naar de website (opnieuw) sturen naar {gebruiker.email}
+                <input
+                  name="bekijkLink"
+                  type="url"
+                  defaultValue={bekijkLink}
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-800 focus:border-violet-600 focus:outline-none"
+                />
+              </label>
+              <UitnodigingVoorbeeldKnop siteId={site.id} />
+              <ActieKnop
+                label="Verstuur mail"
+                bezigLabel="Bezig..."
+                klaarLabel="✓ Verstuurd"
+                className="rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+              />
+            </form>
+          )}
           <details className="mt-4">
             <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
               Site overdragen aan een ander account…
@@ -411,6 +510,7 @@ export default async function KlantDetail({
                 placeholder="nieuw@bedrijf.nl"
                 className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
               />
+              <UitnodigingVoorbeeldKnop siteId={site.id} />
               <ActieKnop
                 label="Draag over"
                 bezigLabel="Bezig..."
@@ -418,30 +518,45 @@ export default async function KlantDetail({
               />
             </form>
             <p className="mt-2 text-xs text-stone-500">
-              Let op: de huidige koppeling wordt hiermee vervangen.
+              Let op: de huidige koppeling wordt hiermee vervangen. Het nieuwe account krijgt een mail
+              {vraagtOpleveringsAkkoord(site) ? " met de link naar de website en het akkoordverzoek" : " dat hij toegang heeft tot de website"}; klik op ⓘ om hem te bekijken.
             </p>
           </details>
+          </>
         ) : (
           <>
-            <form action={koppelKlant} className="mt-4 flex gap-3 flex-wrap">
+            <form action={koppelKlant} className="mt-4 space-y-3">
               <input type="hidden" name="siteId" value={site.id} />
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="klant@bedrijf.nl"
-                className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
-              />
-              <ActieKnop
-                label="Koppel / nodig uit"
-                bezigLabel="Bezig..."
-                className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
-              />
+              <div className="flex gap-3 flex-wrap">
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="klant@bedrijf.nl"
+                  className="flex-1 min-w-[16rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+                />
+                <UitnodigingVoorbeeldKnop siteId={site.id} />
+                <ActieKnop
+                  label="Koppel / nodig uit"
+                  bezigLabel="Bezig..."
+                  className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
+                />
+              </div>
+              <label className="block text-xs text-stone-500">
+                Link naar de website in de mail
+                <input
+                  name="bekijkLink"
+                  type="url"
+                  defaultValue={bekijkLink}
+                  placeholder="https://..."
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-800 focus:border-violet-600 focus:outline-none"
+                />
+              </label>
             </form>
             <p className="mt-2 text-xs text-stone-500">
-              Bestaat het account al, dan wordt het direct gekoppeld. Anders
-              krijgt de klant een uitnodigingsmail en wordt de site automatisch
-              gekoppeld zodra hij voor het eerst inlogt.
+              Het account wordt meteen aangemaakt (als het nog niet bestaat) en gekoppeld. De klant krijgt één
+              mail van jou met een link naar de website en een inlogknop; inloggen gaat met een code per mail,
+              zonder wachtwoord. Klik op ⓘ om de mail eerst te bekijken.
             </p>
           </>
         )}
@@ -822,6 +937,7 @@ export default async function KlantDetail({
                   online={Boolean(site.siteSlug)}
         notificatieEmail={site.notificatieEmail}
       />
+      <BevestigingsMails siteId={site.id} />
 
       {/* Danger zone */}
       <form

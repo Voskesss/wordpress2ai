@@ -50,7 +50,7 @@ const nieuwToken = () => randomBytes(18).toString("base64url");
 const betaalUrl = (token: string) => `${SITE_URL}/betalen/${token}`;
 
 function knop(url: string, label: string): string {
-  return `<p><a href="${url}" style="display:inline-block;background:#31956B;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">${label}</a></p>`;
+  return `<p><a href="${url}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">${label}</span></a></p>`;
 }
 
 function mailHtml(naam: string, inhoud: string): string {

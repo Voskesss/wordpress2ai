@@ -5,11 +5,24 @@ import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
+import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
     "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €12 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
+  // Deelvoorbeeld (LinkedIn, WhatsApp, Facebook), los van de paginatitel hierboven.
+  // Een eigen openGraph vervangt die van de layout helemaal, dus alles opnieuw.
+  openGraph: {
+    type: "website",
+    locale: "nl_NL",
+    url: "https://www.wordswap.nl",
+    siteName: "WordSwap",
+    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
+    description:
+      "Zelfde ontwerp, teksten en plek in Google. Daarna vraag je gewoon wat er anders moet. Geen updates, geen plugins, geen gedoe.",
+    images: [deelAfbeelding],
+  },
 };
 const faq = aankoopVragen;
 export default async function Home({

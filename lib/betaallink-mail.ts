@@ -20,7 +20,7 @@ export function bouwBetaallinkMail(o: {
     html: `<p>Beste ${ontsnap(o.naam.split(" ")[0])},</p>
 <p>Fijn dat je website bij WordSwap draait!</p>
 ${uitleg}
-<p><a href="${o.betaallink}" style="display:inline-block;background:#31956B;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Betalen via iDEAL</a></p>
+<p><a href="${o.betaallink}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Betalen via iDEAL</span></a></p>
 <p>In de bijlage vind je de opdrachtbevestiging: wat we leveren, wat het kost en welke afspraken erbij horen. Door te betalen ga je daarmee akkoord, en met de <a href="https://wordswap.nl/voorwaarden">algemene voorwaarden</a> en de <a href="https://wordswap.nl/verwerkersovereenkomst">verwerkersovereenkomst</a>.</p>
 <p>Met deze betaling geef je ook toestemming om het maandbedrag voortaan automatisch af te schrijven, zodat je er verder niet meer aan hoeft te denken. Je krijgt bij elke betaling automatisch een factuur. Opzeggen kan altijd per maand: een mailtje is genoeg.</p>
 <p>Met vriendelijke groet,</p>${handtekening(false)}`,

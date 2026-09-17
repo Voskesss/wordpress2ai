@@ -217,6 +217,27 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
 });
 
+// Bevestigingsmail per formulier van een klantsite. Formulieren worden bij publicatie herkend;
+// de AI doet één keer een voorstel, daarna passen klant of WordSwap de tekst aan.
+// bron: standaard | site (_bevestiging in de HTML) | ai | klant | wordswap
+export const formulierBevestigingen = pgTable(
+  "formulier_bevestigingen",
+  {
+    id: serial("id").primaryKey(),
+    siteId: integer("site_id").notNull(),
+    formulier: text("formulier").notNull(),
+    paginas: jsonb("paginas").notNull().default([]),
+    velden: jsonb("velden").notNull().default([]),
+    onderwerp: text("onderwerp"),
+    tekst: text("tekst"),
+    bron: text("bron").notNull().default("standaard"),
+    aan: boolean("aan").notNull().default(true),
+    bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
+    aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  },
+  (t) => [unique("formulier_bevestigingen_site_formulier").on(t.siteId, t.formulier)],
+);
+
 export const kennisDocumenten = pgTable("kennis_documenten", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id")

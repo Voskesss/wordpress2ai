@@ -19,9 +19,18 @@ const path = require("node:path");
         {
           name: "isolate-side-effects",
           setup(b) {
-            b.onResolve({ filter: /^(next\/server|drizzle-orm)$/ }, (args) => ({
-              path: require.resolve(args.path),
+            b.onResolve({ filter: /^(next\/server-echt|drizzle-orm)$/ }, (args) => ({
+              path: require.resolve(args.path.replace(/-echt$/, "")),
               external: true,
+            }));
+            // next/server met een stille after(): buiten een echte request bestaat die niet
+            b.onResolve({ filter: /^next\/server$/ }, (args) => ({
+              path: args.path,
+              namespace: "next-mock",
+            }));
+            b.onLoad({ filter: /.*/, namespace: "next-mock" }, () => ({
+              loader: "js",
+              contents: `import * as echt from "next/server-echt"; export const NextResponse = echt.NextResponse; export function after() { globalThis.__form.after++; }`,
             }));
             b.onResolve(
               { filter: /^@\/(db|db\/schema|lib\/mail)$/ },
@@ -31,10 +40,10 @@ const path = require("node:path");
               loader: "js",
               contents:
                 args.path === "@/db"
-                  ? `export const db={select(fields){return {from(){return {where(){globalThis.__form.reads++;return Promise.resolve(fields?[{n:globalThis.__form.rate}]:[{naam:'Test',domein:'example.invalid',notificatieEmail:'owner@example.invalid'}]);}}}}},insert(){return {values(){globalThis.__form.writes++;return globalThis.__form.failSave?Promise.reject(Error('offline')):Promise.resolve();}}}};`
+                  ? `export const db={select(fields){return {from(tabel){return {where(){globalThis.__form.reads++;if(tabel&&tabel.__bevestigingen)return Promise.resolve([]);return Promise.resolve(fields?[{n:globalThis.__form.rate}]:[{naam:'Test',domein:'example.invalid',notificatieEmail:'owner@example.invalid'}]);}}}}},insert(){return {values(){globalThis.__form.writes++;return globalThis.__form.failSave?Promise.reject(Error('offline')):Promise.resolve();}}}};`
                   : args.path === "@/lib/mail"
                     ? `export async function verstuurSiteMail(){globalThis.__form.mails++;}`
-                    : `export const sites={},formulierInzendingen={},webinars={},webinarMails={},webinarMailInstellingen={};`,
+                    : `export const sites={},formulierInzendingen={},webinars={},webinarMails={},webinarMailInstellingen={},formulierBevestigingen={__bevestigingen:true};`,
             }));
           },
         },
@@ -47,6 +56,7 @@ const path = require("node:path");
         reads: 0,
         writes: 0,
         mails: 0,
+        after: 0,
         ...extra,
       });
     const request = (values = {}, accept = "application/json") =>

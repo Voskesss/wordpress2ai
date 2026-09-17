@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const base = "https://wordswap.nl";
+const base = "https://www.wordswap.nl";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const paden = [

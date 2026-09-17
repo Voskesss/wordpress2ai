@@ -64,12 +64,21 @@ export async function bewaarSite(formData: FormData) {
   revalidatePath("/admin");
 }
 
-/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; nodigt uit als het account nog niet bestaat. */
+/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; maakt het account meteen aan als
+ * het nog niet bestaat (zonder wachtwoord, inloggen gaat met een code per mail). De klant krijgt één
+ * Nederlandse mail van ons met een link naar zijn website en een inlogknop; bij de eerste inlog volgt
+ * (voor sites in opbouw) het akkoord op de oplevering. */
 export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { bouwKoppelMail, isVeiligeLink, standaardBekijkLink } = await import("@/lib/website-akkoord");
+  const opgegevenLink = String(formData.get("bekijkLink") ?? "").trim();
+  const bekijkUrl = isVeiligeLink(opgegevenLink) ? opgegevenLink : standaardBekijkLink(site);
+  const mailSturen = formData.get("mail") !== "nee";
 
   const secret = process.env.CLERK_SECRET_KEY;
   const res = await fetch(
@@ -78,29 +87,124 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   );
   const users = (await res.json()) as { id: string }[];
 
-  if (Array.isArray(users) && users.length > 0) {
-    await db
-      .update(sites)
-      .set({ clerkUserId: users[0].id, uitnodigingEmail: null })
-      .where(eq(sites.id, siteId));
-  } else {
-    // Account bestaat nog niet: uitnodiging sturen en het adres onthouden —
-    // het portaal koppelt de site automatisch zodra dit adres voor het eerst
-    // inlogt.
-    await fetch("https://api.clerk.com/v1/invitations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email_address: email }),
+  // Links naar dezelfde omgeving waarin je koppelt (productie of dev), anders
+  // belandt een testklant op de verkeerde site
+  const { headers } = await import("next/headers");
+  const kop = await headers();
+  const host = kop.get("x-forwarded-host") ?? kop.get("host") ?? "www.wordswap.nl";
+  const origin = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
+  const portaal = `${origin}/portal?site=${siteId}`;
+  // Inloggen gaat met een code per mail; na het inloggen door naar deze site in het portaal
+  const inlogUrl = `${origin}/sign-in?redirect_url=${encodeURIComponent(portaal)}`;
+  const clerk = (pad: string, init?: RequestInit) =>
+    fetch(`https://api.clerk.com/v1${pad}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     });
-    await db
-      .update(sites)
-      .set({ uitnodigingEmail: email })
-      .where(eq(sites.id, siteId));
+  let klantId = Array.isArray(users) && users.length > 0 ? users[0].id : null;
+  if (!klantId) {
+    // Account bestaat nog niet: meteen aanmaken (zonder wachtwoord). Dan kan de klant
+    // direct inloggen met een code, ook zonder op de link in de mail te klikken.
+    const nieuw = await clerk("/users", {
+      method: "POST",
+      body: JSON.stringify({ email_address: [email], skip_password_requirement: true }),
+    });
+    const data = (await nieuw.json().catch(() => ({}))) as { id?: string };
+    if (!nieuw.ok || !data.id) {
+      console.error("Clerk-account aanmaken mislukt:", nieuw.status, data);
+      redirect(`/admin/klant/${siteId}?koppel=mislukt`);
+    }
+    klantId = data.id;
+  }
+  // Oude, nooit geaccepteerde uitnodigingen voor dit adres opruimen
+  const open = await clerk(`/invitations?status=pending&query=${encodeURIComponent(email)}`);
+  if (open.ok) {
+    const lijst = (await open.json().catch(() => [])) as { id: string; email_address: string }[] | { data?: { id: string; email_address: string }[] };
+    for (const u of (Array.isArray(lijst) ? lijst : (lijst.data ?? [])).filter((u) => u.email_address.toLowerCase() === email)) {
+      await clerk(`/invitations/${u.id}/revoke`, { method: "POST" });
+    }
+  }
+  await db
+    .update(sites)
+    .set({ clerkUserId: klantId, uitnodigingEmail: null })
+    .where(eq(sites.id, siteId));
+
+  if (mailSturen) {
+    const { mailVanJos } = await import("@/lib/wordswap-mail");
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl });
+    const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+    if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }
   revalidatePath(`/admin/klant/${siteId}`);
+  redirect(`/admin/klant/${siteId}?koppel=${mailSturen ? "verstuurd" : "gekoppeld"}`);
+}
+
+/**
+ * Koppeling intrekken zolang de klant het portaal nog niet echt heeft gebruikt (geen akkoord op de
+ * verwerkersovereenkomst, geen chatberichten): openstaande Clerk-uitnodiging intrekken, het
+ * ongebruikte account verwijderen (nooit een beheerder, en alleen als het aan geen andere site
+ * hangt) en de site terugzetten naar Jos. Heeft de klant het portaal al gebruikt, dan gebeurt er niets.
+ */
+export async function trekKoppelingIn(formData: FormData): Promise<void> {
+  const admin = await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const secret = process.env.CLERK_SECRET_KEY;
+  const clerk = (pad: string, init?: RequestInit) =>
+    fetch(`https://api.clerk.com/v1${pad}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+    });
+  type ClerkUser = {
+    id: string;
+    public_metadata?: { role?: string };
+    email_addresses?: { email_address: string }[];
+  };
+
+  // Welk account hoort erbij: het gekoppelde (als dat niet Jos zelf is) of dat van het uitnodigingsadres
+  let gebruiker: ClerkUser | null = null;
+  if (site.clerkUserId && site.clerkUserId !== admin.id) {
+    const r = await clerk(`/users/${site.clerkUserId}`);
+    gebruiker = r.ok ? ((await r.json()) as ClerkUser) : null;
+  } else if (site.uitnodigingEmail) {
+    const r = await clerk(`/users?email_address=${encodeURIComponent(site.uitnodigingEmail)}`);
+    const lijst = r.ok ? ((await r.json()) as ClerkUser[]) : [];
+    gebruiker = lijst[0] ?? null;
+  }
+  const { heeftPortaalGebruikt } = await import("@/lib/website-akkoord");
+  if (gebruiker && (gebruiker.public_metadata?.role === "admin" || (await heeftPortaalGebruikt(gebruiker.id)))) {
+    redirect(`/admin/klant/${siteId}?koppel=intrekken-ingelogd`);
+  }
+
+  // Openstaande uitnodiging(en) intrekken
+  const email = site.uitnodigingEmail ?? gebruiker?.email_addresses?.[0]?.email_address ?? null;
+  if (email) {
+    const r = await clerk(`/invitations?status=pending&query=${encodeURIComponent(email)}`);
+    const data = r.ok ? ((await r.json()) as { data?: { id: string; email_address: string }[] } | { id: string; email_address: string }[]) : [];
+    const lijst = Array.isArray(data) ? data : (data.data ?? []);
+    for (const u of lijst.filter((u) => u.email_address.toLowerCase() === email.toLowerCase())) {
+      await clerk(`/invitations/${u.id}/revoke`, { method: "POST" });
+    }
+  }
+
+  // Nooit gebruikt account verwijderen, maar alleen als het nergens anders aan hangt
+  if (gebruiker && gebruiker.id !== admin.id) {
+    const { and, ne } = await import("drizzle-orm");
+    const anders = await db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(and(eq(sites.clerkUserId, gebruiker.id), ne(sites.id, siteId)));
+    if (anders.length === 0) await clerk(`/users/${gebruiker.id}`, { method: "DELETE" });
+  }
+
+  await db
+    .update(sites)
+    .set({ clerkUserId: admin.id, uitnodigingEmail: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  redirect(`/admin/klant/${siteId}?koppel=ingetrokken`);
 }
 
 export async function nieuweSite(formData: FormData) {
@@ -551,7 +655,7 @@ export async function webinarMailen(formData: FormData) {
     timeZone: "Europe/Amsterdam",
   });
   const linkBlok = w.meetLink
-    ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="background:#6d28d9;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Deelnemen aan het webinar</a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
+    ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Deelnemen aan het webinar</span></a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
     : "";
 
   const teksten: Record<string, { onderwerp: string; html: string }> = {

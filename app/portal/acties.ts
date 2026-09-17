@@ -347,3 +347,74 @@ ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (factur
   }
   revalidatePath("/portal");
 }
+
+/** Akkoord op de oplevering: "mijn website is goed overgezet". Vastgelegd met account, e-mail en tijd;
+ * daarna een bevestiging aan de klant en een seintje aan Jos (tijd voor de betaallink). */
+export async function geefWebsiteAkkoord(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const { userId } = await auth();
+  if (!userId) return;
+  const { akkoorden } = await import("@/db/schema");
+  const { OPLEVERING_SOORT, opleveringVersie, bouwAkkoordBevestiging } = await import("@/lib/website-akkoord");
+  const { mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const email = (await currentUser())?.emailAddresses?.[0]?.emailAddress ?? null;
+  const nieuw = await db
+    .insert(akkoorden)
+    .values({ clerkUserId: userId, email, soort: OPLEVERING_SOORT, versie: opleveringVersie(site.id) })
+    .onConflictDoNothing()
+    .returning({ id: akkoorden.id });
+  // Alleen bij het eerste akkoord mailen (dubbel klikken of opnieuw laden geeft geen tweede mail)
+  if (nieuw.length > 0) {
+    if (email) {
+      const bevestiging = bouwAkkoordBevestiging({ siteNaam: site.naam, domein: site.domein });
+      await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: bevestiging.onderwerp, html: bevestiging.html });
+    }
+    await mailVanJos({
+      naar: "jos@wordswap.nl",
+      onderwerp: `✅ Akkoord op de website: ${site.naam}`,
+      html: `<p><strong>${ontsnap(email ?? "De klant")}</strong> heeft akkoord gegeven op de nieuwe website van <strong>${ontsnap(site.naam)}</strong>.</p><p>De klant heeft een bevestiging gekregen waarin staat dat jij contact opneemt. <strong>Neem contact op</strong> om:</p><ul><li>de domeinnaam te koppelen (vraag waar het domein nu geregeld is, en of er e-mail op het domein draait)</li><li>eventuele andere afspraken te bespreken</li><li>de betaallink te sturen</li></ul>${email ? `<p>Mailen: <a href="mailto:${ontsnap(email)}">${ontsnap(email)}</a></p>` : ""}<p><a href="https://www.wordswap.nl/admin/klant/${site.id}">Naar de klant in de admin</a></p>`,
+    });
+  }
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
+/** "Eerst even uitproberen": het akkoordscherm voor deze site overslaan; het balkje blijft staan. */
+export async function websiteAkkoordLater(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const { cookies } = await import("next/headers");
+  (await cookies()).set(`akkoord-later-${site.id}`, "1", {
+    path: "/portal",
+    maxAge: 60 * 60 * 24 * 90,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+  });
+  revalidatePath("/portal");
+}
+
+/** "Er klopt iets niet": bericht van de klant naar Jos. */
+export async function meldWebsiteOpmerking(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const tekst = String(formData.get("tekst") ?? "").trim().slice(0, 4000);
+  if (!tekst) return;
+  const { mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const email = (await currentUser())?.emailAddresses?.[0]?.emailAddress ?? "onbekend";
+  await mailVanJos({
+    naar: "jos@wordswap.nl",
+    onderwerp: `Opmerking over de nieuwe website: ${site.naam}`,
+    html: `<p><strong>${ontsnap(email)}</strong> vindt dat er iets niet klopt aan de nieuwe website van <strong>${ontsnap(site.naam)}</strong>:</p><blockquote style="border-left:3px solid #245747;margin:0;padding:4px 12px;white-space:pre-wrap">${ontsnap(tekst)}</blockquote><p><a href="https://www.wordswap.nl/admin/klant/${site.id}">Naar de klant in de admin</a></p>`,
+  });
+  const { cookies } = await import("next/headers");
+  // Daarna gewoon door naar het portaal; het balkje meldt dat het bericht is verstuurd
+  const koek = { path: "/portal", maxAge: 60 * 60 * 24 * 90, httpOnly: true, sameSite: "lax" as const, secure: true };
+  const pot = await cookies();
+  pot.set(`akkoord-later-${site.id}`, "1", koek);
+  pot.set(`akkoord-opmerking-${site.id}`, "1", { ...koek, maxAge: 60 * 60 * 24 * 14 });
+  revalidatePath("/portal");
+}
