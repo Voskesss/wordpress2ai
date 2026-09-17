@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "Hoe WordSwap omgaat met persoonsgegevens: wat we verzamelen, waarom, waar het staat en wat je rechten zijn.",
 };
 
-const bijgewerkt = "15 september 2026";
+const bijgewerkt = "17 september 2026";
 
 function Blok({ kop, children }: { kop: string; children: React.ReactNode }) {
   return (
@@ -53,6 +53,16 @@ export default function Privacy() {
           te vinden zijn. In het portaal zie je alleen je eigen gesprek; WordSwap
           kan gesprekken inzien om de kwaliteit en veiligheid van de dienst te
           bewaken en te verbeteren.
+        </p>
+        <p>
+          <strong>WhatsApp (als je die optie gebruikt):</strong> koppel je je
+          telefoon aan je website, dan verwerken we je telefoonnummer en de
+          berichten die je je website stuurt: tekst, foto&apos;s, documenten en
+          spraakberichten. Spraakberichten zetten we om naar tekst, zodat de AI
+          ze kan uitvoeren; die uitgeschreven tekst bewaren we net als een
+          gewoon chatbericht. We gebruiken je nummer alleen om je berichten aan
+          je website te koppelen en je te antwoorden, nooit voor reclame.
+          Ontkoppelen kan altijd in het portaal.
         </p>
         <p>
           <strong>Formulieren op klantwebsites:</strong> vullen bezoekers een
@@ -104,6 +114,8 @@ export default function Privacy() {
           <li><strong>Neon</strong> — database (accounts, chatgeschiedenis, formulierinzendingen)</li>
           <li><strong>Clerk</strong> — inloggen en accountbeheer</li>
           <li><strong>Anthropic</strong> — de AI die wijzigingen aan websites uitvoert; chatberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen</li>
+          <li><strong>Meta (WhatsApp Business Platform)</strong> — alleen als je je website via WhatsApp aanstuurt: het afleveren van berichten tussen jou en WordSwap</li>
+          <li><strong>OpenAI</strong> — alleen bij WhatsApp-spraakberichten: het omzetten van spraak naar tekst; de opname wordt niet gebruikt om AI-modellen te trainen</li>
           <li><strong>Resend</strong> — het versturen van e-mail (bevestigingen en meldingen)</li>
           <li><strong>Mollie</strong> (Amsterdam) — betalingen en automatische incasso&apos;s</li>
           <li><strong>Soverin</strong> (Nederland) — onze eigen zakelijke mailbox</li>

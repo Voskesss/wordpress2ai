@@ -63,7 +63,9 @@ export default function Verwerkersovereenkomst() {
           Wij gebruiken leveranciers om de dienst te laten draaien: Vercel (portaal), Cloudflare
           (hosting van je website), Neon (database, in de EU), Clerk (inloggen), Resend (e-mail) en
           Anthropic (de AI die wijzigingen uitvoert; jouw gegevens worden niet gebruikt om
-          AI-modellen te trainen). Met deze partijen hebben wij verwerkersafspraken. Voor partijen
+          AI-modellen te trainen). Gebruik je de WhatsApp-optie, dan komen daar Meta (het afleveren
+          van WhatsApp-berichten) en OpenAI (het omzetten van spraakberichten naar tekst, zonder
+          training van AI-modellen) bij. Met deze partijen hebben wij verwerkersafspraken. Voor partijen
           buiten de EU gelden het EU-VS Data Privacy Framework en/of EU-standaardcontractbepalingen.
           Wijzigt deze lijst, dan melden we dat vooraf; ben je het er niet mee eens, dan kun je
           maandelijks opzeggen.
