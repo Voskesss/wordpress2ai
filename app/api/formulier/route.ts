@@ -236,18 +236,43 @@ export async function POST(req: Request) {
           bijlagen: webinarBijlagen,
         });
       } else {
-        // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf
-        await verstuurSiteMail({
-          site: site ?? null,
-          naar: invullerEmail,
-          onderwerp: `Bedankt voor uw bericht aan ${siteNaam}`,
-          html: `<p>Beste ${ontsnap(velden.naam ?? "")},</p><p>${
-            eigenBevestiging
-              ? ontsnap(eigenBevestiging).replace(/\n/g, "<br>")
-              : `Bedankt voor uw bericht aan ${ontsnap(siteNaam)}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.`
-          }</p><hr>${veldenHtml}`,
-          antwoordNaar: site?.notificatieEmail ?? undefined,
-        });
+        // Uit naam van het bedrijf; antwoorden gaan rechtstreeks naar het bedrijf.
+        // Tekst per formulier (portaal/admin), anders de oude _bevestiging uit de HTML,
+        // anders de standaardtekst. Staat de bevestiging uit, dan geen mail.
+        const { formulierBevestigingen } = await import("@/db/schema");
+        const { and } = await import("drizzle-orm");
+        const { bevestigingsHtml, standaardOnderwerp, standaardTekst } = await import("@/lib/formulier-bevestiging");
+        const [instelling] = site
+          ? await db
+              .select()
+              .from(formulierBevestigingen)
+              .where(and(eq(formulierBevestigingen.siteId, site.id), eq(formulierBevestigingen.formulier, formulier)))
+              .catch(() => [])
+          : [];
+        if (!instelling || instelling.aan) {
+          const tekst =
+            instelling?.tekst ??
+            (eigenBevestiging ? `Beste {naam},\n\n${eigenBevestiging}` : standaardTekst(siteNaam, "u"));
+          await verstuurSiteMail({
+            site: site ?? null,
+            naar: invullerEmail,
+            onderwerp: instelling?.onderwerp ?? standaardOnderwerp(siteNaam, "u"),
+            html: bevestigingsHtml({ tekst, naam: velden.naam ?? "", veldenHtml }),
+            antwoordNaar: site?.notificatieEmail ?? undefined,
+          });
+        }
+        // Nog onbekend formulier (bijv. van vóór deze functie)? Op de achtergrond registreren,
+        // met één voorstel van de AI, zodat het in portaal en admin verschijnt.
+        if (site && !instelling) {
+          const { after } = await import("next/server");
+          const velnamen = Object.keys(velden).filter((k) => !k.startsWith("_"));
+          after(async () => {
+            const { registreerOnbekendFormulier } = await import("@/lib/formulier-bevestiging");
+            await registreerOnbekendFormulier(site, formulier, velnamen).catch((e) =>
+              console.error("Formulier registreren mislukt:", e),
+            );
+          });
+        }
       }
     }
 

@@ -143,9 +143,10 @@ export async function verstuurSiteMail(opties: {
   // Standaardroute: Resend, uit naam van het bedrijf
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
-  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
-  const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
-  const from = site?.naam ? `${site.naam.replace(/["<>]/g, "")} <${adres}>` : basisFrom;
+  // Klantmails gaan uit als "Bedrijfsnaam <no-reply@wordswap.nl>"; antwoorden gaan via
+  // reply-to gewoon naar het bedrijf (of naar de invuller bij de melding aan de eigenaar).
+  const adres = "no-reply@wordswap.nl";
+  const from = `${(site?.naam ?? "WordSwap").replace(/["<>]/g, "")} <${adres}>`;
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

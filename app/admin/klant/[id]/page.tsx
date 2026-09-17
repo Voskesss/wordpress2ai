@@ -15,6 +15,7 @@ import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
+import BevestigingsMails from "@/app/portal/BevestigingsMails";
 import { messages } from "@/db/schema";
 import {
   bewaarRichtlijnen,
@@ -901,6 +902,7 @@ export default async function KlantDetail({
                   online={Boolean(site.siteSlug)}
         notificatieEmail={site.notificatieEmail}
       />
+      <BevestigingsMails siteId={site.id} />
 
       {/* Danger zone */}
       <form
