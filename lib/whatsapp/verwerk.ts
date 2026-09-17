@@ -44,6 +44,10 @@ type Site = typeof sites.$inferSelect;
 
 const slaap = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Wanneer we dit nummer voor het laatst "ik ga ermee aan de slag" stuurden:
+ * twee opdrachten kort na elkaar hoeven die melding niet allebei. */
+const laatsteAanDeSlag = new Map<string, number>();
+
 async function zetStatus(ids: number[], status: Rij["status"], siteId?: number) {
   if (!ids.length) return;
   await db
@@ -391,8 +395,23 @@ async function chatBeurt(
     // dat komt als aparte wijziging. Tot die tijd eerlijk zeggen.
     if (rijen.some((r) => r.soort === "document"))
       opmerkingen.push("Pdf's en andere documenten kan ik via WhatsApp nog niet op je site zetten. Dat komt binnenkort.");
-    if (rijen.some((r) => r.soort === "anders"))
-      opmerkingen.push("Video's, stickers en locaties kan ik via WhatsApp nog niet verwerken. Een video kun je in het portaal meesturen.");
+    // Onbekende soorten: alleen iets zeggen over wat er écht tussen zat.
+    // Stickers, emoji-reacties en leesbevestigingen negeren we stilletjes.
+    {
+      const soorten = new Set(
+        rijen.filter((r) => r.soort === "anders").map((r) => r.inhoud ?? ""),
+      );
+      const uitleg: string[] = [];
+      if (soorten.has("video"))
+        uitleg.push("Video's kan ik via WhatsApp nog niet verwerken; stuur een video mee in het portaal.");
+      if (soorten.has("location") || soorten.has("contacts"))
+        uitleg.push("Een locatie of contactkaart kan ik niet verwerken. Typ gerust wat er op de site moet komen.");
+      const rest = [...soorten].filter(
+        (t) => !["video", "location", "contacts", "sticker", "reaction", "unsupported", ""].includes(t),
+      );
+      if (rest.length) uitleg.push(`Dit soort bericht kan ik nog niet verwerken: ${rest.join(", ")}.`);
+      if (uitleg.length) opmerkingen.push(uitleg.join("\n"));
+    }
 
     const bericht = voegSamen(
       rijen.filter((r) => r.soort !== "anders" && r.soort !== "document"),
@@ -410,11 +429,15 @@ async function chatBeurt(
     for (const f of fotos) form.append("afbeelding", f);
 
     // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
-    // minuten, en zolang blijft het in WhatsApp anders doodstil.
-    await stuurTekst(
-      telefoon,
-      "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
-    ).catch(() => {});
+    // minuten, en zolang blijft het in WhatsApp anders doodstil. Loopt er net
+    // al een beurt voor dit nummer, dan is die melding er al geweest.
+    if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) > 120_000) {
+      laatsteAanDeSlag.set(telefoon, Date.now());
+      await stuurTekst(
+        telefoon,
+        "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
+      ).catch(() => {});
+    }
 
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
