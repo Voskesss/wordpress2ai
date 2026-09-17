@@ -88,6 +88,15 @@ export async function herkenFormulieren(werkmap: string): Promise<HerkendFormuli
   return [...perNaam.values()];
 }
 
+/** Wat de site zelf over het bedrijf zegt (titel + omschrijving van de homepage), als achtergrond voor de AI. */
+export async function bedrijfsContextVan(werkmap: string | null): Promise<string> {
+  if (!werkmap) return "";
+  const html = await readFile(path.join(werkmap, "index.html"), "utf8").catch(() => "");
+  const titel = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "";
+  const omschrijving = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] ?? "";
+  return ontsnapTerug(`${titel.trim()} — ${omschrijving.trim()}`).replace(/\s+/g, " ").slice(0, 400);
+}
+
 /** Zegt de site "je" of "u"? Telt de vormen in de zichtbare tekst van de homepage. */
 export async function aanspreekvormVan(werkmap: string | null): Promise<"je" | "u"> {
   if (!werkmap) return "u";
@@ -109,6 +118,14 @@ export function standaardTekst(siteNaam: string, vorm: "je" | "u"): string {
     : `Beste {naam},\n\nBedankt voor uw bericht aan ${siteNaam}. We hebben het goed ontvangen en nemen zo snel mogelijk contact met u op.`;
 }
 
+/** Afsluitende groet of handtekening weghalen: die komt er automatisch onder. */
+function zonderGroet(tekst: string): string {
+  return tekst
+    .replace(/\n+\s*(met\s+)?(vriendelijke|hartelijke|warme)\s+groet(en)?[\s\S]*$/i, "")
+    .replace(/\n+\s*(groet(en)?|tot (snel|ziens))[,!.]?\s*(\n[\s\S]*)?$/i, "")
+    .trim();
+}
+
 /** Eén voorstel van de AI voor onderwerp en tekst, passend bij het doel van het formulier. */
 export async function maakVoorstel(o: {
   siteNaam: string;
@@ -116,26 +133,45 @@ export async function maakVoorstel(o: {
   paginas: string[];
   velden: string[];
   vorm: "je" | "u";
+  context?: string;
+  /** Bestaande tekst uit de website: dan alleen een passend onderwerp maken */
+  alleenOnderwerpBij?: string;
 }): Promise<{ onderwerp: string; tekst: string } | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const client = new Anthropic();
+    const aanhef = o.vorm === "je" ? "Hoi {naam}," : "Beste {naam},";
     const resp = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      // Eén keer per formulier en de tekst gaat naar klanten van de klant: taalkwaliteit gaat voor
+      model: "claude-sonnet-5",
       max_tokens: 400,
-      system: `Je schrijft de automatische bevestigingsmail die iemand krijgt na het invullen van een formulier op de website van een Nederlands bedrijf. Schrijf in de ${o.vorm === "je" ? "je/jij" : "u"}-vorm, kort (2 tot 4 zinnen), warm en zakelijk, passend bij het doel van het formulier: een sollicitatie, nieuwsbriefaanmelding, offerteaanvraag, terugbelverzoek of inschrijving vraagt elk om een eigen tekst. Beloof geen termijnen, prijzen of afspraken die niet vaststaan; zeg hooguit "zo snel mogelijk". Begin met een aanhef met {naam} (bijvoorbeeld "${o.vorm === "je" ? "Hoi {naam}," : "Beste {naam},"}"), gevolgd door een lege regel. Geen afsluitende groet of handtekening: die wordt automatisch toegevoegd. Antwoord uitsluitend met JSON: {"onderwerp": "...", "tekst": "..."}.`,
+      system: `Je schrijft de automatische bevestigingsmail die iemand krijgt direct na het invullen van een formulier op de website van een Nederlands bedrijf.
+
+Regels:
+- ${o.vorm === "je" ? "Je/jij-vorm" : "U-vorm"}, gewone woorden, warm maar zakelijk.
+- Tekst: begin met "${aanhef}", dan een lege regel, dan 2 of 3 korte zinnen. Bevestig dat het formulier goed is ontvangen en zeg in algemene woorden wat er nu gebeurt ("we nemen zo snel mogelijk contact op", "je ontvangt voortaan onze nieuwsbrief").
+- Pas de tekst aan op het doel dat uit de formuliernaam en de velden blijkt (sollicitatie, nieuwsbrief, terugbelverzoek, offerte, aanmelding, contact). Twijfel je over het doel, schrijf dan neutraal over "je bericht" / "uw bericht".
+- Verzin NIETS wat je niet zeker weet: geen klachten, afspraken, evenementen, termijnen, prijzen of vervolgstappen die niet uit de gegevens blijken.
+- GEEN afsluitende groet, geen naam van het bedrijf als ondertekening, geen handtekening: die wordt automatisch toegevoegd.
+- Geen uitroeptekens aan het eind van elke zin; hooguit één.
+- Onderwerp: kort en natuurlijk, zonder "Bevestiging:" ervoor, bijvoorbeeld "${o.vorm === "je" ? "We hebben je bericht ontvangen" : "Wij hebben uw bericht ontvangen"}" of "${o.vorm === "je" ? "Welkom bij onze nieuwsbrief" : "Uw sollicitatie is binnen"}".
+
+Antwoord uitsluitend met JSON: {"onderwerp": "...", "tekst": "..."}.`,
       messages: [
         {
           role: "user",
-          content: `Bedrijf: ${o.siteNaam}\nNaam van het formulier: ${o.formulier}\nStaat op: ${o.paginas.join(", ") || "onbekend"}\nVelden: ${o.velden.join(", ") || "onbekend"}`,
+          content: `Bedrijf: ${o.siteNaam}${o.context ? `\nWat de website over het bedrijf zegt: ${o.context}` : ""}\nNaam van het formulier: ${o.formulier}\nStaat op pagina: ${o.paginas.join(", ") || "onbekend"}\nVelden: ${o.velden.join(", ") || "onbekend"}${o.alleenOnderwerpBij ? `\nDe tekst staat al vast: "${o.alleenOnderwerpBij}". Maak alleen een passend onderwerp; zet in "tekst" dezelfde tekst.` : ""}`,
         },
       ],
     });
     const tekst = resp.content.map((c) => (c.type === "text" ? c.text : "")).join("");
     const json = JSON.parse(tekst.slice(tekst.indexOf("{"), tekst.lastIndexOf("}") + 1)) as { onderwerp?: string; tekst?: string };
     if (!json.onderwerp?.trim() || !json.tekst?.trim()) return null;
-    return { onderwerp: json.onderwerp.trim().slice(0, 150), tekst: json.tekst.trim().slice(0, 2000) };
+    return {
+      onderwerp: json.onderwerp.trim().replace(/^bevestiging:\s*/i, "").slice(0, 150),
+      tekst: zonderGroet(json.tekst.trim()).slice(0, 2000),
+    };
   } catch (e) {
     console.error("Voorstel bevestigingsmail mislukt:", e);
     return null;
@@ -151,6 +187,7 @@ export async function synchroniseerFormulieren(site: { id: number; naam: string 
   const herkend = await herkenFormulieren(werkmap);
   const bestaand = await db.select().from(formulierBevestigingen).where(eq(formulierBevestigingen.siteId, site.id));
   const vorm = await aanspreekvormVan(werkmap);
+  const context = await bedrijfsContextVan(werkmap);
   let nieuw = 0;
   for (const f of herkend) {
     const rij = bestaand.find((b) => b.formulier === f.formulier);
@@ -161,9 +198,15 @@ export async function synchroniseerFormulieren(site: { id: number; naam: string 
         .where(eq(formulierBevestigingen.id, rij.id));
       continue;
     }
+    const basis = { siteNaam: site.naam, formulier: f.formulier, paginas: f.paginas, velden: f.velden, vorm, context };
     const inhoud = f.bevestiging
-      ? { onderwerp: standaardOnderwerp(site.naam, vorm), tekst: `${vorm === "je" ? "Hoi" : "Beste"} {naam},\n\n${f.bevestiging}`, bron: "site" as Bron }
-      : await maakVoorstel({ siteNaam: site.naam, formulier: f.formulier, paginas: f.paginas, velden: f.velden, vorm }).then((v) =>
+      ? {
+          onderwerp:
+            (await maakVoorstel({ ...basis, alleenOnderwerpBij: f.bevestiging }))?.onderwerp ?? standaardOnderwerp(site.naam, vorm),
+          tekst: `${vorm === "je" ? "Hoi" : "Beste"} {naam},\n\n${f.bevestiging}`,
+          bron: "site" as Bron,
+        }
+      : await maakVoorstel(basis).then((v) =>
           v ? { ...v, bron: "ai" as Bron } : { onderwerp: standaardOnderwerp(site.naam, vorm), tekst: standaardTekst(site.naam, vorm), bron: "standaard" as Bron },
         );
     await db
