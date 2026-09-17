@@ -51,6 +51,14 @@ const slaap = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * twee opdrachten kort na elkaar hoeven die melding niet allebei. */
 const laatsteAanDeSlag = new Map<string, number>();
 
+/** Hooguit één keer per uur vragen of een antwoord klopte: vaker is zeuren. */
+const laatsteVraag = new Map<string, number>();
+function magVragen(telefoon: string) {
+  if (Date.now() - (laatsteVraag.get(telefoon) ?? 0) < 3_600_000) return false;
+  laatsteVraag.set(telefoon, Date.now());
+  return true;
+}
+
 async function zetStatus(ids: number[], status: Rij["status"], siteId?: number) {
   if (!ids.length) return;
   await db
@@ -516,11 +524,12 @@ async function stuurAntwoord(
         omschrijving: k.length > 24 ? k : undefined,
       })),
     );
-  } else if (schoon.trim() && !uitkomst.changeId) {
-    // Gewoon antwoord: meteen met duimpjes, zodat we in de beta leren wat er misgaat
-    await stuurKnoppen(telefoon, schoon, [
-      { id: `${KNOP_DUIM}goed`, titel: "👍 Klopt" },
-      { id: `${KNOP_DUIM}slecht`, titel: "👎 Klopt niet" },
+  } else if (schoon.trim() && !uitkomst.changeId && magVragen(telefoon)) {
+    // Gewoon antwoord: af en toe vragen of het klopte, zodat we in de beta leren
+    // wat er misgaat. De vraag staat in hetzelfde bericht, vlak boven de knoppen.
+    await stuurKnoppen(telefoon, `${schoon}\n\nKlopte dit antwoord?`, [
+      { id: `${KNOP_DUIM}goed`, titel: "Ja, klopt" },
+      { id: `${KNOP_DUIM}slecht`, titel: "Nee, klopt niet" },
     ]);
   } else if (schoon.trim()) {
     await stuurTekst(telefoon, schoon);
@@ -530,7 +539,6 @@ async function stuurAntwoord(
     await stuurKnoppen(telefoon, `Bekijk het concept:\n${url}\n\nNog niet goed? App me gewoon wat er anders moet.`, [
       { id: `${KNOP_PUBLICEER}${uitkomst.changeId}`, titel: "Publiceren" },
       { id: `${KNOP_WEGGOOIEN}${uitkomst.changeId}`, titel: "Weggooien" },
-      { id: `${KNOP_DUIM}slecht`, titel: "👎 Klopt niet" },
     ]);
   }
 }
