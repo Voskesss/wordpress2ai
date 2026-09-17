@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import KlantenLijst from "./KlantenLijst";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { aiKosten, changes, chatFeedback, formulierInzendingen, messages, sites, usage } from "@/db/schema";
@@ -12,13 +13,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-const STATUS_KLEUR: Record<string, string> = {
-  actief: "bg-emerald-50 border-emerald-200 text-emerald-700",
-  migratie: "bg-amber-50 border-amber-200 text-amber-700",
-  gepauzeerd: "bg-stone-100 border-stone-200 text-stone-500",
-  opgezegd: "bg-red-50 border-red-200 text-red-700",
-};
 
 async function demoLeads() {
   const demoSiteIds = await db
@@ -215,63 +209,20 @@ export default async function Admin() {
         </div>
       </div>
 
-      <div className="mt-8 space-y-3">
-        {rijen.length === 0 && (
-          <p className="rounded-3xl border border-stone-200 bg-white p-8 text-stone-500">
-            Nog geen klanten. Start een migratie of maak een klant aan.
-          </p>
-        )}
-        {rijen.map(({ site, livegang, wijzigingen, openConcepten, aiMicroUsd }) => (
-          <Link
-            key={site.id}
-            href={`/admin/klant/${site.id}`}
-            className="lift flex items-center justify-between gap-4 rounded-3xl border border-stone-200 bg-white p-6 shadow-sm hover:border-violet-300"
-          >
-            <div className="min-w-0">
-              <p className="font-display text-lg font-semibold truncate">
-                {site.naam}
-              </p>
-              <p className="text-sm text-stone-500 truncate">
-                {site.domein ?? "geen domein"} · {site.githubRepo}
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0 text-sm">
-              {livegang && livegang.klaar < livegang.totaal && (
-                <span
-                  className={`rounded-full border px-3 py-1 font-medium ${
-                    site.status === "actief" ? "border-red-300 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-800"
-                  }`}
-                  title="Livegang-checklist: open de klant voor de details"
-                >
-                  🚀 {livegang.klaar}/{livegang.totaal}
-                </span>
-              )}
-              {openConcepten > 0 && (
-                <span className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-medium text-amber-800">
-                  {openConcepten} concept{openConcepten === 1 ? "" : "en"}
-                </span>
-              )}
-              <span className="hidden sm:inline rounded-full bg-violet-50 border border-violet-200 px-3 py-1 font-medium text-violet-700">
-                {wijzigingen}/30 deze maand
-              </span>
-              {aiMicroUsd > 0 && (
-                <span
-                  className="hidden md:inline rounded-full bg-stone-100 border border-stone-200 px-3 py-1 font-medium text-stone-600"
-                  title="Werkelijke AI-kosten deze maand"
-                >
-                  {`$${(aiMicroUsd / 1_000_000).toFixed(2)} AI`}
-                </span>
-              )}
-              <span
-                className={`rounded-full border px-3 py-1 font-medium capitalize ${STATUS_KLEUR[site.status] ?? ""}`}
-              >
-                {site.status}
-              </span>
-              <span className="text-stone-300 text-xl">›</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <KlantenLijst
+        rijen={rijen.map(({ site, livegang, wijzigingen, openConcepten, aiMicroUsd }) => ({
+          id: site.id,
+          naam: site.naam,
+          domein: site.domein,
+          status: site.status,
+          isDemo: site.isDemo,
+          eigen: site.githubRepo === "wordswap",
+          livegang,
+          openConcepten,
+          wijzigingen,
+          aiUsd: aiMicroUsd / 1_000_000,
+        }))}
+      />
 
       {aanvragen.length > 0 && (
         <div className="mt-10">

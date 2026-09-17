@@ -61,7 +61,8 @@ export async function livegangChecks(
   const backups = await db.select({ id: wpBackups.id }).from(wpBackups).where(eq(wpBackups.siteId, site.id)).catch(() => []);
   const domeinIngevuld = !isWorkersAdres(site.domein);
   // Testbericht: een inzending op deze site waarin een e-mailadres van de beheerder staat
-  const eigenAdressen = o.adminEmails.map((e) => e.toLowerCase());
+  // Eigen adressen van de beheerder plus de vaste WordSwap-adressen (testen gaat vaak vanaf jos@wordswap.nl)
+  const eigenAdressen = [...o.adminEmails, "jos@wordswap.nl", "info@wordswap.nl"].map((e) => e.toLowerCase());
   const testBericht = (
     await db
       .select({ velden: formulierInzendingen.velden, aangemaakt: formulierInzendingen.aangemaakt })
