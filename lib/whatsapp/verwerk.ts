@@ -409,6 +409,13 @@ async function chatBeurt(
     form.set("kanaal", "whatsapp");
     for (const f of fotos) form.append("afbeelding", f);
 
+    // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
+    // minuten, en zolang blijft het in WhatsApp anders doodstil.
+    await stuurTekst(
+      telefoon,
+      "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
+    ).catch(() => {});
+
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
     // maar niet zo lang dat de chatbeurt daarna geen tijd meer heeft.
