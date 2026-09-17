@@ -1249,7 +1249,12 @@ export default function Chat({
     const src = selectie?.html.match(/src=["']([^"']+)["']/)?.[1];
     if (!src || bezig) return;
     let pad = src.replace(/^https?:\/\/[^/]+/, "").split("?")[0].split("#")[0];
-    pad = pad.replace(/^\/preview\/\d+\//, "/").replace(/^\/+/, "");
+    // Het voorbeeld draait op wordswap.nl op het eigen adres van de site, maar
+    // op dev/preview via /site-weergave/<token>/ — dat voorvoegsel hoort niet
+    // nog eens in het adres dat we hieronder zelf opbouwen (gaf daar een 404).
+    pad = pad
+      .replace(/^\/(?:preview|site-weergave)\/[^/]+\//, "/")
+      .replace(/^\/+/, "");
     setOplevering(null);
     setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser, even geduld...");
     try {
