@@ -67,7 +67,7 @@ async function demoLeads() {
 }
 
 export default async function Admin() {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const leads = await demoLeads();
   const { desc } = await import("drizzle-orm");
   const alleAanvragen = await db
@@ -102,8 +102,18 @@ export default async function Admin() {
         .select()
         .from(aiKosten)
         .where(and(eq(aiKosten.siteId, site.id), eq(aiKosten.maand, maand)));
+      // Livegang-teller zonder de trage online-controles (die staan op de klantpagina)
+      const { heeftLivegang, livegangChecks } = await import("@/lib/livegang");
+      const livegang = heeftLivegang(site)
+        ? await livegangChecks(site, {
+            adminId: admin.id,
+            adminEmails: admin.emailAddresses.map((e) => e.emailAddress),
+            online: false,
+          }).catch(() => null)
+        : null;
       return {
         site,
+        livegang: livegang ? { klaar: livegang.filter((c) => c.ok).length, totaal: livegang.length } : null,
         wijzigingen: verbruik?.wijzigingen ?? 0,
         openConcepten: alleChanges.filter((c) => c.status === "concept" || c.status === "publicatie_mislukt").length,
         aiMicroUsd: kosten.reduce((s, r) => s + r.kostenMicroUsd, 0),
@@ -211,7 +221,7 @@ export default async function Admin() {
             Nog geen klanten. Start een migratie of maak een klant aan.
           </p>
         )}
-        {rijen.map(({ site, wijzigingen, openConcepten, aiMicroUsd }) => (
+        {rijen.map(({ site, livegang, wijzigingen, openConcepten, aiMicroUsd }) => (
           <Link
             key={site.id}
             href={`/admin/klant/${site.id}`}
@@ -226,6 +236,16 @@ export default async function Admin() {
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0 text-sm">
+              {livegang && livegang.klaar < livegang.totaal && (
+                <span
+                  className={`rounded-full border px-3 py-1 font-medium ${
+                    site.status === "actief" ? "border-red-300 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-800"
+                  }`}
+                  title="Livegang-checklist: open de klant voor de details"
+                >
+                  🚀 {livegang.klaar}/{livegang.totaal}
+                </span>
+              )}
               {openConcepten > 0 && (
                 <span className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-medium text-amber-800">
                   {openConcepten} concept{openConcepten === 1 ? "" : "en"}

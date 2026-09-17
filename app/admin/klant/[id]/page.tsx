@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
+import LivegangChecklist from "./LivegangChecklist";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import BevestigingsMails from "@/app/portal/BevestigingsMails";
@@ -138,6 +139,14 @@ export default async function KlantDetail({
   const klantGebruiktPortaal =
     site.clerkUserId && site.clerkUserId !== admin.id ? await heeftPortaalGebruikt(site.clerkUserId).catch(() => true) : false;
   const bekijkLink = standaardBekijkLink(site);
+  const { heeftLivegang, livegangChecks } = await import("@/lib/livegang");
+  const livegang = heeftLivegang(site)
+    ? await livegangChecks(site, {
+        adminId: admin.id,
+        adminEmails: admin.emailAddresses.map((e) => e.emailAddress),
+        online: true,
+      })
+    : null;
   const versies = await lijstVersies(site.githubRepo).catch(() => []);
   // Alleen jouw eigen gesprek: precies wat de AI in de chatroute als historie meekrijgt.
   // Gesprekken van de klant staan per persoon onder Chatgeschiedenis.
@@ -323,6 +332,8 @@ export default async function KlantDetail({
           }
         />
       </div>
+
+      {livegang && <LivegangChecklist checks={livegang} />}
 
       {/* Instellingen */}
       <form
