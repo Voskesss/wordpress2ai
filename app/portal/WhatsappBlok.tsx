@@ -42,11 +42,44 @@ export default async function WhatsappBlok({ siteId }: { siteId: number }) {
 
   return (
     <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
-      <h3 className="font-display text-lg font-semibold">Stuur je website een appje</h3>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-display text-lg font-semibold">Stuur je website een appje</h3>
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+          beta
+        </span>
+      </div>
       <p className="mt-2 text-sm text-stone-600">
-        App wat er anders moet: een tekst, foto&apos;s, een pdf of een spraakbericht. Je krijgt een
+        App wat er anders moet: een tekst, foto&apos;s of een spraakbericht. Je krijgt een
         link naar het concept terug en zet het met één tik live. Niets gaat online zonder die tik.
       </p>
+      <details className="mt-3 text-sm text-stone-600">
+        <summary className="cursor-pointer font-semibold text-violet-700 hover:text-violet-600">
+          Hoe werkt het, en wat betekent beta?
+        </summary>
+        <div className="mt-2 space-y-2">
+          <p>
+            <strong>Zo gaat het:</strong> je stuurt een appje naar het WordSwap-nummer, bijvoorbeeld
+            &quot;zet bij openingstijden dat we zaterdag dicht zijn&quot;. Je krijgt een link naar
+            het concept terug, plus de knoppen Publiceren en Weggooien. Pas als jij op Publiceren
+            tikt, staat het op je website.
+          </p>
+          <p>
+            <strong>Wat kan er mee:</strong> tekst, foto&apos;s en spraakberichten (die worden voor
+            je uitgeschreven). Pdf&apos;s en video&apos;s kunnen nog niet via WhatsApp; die stuur je
+            mee in de chat hier in het portaal.
+          </p>
+          <p>
+            <strong>Waarom beta:</strong> dit is nieuw. Het werkt, maar een antwoord kan er soms
+            naast zitten. Daarom kijken wij mee hoe het gaat, en vraagt je website af en toe of het
+            antwoord klopte. Met &quot;Nee, klopt niet&quot; help je ons het beter te maken.
+          </p>
+          <p>
+            <strong>Belangrijk:</strong> bekijk het concept altijd even vóór je publiceert. Is het
+            niet goed, app dan gewoon wat er anders moet, of kies Weggooien. Je website blijft dan
+            precies zoals hij was.
+          </p>
+        </div>
+      </details>
 
       {gekoppeld.length > 0 && (
         <ul className="mt-4 space-y-2">
