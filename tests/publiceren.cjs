@@ -33,7 +33,7 @@ const path = require("node:path");
                   : a.path === "drizzle-orm"
                     ? `export const eq=()=>0,and=()=>0,desc=()=>0;`
                     : a.path === "@/db/schema"
-                      ? `export const changes={},sites={},messages={};`
+                      ? `export const changes={},sites={},messages={},formulierBevestigingen={};`
                       : a.path === "@/db"
                         ? `export const db={select(fields){const q={from(){return q},innerJoin(){return q},where(){return q},orderBy(){return q},limit(){return q},then(resolve,reject){const s=globalThis.testState;return Promise.resolve(!s.row?[]:fields?.change?[s.row]:!fields?[s.row.change]:[{id:s.row.change.id}]).then(resolve,reject)}};return q},update(){return {set(value){return {where(){globalThis.testState.updates.push(value);Object.assign(globalThis.testState.row.change,value);return Promise.resolve()}}}}},insert(){return {values(){return Promise.resolve()}}}};`
                         : a.path === "@/lib/auth"
