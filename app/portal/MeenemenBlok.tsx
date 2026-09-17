@@ -1,13 +1,17 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { abonnementen, wpBackups } from "@/db/schema";
+import { abonnementen, sites, wpBackups } from "@/db/schema";
+import { datumInWoorden } from "@/lib/opzegging";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
-import { zegAbonnementOp } from "./acties";
+import { zegAbonnementOp, trekOpzeggingIn } from "./acties";
 
 /** Alles zelf meenemen (website en gegevens) en zelf opzeggen: geen lock-in, ook in de praktijk. */
 export default async function MeenemenBlok({ siteId }: { siteId: number }) {
   const [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, siteId)).catch(() => []);
-  const opgezegd = abo?.status === "gestopt";
+  const [site] = await db.select({ offlineNa: sites.offlineNa }).from(sites).where(eq(sites.id, siteId));
+  const opgezegd = abo?.status === "gestopt" || Boolean(abo?.stoptOp) || Boolean(site?.offlineNa);
+  const betaaldTot = abo?.betaaldTot ?? null;
+  const offlineNa = site?.offlineNa ?? null;
   const backups = await db
     .select()
     .from(wpBackups)
@@ -68,17 +72,44 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
       <details className="mt-4 border-t border-stone-100 pt-3">
         <summary className="cursor-pointer text-sm font-semibold text-stone-600">Abonnement opzeggen</summary>
         {opgezegd ? (
-          <p className="mt-2 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-700">
-            Je abonnement is opgezegd; er wordt niets meer afgeschreven. Jos neemt contact met je op over wat er met je website
-            gebeurt. Je bestanden kun je hierboven nog steeds downloaden.
-          </p>
+          <div className="mt-2 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-700">
+            <p className="leading-relaxed">
+              Je abonnement is opgezegd; er wordt niets meer afgeschreven.
+              {betaaldTot && (
+                <>
+                  {" "}Je website werkt gewoon door tot <strong>{datumInWoorden(betaaldTot)}</strong>
+                  {offlineNa && (
+                    <> en blijft daarna nog online tot <strong>{datumInWoorden(offlineNa)}</strong></>
+                  )}
+                  .
+                </>
+              )}
+              {" "}Jos neemt contact met je op over wat er met je website gebeurt. Je bestanden kun je hierboven nog steeds
+              downloaden.
+            </p>
+            <form action={trekOpzeggingIn} className="mt-3">
+              <input type="hidden" name="siteId" value={siteId} />
+              <ActieKnop
+                label="Toch blijven — opzegging intrekken"
+                bezigLabel="Intrekken..."
+                klaarLabel="✓ Ingetrokken"
+                className="rounded-full border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 cursor-pointer"
+              />
+            </form>
+            <p className="mt-2 text-xs text-stone-500">
+              Je incasso wordt dan weer opgestart; je hoeft niets opnieuw te betalen voor de periode die al betaald is.
+            </p>
+          </div>
         ) : (
           <form action={zegAbonnementOp} className="mt-3 space-y-3 text-sm text-stone-700">
             <input type="hidden" name="siteId" value={siteId} />
             <div className="space-y-1.5 leading-relaxed text-stone-600">
               <p>Opzeggen kan per maand. Dit gebeurt er dan:</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>De automatische afschrijving stopt per direct.</li>
+                <li>
+                  Er wordt niets meer afgeschreven: de incasso wordt automatisch gestopt vlak vóór de eerstvolgende
+                  afschrijfdatum.
+                </li>
                 <li>
                   Je website blijft online tot het einde van de periode waarvoor je betaald hebt, <strong>plus één maand
                   extra</strong> — zo heb je nooit tijdsdruk bij een verhuizing.
@@ -89,6 +120,9 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
                   en letten we erop dat je e-mail blijft werken.
                 </li>
                 <li>Downloaden van je bestanden en gegevens (hierboven) kan tot alles is afgerond.</li>
+                <li>
+                  Bedenk je je? Zolang je website nog online staat, kun je de opzegging hier zelf weer intrekken.
+                </li>
               </ul>
               <p>
                 <strong>Tip:</strong> download eerst je bestanden hierboven.

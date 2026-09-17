@@ -366,8 +366,9 @@ export async function opzeggingIntrekken(formData: FormData) {
   await requireAdmin();
   const siteId = siteIdVan(formData);
   if (siteId === null) return;
-  await db.update(abonnementen).set({ stoptOp: null, bijgewerkt: new Date() }).where(eq(abonnementen.siteId, siteId));
-  terug(siteId, "Opzegging ingetrokken. De incasso loopt gewoon door.");
+  const { draaiOpzeggingTerug } = await import("@/lib/opzegging-terugdraaien");
+  const uitkomst = await draaiOpzeggingTerug(siteId, "beheerder");
+  terug(siteId, uitkomst.melding);
 }
 
 /** Stopt de maandelijkse incasso meteen bij Mollie. */

@@ -221,6 +221,7 @@ export default async function Admin() {
           openConcepten,
           wijzigingen,
           aiUsd: aiMicroUsd / 1_000_000,
+          offlineNa: site.offlineNa,
         }))}
       />
 

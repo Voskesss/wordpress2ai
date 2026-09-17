@@ -179,9 +179,15 @@ export default async function IncassoBlok({
                 </form>
               </div>
             )}
-            {abonnement.stoptOp && (
+            {(abonnement.stoptOp || site.offlineNa) && (
               <div className="flex flex-wrap items-center gap-3 rounded-xl bg-red-50 px-3 py-2 text-red-900">
-                <span>Opgezegd: de incasso stopt op {datumNl(abonnement.stoptOp)}.</span>
+                <span>
+                  {abonnement.stoptOp
+                    ? `Opgezegd: de incasso stopt op ${datumNl(abonnement.stoptOp)}.`
+                    : "Opgezegd: de incasso is gestopt."}
+                  {abonnement.betaaldTot && ` Werkt nog t/m ${datumNl(abonnement.betaaldTot)}.`}
+                  {site.offlineNa && ` Website mag offline na ${datumNl(site.offlineNa)}.`}
+                </span>
                 <form action={opzeggingIntrekken}>
                   <input type="hidden" name="siteId" value={site.id} />
                   <ActieKnop label="Opzegging intrekken" bezigLabel="..." klaarLabel="✓" className="text-xs font-semibold underline cursor-pointer" />

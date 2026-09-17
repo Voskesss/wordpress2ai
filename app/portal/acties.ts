@@ -235,32 +235,44 @@ export async function zegAbonnementOp(formData: FormData) {
   let fout = "";
   const lopend = abo && (abo.status === "actief" || abo.status === "mislukt");
   if (lopend && abo.mollieCustomerId && abo.mollieSubscriptionId) {
-    const pad = `/customers/${abo.mollieCustomerId}/subscriptions/${abo.mollieSubscriptionId}`;
+    // De incasso zelf blijft nog even staan en wordt vlak vóór de volgende
+    // afschrijving gestopt (zie de dagelijkse cron). Er gaat dus niets meer af,
+    // en de machtiging blijft bruikbaar als de klant zich bedenkt.
     try {
-      const sub = await mollie<{ nextPaymentDate?: string }>(pad);
+      const sub = await mollie<{ nextPaymentDate?: string }>(
+        `/customers/${abo.mollieCustomerId}/subscriptions/${abo.mollieSubscriptionId}`,
+      );
       doorlopenTot = sub.nextPaymentDate ?? null;
-      await mollie(pad, { methode: "DELETE" });
     } catch (e) {
       fout = e instanceof Error ? e.message : String(e);
     }
   }
+  // Vaste einddatums vastleggen: tot wanneer er betaald is (zolang blijft de
+  // site gewoon te gebruiken) en vanaf wanneer hij offline mag (een maand
+  // later). Zo hoeft niemand dat te onthouden en kan de klant tot die tijd
+  // nog van gedachten veranderen.
+  const { opzegDatums, datumInWoorden, stopIncassoOp } = await import("@/lib/opzegging");
+  const { vandaagNl } = await import("@/lib/mollie");
+  const vandaag = vandaagNl();
+  const datums = opzegDatums(doorlopenTot, vandaag);
+  const stoptOp = stopIncassoOp(doorlopenTot, vandaag);
   if (abo && abo.status !== "gestopt" && !fout) {
     await db
       .update(abonnementen)
-      .set({ status: "gestopt", mollieSubscriptionId: null, betaallink: null, stoptOp: null, nieuwBedragCent: null, nieuwBedragVanaf: null, bijgewerkt: new Date() })
+      .set({ stoptOp, betaaldTot: datums.betaaldTot, betaallink: null, nieuwBedragCent: null, nieuwBedragVanaf: null, bijgewerkt: new Date() })
       .where(eq(abonnementen.id, abo.id));
   }
-  // De klantenlijst in de admin meteen kloppend: site op "opgezegd"
+  // De site blijft werken tot het einde van de betaalde periode; de dagelijkse
+  // cron zet hem daarna op "opgezegd" en seint Jos in als hij offline mag.
   if (!fout) {
-    await db.update(sites).set({ status: "opgezegd" }).where(eq(sites.id, site.id));
+    await db.update(sites).set({ offlineNa: datums.offlineNa }).where(eq(sites.id, site.id));
   }
 
   const gebruiker = await currentUser();
   const klantEmail = abo?.email ?? gebruiker?.emailAddresses?.[0]?.emailAddress ?? null;
   const naam = abo?.naam ?? ([gebruiker?.firstName, gebruiker?.lastName].filter(Boolean).join(" ") || "klant");
-  const einde = doorlopenTot
-    ? new Date(`${doorlopenTot}T12:00:00`).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
-    : null;
+  const einde = datumInWoorden(datums.betaaldTot);
+  const offlineNa = datumInWoorden(datums.offlineNa);
 
   await mailVanJos({
     naar: "jos@wordswap.nl",
@@ -268,14 +280,15 @@ export async function zegAbonnementOp(formData: FormData) {
     onderwerp: `🚪 Opzegging via het portaal: ${site.naam}`,
     html: `<p><strong>${ontsnap(naam)}</strong> (${ontsnap(klantEmail ?? "onbekend")}) heeft het abonnement voor <strong>${ontsnap(site.naam)}</strong> opgezegd via het portaal.</p>
 <ul>
-<li>Incasso: ${fout ? `<strong>NIET gestopt</strong>, Mollie gaf een fout: ${ontsnap(fout)}. Stop hem handmatig in de admin.` : lopend ? "gestopt bij Mollie" : "er liep geen incasso"}</li>
-<li>Betaald tot: ${einde ?? "onbekend"}</li>
+<li>Incasso: ${fout ? `<strong>NIET verwerkt</strong>, Mollie gaf een fout: ${ontsnap(fout)}. Zeg hem handmatig op in de admin.` : lopend ? `wordt automatisch gestopt op ${datumInWoorden(stoptOp)}, net vóór de volgende afschrijving — er gaat dus niets meer af` : "er liep geen incasso"}</li>
+<li>Betaald tot: ${einde}${doorlopenTot ? "" : " (geen lopende incasso gevonden, dus gerekend vanaf vandaag)"}</li>
+<li>Website mag offline na: <strong>${offlineNa}</strong> (staat vast bij de klant; de site gaat automatisch op slot na ${einde})</li>
 <li>Account en gegevens verwijderen: <strong>${verwijderen ? "JA, binnen drie maanden" : "nee"}</strong></li>
 </ul>
 <p>Afgesproken vertrek-stappen (checklist):</p>
 <ol>
 <li>DNS-overzicht van het domein naar de klant mailen (vooral de mailrecords)</li>
-<li>Worker offline halen: één maand ná de betaalde periode${einde ? ` (dus rond een maand na ${einde})` : ""}</li>
+<li>Worker offline halen: niet vóór ${offlineNa} (je krijgt die dag een seintje)</li>
 <li>Domeinverhuizing: klant regelt het zelf bij TransIP of vraagt hulp</li>
 ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (facturen 7 jaar bewaren)</li>" : ""}
 </ol>`,
@@ -288,7 +301,8 @@ ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (factur
       html: `<p>Beste ${ontsnap(naam.split(" ")[0])},</p>
 <p>Je opzegging voor <strong>${ontsnap(site.naam)}</strong> is ontvangen. ${
         fout ? "Ik verwerk hem zo snel mogelijk zelf." : "Er wordt vanaf nu niets meer afgeschreven."
-      }${einde ? ` Je website blijft online tot ${einde}, en daarna nog één maand extra — zo heb je nooit tijdsdruk bij een verhuizing.` : " Je website blijft nog even online, zodat je rustig kunt verhuizen."}</p>
+      } Je website blijft gewoon werken tot ${einde} — de periode waarvoor je betaald hebt — en blijft daarna nog tot ${offlineNa} online staan, zodat je nooit tijdsdruk hebt bij een verhuizing.</p>
+<p>Van gedachten veranderd? Tot ${einde} kun je de opzegging zelf ongedaan maken in je portaal, bij "Je website en gegevens meenemen". De incasso loopt dan gewoon door en je merkt er verder niets van.</p>
 <p>Goed om te weten: je domeinnaam is van jou, waar hij nu ook staat, dus jij (of je nieuwe webbouwer) kunt hem altijd verhuizen, ook zonder ons. Staan je domeininstellingen bij ons, dan krijg je van mij nog een overzicht en let ik erop dat je e-mail blijft werken.</p>
 <p>Ik neem nog even contact met je op over je website: wil je hem meenemen, dan help ik je daarbij. Je bestanden en gegevens kun je tot die tijd gewoon downloaden in je portaal.${
         verwijderen ? " Daarna verwijderen we je account en gegevens, uiterlijk binnen drie maanden (facturen moeten we wettelijk zeven jaar bewaren)." : ""
@@ -297,6 +311,16 @@ ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (factur
 <p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
     });
   }
+  revalidatePath("/portal");
+}
+
+/** Toch blijven: de opzegging intrekken. Kan zolang de website nog niet
+ * offline is (tot de einddatum in het portaal). */
+export async function trekOpzeggingIn(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const { draaiOpzeggingTerug } = await import("@/lib/opzegging-terugdraaien");
+  await draaiOpzeggingTerug(site.id, "klant");
   revalidatePath("/portal");
 }
 
