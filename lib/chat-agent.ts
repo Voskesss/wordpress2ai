@@ -69,6 +69,49 @@ const AFBEELDING: Record<string, string> = {
   ".webp": "image/webp",
 };
 
+/**
+ * Bestandsslot per pad. De AI roept gereedschap vaak tegelijk aan (sneller), en de tool-runner
+ * voert die aanroepen echt gelijktijdig uit. Vier bewerkingen op hetzelfde bestand lazen dan
+ * dezelfde begintoestand en overschreven elkaar: alleen de laatste bleef over, soms met een
+ * restje oude tekst (Van Dijk, 17-09-2026). Met dit slot lopen acties op hetzelfde bestand na
+ * elkaar; acties op verschillende bestanden blijven gelijktijdig.
+ */
+export function maakBestandsSlot() {
+  const rijen = new Map<string, Promise<unknown>>();
+  return function opBestand<T>(abs: string, werk: () => Promise<T>): Promise<T> {
+    const vorige = rijen.get(abs) ?? Promise.resolve();
+    const deze = vorige.then(werk, werk);
+    const staart = deze.catch(() => undefined);
+    rijen.set(abs, staart);
+    // Opruimen als er intussen niets achter is aangesloten
+    void staart.then(() => {
+      if (rijen.get(abs) === staart) rijen.delete(abs);
+    });
+    return deze;
+  };
+}
+
+/** Eén letterlijke vervanging in een bestand (lezen, controleren, schrijven) — aanroepen binnen het bestandsslot. */
+export async function vervangInBestand(
+  abs: string,
+  zoek: string,
+  vervang: string,
+  alles: boolean | undefined,
+): Promise<{ ok: true } | { ok: false; reden: "lezen" | "niet-gevonden" | "meerdere"; aantal?: number }> {
+  let inhoud: string;
+  try {
+    inhoud = await readFile(abs, "utf8");
+  } catch {
+    return { ok: false, reden: "lezen" };
+  }
+  const aantal = inhoud.split(zoek).length - 1;
+  if (aantal === 0) return { ok: false, reden: "niet-gevonden" };
+  if (aantal > 1 && !alles) return { ok: false, reden: "meerdere", aantal };
+  // Functie als vervanging: anders krijgen $&, $1 en $$ in de nieuwe tekst een speciale betekenis
+  await writeFile(abs, alles ? inhoud.split(zoek).join(vervang) : inhoud.replace(zoek, () => vervang));
+  return { ok: true };
+}
+
 export async function draaiChatAgent(opties: {
   werkmap: string;
   model: string;
@@ -79,6 +122,7 @@ export async function draaiChatAgent(opties: {
   opGebeurtenis: (g: AgentGebeurtenis) => void;
 }): Promise<AgentUitkomst> {
   const { werkmap, opGebeurtenis } = opties;
+  const opBestand = maakBestandsSlot();
   const client = new Anthropic();
 
   const fout = (t: string) => `FOUT: ${t}`;
@@ -112,7 +156,7 @@ export async function draaiChatAgent(opties: {
         const mime = AFBEELDING[ext];
         try {
           if (mime) {
-            const data = await readFile(abs);
+            const data = await opBestand(abs, () => readFile(abs));
             if (data.length > 4_500_000)
               return fout("afbeelding te groot om te bekijken.");
             return [
@@ -134,7 +178,8 @@ export async function draaiChatAgent(opties: {
             const info = await stat(abs);
             return `(binair bestand, ${Math.round(info.size / 1024)} kB — inhoud niet leesbaar als tekst)`;
           }
-          const tekst = await readFile(abs, "utf8");
+          // Wacht op lopende bewerkingen van dit bestand, zodat je de nieuwste versie leest
+          const tekst = await opBestand(abs, () => readFile(abs, "utf8"));
           return tekst.length > MAX_LEES
             ? tekst.slice(0, MAX_LEES) + "\n…(afgekapt)"
             : tekst;
@@ -189,26 +234,16 @@ export async function draaiChatAgent(opties: {
         });
         const abs = await veiligPad(werkmap, pad);
         if (!abs) return buitenSite;
-        let inhoud: string;
-        try {
-          inhoud = await readFile(abs, "utf8");
-        } catch {
-          return fout(`kan ${pad} niet lezen.`);
-        }
-        const aantal = inhoud.split(zoek).length - 1;
-        if (aantal === 0)
+        const uitkomst = await opBestand(abs, () => vervangInBestand(abs, zoek, vervang, alles));
+        if (uitkomst.ok) return "Gelukt.";
+        if (uitkomst.reden === "lezen") return fout(`kan ${pad} niet lezen.`);
+        if (uitkomst.reden === "niet-gevonden")
           return fout(
             "de zoektekst komt niet voor in dit bestand. Lees het bestand en probeer opnieuw met de exacte tekst.",
           );
-        if (aantal > 1 && !alles)
-          return fout(
-            `de zoektekst komt ${aantal}× voor. Maak hem uniek met meer omliggende tekst, of zet alles=true om alle voorkomens te vervangen.`,
-          );
-        await writeFile(
-          abs,
-          alles ? inhoud.split(zoek).join(vervang) : inhoud.replace(zoek, vervang),
+        return fout(
+          `de zoektekst komt ${uitkomst.aantal}× voor. Maak hem uniek met meer omliggende tekst, of zet alles=true om alle voorkomens te vervangen.`,
         );
-        return "Gelukt.";
       },
     }),
     betaZodTool({
@@ -224,8 +259,10 @@ export async function draaiChatAgent(opties: {
         });
         const abs = await veiligPad(werkmap, pad);
         if (!abs) return buitenSite;
-        await mkdir(path.dirname(abs), { recursive: true });
-        await writeFile(abs, inhoud);
+        await opBestand(abs, async () => {
+          await mkdir(path.dirname(abs), { recursive: true });
+          await writeFile(abs, inhoud);
+        });
         return "Gelukt.";
       },
     }),
