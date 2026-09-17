@@ -13,7 +13,7 @@ import {
   voegSamen,
 } from "../lib/whatsapp/berichten";
 import { handtekeningKlopt } from "../lib/whatsapp/api";
-import { documentNaam } from "../lib/chat-beurt";
+import { INTERN_KOP, gebruikerVanVerzoek, leesInternLabel, maakInternLabel } from "../lib/intern-verzoek";
 
 // 1) Webhook: berichten eruit, afleverstatussen niet
 const webhook = {
@@ -97,10 +97,29 @@ assert.ok(!handtekeningKlopt(ruw, "sha256=00", "geheim"));
 assert.ok(!handtekeningKlopt(ruw, null, "geheim"));
 assert.ok(!handtekeningKlopt(ruw, goed, undefined), "zonder geheim altijd weigeren");
 
-// 8) Pdf-namen (portaal én WhatsApp)
-const namen = new Set<string>();
-assert.equal(documentNaam("Vacature Kok (2026).pdf", namen), "vacature-kok-2026.pdf");
-assert.equal(documentNaam("vacature kok 2026.PDF", namen), "vacature-kok-2026-2.pdf");
-assert.equal(documentNaam("Één café.pdf", namen), "een-cafe.pdf");
+// 8) Interne verzoeken (WhatsApp → chat/publiceer namens de eigenaar)
+process.env.INTERN_SIGNING_SECRET = "test-sleutel";
+const nu = 1_800_000_000_000;
+const label = maakInternLabel("user_abc", nu);
+assert.equal(leesInternLabel(label, nu), "user_abc");
+assert.equal(leesInternLabel(label, nu + 59_000), "user_abc", "binnen een minuut geldig");
+assert.equal(leesInternLabel(label, nu + 61_000), null, "verlopen");
+assert.equal(leesInternLabel(label, nu - 10_000), null, "uit de toekomst");
+const [t, g] = label.split(".");
+assert.equal(leesInternLabel(`${t}.${Buffer.from("user_ander").toString("base64url")}.${label.split(".")[2]}`, nu), null, "andere gebruiker, zelfde handtekening");
+assert.equal(leesInternLabel(`${t}.${g}.nep`, nu), null);
+assert.equal(leesInternLabel("rommel", nu), null);
+process.env.INTERN_SIGNING_SECRET = "andere-sleutel";
+assert.equal(leesInternLabel(label, nu), null, "andere sleutel");
+process.env.INTERN_SIGNING_SECRET = "test-sleutel";
+// Een label dat niet klopt valt NIET terug op de browsersessie
+assert.equal(
+  await gebruikerVanVerzoek(new Request("http://x/api/chat", { method: "POST", headers: { [INTERN_KOP]: "nep" } })),
+  null,
+);
+assert.equal(
+  await gebruikerVanVerzoek(new Request("http://x/api/chat", { method: "POST", headers: { [INTERN_KOP]: maakInternLabel("user_abc") } })),
+  "user_abc",
+);
 
 console.log("whatsapp: alle tests geslaagd");

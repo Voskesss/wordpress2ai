@@ -5,7 +5,7 @@ import { handtekeningKlopt } from "@/lib/whatsapp/api";
 import { leesWebhook } from "@/lib/whatsapp/berichten";
 
 // Een chatbeurt draait ná het antwoord aan Meta (after), binnen deze functie.
-// Gelijk houden aan WEBHOOK_MAX_DUUR_S in lib/whatsapp/verwerk.ts.
+// Zie UITERLIJK_START_MS in lib/whatsapp/verwerk.ts voor de tijdsverdeling.
 export const maxDuration = 800;
 
 /** Meta controleert de webhook één keer bij het instellen. */

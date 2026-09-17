@@ -29,15 +29,17 @@ import {
   type Binnenkomend,
 } from "./berichten";
 
-/** Moet gelijk zijn aan maxDuration van app/api/whatsapp/webhook/route.ts. */
-export const WEBHOOK_MAX_DUUR_S = 800;
+/** Hoe lang na binnenkomst we nog een chatbeurt mogen starten. De webhook-
+ * functie mag 800 s draaien; de chat zelf neemt daarvan tot ~720 s plus
+ * opslaan. Wie langer op een bezette website moet wachten, krijgt een eerlijk
+ * "stuur het zo nog eens" in plaats van een beurt die halverwege wordt afgekapt. */
+const UITERLIJK_START_MS = 45_000;
 /** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
  * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
 const BUNDEL_MS = 8_000;
 const MAX_FOTOS = 10;
 
 type Rij = typeof whatsappBerichten.$inferSelect;
-type Koppeling = typeof whatsappKoppelingen.$inferSelect;
 type Site = typeof sites.$inferSelect;
 
 const slaap = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -92,6 +94,27 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     return;
   }
 
+  if (site.status === "gepauzeerd" || site.status === "opgezegd") {
+    await zetStatus(rijen.map((r) => r.id), "genegeerd", site.id);
+    await stuurTekst(
+      telefoon,
+      "Wijzigingen doorgeven kan op dit moment niet: je website staat niet actief. Neem contact op met WordSwap.",
+    );
+    return;
+  }
+  // Namens wie: de eigenaar. Een koppeling door een beheerder (Jos) werkt ook
+  // namens de eigenaar, zodat de chat en het portaal hetzelfde gesprek tonen.
+  const eigenaar =
+    koppeling.clerkUserId === site.clerkUserId ||
+    (await isBeheerderId(koppeling.clerkUserId))
+      ? site.clerkUserId
+      : null;
+  if (!eigenaar) {
+    await zetStatus(rijen.map((r) => r.id), "genegeerd", site.id);
+    await stuurTekst(telefoon, "Deze koppeling hoort niet (meer) bij de eigenaar van de website. Koppel je telefoon opnieuw in het portaal.");
+    return;
+  }
+
   // 2. Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
   for (const rij of rijen) {
     const commando = rij.soort === "tekst" ? conceptCommando(rij.inhoud) : null;
@@ -100,7 +123,7 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     rijen = rijen.filter((r) => r.id !== rij.id);
     if (!(await claim([rij.id])).length) continue;
     try {
-      if (knop) await voerConceptActieUit(telefoon, koppeling, site, knop);
+      if (knop) await voerConceptActieUit(telefoon, eigenaar, site, knop);
       await zetStatus([rij.id], "klaar", site.id);
     } catch (e) {
       console.error("WhatsApp-knop:", e);
@@ -128,7 +151,7 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     .limit(1);
   if (nieuwer.length) return;
   const bundel = await claimAlleWachtende(telefoon);
-  if (bundel.length) await chatBeurt(telefoon, koppeling, site, bundel, gestart);
+  if (bundel.length) await chatBeurt(telefoon, eigenaar, site, bundel, gestart);
 }
 
 /** Atomisch overnemen: bij gelijktijdige aanroepen krijgt er maar één de rij. */
@@ -226,9 +249,33 @@ async function nietGekoppeld(telefoon: string, rijen: Rij[]) {
     );
 }
 
+/** Een route van het portaal aanroepen namens de eigenaar, binnen deze
+ * server: dezelfde code, hetzelfde slot, dezelfde controles als de browser. */
+async function roepRouteAan(
+  route: "chat" | "publiceer" | "verwerp",
+  eigenaar: string,
+  body: FormData | object,
+) {
+  const { INTERN_KOP, maakInternLabel } = await import("@/lib/intern-verzoek");
+  const headers: Record<string, string> = { [INTERN_KOP]: maakInternLabel(eigenaar) };
+  if (!(body instanceof FormData)) headers["Content-Type"] = "application/json";
+  const req = new Request(`https://whatsapp.intern/api/${route}`, {
+    method: "POST",
+    headers,
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  });
+  const mod =
+    route === "chat"
+      ? await import("@/app/api/chat/route")
+      : route === "publiceer"
+        ? await import("@/app/api/publiceer/route")
+        : await import("@/app/api/verwerp/route");
+  return mod.POST(req);
+}
+
 async function voerConceptActieUit(
   telefoon: string,
-  koppeling: Koppeling,
+  eigenaar: string,
   site: Site,
   knop: { actie: "publiceer" | "weggooien"; changeId: number | null },
 ) {
@@ -250,15 +297,13 @@ async function voerConceptActieUit(
     await stuurTekst(telefoon, "Er staat op dit moment geen concept klaar.");
     return;
   }
-  const isBeheerder = () => isBeheerderId(koppeling.clerkUserId);
   if (knop.actie === "publiceer") {
     if (concept.status === "gepubliceerd") {
       await stuurTekst(telefoon, "Dit concept staat al live.");
       return;
     }
     await stuurTekst(telefoon, "Ik zet het live, momentje...");
-    const { publiceerConcept } = await import("@/lib/concept-acties");
-    const res = await publiceerConcept(concept.id, koppeling.clerkUserId, isBeheerder);
+    const res = await roepRouteAan("publiceer", eigenaar, { changeId: concept.id });
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     if (res.ok && data.ok) {
       const adres = site.domein ? `https://${site.domein.replace(/^https?:\/\//, "")}` : "";
@@ -272,8 +317,7 @@ async function voerConceptActieUit(
     await stuurTekst(telefoon, "Dit concept is al gepubliceerd of weggegooid.");
     return;
   }
-  const { verwerpConcept } = await import("@/lib/concept-acties");
-  const res = await verwerpConcept(concept.id, koppeling.clerkUserId, isBeheerder);
+  const res = await roepRouteAan("verwerp", eigenaar, { changeId: concept.id });
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   await stuurTekst(
     telefoon,
@@ -291,12 +335,11 @@ function foutTekst(status: number, data: Record<string, unknown>) {
 
 async function chatBeurt(
   telefoon: string,
-  koppeling: Koppeling,
+  eigenaar: string,
   site: Site,
   rijen: Rij[],
   gestart: number,
 ) {
-  const eindtijd = gestart + WEBHOOK_MAX_DUUR_S * 1000;
   const ids = rijen.map((r) => r.id);
   try {
     const opmerkingen: string[] = [];
@@ -327,29 +370,15 @@ async function chatBeurt(
       fotos.push(new File([new Uint8Array(data)], `whatsapp-foto-${i + 1}.${ext}`, { type: mimeType }));
     }
 
-    const documenten: File[] = [];
-    for (const rij of rijen.filter((r) => r.soort === "document" && r.mediaId)) {
-      const isPdf = /pdf/.test(rij.mimeType ?? "") || /\.pdf$/i.test(rij.bestandsnaam ?? "");
-      if (!isPdf) {
-        opmerkingen.push(`${rij.bestandsnaam ?? "Dat document"} kan ik niet op je site zetten: alleen pdf's werken.`);
-        continue;
-      }
-      const { data } = await haalMediaOp(rij.mediaId!);
-      documenten.push(
-        new File([new Uint8Array(data)], rij.bestandsnaam || "document.pdf", { type: "application/pdf" }),
-      );
-    }
+    // Pdf's worden door de chat nog niet verwerkt (ook in het portaal niet);
+    // dat komt als aparte wijziging. Tot die tijd eerlijk zeggen.
+    if (rijen.some((r) => r.soort === "document"))
+      opmerkingen.push("Pdf's en andere documenten kan ik via WhatsApp nog niet op je site zetten. Dat komt binnenkort.");
     if (rijen.some((r) => r.soort === "anders"))
       opmerkingen.push("Video's, stickers en locaties kan ik via WhatsApp nog niet verwerken. Een video kun je in het portaal meesturen.");
 
     const bericht = voegSamen(
-      rijen.filter((r) =>
-        r.soort === "spraak"
-          ? true
-          : r.soort === "document"
-            ? documenten.length > 0
-            : r.soort !== "anders",
-      ),
+      rijen.filter((r) => r.soort !== "anders" && r.soort !== "document"),
     );
     if (opmerkingen.length) await stuurTekst(telefoon, opmerkingen.join("\n\n"));
     if (!bericht.trim()) {
@@ -361,26 +390,20 @@ async function chatBeurt(
     form.set("siteId", String(site.id));
     form.set("bericht", bericht);
     for (const f of fotos) form.append("afbeelding", f);
-    for (const f of documenten) form.append("document", f);
 
-    const { voerChatBeurtUit } = await import("@/lib/chat-beurt");
-    const beurt = () =>
-      voerChatBeurtUit(
-        new Request("https://whatsapp.intern/api/chat", { method: "POST", body: form }),
-        koppeling.clerkUserId,
-        { isBeheerder: () => isBeheerderId(koppeling.clerkUserId), eindtijd, kanaal: "whatsapp" },
-      );
-    let res = await beurt();
-    // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Rustig wachten.
-    for (let gemeld = false; res.status === 409; ) {
+    let res = await roepRouteAan("chat", eigenaar, form);
+    // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
+    // maar niet zo lang dat de chatbeurt daarna geen tijd meer heeft.
+    while (res.status === 409) {
       const data = (await res.clone().json().catch(() => ({}))) as { slot?: boolean };
-      if (!data.slot || Date.now() > eindtijd - 6 * 60_000) break;
-      if (!gemeld) {
-        gemeld = true;
-        await stuurTekst(telefoon, "Er loopt nog een andere aanpassing aan je website. Zodra die klaar is, pak ik jouw bericht op.");
+      if (!data.slot) break;
+      if (Date.now() - gestart > UITERLIJK_START_MS) {
+        await zetStatus(ids, "genegeerd", site.id);
+        await stuurTekst(telefoon, "Er wordt nog aan je website gewerkt. Stuur je bericht over een paar minuten nog eens, dan pak ik het op.");
+        return;
       }
-      await slaap(15_000);
-      res = await beurt();
+      await slaap(10_000);
+      res = await roepRouteAan("chat", eigenaar, form);
     }
     const uitkomst = await readChatResponse(res, () => {});
     await stuurAntwoord(telefoon, site, uitkomst);
