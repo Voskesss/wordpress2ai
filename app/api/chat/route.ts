@@ -826,6 +826,8 @@ export async function POST(req: Request) {
           await assertNoSymlinks(werkmap);
           let reply = "";
           let limietBereikt = false;
+          // Riskante inline-layout vóór deze beurt (zie lib/mobiel-check)
+          let mobielVoor: Set<string> | null = null;
           let cacheGelezen = 0;
           // Stoppen: als de eigenaar de chat afbreekt, stopt ook de agent
           const stopper = new AbortController();
@@ -862,6 +864,8 @@ export async function POST(req: Request) {
             }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           } else
           try {
+            const { mobielRisicos } = await import("@/lib/mobiel-check");
+            mobielVoor = await mobielRisicos(werkmap).catch(() => null);
             const uitkomst = await draaiChatAgent({
               werkmap,
               // Demo: klein snel model — prospects moeten direct resultaat zien.
@@ -984,6 +988,41 @@ export async function POST(req: Request) {
           if (slotKwijt.signal.aborted) return;
           if (stopper.signal.aborted && !tijdOp) return;
           tik("ai");
+
+          // Mobiel-controle: heeft deze beurt kolommen of vaste breedtes direct in de HTML gezet?
+          // Die winnen van de media queries in de stylesheet en maken de pagina op een telefoon
+          // te breed. Dan één korte herstelbeurt, vóórdat het concept klaarstaat.
+          if (mobielVoor && !snelpad && !tijdOp && !limietBereikt && !stopper.signal.aborted) {
+            try {
+              const { mobielRisicos, nieuweRisicos } = await import("@/lib/mobiel-check");
+              const nieuw = nieuweRisicos(mobielVoor, await mobielRisicos(werkmap));
+              if (nieuw.length > 0) {
+                stuur({ type: "status", tekst: "Ik controleer of het ook goed staat op een telefoon..." });
+                const herstel = await draaiChatAgent({
+                  werkmap,
+                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                  opdracht: `MOBIELCONTROLE (automatisch, na je vorige wijziging). Je hebt lay-out direct in de HTML gezet (inline style). Een inline style wint van de media queries in de stylesheet, waardoor de pagina op een telefoon te breed wordt:\n${nieuw
+                    .slice(0, 12)
+                    .map((r) => `- ${r}`)
+                    .join("\n")}\n\nHerstel dit, zonder het ontwerp op een computer te veranderen: haal deze lay-out uit de style-attributen en regel het via klassen in de bestaande stylesheet. Kijk eerst of er al een klasse is die dit doet (vaak met media queries voor tablet en telefoon) en gebruik die; anders voeg je spaarzaam een klasse toe in de stylesheet met een @media-regel waarin het op smalle schermen (bijv. max-width: 700px) één kolom of 100% breedte wordt. Pas verder niets aan. Antwoord met één korte zin.`,
+                  budgetUsd: 0.15,
+                  signal: stopper.signal,
+                  opGebeurtenis: () => {},
+                });
+                const { registreerAiKosten } = await import("@/lib/kosten");
+                await registreerAiKosten(site.id, "chat", {
+                  tokensIn: herstel.tokensIn,
+                  tokensUit: herstel.tokensUit,
+                  kostenUsd: herstel.kostenUsd,
+                }).catch(() => {});
+                const nogSteeds = nieuweRisicos(mobielVoor, await mobielRisicos(werkmap));
+                console.log(`Mobielcontrole ${site.githubRepo}: ${nieuw.length} gevonden, ${nogSteeds.length} over na herstel`);
+              }
+            } catch (e) {
+              console.error("Mobielcontrole mislukt (wijziging gaat gewoon door):", e);
+            }
+          }
 
           // Meegestuurde foto's die de AI (nog) niet heeft gebruikt horen niet
           // als "wijziging" te tellen (anders krijg je een leeg concept), maar
