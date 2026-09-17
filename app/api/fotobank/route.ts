@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
@@ -109,6 +110,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Site niet actief" }, { status: 403 });
   }
 
+  // Zelfde slot als de chat en foto vervangen: anders kan een tegelijk lopende
+  // bewerking dezelfde bestanden overschrijven.
+  const release = await claimOperation(operationScope(site, userId));
+  if (!release)
+    return NextResponse.json(
+      { slot: true, melding: "Er wordt al aan je website gewerkt." },
+      { status: 409 },
+    );
   let werkmap: string | null = null;
   try {
     const { werkmap: map, openConcept, eigenBranch } = await openWerkmap(site, userId);
@@ -228,5 +237,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, reply, previewUrl, changeId, bestanden: paden });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
+    await release();
   }
 }
