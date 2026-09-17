@@ -320,13 +320,13 @@ export async function geefWebsiteAkkoord(formData: FormData) {
   // Alleen bij het eerste akkoord mailen (dubbel klikken of opnieuw laden geeft geen tweede mail)
   if (nieuw.length > 0) {
     if (email) {
-      const bevestiging = bouwAkkoordBevestiging({ siteNaam: site.naam });
+      const bevestiging = bouwAkkoordBevestiging({ siteNaam: site.naam, domein: site.domein });
       await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: bevestiging.onderwerp, html: bevestiging.html });
     }
     await mailVanJos({
       naar: "jos@wordswap.nl",
       onderwerp: `✅ Akkoord op de website: ${site.naam}`,
-      html: `<p><strong>${ontsnap(email ?? "De klant")}</strong> heeft akkoord gegeven op de nieuwe website van <strong>${ontsnap(site.naam)}</strong>.</p><p>Volgende stap: betaallink sturen en het domein omzetten.</p><p><a href="https://www.wordswap.nl/admin/klant/${site.id}">Naar de klant in de admin</a></p>`,
+      html: `<p><strong>${ontsnap(email ?? "De klant")}</strong> heeft akkoord gegeven op de nieuwe website van <strong>${ontsnap(site.naam)}</strong>.</p><p>De klant heeft een bevestiging gekregen waarin staat dat jij contact opneemt. <strong>Neem contact op</strong> om:</p><ul><li>de domeinnaam te koppelen (vraag waar het domein nu geregeld is, en of er e-mail op het domein draait)</li><li>eventuele andere afspraken te bespreken</li><li>de betaallink te sturen</li></ul>${email ? `<p>Mailen: <a href="mailto:${ontsnap(email)}">${ontsnap(email)}</a></p>` : ""}<p><a href="https://www.wordswap.nl/admin/klant/${site.id}">Naar de klant in de admin</a></p>`,
     });
   }
   revalidatePath("/portal");

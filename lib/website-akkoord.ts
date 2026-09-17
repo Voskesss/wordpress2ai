@@ -119,16 +119,27 @@ export function bouwKoppelMail(
     : bouwToegangsMail({ siteNaam: site.naam, ...links });
 }
 
-/** Bevestiging aan de klant na het akkoord. */
-export function bouwAkkoordBevestiging(o: { siteNaam: string }): { onderwerp: string; html: string } {
+/** Bevestiging aan de klant na het akkoord: Jos neemt contact op voor het koppelen van de domeinnaam
+ * en eventuele andere afspraken. */
+export function bouwAkkoordBevestiging(o: { siteNaam: string; domein?: string | null }): { onderwerp: string; html: string } {
+  const domein = (o.domein ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const eigenDomein = domein && !/\.workers\.dev$/.test(domein) ? domein : "";
   return {
     onderwerp: `Bedankt voor je akkoord: ${o.siteNaam}`,
     html: inWordSwapHuisstijl(
       p("Hoi,") +
-        p(`Dank je wel! Je hebt akkoord gegeven op je nieuwe website van <strong>${ontsnap(o.siteNaam)}</strong>. Dat hebben we netjes vastgelegd.`) +
         p(
-          "Ik neem contact met je op voor de volgende stap: de afronding van de overstap en het live zetten op je eigen domeinnaam. Tot die tijd blijft je huidige website gewoon online, en kun je in je omgeving alvast aanpassen wat je wilt.",
+          `Dank je wel! Je hebt akkoord gegeven op je nieuwe website van <strong>${ontsnap(o.siteNaam)}</strong>. Dat hebben we netjes vastgelegd.`,
         ) +
+        p("<strong>Wat nu?</strong> Ik neem binnenkort contact met je op om samen de laatste stappen te zetten:") +
+        `<ul style="margin:0 0 14px;padding-left:20px">
+<li style="margin:0 0 6px"><strong>Je domeinnaam koppelen</strong>, zodat je nieuwe website op ${eigenDomein ? `<strong>${ontsnap(eigenDomein)}</strong>` : "je eigen adres"} te zien is. Dat regel ik voor je; ik vraag alleen even waar je domeinnaam nu geregeld is.</li>
+<li style="margin:0"><strong>Eventuele andere afspraken</strong>, bijvoorbeeld over je e-mail of wensen die je nog hebt.</li>
+</ul>` +
+        p(
+          "Tot die tijd blijft je huidige website gewoon online, en kun je in je omgeving alvast aanpassen wat je wilt.",
+        ) +
+        p(`Liever zelf even bellen? Dat kan op ${TELEFOON}, of antwoord gewoon op deze mail.`) +
         p("Groet,<br>Jos"),
     ),
   };

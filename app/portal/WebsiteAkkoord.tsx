@@ -46,7 +46,7 @@ export default function WebsiteAkkoord({
           <input type="hidden" name="siteId" value={siteId} />
           <p className="font-semibold text-stone-900">Ziet er goed uit</p>
           <p className="mt-1 flex-1 text-sm leading-relaxed text-stone-600">
-            Je geeft akkoord op je nieuwe website. Jos neemt daarna contact op voor de afronding.
+            Je geeft akkoord op je nieuwe website. Jos neemt daarna contact op om je domeinnaam te koppelen en de laatste afspraken te maken.
           </p>
           <button type="submit" className="button-primary mt-4 cursor-pointer justify-center">
             ✓ Ik geef akkoord
