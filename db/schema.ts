@@ -47,6 +47,10 @@ export const sites = pgTable("sites", {
   videoLimiet: integer("video_limiet").notNull().default(10),
   // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de admin.
   aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(5),
+  // Eenmalige extra ruimte bovenop het maandbudget, alleen voor de maand
+  // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
+  aiExtraUsd: integer("ai_extra_usd").notNull().default(0),
+  aiExtraMaand: text("ai_extra_maand"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),

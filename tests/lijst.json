@@ -16,7 +16,9 @@
     "slot-wacht.mts",
     "deploy-slot.mts",
     "mobiel-render.mts",
-    "formulier-adres.mts"
+    "formulier-adres.mts",
+    "opzegging.mts",
+    "ai-budget.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

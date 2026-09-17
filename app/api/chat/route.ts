@@ -464,7 +464,9 @@ export async function POST(req: Request) {
     }
 
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
-    const monthlyBudgetUsd = site.isDemo ? 1 : site.aiMaandbudgetUsd;
+    // Eenmalige extra ruimte telt alleen mee in de maand waarvoor hij is gegeven
+    const { maandbudgetVoor } = await import("@/lib/ai-budget");
+    const monthlyBudgetUsd = site.isDemo ? 1 : maandbudgetVoor(site, maand);
     if (
       !(await reserveAiBudget(scope, requestBudgetUsd, monthlyBudgetUsd, maand))
     ) {
