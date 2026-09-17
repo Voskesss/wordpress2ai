@@ -123,11 +123,30 @@ type SpeechRecognitionachtig = {
 };
 
 /** Direct zichtbare tooltip bij hover (de native title-tooltip is te traag). */
-function Tip({ tekst, children }: { tekst: string; children: ReactNode }) {
+/** Uitlegballonnetje bij een knop. Staat standaard linksboven de knop; bij een
+ * knop rechts in beeld of bovenaan het scherm zou die buiten beeld vallen —
+ * dan met plaats="onder" en/of uitlijning="rechts" naar binnen toe klappen. */
+function Tip({
+  tekst,
+  children,
+  plaats = "boven",
+  uitlijning = "links",
+}: {
+  tekst: string;
+  children: ReactNode;
+  plaats?: "boven" | "onder";
+  uitlijning?: "links" | "rechts";
+}) {
   return (
     <span className="group relative inline-flex">
       {children}
-      <span className="pointer-events-none absolute bottom-full left-0 z-30 mb-2 w-max max-w-[15rem] rounded-xl bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+      <span
+        className={`pointer-events-none absolute w-max max-w-[15rem] rounded-xl bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 ${
+          // onder de balk valt het ballonnetje over het voorbeeldvenster heen:
+          // dat moet er zeker bovenop blijven liggen
+          plaats === "onder" ? "top-full mt-2 z-50" : "bottom-full mb-2 z-30"
+        } ${uitlijning === "rechts" ? "right-0" : "left-0"}`}
+      >
         {tekst}
       </span>
     </span>
@@ -1766,11 +1785,25 @@ export default function Chat({
                 Open live site
               </a>
             )}
-            <Tip tekst={volledigScherm ? "Terug naar normale weergave" : "Voorbeeld schermvullend maken"}>
+            <Tip
+              tekst={
+                volledigScherm
+                  ? "Terug naar de normale weergave (kan ook met Esc)"
+                  : "Voorbeeld schermvullend maken"
+              }
+              plaats="onder"
+              uitlijning="rechts"
+            >
+              {/* Schermvullend krijgt er tekst bij: een los icoontje wordt niet
+                  door iedereen herkend als "hier kom je er weer uit". */}
               <button
                 onClick={() => setVolledigScherm(!volledigScherm)}
                 aria-label={volledigScherm ? "Volledig scherm sluiten" : "Volledig scherm"}
-                className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                className={`hidden sm:flex items-center justify-center rounded-full border cursor-pointer ${
+                  volledigScherm
+                    ? "gap-1.5 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                    : "h-8 w-8 border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700"
+                }`}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
                   {volledigScherm ? (
@@ -1779,6 +1812,7 @@ export default function Chat({
                     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   )}
                 </svg>
+                {volledigScherm && <span className="hidden md:inline">Volledig scherm uit</span>}
               </button>
             </Tip>
           </div>
