@@ -261,6 +261,9 @@ export async function POST(req: Request) {
   // "Klopt niet, kijk zelf even": de AI krijgt een schermafbeelding van wat de eigenaar ziet
   let controle = false;
   let apparaat: "telefoon" | "tablet" | "desktop" = "desktop";
+  // Via welk kanaal het bericht binnenkomt: het portaal (standaard) of WhatsApp.
+  // Bepaalt alleen wat de AI over de omgeving weet — knoppen verschillen daar.
+  let kanaal: "portaal" | "whatsapp" = "portaal";
   const apparaatVan = (v: unknown): "telefoon" | "tablet" | "desktop" =>
     v === "telefoon" || v === "tablet" ? v : "desktop";
 
@@ -285,6 +288,7 @@ export async function POST(req: Request) {
     }
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
+    if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -339,6 +343,7 @@ export async function POST(req: Request) {
     bericht = body.bericht;
     controle = body.controle === true;
     apparaat = apparaatVan(body.apparaat);
+    if ((body as { kanaal?: string }).kanaal === "whatsapp") kanaal = "whatsapp";
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
@@ -821,6 +826,9 @@ export async function POST(req: Request) {
               ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
               : null,
             controleRegel,
+            kanaal === "whatsapp"
+              ? `DIT BERICHT KOMT VIA WHATSAPP, niet via het portaal. De eigenaar zit op zijn telefoon in WhatsApp en ziet GEEN websitevoorbeeld, GEEN gele conceptbalk en GEEN enkele knop van het portaal — noem die dus niet en verwijs er nooit naar. Wat hij wél krijgt: na jouw antwoord stuurt WordSwap automatisch een link naar het concept met de knoppen "Publiceren" en "Weggooien" in WhatsApp; hij kan ook gewoon "publiceer" terugappen. Zeg dat niet in elk bericht; alleen als hij ernaar vraagt hoe hij iets live zet. Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag gewoon: die wordt in WhatsApp een keuzelijst.`
+              : null,
             // Eigen webadressen: vraagt de eigenaar om "de link", dan kan de AI die geven
             !site.isDemo && (site.domein || site.siteSlug)
               ? `Jouw webadressen (geef ze letterlijk als de eigenaar om de link of het adres van zijn site of concept vraagt): live staat de site op https://${(site.domein ?? `${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev`).replace(/^https?:\/\//, "").replace(/\/$/, "")}${openConcept && wvNaam ? `; het openstaande concept (nog niet live) bekijk je op https://${wvNaam}.${CF_SUBDOMEIN}.workers.dev` : ""}.`

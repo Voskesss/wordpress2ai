@@ -406,6 +406,7 @@ async function chatBeurt(
     const form = new FormData();
     form.set("siteId", String(site.id));
     form.set("bericht", bericht);
+    form.set("kanaal", "whatsapp");
     for (const f of fotos) form.append("afbeelding", f);
 
     let res = await roepRouteAan("chat", eigenaar, form);
