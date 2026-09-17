@@ -86,7 +86,14 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   );
   const users = (await res.json()) as { id: string }[];
 
-  let inlogUrl = `https://www.wordswap.nl/portal?site=${siteId}`;
+  // Links naar dezelfde omgeving waarin je koppelt (productie of dev), anders
+  // belandt een testklant op de verkeerde site
+  const { headers } = await import("next/headers");
+  const kop = await headers();
+  const host = kop.get("x-forwarded-host") ?? kop.get("host") ?? "www.wordswap.nl";
+  const origin = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
+  const portaal = `${origin}/portal?site=${siteId}`;
+  let inlogUrl = portaal;
   if (Array.isArray(users) && users.length > 0) {
     await db
       .update(sites)
@@ -102,7 +109,14 @@ export async function koppelKlant(formData: FormData): Promise<void> {
         Authorization: `Bearer ${secret}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email_address: email, notify: false, ignore_existing: true }),
+      // redirect_url: na het klikken terug naar ónze aanmeldpagina (die rondt de uitnodiging af)
+      // en daarna door naar het portaal. Zonder dit blijft de klant hangen op Clerks eigen pagina.
+      body: JSON.stringify({
+        email_address: email,
+        notify: false,
+        ignore_existing: true,
+        redirect_url: `${origin}/sign-up?redirect_url=${encodeURIComponent(portaal)}`,
+      }),
     });
     const data = (await uitnodiging.json().catch(() => ({}))) as { url?: string };
     if (!uitnodiging.ok || !data.url) {
@@ -574,7 +588,7 @@ export async function webinarMailen(formData: FormData) {
     timeZone: "Europe/Amsterdam",
   });
   const linkBlok = w.meetLink
-    ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="background:#6d28d9;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Deelnemen aan het webinar</a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
+    ? `<p style="margin:20px 0"><a href="${w.meetLink}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Deelnemen aan het webinar</span></a></p><p style="font-size:13px;color:#78716c">Of plak deze link in je browser: ${w.meetLink}</p>`
     : "";
 
   const teksten: Record<string, { onderwerp: string; html: string }> = {

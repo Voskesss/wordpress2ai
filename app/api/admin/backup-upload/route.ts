@@ -93,7 +93,7 @@ export async function POST(req: Request) {
             html: `<p>Beste ${voornaam},</p>
 <p>De complete kopie van je oude WordPress-site staat nu veilig voor je klaar. Je vindt hem in je portaal, onder <strong>“Je website en gegevens meenemen”</strong>, en je kunt hem daar altijd zelf downloaden.</p>
 <p>Dit is je terugweg-garantie: met deze kopie kun je je WordPress-site later altijd weer terugzetten, en wij helpen je daar desgewenst bij. Alleen jij kunt hem downloaden, na inloggen.</p>
-<p><a href="https://wordswap.nl/portal" style="display:inline-block;background:#31956B;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Naar mijn portaal</a></p>
+<p><a href="https://wordswap.nl/portal" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Naar mijn portaal</span></a></p>
 <p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
           });
           if (gelukt) gemaildNaar = klant.email;

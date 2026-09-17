@@ -46,10 +46,14 @@ export function isVeiligeLink(url: string): boolean {
 }
 
 const p = (t: string) => `<p style="margin:0 0 14px">${t}</p>`;
-const knop = (url: string, label: string, primair = true) =>
-  `<p style="margin:6px 0 14px"><a href="${ontsnap(url)}" style="display:inline-block;${
-    primair ? "background:#245747;color:#ffffff;" : "background:#ffffff;color:#245747;border:1px solid #245747;"
-  }text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">${label}</a></p>`;
+// De tekstkleur staat óók op een span binnen de link: Outlook/Hotmail overschrijft de kleur
+// van links (oranje), maar laat die van een span erbinnen staan.
+const knop = (url: string, label: string, primair = true) => {
+  const kleur = primair ? "#ffffff" : "#245747";
+  return `<p style="margin:6px 0 14px"><a href="${ontsnap(url)}" style="display:inline-block;${
+    primair ? "background:#245747;" : "background:#ffffff;border:1px solid #245747;"
+  }color:${kleur} !important;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px"><span style="color:${kleur} !important;text-decoration:none;font-weight:600">${label}</span></a></p>`;
+};
 
 /** De mail die de klant krijgt bij het koppelen van zijn e-mailadres. */
 export function bouwOpleveringsMail(o: {

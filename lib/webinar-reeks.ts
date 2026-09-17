@@ -45,7 +45,8 @@ type Webinar = { titel: string; wanneer: Date; meetLink: string | null; opnameLi
 const p = (t: string) => `<p>${t}</p>`;
 const lijst = (items: string[]) => `<ul style="padding-left:20px">${items.map((i) => `<li style="margin:6px 0">${i}</li>`).join("")}</ul>`;
 const knop = (url: string, label: string) =>
-  `<p style="margin:22px 0"><a href="${ontsnap(url)}" style="display:inline-block;background:#31956B;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">${label}</a></p>`;
+  // Kleur ook op de span: Outlook/Hotmail overschrijft de kleur van links
+  `<p style="margin:22px 0"><a href="${ontsnap(url)}" style="display:inline-block;background:#31956B;color:#ffffff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#ffffff !important;text-decoration:none;font-weight:600">${label}</span></a></p>`;
 
 function tijd(d: Date): string {
   return d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
