@@ -2,6 +2,8 @@ import { and, desc, eq, gt, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   changes,
+  chatFeedback,
+  messages,
   sites,
   whatsappBerichten,
   whatsappKoppelingen,
@@ -18,6 +20,7 @@ import {
 } from "./api";
 import {
   KEUZE,
+  KNOP_DUIM,
   KNOP_PUBLICEER,
   KNOP_WEGGOOIEN,
   conceptCommando,
@@ -127,7 +130,9 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     rijen = rijen.filter((r) => r.id !== rij.id);
     if (!(await claim([rij.id])).length) continue;
     try {
-      if (knop) await voerConceptActieUit(telefoon, eigenaar, site, knop);
+      if (knop?.actie === "duim-goed" || knop?.actie === "duim-slecht")
+        await slaOordeelOp(telefoon, eigenaar, site, knop.actie === "duim-goed" ? "goed" : "slecht");
+      else if (knop) await voerConceptActieUit(telefoon, eigenaar, site, knop);
       await zetStatus([rij.id], "klaar", site.id);
     } catch (e) {
       console.error("WhatsApp-knop:", e);
@@ -346,6 +351,34 @@ async function voerConceptActieUit(
   );
 }
 
+/** Duimpje uit WhatsApp: komt in dezelfde feedbacklijst als het portaal (admin). */
+async function slaOordeelOp(
+  telefoon: string,
+  eigenaar: string,
+  site: Site,
+  oordeel: "goed" | "slecht",
+) {
+  const [laatste] = await db
+    .select({ tekst: messages.tekst })
+    .from(messages)
+    .where(and(eq(messages.siteId, site.id), eq(messages.rol, "assistent")))
+    .orderBy(desc(messages.id))
+    .limit(1);
+  await db.insert(chatFeedback).values({
+    siteId: site.id,
+    clerkUserId: eigenaar,
+    oordeel,
+    antwoord: laatste?.tekst?.slice(0, 2000) ?? null,
+    reden: "via WhatsApp",
+  });
+  await stuurTekst(
+    telefoon,
+    oordeel === "goed"
+      ? "Fijn om te horen, dank je!"
+      : "Dank je — dat noteer ik. App gerust wat er niet klopte, dan pas ik het meteen aan.",
+  );
+}
+
 function foutTekst(status: number, data: Record<string, unknown>) {
   if (typeof data.melding === "string") return data.melding;
   if (status === 409) return "Dit concept is al gepubliceerd of weggegooid.";
@@ -483,6 +516,12 @@ async function stuurAntwoord(
         omschrijving: k.length > 24 ? k : undefined,
       })),
     );
+  } else if (schoon.trim() && !uitkomst.changeId) {
+    // Gewoon antwoord: meteen met duimpjes, zodat we in de beta leren wat er misgaat
+    await stuurKnoppen(telefoon, schoon, [
+      { id: `${KNOP_DUIM}goed`, titel: "👍 Klopt" },
+      { id: `${KNOP_DUIM}slecht`, titel: "👎 Klopt niet" },
+    ]);
   } else if (schoon.trim()) {
     await stuurTekst(telefoon, schoon);
   }
@@ -491,6 +530,7 @@ async function stuurAntwoord(
     await stuurKnoppen(telefoon, `Bekijk het concept:\n${url}\n\nNog niet goed? App me gewoon wat er anders moet.`, [
       { id: `${KNOP_PUBLICEER}${uitkomst.changeId}`, titel: "Publiceren" },
       { id: `${KNOP_WEGGOOIEN}${uitkomst.changeId}`, titel: "Weggooien" },
+      { id: `${KNOP_DUIM}slecht`, titel: "👎 Klopt niet" },
     ]);
   }
 }

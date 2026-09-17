@@ -57,6 +57,9 @@ assert.equal(koppelcodeUit("wil je koppel 123456 doen"), null, "alleen het hele 
 // 3) Knoppen en getypte commando's
 assert.deepEqual(leesKnop("pub:42"), { actie: "publiceer", changeId: 42 });
 assert.deepEqual(leesKnop("weg:7"), { actie: "weggooien", changeId: 7 });
+assert.deepEqual(leesKnop("duim:goed"), { actie: "duim-goed", changeId: null });
+assert.deepEqual(leesKnop("duim:slecht"), { actie: "duim-slecht", changeId: null });
+assert.equal(leesKnop("duim:"), null);
 assert.equal(leesKnop("pub:abc"), null);
 assert.equal(leesKnop("pub:-1"), null);
 assert.equal(conceptCommando("Publiceer!"), "publiceer");

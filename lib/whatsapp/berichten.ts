@@ -131,10 +131,14 @@ export function splitsKeuzes(tekst: string) {
 export const KNOP_PUBLICEER = "pub:";
 export const KNOP_WEGGOOIEN = "weg:";
 export const KEUZE = "k:";
+/** Duimpje bij een antwoord — belandt in dezelfde feedbacklijst als in het portaal. */
+export const KNOP_DUIM = "duim:";
 
 /** Knop-id → actie. Onbekend of verknoeid → null. */
 export function leesKnop(id: string | null) {
   if (!id) return null;
+  if (id === `${KNOP_DUIM}goed`) return { actie: "duim-goed" as const, changeId: null };
+  if (id === `${KNOP_DUIM}slecht`) return { actie: "duim-slecht" as const, changeId: null };
   for (const [voorvoegsel, actie] of [
     [KNOP_PUBLICEER, "publiceer"],
     [KNOP_WEGGOOIEN, "weggooien"],
