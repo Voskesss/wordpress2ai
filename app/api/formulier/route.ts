@@ -165,9 +165,36 @@ export async function POST(req: Request) {
 
   if (echt) {
     let opgeslagen = true;
+    // Meegestuurde bestanden bewaren, zodat de eigenaar ze later nog kan
+    // downloaden. Ze gaan naar onze eigen opslag; het adres blijft in de
+    // database en wordt nooit in een pagina getoond — downloaden loopt via een
+    // route die eerst controleert of je bij deze site hoort.
+    const bewaardeBijlagen: { naam: string; url: string; bytes: number }[] = [];
+    const blobToken =
+      process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
+    if (bijlagen.length && blobToken) {
+      try {
+        const { put } = await import("@vercel/blob");
+        for (const b of bijlagen) {
+          const res = await put(
+            `inzendingen/${siteRepo}/${Date.now()}-${b.bestandsnaam}`,
+            b.inhoud,
+            { access: "public", token: blobToken, addRandomSuffix: true },
+          );
+          bewaardeBijlagen.push({
+            naam: b.bestandsnaam,
+            url: res.url,
+            bytes: b.inhoud.length,
+          });
+        }
+      } catch (e) {
+        console.error("Bijlage bewaren mislukt:", e);
+      }
+    }
+
     await db
       .insert(formulierInzendingen)
-      .values({ siteRepo, formulier, velden })
+      .values({ siteRepo, formulier, velden, bijlagen: bewaardeBijlagen })
       .catch(() => {
         opgeslagen = false;
       });
