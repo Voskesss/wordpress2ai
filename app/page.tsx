@@ -5,6 +5,7 @@ import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
+import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     description:
       "Zelfde ontwerp, teksten en plek in Google. Daarna vraag je gewoon wat er anders moet. Geen updates, geen plugins, geen gedoe.",
+    images: [deelAfbeelding],
   },
 };
 const faq = aankoopVragen;

@@ -9,6 +9,7 @@ import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
+import { deelAfbeelding } from "./deel-afbeelding";
 import { TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
 
 const geistSans = Geist({
@@ -50,6 +51,12 @@ export const metadata: Metadata = {
     siteName: "WordSwap",
     title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     description: aanbod.omschrijving,
+    images: [deelAfbeelding],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
+    images: [deelAfbeelding.url],
   },
   robots: { index: true, follow: true },
 };
