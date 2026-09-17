@@ -109,7 +109,7 @@ ${groet}${afmeldRegel(p)}</div>`,
 <p>Hallo,</p>
 <p>Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.</p>
 <p>Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.</p>
-<p>De kopie die wij maken kost vanaf €12 per maand voor hosting, beheer en de AI-chat${p.prijs ? ` (de overstap zelf: eenmalig ${ontsnap(p.prijs)} voor jouw site)` : ""}, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
+<p>De kopie die wij maken kost vanaf €19 per maand voor hosting, beheer en de AI-chat${p.prijs ? ` (de overstap zelf: eenmalig ${ontsnap(p.prijs)} voor jouw site)` : ""}, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
 <p>Eén reply met "laat maar zien" is genoeg.</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
@@ -200,7 +200,7 @@ Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschi
 
 Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.
 
-De kopie die wij maken kost vanaf €12 per maand voor hosting, beheer en de AI-chat (de overstap zelf: {{prijs}}), en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.
+De kopie die wij maken kost vanaf €19 per maand voor hosting, beheer en de AI-chat (de overstap zelf: {{prijs}}), en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.
 
 Eén reply met "laat maar zien" is genoeg.`,
     };

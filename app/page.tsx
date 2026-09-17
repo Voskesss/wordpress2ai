@@ -9,7 +9,7 @@ import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
-    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €12 per maand, excl. btw. Gratis websitecheck.",
+    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €19 per maand, excl. btw. Gratis websitecheck.",
   alternates: { canonical: "/" },
   // Deelvoorbeeld (LinkedIn, WhatsApp, Facebook), los van de paginatitel hierboven.
   // Een eigen openGraph vervangt die van de layout helemaal, dus alles opnieuw.
@@ -107,9 +107,12 @@ export default async function Home({
               Overstappen vanaf <strong>€150 eenmalig</strong>
             </span>
             <span>
-              Daarna <strong>vanaf €12 / maand</strong>
+              Daarna <strong>vanaf €19 / maand</strong>
             </span>
-            <small>Excl. btw · Hosting en ingebouwde AI-chat inbegrepen</small>
+            <small>
+              Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
+              €8–€15 per maand) kun je daarna meestal opzeggen
+            </small>
           </div>
         </div>
         <div className="hero-example" id="zo-werkt-aanpassen">
@@ -371,7 +374,7 @@ export default async function Home({
             <span>vanaf</span> €150<small>eenmalig</small>
           </div>
           <div className="price-month">
-            Daarna <strong>vanaf €12 per maand</strong>, afhankelijk van gebruik.
+            Daarna <strong>vanaf €19 per maand</strong>, hosting en AI-chat inbegrepen.
           </div>
           <ul className="check-list">
             <li>Je ontwerp en inhoud zorgvuldig overgenomen</li>
@@ -384,8 +387,9 @@ export default async function Home({
           <p className="fine-print">
             Grotere of complexe sites: tot circa €650. Alle bedragen excl. btw.
             Fair use: maximaal 30 nieuwe concepten per maand, binnen je
-            AI-gebruiksruimte. Domeinregistratie, e-mail en extra maatwerk staan
-            los van de koppeling.
+            AI-gebruiksruimte. Liever alles laten regelen? Optimaal ontzorgd
+            kost €39 per maand. Domeinregistratie, e-mail en extra maatwerk
+            staan los van het pakket.
           </p>
         </div>
       </section>

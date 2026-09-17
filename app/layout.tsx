@@ -138,11 +138,19 @@ const jsonLd = {
         },
         {
           "@type": "Offer",
-          name: "AI-koppeling (beheer via chat)",
-          price: "5",
+          name: "Basispakket: hosting, beheer en AI-chat",
+          price: "19",
           priceCurrency: "EUR",
           description:
-            "vanaf €12 per maand, afgestemd op gebruik; maandelijks opzegbaar",
+            "vanaf €19 per maand excl. btw: hosting, beveiliging, AI-chat (fair use 30 concepten) en hulp per e-mail; maandelijks opzegbaar",
+        },
+        {
+          "@type": "Offer",
+          name: "Optimaal ontzorgd",
+          price: "39",
+          priceCurrency: "EUR",
+          description:
+            "€39 per maand excl. btw: basispakket plus voorrang en 30 minuten ondersteuning per maand (vervalt aan het eind van de maand); maandelijks opzegbaar",
         },
       ],
     },

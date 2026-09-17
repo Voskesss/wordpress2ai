@@ -270,7 +270,7 @@ export default async function IncassoBlok({
             </label>
             <label className="block text-sm font-semibold">
               € per maand (excl. btw)
-              <input name="bedrag" inputMode="decimal" required defaultValue={abonnement ? String(abonnement.maandbedragCent / 100) : "12"} className={invoer} />
+              <input name="bedrag" inputMode="decimal" required defaultValue={abonnement ? String(abonnement.maandbedragCent / 100) : "19"} className={invoer} />
             </label>
             <label className="block text-sm font-semibold">
               Eenmalige omzetting (€)

@@ -32,7 +32,7 @@ const rijen: [string, string, string][] = [
   [
     "Kosten per maand",
     "Afhankelijk van je hosting, licenties en beheerafspraken; vergelijk je eigen facturen",
-    "vanaf €12 excl. btw voor hosting, beheer en AI-chat; domein, e-mail en maatwerk apart",
+    "vanaf €19 excl. btw voor hosting, beheer en AI-chat; domein, e-mail en maatwerk apart",
   ],
   [
     "Eenmalige kosten",
