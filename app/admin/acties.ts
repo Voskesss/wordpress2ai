@@ -140,6 +140,66 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   redirect(`/admin/klant/${siteId}?koppel=${mailSturen ? "verstuurd" : "gekoppeld"}`);
 }
 
+/**
+ * Koppeling intrekken zolang de klant nog nooit heeft ingelogd: openstaande Clerk-uitnodiging
+ * intrekken, een nog ongebruikt account verwijderen (alleen als het aan geen andere site hangt)
+ * en de site terugzetten naar Jos. Heeft de klant al ingelogd, dan gebeurt er niets.
+ */
+export async function trekKoppelingIn(formData: FormData): Promise<void> {
+  const admin = await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const secret = process.env.CLERK_SECRET_KEY;
+  const clerk = (pad: string, init?: RequestInit) =>
+    fetch(`https://api.clerk.com/v1${pad}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+    });
+  type ClerkUser = { id: string; last_sign_in_at: number | null; email_addresses?: { email_address: string }[] };
+
+  // Welk account hoort erbij: het gekoppelde (als dat niet Jos zelf is) of dat van het uitnodigingsadres
+  let gebruiker: ClerkUser | null = null;
+  if (site.clerkUserId && site.clerkUserId !== admin.id) {
+    const r = await clerk(`/users/${site.clerkUserId}`);
+    gebruiker = r.ok ? ((await r.json()) as ClerkUser) : null;
+  } else if (site.uitnodigingEmail) {
+    const r = await clerk(`/users?email_address=${encodeURIComponent(site.uitnodigingEmail)}`);
+    const lijst = r.ok ? ((await r.json()) as ClerkUser[]) : [];
+    gebruiker = lijst[0] ?? null;
+  }
+  if (gebruiker?.last_sign_in_at) redirect(`/admin/klant/${siteId}?koppel=intrekken-ingelogd`);
+
+  // Openstaande uitnodiging(en) intrekken
+  const email = site.uitnodigingEmail ?? gebruiker?.email_addresses?.[0]?.email_address ?? null;
+  if (email) {
+    const r = await clerk(`/invitations?status=pending&query=${encodeURIComponent(email)}`);
+    const data = r.ok ? ((await r.json()) as { data?: { id: string; email_address: string }[] } | { id: string; email_address: string }[]) : [];
+    const lijst = Array.isArray(data) ? data : (data.data ?? []);
+    for (const u of lijst.filter((u) => u.email_address.toLowerCase() === email.toLowerCase())) {
+      await clerk(`/invitations/${u.id}/revoke`, { method: "POST" });
+    }
+  }
+
+  // Nooit gebruikt account verwijderen, maar alleen als het nergens anders aan hangt
+  if (gebruiker && gebruiker.id !== admin.id) {
+    const { and, ne } = await import("drizzle-orm");
+    const anders = await db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(and(eq(sites.clerkUserId, gebruiker.id), ne(sites.id, siteId)));
+    if (anders.length === 0) await clerk(`/users/${gebruiker.id}`, { method: "DELETE" });
+  }
+
+  await db
+    .update(sites)
+    .set({ clerkUserId: admin.id, uitnodigingEmail: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  redirect(`/admin/klant/${siteId}?koppel=ingetrokken`);
+}
+
 export async function nieuweSite(formData: FormData) {
   const admin = await requireAdmin();
   const naam = String(formData.get("naam") ?? "").trim();

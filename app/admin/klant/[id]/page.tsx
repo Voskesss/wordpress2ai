@@ -12,6 +12,7 @@ import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
+import BevestigKnop from "./BevestigKnop";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import { messages } from "@/db/schema";
@@ -25,6 +26,7 @@ import {
   sjabloonVastleggen,
   herstelVersie,
   koppelKlant,
+  trekKoppelingIn,
   zetSiteOnline,
   verwijderKlant,
   wisChatGeschiedenis,
@@ -52,10 +54,12 @@ async function clerkGebruiker(userId: string) {
       email_addresses?: { email_address: string }[];
       first_name?: string;
       last_name?: string;
+      last_sign_in_at?: number | null;
     };
     return {
       email: u.email_addresses?.[0]?.email_address ?? "onbekend",
       naam: [u.first_name, u.last_name].filter(Boolean).join(" "),
+      ooitIngelogd: Boolean(u.last_sign_in_at),
     };
   } catch {
     return null;
@@ -397,7 +401,7 @@ export default async function KlantDetail({
         {koppelMelding && (
           <p
             className={`mt-2 rounded-xl border px-3.5 py-2 text-sm ${
-              koppelMelding === "verstuurd" || koppelMelding === "gekoppeld"
+              koppelMelding === "verstuurd" || koppelMelding === "gekoppeld" || koppelMelding === "ingetrokken"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : "border-red-200 bg-red-50 text-red-900"
             }`}
@@ -406,7 +410,11 @@ export default async function KlantDetail({
               ? "✓ Gekoppeld en de mail met de link naar de website is verstuurd."
               : koppelMelding === "gekoppeld"
                 ? "✓ Gekoppeld (zonder mail)."
-                : koppelMelding === "mail-mislukt"
+                : koppelMelding === "ingetrokken"
+                  ? "✓ Koppeling ingetrokken: de uitnodiging is vervallen, een ongebruikt account is verwijderd en de site hangt weer aan jou."
+                  : koppelMelding === "intrekken-ingelogd"
+                    ? "Intrekken kan niet meer: deze klant heeft al ingelogd. Gebruik 'Site overdragen' als de site naar een ander account moet."
+                    : koppelMelding === "mail-mislukt"
                   ? "Gekoppeld, maar de mail kon niet worden verstuurd. Probeer het opnieuw."
                   : "De uitnodiging kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
           </p>
@@ -434,6 +442,17 @@ export default async function KlantDetail({
             <strong>{site.uitnodigingEmail}</strong> — zodra dit adres voor het
             eerst inlogt, wordt de site automatisch gekoppeld.
           </p>
+        )}
+        {(site.uitnodigingEmail || (gebruiker && site.clerkUserId !== admin.id && !gebruiker.ooitIngelogd)) && (
+          <form action={trekKoppelingIn} className="mt-2">
+            <input type="hidden" name="siteId" value={site.id} />
+            <BevestigKnop
+              label="↩ Koppeling intrekken (klant heeft nog niet ingelogd)"
+              bezigLabel="Intrekken..."
+              vraag="Koppeling intrekken? De uitnodiging vervalt, een nog nooit gebruikt account wordt verwijderd, en de site hangt weer aan jou. Dit kan alleen zolang de klant nog niet heeft ingelogd."
+              className="text-xs font-semibold text-red-700 hover:underline cursor-pointer"
+            />
+          </form>
         )}
         {gebruiker && site.clerkUserId !== admin.id ? (
           // Al netjes gekoppeld: koppel-formulier uit het zicht, alleen nog
