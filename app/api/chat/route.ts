@@ -821,6 +821,10 @@ export async function POST(req: Request) {
               ? `Je werkt verder aan een openstaand concept. Eerder in dit concept gewijzigd: ${(Array.isArray(openConcept.bestanden) ? (openConcept.bestanden as string[]) : []).join(", ") || "(onbekend)"} — vervolgverzoeken over "de video", "die knop" e.d. slaan waarschijnlijk op die eerdere wijziging; kijk daar eerst.`
               : null,
             controleRegel,
+            // Eigen webadressen: vraagt de eigenaar om "de link", dan kan de AI die geven
+            !site.isDemo && (site.domein || site.siteSlug)
+              ? `Jouw webadressen (geef ze letterlijk als de eigenaar om de link of het adres van zijn site of concept vraagt): live staat de site op https://${(site.domein ?? `${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev`).replace(/^https?:\/\//, "").replace(/\/$/, "")}${openConcept && wvNaam ? `; het openstaande concept (nog niet live) bekijk je op https://${wvNaam}.${CF_SUBDOMEIN}.workers.dev` : ""}.`
+              : null,
             `Verzoek van de eigenaar: ${bericht}`,
           ].filter(Boolean);
 
