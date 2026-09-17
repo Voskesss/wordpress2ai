@@ -7,6 +7,8 @@ import { changes, messages, sites } from "@/db/schema";
 import { vanafLaatsteNieuwGesprek } from "@/lib/gesprek";
 import { isBeheerder, requireUser } from "@/lib/auth";
 import VerwerkersAkkoord from "./VerwerkersAkkoord";
+import WebsiteAkkoord from "./WebsiteAkkoord";
+import { geefWebsiteAkkoord } from "./acties";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
@@ -87,6 +89,30 @@ export default async function Portal({
       mijnSites[0]);
   const herstelMap: Record<number, number> = {};
   const getoondeSites = getoondeSite ? [getoondeSite] : [];
+
+  // Site in opbouw en nog geen akkoord op de oplevering? Eerst het akkoordscherm,
+  // tenzij de klant koos om eerst uit te proberen (dan een balkje bovenaan).
+  let akkoordBalk: { siteId: number; opmerkingVerstuurd: boolean } | null = null;
+  if (getoondeSite && getoondeSite.clerkUserId === userId && !(await isBeheerder())) {
+    const { opleveringsAkkoord, standaardBekijkLink, vraagtOpleveringsAkkoord } = await import("@/lib/website-akkoord");
+    if (vraagtOpleveringsAkkoord(getoondeSite) && !(await opleveringsAkkoord(getoondeSite.id))) {
+      const { cookies } = await import("next/headers");
+      const pot = await cookies();
+      if (!pot.get(`akkoord-later-${getoondeSite.id}`)) {
+        return (
+          <WebsiteAkkoord
+            siteId={getoondeSite.id}
+            siteNaam={getoondeSite.naam}
+            bekijkUrl={standaardBekijkLink(getoondeSite)}
+          />
+        );
+      }
+      akkoordBalk = {
+        siteId: getoondeSite.id,
+        opmerkingVerstuurd: Boolean(pot.get(`akkoord-opmerking-${getoondeSite.id}`)),
+      };
+    }
+  }
 
   const historieMap: Record<
     number,
@@ -237,6 +263,23 @@ export default async function Portal({
         </div>
       ) : (
         <div className="mt-8 space-y-4">
+          {akkoordBalk && (
+            <form
+              action={geefWebsiteAkkoord}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3"
+            >
+              <input type="hidden" name="siteId" value={akkoordBalk.siteId} />
+              <p className="text-sm text-amber-950">
+                {akkoordBalk.opmerkingVerstuurd ? (
+                  <>✉️ Je opmerking is naar Jos gestuurd. </>
+                ) : null}
+                <strong>Je hebt nog geen akkoord gegeven op je nieuwe website.</strong> Probeer gerust eerst alles uit.
+              </p>
+              <button type="submit" className="rounded-full bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 cursor-pointer">
+                ✓ Akkoord geven
+              </button>
+            </form>
+          )}
           {getoondeSites.map((site) => (
             <div
               key={site.id}

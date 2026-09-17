@@ -64,12 +64,20 @@ export async function bewaarSite(formData: FormData) {
   revalidatePath("/admin");
 }
 
-/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; nodigt uit als het account nog niet bestaat. */
+/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; nodigt uit als het account nog niet bestaat.
+ * De klant krijgt daarna één Nederlandse mail van ons (Clerk stuurt zelf niets) met een link naar zijn
+ * nieuwe website en een inlogknop; bij de eerste inlog volgt het akkoord op de oplevering. */
 export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { bouwOpleveringsMail, isVeiligeLink, standaardBekijkLink } = await import("@/lib/website-akkoord");
+  const opgegevenLink = String(formData.get("bekijkLink") ?? "").trim();
+  const bekijkUrl = isVeiligeLink(opgegevenLink) ? opgegevenLink : standaardBekijkLink(site);
+  const mailSturen = formData.get("mail") !== "nee" && Boolean(bekijkUrl);
 
   const secret = process.env.CLERK_SECRET_KEY;
   const res = await fetch(
@@ -78,29 +86,44 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   );
   const users = (await res.json()) as { id: string }[];
 
+  let inlogUrl = `https://www.wordswap.nl/portal?site=${siteId}`;
   if (Array.isArray(users) && users.length > 0) {
     await db
       .update(sites)
       .set({ clerkUserId: users[0].id, uitnodigingEmail: null })
       .where(eq(sites.id, siteId));
   } else {
-    // Account bestaat nog niet: uitnodiging sturen en het adres onthouden —
-    // het portaal koppelt de site automatisch zodra dit adres voor het eerst
-    // inlogt.
-    await fetch("https://api.clerk.com/v1/invitations", {
+    // Account bestaat nog niet: uitnodiging aanmaken zónder Clerk-mail (die is
+    // Engels en kaal) en de link zelf in onze mail zetten. Het portaal koppelt
+    // de site automatisch zodra dit adres voor het eerst inlogt.
+    const uitnodiging = await fetch("https://api.clerk.com/v1/invitations", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${secret}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email_address: email }),
+      body: JSON.stringify({ email_address: email, notify: false, ignore_existing: true }),
     });
+    const data = (await uitnodiging.json().catch(() => ({}))) as { url?: string };
+    if (!uitnodiging.ok || !data.url) {
+      console.error("Clerk-uitnodiging mislukt:", uitnodiging.status, data);
+      redirect(`/admin/klant/${siteId}?koppel=mislukt`);
+    }
+    inlogUrl = data.url;
     await db
       .update(sites)
       .set({ uitnodigingEmail: email })
       .where(eq(sites.id, siteId));
   }
+
+  if (mailSturen) {
+    const { mailVanJos } = await import("@/lib/wordswap-mail");
+    const mail = bouwOpleveringsMail({ siteNaam: site.naam, bekijkUrl, inlogUrl });
+    const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+    if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
+  }
   revalidatePath(`/admin/klant/${siteId}`);
+  redirect(`/admin/klant/${siteId}?koppel=${mailSturen ? "verstuurd" : "gekoppeld"}`);
 }
 
 export async function nieuweSite(formData: FormData) {
