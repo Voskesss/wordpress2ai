@@ -206,6 +206,20 @@ async function koppel(telefoon: string, code: string, rij: Rij) {
             ),
           );
   if (!koppeling) {
+    // Al gekoppeld (bijvoorbeeld de code nog eens gestuurd)? Dat is geen fout.
+    const [bestaand] = await db
+      .select({ siteId: whatsappKoppelingen.siteId, naam: sites.naam })
+      .from(whatsappKoppelingen)
+      .innerJoin(sites, eq(sites.id, whatsappKoppelingen.siteId))
+      .where(eq(whatsappKoppelingen.telefoon, telefoon));
+    if (bestaand) {
+      await zetStatus([rij.id], "klaar", bestaand.siteId);
+      await stuurTekst(
+        telefoon,
+        `Dit nummer is al gekoppeld aan ${bestaand.naam}. Stuur me gewoon een appje met wat er anders moet.`,
+      );
+      return;
+    }
     await zetStatus([rij.id], "genegeerd");
     await stuurTekst(
       telefoon,
