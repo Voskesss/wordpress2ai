@@ -417,7 +417,7 @@ export default async function KlantDetail({
                     ? "Intrekken kan niet meer: dit account heeft het portaal al gebruikt (of is een beheerder), dus het wordt niet verwijderd. Gebruik 'Site overdragen' als de site naar een ander account moet."
                     : koppelMelding === "mail-mislukt"
                   ? "Gekoppeld, maar de mail kon niet worden verstuurd. Probeer het opnieuw."
-                  : "De uitnodiging kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
+                  : "Het account kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
           </p>
         )}
         {vraagtOpleveringsAkkoord(site) || oplevering ? (
@@ -538,9 +538,9 @@ export default async function KlantDetail({
               </label>
             </form>
             <p className="mt-2 text-xs text-stone-500">
-              De klant krijgt één mail van jou met een link naar de website en een inlogknop (inloggen met een
-              code per mail, geen wachtwoord). Bestaat het account al, dan wordt het direct gekoppeld; anders
-              gebeurt dat bij de eerste inlog. Klik op ⓘ om de mail eerst te bekijken.
+              Het account wordt meteen aangemaakt (als het nog niet bestaat) en gekoppeld. De klant krijgt één
+              mail van jou met een link naar de website en een inlogknop; inloggen gaat met een code per mail,
+              zonder wachtwoord. Klik op ⓘ om de mail eerst te bekijken.
             </p>
           </>
         )}

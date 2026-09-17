@@ -64,9 +64,10 @@ export async function bewaarSite(formData: FormData) {
   revalidatePath("/admin");
 }
 
-/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; nodigt uit als het account nog niet bestaat.
- * De klant krijgt daarna één Nederlandse mail van ons (Clerk stuurt zelf niets) met een link naar zijn
- * nieuwe website en een inlogknop; bij de eerste inlog volgt het akkoord op de oplevering. */
+/** Koppelt een klantaccount (Clerk) aan een site op basis van e-mail; maakt het account meteen aan als
+ * het nog niet bestaat (zonder wachtwoord, inloggen gaat met een code per mail). De klant krijgt één
+ * Nederlandse mail van ons met een link naar zijn website en een inlogknop; bij de eerste inlog volgt
+ * (voor sites in opbouw) het akkoord op de oplevering. */
 export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -93,42 +94,40 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   const host = kop.get("x-forwarded-host") ?? kop.get("host") ?? "www.wordswap.nl";
   const origin = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
   const portaal = `${origin}/portal?site=${siteId}`;
-  let inlogUrl = portaal;
-  if (Array.isArray(users) && users.length > 0) {
-    await db
-      .update(sites)
-      .set({ clerkUserId: users[0].id, uitnodigingEmail: null })
-      .where(eq(sites.id, siteId));
-  } else {
-    // Account bestaat nog niet: uitnodiging aanmaken zónder Clerk-mail (die is
-    // Engels en kaal) en de link zelf in onze mail zetten. Het portaal koppelt
-    // de site automatisch zodra dit adres voor het eerst inlogt.
-    const uitnodiging = await fetch("https://api.clerk.com/v1/invitations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        "Content-Type": "application/json",
-      },
-      // redirect_url: na het klikken terug naar ónze aanmeldpagina (die rondt de uitnodiging af)
-      // en daarna door naar het portaal. Zonder dit blijft de klant hangen op Clerks eigen pagina.
-      body: JSON.stringify({
-        email_address: email,
-        notify: false,
-        ignore_existing: true,
-        redirect_url: `${origin}/sign-up?redirect_url=${encodeURIComponent(portaal)}`,
-      }),
+  // Inloggen gaat met een code per mail; na het inloggen door naar deze site in het portaal
+  const inlogUrl = `${origin}/sign-in?redirect_url=${encodeURIComponent(portaal)}`;
+  const clerk = (pad: string, init?: RequestInit) =>
+    fetch(`https://api.clerk.com/v1${pad}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     });
-    const data = (await uitnodiging.json().catch(() => ({}))) as { url?: string };
-    if (!uitnodiging.ok || !data.url) {
-      console.error("Clerk-uitnodiging mislukt:", uitnodiging.status, data);
+  let klantId = Array.isArray(users) && users.length > 0 ? users[0].id : null;
+  if (!klantId) {
+    // Account bestaat nog niet: meteen aanmaken (zonder wachtwoord). Dan kan de klant
+    // direct inloggen met een code, ook zonder op de link in de mail te klikken.
+    const nieuw = await clerk("/users", {
+      method: "POST",
+      body: JSON.stringify({ email_address: [email], skip_password_requirement: true }),
+    });
+    const data = (await nieuw.json().catch(() => ({}))) as { id?: string };
+    if (!nieuw.ok || !data.id) {
+      console.error("Clerk-account aanmaken mislukt:", nieuw.status, data);
       redirect(`/admin/klant/${siteId}?koppel=mislukt`);
     }
-    inlogUrl = data.url;
-    await db
-      .update(sites)
-      .set({ uitnodigingEmail: email })
-      .where(eq(sites.id, siteId));
+    klantId = data.id;
   }
+  // Oude, nooit geaccepteerde uitnodigingen voor dit adres opruimen
+  const open = await clerk(`/invitations?status=pending&query=${encodeURIComponent(email)}`);
+  if (open.ok) {
+    const lijst = (await open.json().catch(() => [])) as { id: string; email_address: string }[] | { data?: { id: string; email_address: string }[] };
+    for (const u of (Array.isArray(lijst) ? lijst : (lijst.data ?? [])).filter((u) => u.email_address.toLowerCase() === email)) {
+      await clerk(`/invitations/${u.id}/revoke`, { method: "POST" });
+    }
+  }
+  await db
+    .update(sites)
+    .set({ clerkUserId: klantId, uitnodigingEmail: null })
+    .where(eq(sites.id, siteId));
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
