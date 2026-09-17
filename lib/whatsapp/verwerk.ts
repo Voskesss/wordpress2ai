@@ -48,7 +48,9 @@ type Site = typeof sites.$inferSelect;
 const slaap = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Wanneer we dit nummer voor het laatst "ik ga ermee aan de slag" stuurden:
- * twee opdrachten kort na elkaar hoeven die melding niet allebei. */
+ * twee opdrachten die vrijwel tegelijk binnenkomen (foto's plus tekst) hoeven
+ * die melding niet allebei. Bij een volgende vraag komt hij weer, anders weet
+ * de eigenaar niet dat er gewerkt wordt. */
 const laatsteAanDeSlag = new Map<string, number>();
 
 /** Hooguit één keer per uur vragen of een antwoord klopte: vaker is zeuren. */
@@ -472,7 +474,7 @@ async function chatBeurt(
     // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
     // minuten, en zolang blijft het in WhatsApp anders doodstil. Loopt er net
     // al een beurt voor dit nummer, dan is die melding er al geweest.
-    if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) > 120_000) {
+    if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) > 20_000) {
       laatsteAanDeSlag.set(telefoon, Date.now());
       await stuurTekst(
         telefoon,
