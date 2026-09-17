@@ -17,6 +17,31 @@ import {
   verwijderKennisDocument,
 } from "./acties";
 
+/** Meegestuurde bestanden bij een inzending. Het opslagadres blijft geheim:
+ * de link gaat via onze eigen route, die eerst controleert of je bij deze
+ * site hoort. */
+function Bijlagen({ id, bijlagen }: { id: number; bijlagen: unknown }) {
+  const lijst = (Array.isArray(bijlagen) ? bijlagen : []) as {
+    naam: string;
+    bytes?: number;
+  }[];
+  if (!lijst.length) return null;
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-2">
+      {lijst.map((b, i) => (
+        <a
+          key={`${b.naam}-${i}`}
+          href={`/api/inzending-bijlage?id=${id}&n=${i}`}
+          className="inline-flex items-center gap-1 rounded-full border border-violet-300 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50"
+        >
+          📎 {b.naam}
+          {b.bytes ? ` (${Math.round(b.bytes / 1024)} kB)` : ""}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export default async function SiteExtra({
   siteId,
   siteRepo,
@@ -108,6 +133,7 @@ export default async function SiteExtra({
                     )
                   )}
                 </dl>
+                <Bijlagen id={inz.id} bijlagen={inz.bijlagen} />
                 <div className="mt-2 flex gap-3">
                   <form action={inzendingVerwerken}>
                     <input type="hidden" name="id" value={inz.id} />
@@ -143,6 +169,7 @@ export default async function SiteExtra({
                         .join(" · ")}
                     </span>
                   </p>
+                  <Bijlagen id={inz.id} bijlagen={inz.bijlagen} />
                   <div className="mt-1 flex gap-3">
                     <form action={inzendingVerwerken}>
                       <input type="hidden" name="id" value={inz.id} />

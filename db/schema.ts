@@ -168,6 +168,10 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   siteRepo: text("site_repo").notNull(),
   formulier: text("formulier").notNull().default("contact"),
   velden: jsonb("velden").notNull(),
+  // Meegestuurde bestanden: [{ naam, url, bytes }]. De url wijst naar onze
+  // eigen opslag en blijft server-side — downloaden gaat via een route die
+  // eerst controleert of je bij deze site hoort.
+  bijlagen: jsonb("bijlagen").notNull().default([]),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
