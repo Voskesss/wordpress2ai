@@ -87,8 +87,16 @@ export default async function WhatsappBlok({ siteId }: { siteId: number }) {
             </a>
           )}
           <p className="mt-2 text-xs text-violet-700">
-            De code is 30 minuten geldig. Daarna ververs je deze pagina.
+            De code is 30 minuten geldig.
           </p>
+          <form action={maakWhatsappCode} className="mt-2">
+            <input type="hidden" name="siteId" value={siteId} />
+            <ActieKnop
+              label="Nieuwe code maken"
+              bezigLabel="Code maken..."
+              className="text-xs font-semibold text-violet-800 underline underline-offset-2 hover:text-violet-600 cursor-pointer"
+            />
+          </form>
         </div>
       ) : (
         <form action={maakWhatsappCode} className="mt-4">
