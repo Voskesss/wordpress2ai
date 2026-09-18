@@ -13,6 +13,7 @@ export type KlantRij = {
   livegang: { klaar: number; totaal: number } | null;
   openConcepten: number;
   wijzigingen: number;
+  wijzigingenLimiet: number;
   aiUsd: number;
   /** YYYY-MM-DD: opgezegd, website mag na deze datum offline */
   offlineNa: string | null;
@@ -88,7 +89,7 @@ export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
                           <p className="truncate text-xs text-stone-500">
                             {r.domein ?? "geen domein"}
                             <span className="hidden sm:inline">
-                              {" "}· {r.wijzigingen}/30 wijzigingen{r.aiUsd > 0 ? ` · $${r.aiUsd.toFixed(2)} AI` : ""}
+                              {" "}· {r.wijzigingen}/{r.wijzigingenLimiet} wijzigingen{r.aiUsd > 0 ? ` · $${r.aiUsd.toFixed(2)} AI` : ""}
                             </span>
                           </p>
                         </div>

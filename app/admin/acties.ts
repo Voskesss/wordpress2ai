@@ -847,6 +847,30 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+/** Fair-use-aantal wijzigingen per maand voor deze klant (pakketbelofte). */
+export async function bewaarWijzigingenLimiet(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const limiet = Number(formData.get("limiet"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 1 || limiet > 1000) return;
+  await db.update(sites).set({ wijzigingenLimiet: limiet }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Eenmalig extra wijzigingen voor deze maand; vervalt vanzelf op de 1e. */
+export async function bewaarWijzigingenExtra(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const extra = Number(formData.get("extra"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(extra) || extra < 0 || extra > 1000) return;
+  const { huidigeMaand } = await import("@/lib/ai-budget");
+  await db
+    .update(sites)
+    .set(extra > 0 ? { wijzigingenExtra: extra, wijzigingenExtraMaand: huidigeMaand() } : { wijzigingenExtra: 0, wijzigingenExtraMaand: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 /** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de
  * volgende maand, dus je hoeft hem niet terug te zetten. 0 = meteen weg. */
 export async function bewaarAiExtra(formData: FormData) {

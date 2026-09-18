@@ -56,6 +56,11 @@ export const sites = pgTable("sites", {
   // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
   aiExtraUsd: integer("ai_extra_usd").notNull().default(0),
   aiExtraMaand: text("ai_extra_maand"),
+  // Fair-use-aantal wijzigingen per maand (pakketbelofte), plus eenmalige
+  // extra voor één maand — zelfde model als het AI-budget hierboven.
+  wijzigingenLimiet: integer("wijzigingen_limiet").notNull().default(30),
+  wijzigingenExtra: integer("wijzigingen_extra").notNull().default(0),
+  wijzigingenExtraMaand: text("wijzigingen_extra_maand"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),

@@ -32,3 +32,20 @@ export function vervaltOp(maand: string): string {
   const [jaar, m] = maand.split("-").map(Number);
   return new Date(Date.UTC(jaar, m, 1)).toISOString().slice(0, 10);
 }
+
+export type WijzigingenSite = {
+  wijzigingenLimiet: number;
+  wijzigingenExtra: number | null;
+  wijzigingenExtraMaand: string | null;
+};
+
+/** Het fair-use-aantal wijzigingen dat deze maand geldt (vast plus eenmalige
+ * extra) — zelfde regels als het AI-budget: de extra telt alleen in zijn
+ * eigen maand en vervalt daarna vanzelf. */
+export function wijzigingenLimietVoor(site: WijzigingenSite, maand: string): number {
+  const extra =
+    site.wijzigingenExtra && site.wijzigingenExtra > 0 && site.wijzigingenExtraMaand === maand
+      ? site.wijzigingenExtra
+      : 0;
+  return site.wijzigingenLimiet + extra;
+}
