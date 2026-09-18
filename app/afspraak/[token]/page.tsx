@@ -1,3 +1,4 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { db } from "@/db";
@@ -13,6 +14,16 @@ export const dynamic = "force-dynamic";
 export default async function AfspraakPagina({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const [site] = token && token.length >= 20 ? await db.select().from(sites).where(eq(sites.afspraakToken, token)) : [];
+
+  // Ingelogde klant? Dan nemen we naam en e-mail gewoon over uit zijn account.
+  const gebruiker = site ? await currentUser().catch(() => null) : null;
+  const isKlant = Boolean(gebruiker && site && gebruiker.id === site.clerkUserId);
+  const ingelogdAls = isKlant
+    ? {
+        naam: [gebruiker!.firstName, gebruiker!.lastName].filter(Boolean).join(" ") || site!.naam,
+        email: gebruiker!.emailAddresses?.[0]?.emailAddress ?? "",
+      }
+    : null;
 
   const stand = site ? await afspraakStand(site.id) : null;
   const bevestigd = stand?.afspraken.find((a) => a.status === "bevestigd");
@@ -65,7 +76,7 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
             Voor <strong>{site.naam}</strong>. Kies een moment dat jou uitkomt; Jos belt je dan.
           </p>
           <div className="mt-6">
-            <Kiezer token={token} dagen={dagen} />
+            <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />
           </div>
         </>
       )}

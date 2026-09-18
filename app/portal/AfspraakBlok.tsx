@@ -21,7 +21,7 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
   const link = site?.token ?? token;
 
   return (
-    <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-5">
+    <div id="afspraak" className="mt-4 scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-5">
       <h3 className="font-display text-lg font-semibold">📅 Even samen kijken</h3>
       {bevestigd ? (
         <p className="mt-1 text-sm leading-relaxed text-stone-700">

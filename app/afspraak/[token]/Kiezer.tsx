@@ -6,7 +6,16 @@ import { kiesMoment, type KiesUitkomst } from "./acties";
 export type Dag = { datum: string; datumTekst: string; duurTekst: string; tijden: { tijd: string; iso: string }[] };
 
 /** De klant kiest een dag en tijd en laat zijn gegevens achter. */
-export default function Kiezer({ token, dagen }: { token: string; dagen: Dag[] }) {
+export default function Kiezer({
+  token,
+  dagen,
+  ingelogdAls,
+}: {
+  token: string;
+  dagen: Dag[];
+  /** Ingelogd als de klant zelf: dan hoeft hij naam en e-mail niet in te vullen */
+  ingelogdAls: { naam: string; email: string } | null;
+}) {
   const [gekozen, setGekozen] = useState<string | null>(null);
   const [stand, verstuur, bezig] = useActionState<KiesUitkomst | null, FormData>(kiesMoment, null);
 
@@ -52,14 +61,23 @@ export default function Kiezer({ token, dagen }: { token: string; dagen: Dag[] }
       {gekozen && (
         <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm font-semibold text-stone-700">
-              Je naam
-              <input name="naam" required className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />
-            </label>
-            <label className="block text-sm font-semibold text-stone-700">
-              E-mailadres
-              <input name="email" type="email" required className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />
-            </label>
+            {ingelogdAls ? (
+              <p className="text-sm text-stone-600 sm:col-span-2">
+                Je bent ingelogd als <strong>{ingelogdAls.naam}</strong>
+                {ingelogdAls.email ? ` (${ingelogdAls.email})` : ""} — die gegevens gebruik ik, invullen hoeft niet.
+              </p>
+            ) : (
+              <>
+                <label className="block text-sm font-semibold text-stone-700">
+                  Je naam
+                  <input name="naam" required className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />
+                </label>
+                <label className="block text-sm font-semibold text-stone-700">
+                  E-mailadres
+                  <input name="email" type="email" required className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />
+                </label>
+              </>
+            )}
             <label className="block text-sm font-semibold text-stone-700">
               Telefoonnummer <span className="font-normal text-stone-500">(waarop Jos je belt)</span>
               <input name="telefoon" className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />

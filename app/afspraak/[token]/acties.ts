@@ -1,5 +1,6 @@
 "use server";
 
+import { currentUser } from "@clerk/nextjs/server";
 import { and, eq, gte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
@@ -21,17 +22,26 @@ export type KiesUitkomst = { ok: boolean; melding: string };
 export async function kiesMoment(_vorige: KiesUitkomst | null, formData: FormData): Promise<KiesUitkomst> {
   const token = String(formData.get("token") ?? "");
   const gekozen = String(formData.get("moment") ?? "");
-  const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
-  const email = String(formData.get("email") ?? "").trim().slice(0, 160);
   const telefoon = String(formData.get("telefoon") ?? "").trim().slice(0, 40);
   const opmerking = String(formData.get("opmerking") ?? "").trim().slice(0, 1000);
   if (!token || token.length < 20) return { ok: false, melding: "Deze link werkt niet meer." };
-  if (!naam || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return { ok: false, melding: "Vul je naam en een geldig e-mailadres in." };
-  }
 
   const [site] = await db.select().from(sites).where(eq(sites.afspraakToken, token));
   if (!site) return { ok: false, melding: "Deze link werkt niet meer." };
+
+  // Is de bezoeker ingelogd als deze klant? Dan nemen we naam en e-mail uit zijn
+  // account over; wat er in het formulier stond doet er dan niet toe.
+  const gebruiker = await currentUser().catch(() => null);
+  const ingelogd = Boolean(gebruiker && gebruiker.id === site.clerkUserId);
+  const naam = ingelogd
+    ? [gebruiker!.firstName, gebruiker!.lastName].filter(Boolean).join(" ") || site.naam
+    : String(formData.get("naam") ?? "").trim().slice(0, 120);
+  const email = ingelogd
+    ? (gebruiker!.emailAddresses?.[0]?.emailAddress ?? "")
+    : String(formData.get("email") ?? "").trim().slice(0, 160);
+  if (!naam || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { ok: false, melding: "Vul je naam en een geldig e-mailadres in." };
+  }
 
   const eenUurGeleden = new Date(Date.now() - 60 * 60 * 1000);
   const recent = await db
@@ -62,6 +72,8 @@ export async function kiesMoment(_vorige: KiesUitkomst | null, formData: FormDat
       telefoon: telefoon || null,
       opmerking: opmerking || null,
       onderwerp: `Afspraak over ${site.naam}`,
+      ingelogd,
+      clerkUserId: ingelogd ? (gebruiker?.id ?? null) : null,
     })
     .returning({ id: afspraken.id });
 
@@ -71,6 +83,7 @@ export async function kiesMoment(_vorige: KiesUitkomst | null, formData: FormDat
     bcc: false,
     onderwerp: `📅 Nieuwe afspraakaanvraag: ${site.naam} — ${wanneer}`,
     html: `<p><strong>${ontsnap(naam)}</strong> (${ontsnap(email)}${telefoon ? `, ${ontsnap(telefoon)}` : ""}) wil afspreken over <strong>${ontsnap(site.naam)}</strong>.</p>
+<p>${ingelogd ? "✅ <strong>Ingelogd als de klant</strong> — naam en e-mail komen uit zijn eigen account." : "⚠️ Via de planlink, niet ingelogd — de opgegeven gegevens zijn niet gecontroleerd."}</p>
 <ul>
 <li>Wanneer: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(keuze.duurMinuten)})</li>
 ${opmerking ? `<li>Bericht: ${ontsnap(opmerking)}</li>` : ""}

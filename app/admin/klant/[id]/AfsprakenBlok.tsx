@@ -54,11 +54,13 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
           {aanvragen.map((a) => (
             <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
               <span>
+                {a.ingelogd ? "✅ " : "🔗 "}
                 Aangevraagd: <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong>
                 {a.naam ? ` door ${a.naam}` : ""}
                 {a.email ? ` (${a.email})` : ""}
                 {a.telefoon ? ` · ${a.telefoon}` : ""}
                 {a.opmerking ? ` · "${a.opmerking}"` : ""}
+                {a.ingelogd ? " · ingelogd als deze klant" : " · via de planlink (gegevens niet gecontroleerd)"}
               </span>
               <form action={bevestigAfspraak}>
                 <input type="hidden" name="siteId" value={siteId} />

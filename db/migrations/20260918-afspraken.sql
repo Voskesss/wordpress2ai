@@ -34,3 +34,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS sites_afspraak_token ON sites (afspraak_token)
 
 -- Wanneer de klant de uitnodiging met de voorgestelde dagen kreeg
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS afspraak_mail_op timestamptz;
+
+-- Kwam de aanvraag van een ingelogde klant (portaal) of via de losse link?
+ALTER TABLE afspraken ADD COLUMN IF NOT EXISTS ingelogd boolean NOT NULL DEFAULT false;
+ALTER TABLE afspraken ADD COLUMN IF NOT EXISTS clerk_user_id text;

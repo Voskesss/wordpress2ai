@@ -17,8 +17,21 @@ export default function AfspraakMailKnop({
   const alGestuurd = Boolean(verstuurdOp) || stand?.ok;
 
   return (
-    <form action={verstuur} className="mt-4 flex flex-wrap items-center gap-3 border-t border-stone-100 pt-4">
+    <form action={verstuur} className="mt-4 border-t border-stone-100 pt-4">
       <input type="hidden" name="siteId" value={siteId} />
+      <label className="block text-sm font-semibold text-stone-700">
+        Eigen berichtje in de mail <span className="font-normal text-stone-500">(mag leeg)</span>
+        <textarea
+          name="bericht"
+          rows={3}
+          placeholder="Bijvoorbeeld: je nieuwe website staat klaar, ik loop hem graag even met je door."
+          className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal focus:border-violet-500 focus:outline-none"
+        />
+      </label>
+      <p className="mt-1 text-xs text-stone-500">
+        Komt bovenaan de mail, onder de aanhef. De dagen, de knop en de vraag om een ander moment zet ik er zelf onder.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
       <button
         type="submit"
         disabled={bezig}
@@ -40,6 +53,7 @@ export default function AfspraakMailKnop({
       ) : (
         <span className="text-sm text-stone-500">De klant heeft nog geen uitnodiging gehad.</span>
       )}
+      </div>
     </form>
   );
 }

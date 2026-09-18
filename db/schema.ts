@@ -573,6 +573,9 @@ export const afspraken = pgTable("afspraken", {
   telefoon: text("telefoon"),
   opmerking: text("opmerking"),
   onderwerp: text("onderwerp"),
+  /** Aanvraag van een ingelogde klant (dan kloppen naam en e-mail zeker) */
+  ingelogd: boolean("ingelogd").notNull().default(false),
+  clerkUserId: text("clerk_user_id"),
   aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
   bevestigdOp: timestamp("bevestigd_op", { withTimezone: true }),
 });
