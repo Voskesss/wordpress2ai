@@ -1352,6 +1352,7 @@ export async function POST(req: Request) {
           // daar ALTIJD een melding van — tenzij de eigenaar al "alleen hier"
           // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
           if (werkmap && changeRowId && gewijzigd.length > 0) {
+            let vangnetDebug = "";
             try {
               const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
               if (!vroegAlleenHier) {
@@ -1366,10 +1367,17 @@ export async function POST(req: Request) {
                 if (meldingen.length) {
                   reply += `\n\n${meldingen.join("\n")}\nZeg "overal doorvoeren" en ik pas het overal aan, of "alleen hier" als dit bewust maar op één plek moest.`;
                 }
+                vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
+              } else {
+                vangnetDebug = "onderdrukt door alleen-hier in de opdracht";
               }
             } catch (e) {
               console.error("Consistentie-vangnet:", e);
+              vangnetDebug = `FOUT: ${e instanceof Error ? e.message.slice(0, 160) : String(e).slice(0, 160)}`;
             }
+            // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
+            if (process.env.VERCEL_ENV !== "production" && vangnetDebug)
+              reply += `\n\n[vangnet: ${vangnetDebug}]`;
           }
 
           await db
