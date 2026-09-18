@@ -160,6 +160,28 @@ export async function dubbelingsMeldingen(opties: {
       }
     }
 
+    // 1c. Andersom: een blok dat op een ÓNgewijzigde pagina staat (bv. de
+    // projectnaam "Kerststol-actie" als kop) en op deze pagina — met
+    // woordgrenzen geteld — minder vaak voorkomt dan eerst. Vangt hernoemen
+    // binnen een langere kop ("Uitgelicht: Kerststol-actie" → "...-acties"),
+    // waar 1 en 1b niks zien omdat het blok hier nooit exact hetzelfde was.
+    // Woordgrenzen, want als substring telt "Kerststol-acties" nog gewoon mee.
+    const telGrens = (tekst: string, stuk: string) => {
+      const r = new RegExp(
+        `(?<![\\p{L}\\p{N}])${stuk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`,
+        "gu",
+      );
+      return (tekst.match(r) ?? []).length;
+    };
+    for (const [ander] of nieuweTekst) {
+      if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
+      for (const blok of blokkenVan(ander)) {
+        if (telGrens(oudeTekst, blok) <= telGrens(naTekst, blok)) continue;
+        if (!tekstMeldingen.has(blok)) tekstMeldingen.set(blok, new Set());
+        tekstMeldingen.get(blok)!.add(ander);
+      }
+    }
+
     // 2. Foto's die hier zijn vervangen maar elders nog staan
     const beeldenNa = beeldPaden(na);
     for (const beeld of beeldPaden(oud)) {
