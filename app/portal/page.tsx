@@ -17,6 +17,7 @@ import SiteExtra from "./SiteExtra";
 import KlantFacturen from "./KlantFacturen";
 import BevestigingsMails from "./BevestigingsMails";
 import MeenemenBlok from "./MeenemenBlok";
+import AfspraakBlok from "./AfspraakBlok";
 
 export const metadata: Metadata = {
   title: "Mijn websites",
@@ -355,6 +356,7 @@ export default async function Portal({
                     online={Boolean(site.siteSlug)}
                     notificatieEmail={site.notificatieEmail}
                   />
+                  <AfspraakBlok siteId={site.id} />
                   <BevestigingsMails siteId={site.id} />
                   <KlantFacturen siteId={site.id} />
                   <MeenemenBlok siteId={site.id} />

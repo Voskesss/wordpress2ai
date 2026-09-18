@@ -9,6 +9,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
+import AfsprakenBlok from "./AfsprakenBlok";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
@@ -843,6 +844,8 @@ export default async function KlantDetail({
           <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>
       </div>
+
+      <AfsprakenBlok siteId={site.id} />
 
       {/* AI-maandbudget */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">

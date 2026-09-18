@@ -30,6 +30,8 @@ export const sites = pgTable("sites", {
     .notNull()
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
+  // Onraadbare code voor de deelbare planlink (/afspraak/<code>)
+  afspraakToken: text("afspraak_token"),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
@@ -543,3 +545,32 @@ export const webinarMails = pgTable(
   },
   (t) => [unique("webinar_mails_inschrijving_soort").on(t.inschrijvingId, t.soort)],
 );
+
+/** Dagen die Jos per klant klaarzet om een afspraak op te maken. */
+export const afspraakBlokken = pgTable("afspraak_blokken", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  datum: text("datum").notNull(), // YYYY-MM-DD, Nederlandse tijd
+  van: text("van").notNull(), // HH:MM
+  tot: text("tot").notNull(), // HH:MM
+  duurMinuten: integer("duur_minuten").notNull().default(30),
+  aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Gekozen afspraken. Een bevestigde afspraak blokkeert die tijd bij alle klanten. */
+export const afspraken = pgTable("afspraken", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  start: timestamp("start", { withTimezone: true }).notNull(),
+  duurMinuten: integer("duur_minuten").notNull(),
+  status: text("status", { enum: ["aangevraagd", "bevestigd", "geannuleerd"] })
+    .notNull()
+    .default("aangevraagd"),
+  naam: text("naam"),
+  email: text("email"),
+  telefoon: text("telefoon"),
+  opmerking: text("opmerking"),
+  onderwerp: text("onderwerp"),
+  aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
+  bevestigdOp: timestamp("bevestigd_op", { withTimezone: true }),
+});
