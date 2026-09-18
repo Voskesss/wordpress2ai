@@ -2,6 +2,7 @@ import { duurInWoorden, komendeWerkdagen, momentInWoorden } from "@/lib/afsprake
 import { afspraakStand } from "@/lib/afspraken-db";
 import { annuleerAfspraak, bevestigAfspraak, verwijderAfspraakBlok } from "../../acties-afspraken";
 import DagKlaarzetten from "./DagKlaarzetten";
+import AfspraakMailKnop from "./AfspraakMailKnop";
 import ActieKnop from "./ActieKnop";
 
 function dagTekst(datum: string): string {
@@ -13,7 +14,7 @@ function dagTekst(datum: string): string {
  * klaarstaat ziet de klant hier ook niets van.
  */
 export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
-  const { blokken, afspraken: rijen, token } = await afspraakStand(siteId);
+  const { blokken, afspraken: rijen, token, mailOp } = await afspraakStand(siteId);
   const aanvragen = rijen.filter((a) => a.status === "aangevraagd");
   const bevestigd = rijen.filter((a) => a.status === "bevestigd");
   const morgen = komendeWerkdagen(1)[0];
@@ -98,6 +99,24 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
         </ul>
       ) : (
         <p className="mt-4 text-sm text-stone-500">Er staat niets klaar; de klant ziet dus ook niets.</p>
+      )}
+
+      {blokken.length > 0 && (
+        <AfspraakMailKnop
+          siteId={siteId}
+          verstuurdOp={
+            mailOp
+              ? mailOp.toLocaleString("nl-NL", {
+                  timeZone: "Europe/Amsterdam",
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : null
+          }
+        />
       )}
 
       {planLink && (

@@ -32,6 +32,8 @@ export const sites = pgTable("sites", {
   richtlijnen: text("richtlijnen"),
   // Onraadbare code voor de deelbare planlink (/afspraak/<code>)
   afspraakToken: text("afspraak_token"),
+  // Wanneer de klant de uitnodiging met de voorgestelde dagen kreeg
+  afspraakMailOp: timestamp("afspraak_mail_op", { withTimezone: true }),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),

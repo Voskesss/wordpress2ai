@@ -31,3 +31,6 @@ CREATE INDEX IF NOT EXISTS afspraken_start ON afspraken (start);
 -- Onraadbare code voor de deelbare planlink (ook bruikbaar zonder account)
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS afspraak_token text;
 CREATE UNIQUE INDEX IF NOT EXISTS sites_afspraak_token ON sites (afspraak_token) WHERE afspraak_token IS NOT NULL;
+
+-- Wanneer de klant de uitnodiging met de voorgestelde dagen kreeg
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS afspraak_mail_op timestamptz;

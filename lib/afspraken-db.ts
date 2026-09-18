@@ -17,7 +17,7 @@ export async function afspraakStand(siteId: number) {
       .select()
       .from(afspraken)
       .where(and(eq(afspraken.siteId, siteId), inArray(afspraken.status, ["aangevraagd", "bevestigd"]))),
-    db.select({ token: sites.afspraakToken }).from(sites).where(eq(sites.id, siteId)),
+    db.select({ token: sites.afspraakToken, mailOp: sites.afspraakMailOp }).from(sites).where(eq(sites.id, siteId)),
   ]);
   return {
     blokken: blokken
@@ -25,6 +25,7 @@ export async function afspraakStand(siteId: number) {
       .sort((a, b) => (a.datum + a.van < b.datum + b.van ? -1 : 1)),
     afspraken: rijen.sort((a, b) => a.start.getTime() - b.start.getTime()),
     token: site?.token ?? null,
+    mailOp: site?.mailOp ?? null,
   };
 }
 

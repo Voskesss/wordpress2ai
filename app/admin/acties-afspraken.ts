@@ -15,6 +15,8 @@ import {
   STAP_MINUTEN,
 } from "@/lib/afspraken";
 import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { afspraakStand } from "@/lib/afspraken-db";
+import { abonnementen } from "@/db/schema";
 
 const DUREN = [30, 60, 90, 120];
 
@@ -185,4 +187,80 @@ export async function annuleerAfspraak(formData: FormData) {
   }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
+}
+
+/** Het mailadres van de klant: abonnement, anders de uitnodiging, anders Clerk. */
+async function klantAdres(site: typeof sites.$inferSelect): Promise<{ email: string; naam: string } | null> {
+  const [abo] = await db
+    .select({ email: abonnementen.email, naam: abonnementen.naam })
+    .from(abonnementen)
+    .where(eq(abonnementen.siteId, site.id))
+    .catch(() => []);
+  if (abo?.email) return { email: abo.email, naam: abo.naam };
+  if (site.uitnodigingEmail) return { email: site.uitnodigingEmail, naam: site.naam };
+  try {
+    const res = await fetch(`https://api.clerk.com/v1/users/${site.clerkUserId}`, {
+      headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+    });
+    if (!res.ok) return null;
+    const u = (await res.json()) as { email_addresses?: { email_address: string }[]; first_name?: string };
+    const email = u.email_addresses?.[0]?.email_address;
+    return email ? { email, naam: u.first_name ?? site.naam } : null;
+  } catch {
+    return null;
+  }
+}
+
+export type MailUitkomst = { ok: boolean; melding: string };
+
+/**
+ * De klant uitnodigen: mailtje met de klaargezette dagen en de planlink. Kan de
+ * klant niet op die dagen, dan vragen we hem te laten weten wanneer wél.
+ */
+export async function mailAfspraakVoorstel(
+  _vorige: MailUitkomst | null,
+  formData: FormData,
+): Promise<MailUitkomst> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return { ok: false, melding: "Onbekende klant." };
+  const { blokken, token } = await afspraakStand(siteId);
+  if (blokken.length === 0) return { ok: false, melding: "Zet eerst dagen klaar." };
+  if (!token) return { ok: false, melding: "Er is nog geen planlink; zet eerst een dag klaar." };
+  const ontvanger = await klantAdres(site);
+  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+
+  const link = `https://www.wordswap.nl/afspraak/${token}`;
+  const dagen = blokken
+    .map(
+      (b) =>
+        `<li>${ontsnap(
+          new Date(`${b.datum}T12:00:00`).toLocaleDateString("nl-NL", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          }),
+        )} tussen ${ontsnap(b.van)} en ${ontsnap(b.tot)}</li>`,
+    )
+    .join("");
+  const duur = duurInWoorden(blokken[0].duurMinuten);
+
+  const gelukt = await mailVanJos({
+    naar: ontvanger.email,
+    van: "Jos van WordSwap",
+    onderwerp: `Even samen kijken naar ${site.naam}?`,
+    html: `<p>Beste ${ontsnap((ontvanger.naam ?? "").split(" ")[0] || "klant")},</p>
+<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>
+<ul>${dagen}</ul>
+<p><a href="${link}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Kies een moment</span></a></p>
+<p>Komt geen van deze dagen uit? Laat het gerust weten, met een dag en tijd die jou wél schikt, dan plan ik dat in.</p>
+<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+  });
+  if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
+
+  await db.update(sites).set({ afspraakMailOp: new Date() }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  return { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` };
 }
