@@ -3,6 +3,7 @@ import { afspraakStand } from "@/lib/afspraken-db";
 import { bevestigAfspraak, verwijderAfspraakBlok } from "../../acties-afspraken";
 import AfzegMetReden from "./AfzegMetReden";
 import DagKlaarzetten from "./DagKlaarzetten";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 import AfspraakMailKnop from "./AfspraakMailKnop";
 import ActieKnop from "./ActieKnop";
 
@@ -52,6 +53,7 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                   {a.opmerking ? ` · "${a.opmerking}"` : ""}
                   {a.ingelogd ? " · ingelogd als deze klant" : " · via de planlink (gegevens niet gecontroleerd)"}
                 </span>
+                <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={siteId} extra={{ afspraakId: String(a.id) }} />
                 <form action={bevestigAfspraak}>
                   <input type="hidden" name="siteId" value={siteId} />
                   <input type="hidden" name="afspraakId" value={a.id} />
