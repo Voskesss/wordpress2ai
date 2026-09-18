@@ -51,7 +51,7 @@ export default async function OntwerpBlok({
         </p>
       )}
       {status && !status.bestaat && (
-        <form action={ontwerpMaken} className="mt-4">
+        <form action={ontwerpMaken} className="mt-4" title="Maakt de ontwerp-omgeving aan: een kopie van de live site op een eigen adres, met een banner erop en onvindbaar voor Google. Daarna kan er vrij aan gebouwd worden.">
           <input type="hidden" name="siteId" value={site.id} />
           <ActieKnop
             label="Ontwerpversie aanmaken"
@@ -85,7 +85,7 @@ export default async function OntwerpBlok({
             </span>
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <form action={ontwerpMaken}>
+            <form action={ontwerpMaken} title="Zet de laatste stand van de ontwerp-versie opnieuw op het ontwerp-adres. Gebruik dit nadat er (bijvoorbeeld via Claude Code) aan het ontwerp is gebouwd en gepusht.">
               <input type="hidden" name="siteId" value={site.id} />
               <ActieKnop
                 label="Opnieuw deployen"
@@ -93,7 +93,7 @@ export default async function OntwerpBlok({
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
-            <form action={ontwerpBijwerken}>
+            <form action={ontwerpBijwerken} title="Haalt wijzigingen die de klant intussen op de live site deed (teksten, foto's) het ontwerp in, zodat die niet verloren gaan. Altijd eerst doen vóór 'Naar de werkversie'.">
               <input type="hidden" name="siteId" value={site.id} />
               <ActieKnop
                 label="Bijwerken vanaf live"
@@ -101,7 +101,7 @@ export default async function OntwerpBlok({
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
-            <form action={ontwerpPromoveren}>
+            <form action={ontwerpPromoveren} title="Draait eerst de bouw-controle (formulieren, links, mobiel, SEO). Foutloos? Dan komt het ontwerp als gewoon concept op de werkversie: de klant bekijkt het in zijn portaal, geeft akkoord en publiceert zoals altijd. Bij fouten gebeurt er niets en zie je hier wat er mis is.">
               <input type="hidden" name="siteId" value={site.id} />
               <BevestigKnop
                 label="Naar de werkversie"
@@ -110,7 +110,7 @@ export default async function OntwerpBlok({
                 className={`${KNOP} bg-violet-700 text-white hover:bg-violet-600`}
               />
             </form>
-            <form action={ontwerpVerwijderen}>
+            <form action={ontwerpVerwijderen} title="Ruimt de ontwerp-versie en het ontwerp-adres op. De live site en de werkversie blijven onaangeroerd; een al klaargezet concept blijft bestaan.">
               <input type="hidden" name="siteId" value={site.id} />
               <BevestigKnop
                 label="Ontwerp verwijderen"
