@@ -1347,6 +1347,31 @@ export async function POST(req: Request) {
             }s totaal=${tijden.afgerond ?? "?"}s bestanden=${gewijzigd.length}`,
           );
 
+          // Consistentie-vangnet (mechanisch, geen AI): is hier tekst of een
+          // foto veranderd die elders op de site nog exact zo staat, dan komt
+          // daar ALTIJD een melding van — tenzij de eigenaar al "alleen hier"
+          // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
+          if (werkmap && changeRowId && gewijzigd.length > 0) {
+            try {
+              const vroegAlleenHier = /alleen (hier|op (die|deze|dat) (plek|pagina|blok))|(die|deze) (plek|pagina) alleen/i.test(bericht);
+              if (!vroegAlleenHier) {
+                const { dubbelingsMeldingen } = await import("@/lib/consistentie");
+                const { leesBestand } = await import("@/lib/github");
+                const basisRef = openConcept?.branch;
+                const meldingen = await dubbelingsMeldingen({
+                  werkmap,
+                  gewijzigd,
+                  oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
+                });
+                if (meldingen.length) {
+                  reply += `\n\n${meldingen.join("\n")}\nZeg "overal doorvoeren" en ik pas het overal aan, of "alleen hier" als dit bewust maar op één plek moest.`;
+                }
+              }
+            } catch (e) {
+              console.error("Consistentie-vangnet:", e);
+            }
+          }
+
           await db
             .insert(messages)
             .values({
@@ -1381,31 +1406,6 @@ export async function POST(req: Request) {
               }).catch((e) => console.error("Video-seintje mislukt:", e));
             }
           }
-          // Consistentie-vangnet (mechanisch, geen AI): is hier tekst of een
-          // foto veranderd die elders op de site nog exact zo staat, dan komt
-          // daar ALTIJD een melding van — tenzij de eigenaar al "alleen hier"
-          // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
-          if (werkmap && changeRowId && gewijzigd.length > 0) {
-            try {
-              const vroegAlleenHier = /alleen (hier|op (die|deze|dat) (plek|pagina|blok))|(die|deze) (plek|pagina) alleen/i.test(bericht);
-              if (!vroegAlleenHier) {
-                const { dubbelingsMeldingen } = await import("@/lib/consistentie");
-                const { leesBestand } = await import("@/lib/github");
-                const basisRef = openConcept?.branch;
-                const meldingen = await dubbelingsMeldingen({
-                  werkmap,
-                  gewijzigd,
-                  oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
-                });
-                if (meldingen.length) {
-                  reply += `\n\n${meldingen.join("\n")}\nZeg "overal doorvoeren" en ik pas het overal aan, of "alleen hier" als dit bewust maar op één plek moest.`;
-                }
-              }
-            } catch (e) {
-              console.error("Consistentie-vangnet:", e);
-            }
-          }
-
           stuur({
             type: "klaar",
             reply,
