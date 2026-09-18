@@ -57,6 +57,14 @@ export async function zetAfspraakBlokKlaar(
   const vandaag = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
   if (datum < vandaag) return { ok: false, melding: "Die dag is al geweest." };
   await zorgToken(siteId);
+  // Eerste dag van een nieuwe ronde? Dan hoort de oude "uitnodiging verstuurd"-
+  // stempel niet meer bij deze dagen: wissen, zodat de mailknop weer vers begint.
+  const [alIets] = await db
+    .select({ id: afspraakBlokken.id })
+    .from(afspraakBlokken)
+    .where(eq(afspraakBlokken.siteId, siteId))
+    .limit(1);
+  if (!alIets) await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
   await db.insert(afspraakBlokken).values({ siteId, datum, van, tot, duurMinuten });
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
@@ -75,6 +83,12 @@ export async function verwijderAfspraakBlok(formData: FormData) {
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
   await db.delete(afspraakBlokken).where(and(eq(afspraakBlokken.id, id), eq(afspraakBlokken.siteId, siteId)));
+  const [over] = await db
+    .select({ id: afspraakBlokken.id })
+    .from(afspraakBlokken)
+    .where(eq(afspraakBlokken.siteId, siteId))
+    .limit(1);
+  if (!over) await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
@@ -110,6 +124,7 @@ export async function bevestigAfspraak(formData: FormData) {
     .set({ status: "geannuleerd" })
     .where(and(eq(afspraken.siteId, siteId), eq(afspraken.status, "aangevraagd")));
   await ruimBlokkenOp(siteId);
+  await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
 
   const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
   const titel = `WordSwap — ${site.naam}`;
