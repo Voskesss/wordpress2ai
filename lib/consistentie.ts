@@ -43,6 +43,21 @@ function fragmenten(html: string): string[] {
   return [...uit];
 }
 
+/** Hele tekstblokken (alinea/kop/lijstregel), voor de divergentie-check:
+ * een blok dat op meerdere pagina's identiek stond en hier is veranderd —
+ * óók door UITBREIDEN, waarbij de oude zin gewoon blijft staan — telt als
+ * uit de pas gelopen kopie. */
+function blokken(html: string): string[] {
+  return [...new Set(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .split(/<\/(?:p|h[1-6]|li|blockquote|figcaption|td|th|summary|dd|dt)>|<br\s*\/?\s*>/i)
+      .map((b) => kaleTekst(b))
+      .filter((b) => b.length >= 25 && b.length <= 400),
+  )];
+}
+
 /** Alle afbeeldingsverwijzingen (src, srcset-kandidaten en css-urls). */
 function beeldPaden(html: string): Set<string> {
   const uit = new Set<string>();
@@ -108,6 +123,20 @@ export async function dubbelingsMeldingen(opties: {
         if (tekst.includes(fragment)) {
           if (!tekstMeldingen.has(fragment)) tekstMeldingen.set(fragment, new Set());
           tekstMeldingen.get(fragment)!.add(ander);
+        }
+      }
+    }
+
+    // 1b. Divergentie: een blok dat hier is veranderd (ook alleen maar
+    // uitgebreid) terwijl de OUDE versie elders nog letterlijk staat.
+    const nieuweBlokkenHier = new Set(blokken(na));
+    for (const blok of blokken(oud)) {
+      if (nieuweBlokkenHier.has(blok)) continue; // blok hier ongewijzigd
+      for (const [ander, tekst] of nieuweTekst) {
+        if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
+        if (tekst.includes(blok)) {
+          if (!tekstMeldingen.has(blok)) tekstMeldingen.set(blok, new Set());
+          tekstMeldingen.get(blok)!.add(ander);
         }
       }
     }
