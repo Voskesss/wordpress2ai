@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
 import AfsprakenBlok from "./AfsprakenBlok";
+import SnelMenu from "./SnelMenu";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
@@ -292,13 +293,22 @@ export default async function KlantDetail({
       </div>
 
       {/* Site online zetten (Cloudflare) */}
+      <SnelMenu
+        heeft={{
+          livegang: Boolean(livegang),
+          online: !site.siteSlug,
+          whatsapp: true,
+          verwijderen: true,
+        }}
+      />
+
       {!site.siteSlug && (
         <form
           action={zetSiteOnline}
           className="mt-6 rounded-3xl border-2 border-violet-600 bg-violet-50/40 p-6"
         >
           <input type="hidden" name="siteId" value={site.id} />
-          <h2 className="font-display text-xl font-semibold">
+          <h2 id="online" className="scroll-mt-24 font-display text-xl font-semibold">
             Site nog niet online
           </h2>
           <p className="mt-2 text-sm text-stone-600">
@@ -315,7 +325,7 @@ export default async function KlantDetail({
 
       {/* Beheer via chat (admin) */}
       <div className="mt-6">
-        <h2 className="font-display text-xl font-semibold mb-3">
+        <h2 id="chat" className="scroll-mt-24 font-display text-xl font-semibold mb-3">
           Beheer via chat
         </h2>
         {herstel && <HerstelMelding changeId={herstel.id} />}
@@ -346,7 +356,11 @@ export default async function KlantDetail({
         />
       </div>
 
-      {livegang && <LivegangChecklist checks={livegang} />}
+      {livegang && (
+        <div id="livegang" className="scroll-mt-24">
+          <LivegangChecklist checks={livegang} />
+        </div>
+      )}
 
       {/* Instellingen */}
       <form
@@ -354,7 +368,7 @@ export default async function KlantDetail({
         className="mt-6 rounded-3xl border border-stone-200 bg-white p-6"
       >
         <input type="hidden" name="siteId" value={site.id} />
-        <h2 className="font-display text-xl font-semibold">Instellingen</h2>
+        <h2 id="instellingen" className="scroll-mt-24 font-display text-xl font-semibold">Instellingen</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-semibold">
             Naam
@@ -412,7 +426,7 @@ export default async function KlantDetail({
 
       {/* Klantaccount */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">Klantaccount</h2>
+        <h2 id="account" className="scroll-mt-24 font-display text-xl font-semibold">Klantaccount</h2>
         <p className="mt-2 text-sm text-stone-600">
           Gekoppeld:{" "}
           {gebruiker ? (
@@ -580,7 +594,7 @@ export default async function KlantDetail({
         className="mt-6 rounded-3xl border border-stone-200 bg-white p-6"
       >
         <input type="hidden" name="siteId" value={site.id} />
-        <h2 className="font-display text-xl font-semibold">Richtlijnen</h2>
+        <h2 id="richtlijnen" className="scroll-mt-24 font-display text-xl font-semibold">Richtlijnen</h2>
         <p className="mt-2 text-sm text-stone-600">
           Extra regels die de AI bij deze site altijd naleeft, bovenop de
           algemene huisregels.
@@ -601,7 +615,7 @@ export default async function KlantDetail({
 
       {/* Laatste wijzigingen */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white overflow-hidden">
-        <h2 className="font-display text-xl font-semibold p-6 pb-0">
+        <h2 id="wijzigingen" className="scroll-mt-24 font-display text-xl font-semibold p-6 pb-0">
           Laatste wijzigingen
         </h2>
         <table className="mt-4 w-full text-left text-sm">
@@ -640,7 +654,7 @@ export default async function KlantDetail({
 
       {/* Versiegeschiedenis */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white overflow-hidden">
-        <h2 className="font-display text-xl font-semibold p-6 pb-0">Versies</h2>
+        <h2 id="versies" className="scroll-mt-24 font-display text-xl font-semibold p-6 pb-0">Versies</h2>
         <p className="px-6 pt-1 text-sm text-stone-500">
           Elke gepubliceerde wijziging is een versie. Terugzetten maakt een
           nieuwe versie aan (er gaat dus nooit iets verloren) en zet de live
@@ -672,7 +686,7 @@ export default async function KlantDetail({
 
       {/* Sjabloon & reset (voor demo-/webinarsites) */}
       <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/40 p-6">
-        <h2 className="font-display text-xl font-semibold">↺ Sjabloon &amp; reset</h2>
+        <h2 id="sjabloon" className="scroll-mt-24 font-display text-xl font-semibold">↺ Sjabloon &amp; reset</h2>
         <p className="mt-2 text-sm text-stone-600">
           Voor demo- en webinarsites: leg de huidige live-versie vast als sjabloon,
           en zet de site na een demo met één klik terug naar precies die staat
@@ -693,7 +707,7 @@ export default async function KlantDetail({
 
       {/* Feedback op de chatbeleving: duimpjes en opmerkingen uit het portaal */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">
+        <h2 id="feedback" className="scroll-mt-24 font-display text-xl font-semibold">
           👍👎 Chat-feedback
           {feedback.length > 0 && (
             <span className="ml-2 text-sm font-normal text-stone-500">
@@ -738,7 +752,7 @@ export default async function KlantDetail({
           zien in het portaal alleen hun eigen gesprek; hier kijkt de admin mee
           voor kwaliteitsbewaking en kan hij gesprekken wissen. */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">💬 Chatgeschiedenis</h2>
+        <h2 id="chatgeschiedenis" className="scroll-mt-24 font-display text-xl font-semibold">💬 Chatgeschiedenis</h2>
         <p className="mt-2 text-sm text-stone-600">
           Alle gesprekken met de site-AI, per persoon. De klant ziet in het
           portaal alléén zijn eigen gesprek — jouw beheer-chats blijven voor de
@@ -794,16 +808,18 @@ export default async function KlantDetail({
         )}
       </div>
 
-      <IncassoBlok
-        site={site}
-        melding={abonnementMelding}
-        klantNaam={klantInfo?.naam ?? ""}
-        klantEmail={klantInfo && klantInfo.email !== "onbekend" ? klantInfo.email : (site.uitnodigingEmail ?? "")}
-      />
+      <div id="incasso" className="scroll-mt-24">
+        <IncassoBlok
+          site={site}
+          melding={abonnementMelding}
+          klantNaam={klantInfo?.naam ?? ""}
+          klantEmail={klantInfo && klantInfo.email !== "onbekend" ? klantInfo.email : (site.uitnodigingEmail ?? "")}
+        />
+      </div>
 
       {/* WordPress-kopie (terugweg-garantie) */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">🛟 WordPress-kopie (terugweg-garantie)</h2>
+        <h2 id="wordpress-kopie" className="scroll-mt-24 font-display text-xl font-semibold">🛟 WordPress-kopie (terugweg-garantie)</h2>
         <p className="mt-2 text-sm text-stone-600">
           Zet hier de complete WordPress-backup van vóór de overstap klaar (zip). Hij staat in de beveiligde
           EU-opslag; alleen deze klant kan hem downloaden, in zijn portaal.
@@ -830,7 +846,7 @@ export default async function KlantDetail({
 
       {/* Video-tegoed */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">🎬 Video-tegoed</h2>
+        <h2 id="video" className="scroll-mt-24 font-display text-xl font-semibold">🎬 Video-tegoed</h2>
         <p className="mt-2 text-sm text-stone-600">
           Gebruikt: <strong>{site.videoUploads}</strong> van <strong>{site.videoLimiet}</strong> video-uploads.
           Wil de klant meer, verhoog dan hier de limiet (de chat verwijst hem naar info@wordswap.nl).
@@ -845,11 +861,13 @@ export default async function KlantDetail({
         </form>
       </div>
 
-      <AfsprakenBlok siteId={site.id} />
+      <div id="afspraken-blok" className="scroll-mt-24">
+        <AfsprakenBlok siteId={site.id} />
+      </div>
 
       {/* AI-maandbudget */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">🤖 AI-maandbudget</h2>
+        <h2 id="ai-budget" className="scroll-mt-24 font-display text-xl font-semibold">🤖 AI-maandbudget</h2>
         <p className="mt-2 text-sm text-stone-600">
           Deze maand verbruikt: <strong>{usd(kostenDezeMaand)}</strong> van maximaal{" "}
           <strong>${maandbudgetVoor(site, dezeMaand)}</strong>
@@ -885,7 +903,7 @@ export default async function KlantDetail({
       {/* WhatsApp-kanaal */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display text-xl font-semibold">💬 WhatsApp</h2>
+          <h2 id="whatsapp" className="scroll-mt-24 font-display text-xl font-semibold">💬 WhatsApp</h2>
           <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${site.whatsappActief ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-stone-200 bg-stone-50 text-stone-500"}`}>
             {site.whatsappActief ? "aan" : "uit"}
           </span>
@@ -905,7 +923,7 @@ export default async function KlantDetail({
       {/* Witlabel-mail (SMTP van de klant) */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display text-xl font-semibold">E-mail uit eigen naam</h2>
+          <h2 id="eigen-mail" className="scroll-mt-24 font-display text-xl font-semibold">E-mail uit eigen naam</h2>
           {site.smtpHost ? (
             <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
               actief via {site.smtpHost}
@@ -975,7 +993,7 @@ export default async function KlantDetail({
         className="mt-6 rounded-3xl border-2 border-red-200 bg-red-50/50 p-6"
       >
         <input type="hidden" name="siteId" value={site.id} />
-        <h2 className="font-display text-xl font-semibold text-red-900">
+        <h2 id="verwijderen" className="scroll-mt-24 font-display text-xl font-semibold text-red-900">
           Klant verwijderen
         </h2>
         <p className="mt-2 text-sm text-red-800">

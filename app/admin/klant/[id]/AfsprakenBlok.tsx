@@ -1,15 +1,8 @@
 import { duurInWoorden, komendeWerkdagen, momentInWoorden } from "@/lib/afspraken";
 import { afspraakStand } from "@/lib/afspraken-db";
-import {
-  annuleerAfspraak,
-  bevestigAfspraak,
-  verwijderAfspraakBlok,
-  zetAfspraakBlokKlaar,
-} from "../../acties-afspraken";
+import { annuleerAfspraak, bevestigAfspraak, verwijderAfspraakBlok } from "../../acties-afspraken";
+import DagKlaarzetten from "./DagKlaarzetten";
 import ActieKnop from "./ActieKnop";
-
-const invoer =
-  "mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal focus:border-violet-500 focus:outline-none";
 
 function dagTekst(datum: string): string {
   return new Date(`${datum}T12:00:00`).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
@@ -86,37 +79,7 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
         </div>
       )}
 
-      <form action={zetAfspraakBlokKlaar} className="mt-4 grid gap-3 sm:grid-cols-5 items-end">
-        <input type="hidden" name="siteId" value={siteId} />
-        <label className="block text-sm font-semibold sm:col-span-2">
-          Dag
-          <input name="datum" type="date" required defaultValue={morgen} className={invoer} />
-        </label>
-        <label className="block text-sm font-semibold">
-          Van
-          <input name="van" type="time" step={1800} required defaultValue="09:00" className={invoer} />
-        </label>
-        <label className="block text-sm font-semibold">
-          Tot
-          <input name="tot" type="time" step={1800} required defaultValue="12:00" className={invoer} />
-        </label>
-        <label className="block text-sm font-semibold">
-          Gesprek duurt
-          <select name="duur" defaultValue="30" className={invoer}>
-            <option value="30">een half uur</option>
-            <option value="60">1 uur</option>
-            <option value="90">1,5 uur</option>
-            <option value="120">2 uur</option>
-          </select>
-        </label>
-        <div className="sm:col-span-5">
-          <ActieKnop
-            label="Dag klaarzetten"
-            bezigLabel="Klaarzetten..."
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
-          />
-        </div>
-      </form>
+      <DagKlaarzetten siteId={siteId} startDatum={morgen} />
 
       {blokken.length > 0 ? (
         <ul className="mt-4 space-y-1 text-sm text-stone-700">

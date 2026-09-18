@@ -27,23 +27,43 @@ async function zorgToken(siteId: number): Promise<string> {
   return token;
 }
 
-/** Eén dag met tijdvak klaarzetten voor deze klant. */
-export async function zetAfspraakBlokKlaar(formData: FormData) {
+export type BlokUitkomst = { ok: boolean; melding: string; datum?: string };
+
+/** Eén dag met tijdvak klaarzetten voor deze klant. Geeft antwoord terug, zodat
+ * het formulier meteen klaar kan staan voor de volgende dag. */
+export async function zetAfspraakBlokKlaar(
+  _vorige: BlokUitkomst | null,
+  formData: FormData,
+): Promise<BlokUitkomst> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const datum = String(formData.get("datum") ?? "");
   const van = String(formData.get("van") ?? "");
   const tot = String(formData.get("tot") ?? "");
   const duurMinuten = Number(formData.get("duur"));
-  if (!Number.isInteger(siteId)) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || !/^\d{2}:\d{2}$/.test(van) || !/^\d{2}:\d{2}$/.test(tot)) return;
-  if (!DUREN.includes(duurMinuten)) return;
-  // Tijdvak moet minstens één gesprek kunnen bevatten
-  if (minutenVan(tot) - minutenVan(van) < duurMinuten) return;
-  if (minutenVan(van) % STAP_MINUTEN !== 0) return;
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || !/^\d{2}:\d{2}$/.test(van) || !/^\d{2}:\d{2}$/.test(tot)) {
+    return { ok: false, melding: "Vul een geldige dag en tijden in." };
+  }
+  if (!DUREN.includes(duurMinuten)) return { ok: false, melding: "Kies een geldige gespreksduur." };
+  if (minutenVan(tot) - minutenVan(van) < duurMinuten) {
+    return { ok: false, melding: "Het tijdvak is korter dan het gesprek zelf." };
+  }
+  if (minutenVan(van) % STAP_MINUTEN !== 0 || minutenVan(tot) % STAP_MINUTEN !== 0) {
+    return { ok: false, melding: "Gebruik hele of halve uren." };
+  }
+  const vandaag = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
+  if (datum < vandaag) return { ok: false, melding: "Die dag is al geweest." };
   await zorgToken(siteId);
   await db.insert(afspraakBlokken).values({ siteId, datum, van, tot, duurMinuten });
   revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+  const dagTekst = new Date(`${datum}T12:00:00`).toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  return { ok: true, melding: `${dagTekst} klaargezet. Nog een dag erbij?`, datum };
 }
 
 /** Een klaargezette dag weer weghalen. */
