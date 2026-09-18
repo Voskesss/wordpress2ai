@@ -123,54 +123,6 @@ export async function chatbotInteresse(formData: FormData) {
   revalidatePath("/portal");
 }
 
-/** Koppelcode voor WhatsApp: de eigenaar appt "KOPPEL <code>" naar het
- * WordSwap-nummer, zo bewijst hij dat het telefoonnummer van hem is. */
-export async function maakWhatsappCode(formData: FormData) {
-  const site = await eigenSite(Number(formData.get("siteId")));
-  const { userId } = await auth();
-  if (!site || !userId || !site.whatsappActief) return;
-  const { whatsappKoppelingen } = await import("@/db/schema");
-  const { isNull } = await import("drizzle-orm");
-  const { randomInt } = await import("node:crypto");
-  // Oude, ongebruikte codes van deze gebruiker vervallen
-  await db
-    .delete(whatsappKoppelingen)
-    .where(
-      and(
-        eq(whatsappKoppelingen.siteId, site.id),
-        eq(whatsappKoppelingen.clerkUserId, userId),
-        isNull(whatsappKoppelingen.telefoon),
-      ),
-    );
-  for (let poging = 0; poging < 5; poging++) {
-    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    const [bezet] = await db
-      .select({ id: whatsappKoppelingen.id })
-      .from(whatsappKoppelingen)
-      .where(eq(whatsappKoppelingen.koppelcode, code));
-    if (bezet) continue;
-    await db.insert(whatsappKoppelingen).values({
-      siteId: site.id,
-      clerkUserId: userId,
-      koppelcode: code,
-      codeVerloopt: new Date(Date.now() + 30 * 60_000),
-    });
-    break;
-  }
-  revalidatePath("/portal");
-}
-
-export async function ontkoppelWhatsapp(formData: FormData) {
-  const site = await eigenSite(Number(formData.get("siteId")));
-  const id = Number(formData.get("koppelingId"));
-  if (!site || !Number.isInteger(id)) return;
-  const { whatsappKoppelingen } = await import("@/db/schema");
-  await db
-    .delete(whatsappKoppelingen)
-    .where(and(eq(whatsappKoppelingen.id, id), eq(whatsappKoppelingen.siteId, site.id)));
-  revalidatePath("/portal");
-}
-
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {

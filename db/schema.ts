@@ -67,20 +67,20 @@ export const sites = pgTable("sites", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
-// WhatsApp-kanaal: welk telefoonnummer bij welke site hoort. Een rij begint
-// met alleen een koppelcode (in het portaal getoond); zodra de eigenaar
-// "KOPPEL <code>" appt, komt zijn nummer erin en vervalt de code.
+// WhatsApp-kanaal: welke telefoonnummers bij welke site horen. WordSwap zet ze
+// in de admin vast (met landcode); alleen berichten van zo'n nummer worden
+// verwerkt. Meerdere telefoons per site mag, één nummer hoort bij één site.
 export const whatsappKoppelingen = pgTable("whatsapp_koppelingen", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id")
     .notNull()
     .references(() => sites.id),
-  // Wie de koppeling maakte; namens deze gebruiker lopen de chatbeurten
+  // Namens wie de chatbeurten lopen (de eigenaar van de site)
   clerkUserId: text("clerk_user_id").notNull(),
   // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678)
   telefoon: text("telefoon").unique(),
-  koppelcode: text("koppelcode"),
-  codeVerloopt: timestamp("code_verloopt"),
+  // Naam erbij, zodat je in de admin ziet wiens telefoon het is
+  omschrijving: text("omschrijving"),
   gekoppeldOp: timestamp("gekoppeld_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

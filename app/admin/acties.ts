@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -874,6 +874,53 @@ export async function bewaarWhatsapp(formData: FormData) {
   revalidatePath("/portal");
 }
 
+
+/** Telefoonnummer van een klant koppelen aan zijn site. Alleen nummers die
+ * hier staan mogen via WhatsApp met de website praten. Landcode verplicht:
+ * "06..." bestaat in tientallen landen en een gok zou een vreemde telefoon
+ * aan een site kunnen hangen. */
+export async function voegWhatsappNummer(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { normaliseerNummer } = await import("@/lib/whatsapp/berichten");
+  const telefoon = normaliseerNummer(String(formData.get("nummer") ?? ""));
+  const omschrijving = String(formData.get("omschrijving") ?? "").trim().slice(0, 60) || null;
+  if (!telefoon) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { whatsappKoppelingen } = await import("@/db/schema");
+  const [bestaand] = await db
+    .select({ siteId: whatsappKoppelingen.siteId })
+    .from(whatsappKoppelingen)
+    .where(eq(whatsappKoppelingen.telefoon, telefoon));
+  // Eén nummer hoort bij één site; staat hij elders, dan niet stilletjes verhuizen
+  if (bestaand && bestaand.siteId !== siteId) return;
+  if (!bestaand) {
+    await db.insert(whatsappKoppelingen).values({
+      siteId,
+      clerkUserId: site.clerkUserId,
+      telefoon,
+      omschrijving,
+      gekoppeldOp: new Date(),
+    });
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
+export async function verwijderWhatsappNummer(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const id = Number(formData.get("koppelingId"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(id)) return;
+  const { whatsappKoppelingen } = await import("@/db/schema");
+  await db
+    .delete(whatsappKoppelingen)
+    .where(and(eq(whatsappKoppelingen.id, id), eq(whatsappKoppelingen.siteId, siteId)));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
 
 /** Sjabloon vastleggen: de huidige live-versie (main) wordt het punt waarnaar
  * "Reset naar sjabloon" terugzet. Handig voor demo-/webinarsites. */

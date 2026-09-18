@@ -109,9 +109,27 @@ export function leesWebhook(body: unknown): Binnenkomend[] {
   return uit;
 }
 
-/** "KOPPEL 123456" (ook met kleine letters of extra spaties) → "123456". */
-export function koppelcodeUit(tekst: string | null) {
-  return tekst?.trim().match(/^koppel\s*(\d{6})$/i)?.[1] ?? null;
+/** Telefoonnummer uit de admin omzetten naar de vorm die WhatsApp gebruikt:
+ * alleen cijfers, met landcode, zonder plus (31612345678). De landcode is
+ * verplicht — "06..." levert null op, want dat nummer bestaat in tientallen
+ * landen en een verkeerde gok koppelt een vreemde telefoon aan een site. */
+export function normaliseerNummer(invoer: string | null | undefined) {
+  const ruw = (invoer ?? "").trim();
+  if (!ruw) return null;
+  // "+31 (0)6 12 34 56 78" en "0031612345678" mogen allebei
+  const metPlus = /^\+/.test(ruw) || /^00\d/.test(ruw);
+  if (!metPlus) return null;
+  const cijfers = ruw.replace(/^\+/, "").replace(/^00/, "").replace(/\(0\)/g, "").replace(/\D/g, "");
+  // Landcode (1-3) plus abonneenummer; internationaal maximaal 15 cijfers
+  if (cijfers.length < 8 || cijfers.length > 15) return null;
+  return cijfers;
+}
+
+/** Nummer tonen zonder het helemaal prijs te geven: +31 •••• 1365. */
+export function toonNummer(telefoon: string | null | undefined) {
+  if (!telefoon) return "";
+  const land = telefoon.slice(0, 2);
+  return `+${land} •••• ${telefoon.slice(-4)}`;
 }
 
 /** KEUZES-regel van de AI losmaken van het antwoord (zelfde regel als de

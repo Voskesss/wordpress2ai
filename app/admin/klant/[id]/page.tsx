@@ -7,11 +7,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
+import { changes, chatFeedback, whatsappKoppelingen, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
+import { toonNummer } from "@/lib/whatsapp/berichten";
 import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
@@ -27,6 +28,8 @@ import {
   bewaarVideoLimiet,
   bewaarAiBudget,
   bewaarWhatsapp,
+  voegWhatsappNummer,
+  verwijderWhatsappNummer,
   bewaarAiExtra,
   siteResetten,
   sjabloonVastleggen,
@@ -116,6 +119,13 @@ export default async function KlantDetail({
       return { sleutel, label, rijen };
     }),
   );
+
+  // Telefoons die via WhatsApp met deze website mogen praten
+  const whatsappNummers = await db
+    .select()
+    .from(whatsappKoppelingen)
+    .where(eq(whatsappKoppelingen.siteId, site.id))
+    .orderBy(desc(whatsappKoppelingen.id));
 
   // Feedback op de chatbeleving (duimpjes + algemene opmerkingen)
   const feedback = await db
@@ -888,15 +898,50 @@ export default async function KlantDetail({
           </span>
         </div>
         <p className="mt-2 text-sm text-stone-600">
-          Betaalde extra: de klant koppelt in het portaal zijn telefoon en stuurt zijn website
-          daarna wijzigingen via WhatsApp (tekst, foto&apos;s, pdf, spraak). Publiceren blijft een
-          bewuste knop. Uitzetten stopt het kanaal direct; koppelingen blijven bewaard.
+          Betaalde extra: de klant stuurt zijn website wijzigingen via WhatsApp (tekst, foto&apos;s,
+          spraak). Publiceren blijft een bewuste knop. <strong>Alleen de nummers hieronder komen
+          binnen</strong>; appt een ander nummer, dan gebeurt er niets en krijg jij een mail.
         </p>
         <form action={bewaarWhatsapp} className="mt-3">
           <input type="hidden" name="siteId" value={site.id} />
           <input type="hidden" name="aan" value={site.whatsappActief ? "0" : "1"} />
           <ActieKnop label={site.whatsappActief ? "Zet uit" : "Zet aan"} bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>
+
+        {whatsappNummers.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {whatsappNummers.map((n) => (
+              <li key={n.id} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm">
+                <span>
+                  <strong>{toonNummer(n.telefoon)}</strong>
+                  {n.omschrijving ? ` — ${n.omschrijving}` : ""}
+                </span>
+                <form action={verwijderWhatsappNummer}>
+                  <input type="hidden" name="siteId" value={site.id} />
+                  <input type="hidden" name="koppelingId" value={n.id} />
+                  <ActieKnop label="Verwijderen" bezigLabel="Bezig..." className="text-xs font-medium text-stone-500 hover:text-red-600 cursor-pointer" />
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={voegWhatsappNummer} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            Telefoonnummer <span className="font-normal text-stone-500">(met landcode)</span>
+            <input name="nummer" placeholder="+31612345678" className={`${invoerStijl} w-56`} />
+          </label>
+          <label className="block text-sm font-semibold">
+            Van wie <span className="font-normal text-stone-500">(optioneel)</span>
+            <input name="omschrijving" placeholder="Jan, eigenaar" className={`${invoerStijl} w-48`} />
+          </label>
+          <ActieKnop label="Nummer koppelen" bezigLabel="Koppelen..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+        <p className="mt-2 text-xs text-stone-500">
+          Zonder landcode wordt het nummer niet opgeslagen: 06… bestaat in tientallen landen.
+          Meerdere telefoons per site mag; één nummer hoort bij één site.
+        </p>
       </div>
 
       {/* Witlabel-mail (SMTP van de klant) */}

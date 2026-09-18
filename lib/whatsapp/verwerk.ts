@@ -24,10 +24,10 @@ import {
   KNOP_PUBLICEER,
   KNOP_WEGGOOIEN,
   conceptCommando,
-  koppelcodeUit,
   leesKnop,
   paginaVoorConcept,
   splitsKeuzes,
+  toonNummer,
   voegSamen,
   type Binnenkomend,
 } from "./berichten";
@@ -87,20 +87,11 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
   const laatste = rijen.at(-1);
   if (laatste) void markeerGelezen(laatste.waMessageId).catch(() => {});
 
-  // 1. Koppelen gaat vóór alles: dan is het nummer nog niet bekend
-  for (const rij of rijen.filter((r) => r.soort === "tekst")) {
-    const code = koppelcodeUit(rij.inhoud);
-    if (!code) continue;
-    await koppel(telefoon, code, rij);
-    rijen = rijen.filter((r) => r.id !== rij.id);
-  }
-  if (!rijen.length) return;
-
   const [koppeling] = await db
     .select()
     .from(whatsappKoppelingen)
     .where(eq(whatsappKoppelingen.telefoon, telefoon));
-  if (!koppeling) return nietGekoppeld(telefoon, rijen);
+  if (!koppeling) return onbekendNummer(telefoon, rijen);
   const [site] = await db.select().from(sites).where(eq(sites.id, koppeling.siteId));
   if (!site || site.isDemo || !site.whatsappActief) {
     await zetStatus(rijen.map((r) => r.id), "genegeerd", site?.id);
@@ -128,7 +119,7 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
       : null;
   if (!eigenaar) {
     await zetStatus(rijen.map((r) => r.id), "genegeerd", site.id);
-    await stuurTekst(telefoon, "Deze koppeling hoort niet (meer) bij de eigenaar van de website. Koppel je telefoon opnieuw in het portaal.");
+    await stuurTekst(telefoon, "Dit nummer hoort niet (meer) bij de eigenaar van de website. Neem contact op met WordSwap.");
     return;
   }
 
@@ -197,75 +188,11 @@ async function claimAlleWachtende(telefoon: string) {
   return rijen.sort((a, b) => a.id - b.id);
 }
 
-async function koppel(telefoon: string, code: string, rij: Rij) {
-  // Raden afremmen: na vijf MISLUKTE koppelpogingen binnen een uur even niet.
-  // Gelukte pogingen en dit bericht zelf tellen niet mee.
-  const pogingen = await db
-    .select({ id: whatsappBerichten.id })
-    .from(whatsappBerichten)
-    .where(
-      and(
-        eq(whatsappBerichten.telefoon, telefoon),
-        eq(whatsappBerichten.status, "genegeerd"),
-        ne(whatsappBerichten.id, rij.id),
-        sql`${whatsappBerichten.inhoud} ~* '^\\s*koppel'`,
-        gt(whatsappBerichten.ontvangen, sql`now() - interval '1 hour'`),
-      ),
-    );
-  const [koppeling] =
-    pogingen.length >= 5
-      ? []
-      : await db
-          .select()
-          .from(whatsappKoppelingen)
-          .where(
-            and(
-              eq(whatsappKoppelingen.koppelcode, code),
-              gt(whatsappKoppelingen.codeVerloopt, sql`now()`),
-            ),
-          );
-  if (!koppeling) {
-    // Al gekoppeld (bijvoorbeeld de code nog eens gestuurd)? Dat is geen fout.
-    const [bestaand] = await db
-      .select({ siteId: whatsappKoppelingen.siteId, naam: sites.naam })
-      .from(whatsappKoppelingen)
-      .innerJoin(sites, eq(sites.id, whatsappKoppelingen.siteId))
-      .where(eq(whatsappKoppelingen.telefoon, telefoon));
-    if (bestaand) {
-      await zetStatus([rij.id], "klaar", bestaand.siteId);
-      await stuurTekst(
-        telefoon,
-        `Dit nummer is al gekoppeld aan ${bestaand.naam}. Stuur me gewoon een appje met wat er anders moet.`,
-      );
-      return;
-    }
-    await zetStatus([rij.id], "genegeerd");
-    await stuurTekst(
-      telefoon,
-      pogingen.length >= 5
-        ? "Te veel koppelpogingen. Probeer het over een uur opnieuw."
-        : "Die code klopt niet of is verlopen. Maak in het WordSwap-portaal een nieuwe code aan en stuur die opnieuw.",
-    );
-    return;
-  }
-  // Een nummer hoort bij één website: een oude koppeling vervalt
-  await db
-    .delete(whatsappKoppelingen)
-    .where(and(eq(whatsappKoppelingen.telefoon, telefoon), ne(whatsappKoppelingen.id, koppeling.id)));
-  await db
-    .update(whatsappKoppelingen)
-    .set({ telefoon, koppelcode: null, codeVerloopt: null, gekoppeldOp: new Date() })
-    .where(eq(whatsappKoppelingen.id, koppeling.id));
-  await zetStatus([rij.id], "klaar", koppeling.siteId);
-  const [site] = await db.select().from(sites).where(eq(sites.id, koppeling.siteId));
-  await stuurTekst(
-    telefoon,
-    `Gelukt! Dit nummer is gekoppeld aan ${site?.naam ?? "je website"}.\n\nStuur me voortaan gewoon een appje: een tekst, foto's, een pdf of een spraakbericht. Ik maak er een concept van, en jij beslist met één tik of het live gaat.`,
-  );
-}
-
-async function nietGekoppeld(telefoon: string, rijen: Rij[]) {
-  // Eén keer uitleggen is genoeg; niet op elk bericht opnieuw antwoorden
+/** Bericht van een nummer dat bij geen enkele site hoort: niets doen, niets
+ * terugsturen (we praten niet met vreemden), en Jos één keer per uur een
+ * seintje geven — zo zie je of iemand zich vergist of aanklopt. */
+async function onbekendNummer(telefoon: string, rijen: Rij[]) {
+  await zetStatus(rijen.map((r) => r.id), "genegeerd");
   const [eerder] = await db
     .select({ id: whatsappBerichten.id })
     .from(whatsappBerichten)
@@ -273,16 +200,25 @@ async function nietGekoppeld(telefoon: string, rijen: Rij[]) {
       and(
         eq(whatsappBerichten.telefoon, telefoon),
         eq(whatsappBerichten.status, "genegeerd"),
-        gt(whatsappBerichten.ontvangen, sql`now() - interval '6 hours'`),
+        sql`${whatsappBerichten.id} NOT IN (${sql.join(rijen.map((r) => sql`${r.id}`), sql`, `)})`,
+        gt(whatsappBerichten.ontvangen, sql`now() - interval '1 hour'`),
       ),
     )
     .limit(1);
-  await zetStatus(rijen.map((r) => r.id), "genegeerd");
-  if (!eerder)
-    await stuurTekst(
-      telefoon,
-      "Hoi! Dit nummer is nog niet gekoppeld aan een website. Log in op het WordSwap-portaal, kies bij je website voor WhatsApp koppelen en stuur de code die je daar krijgt.",
-    );
+  if (eerder) return;
+  const sleutel = process.env.RESEND_API_KEY;
+  if (!sleutel) return;
+  const eerste = rijen[0]?.inhoud?.slice(0, 200) ?? "(geen tekst)";
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${sleutel}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "WordSwap portaal <info@wordswap.nl>",
+      to: ["info@wordswap.nl"],
+      subject: `WhatsApp: onbekend nummer ${toonNummer(telefoon)}`,
+      html: `<p>Er kwam een WhatsApp-bericht binnen van <strong>${toonNummer(telefoon)}</strong>, maar dat nummer staat bij geen enkele klant.</p><p>Bericht: ${eerste.replace(/</g, "&lt;")}</p><p>Hoort dit bij een klant? Zet het nummer dan in de admin bij die site (met landcode). Anders hoef je niets te doen; er is niets verwerkt en niets teruggestuurd.</p>`,
+    }),
+  }).catch((e) => console.error("Seintje onbekend WhatsApp-nummer:", e));
 }
 
 /** Een route van het portaal aanroepen namens de eigenaar, binnen deze
