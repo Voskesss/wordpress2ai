@@ -23,6 +23,8 @@ export async function GET(req: Request) {
     bekijkUrl: bekijkUrl || "https://voorbeeld.wordswap.workers.dev",
     // De echte inloglink (uitnodiging) ontstaat pas bij het koppelen
     inlogUrl: "https://www.wordswap.nl/portal",
+    naam: q.get("naam")?.trim() || null,
+    eigenTekst: q.get("bericht")?.trim() || null,
   });
   const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voorbeeld: uitnodigingsmail</title></head>
 <body style="margin:0;background:#e9ece4;font-family:-apple-system,'Segoe UI',sans-serif">

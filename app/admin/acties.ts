@@ -86,6 +86,8 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
@@ -119,9 +121,17 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   if (!klantId) {
     // Account bestaat nog niet: meteen aanmaken (zonder wachtwoord). Dan kan de klant
     // direct inloggen met een code, ook zonder op de link in de mail te klikken.
+    // Naam meteen op het account: dan spreken ook alle latere mails (akkoord,
+    // afspraken) de klant met zijn voornaam aan.
+    const [voornaam, ...rest] = naam.split(/\s+/).filter(Boolean);
     const nieuw = await clerk("/users", {
       method: "POST",
-      body: JSON.stringify({ email_address: [email], skip_password_requirement: true }),
+      body: JSON.stringify({
+        email_address: [email],
+        skip_password_requirement: true,
+        ...(voornaam ? { first_name: voornaam } : {}),
+        ...(rest.length ? { last_name: rest.join(" ") } : {}),
+      }),
     });
     const data = (await nieuw.json().catch(() => ({}))) as { id?: string };
     if (!nieuw.ok || !data.id) {
@@ -145,7 +155,7 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst });
     const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }

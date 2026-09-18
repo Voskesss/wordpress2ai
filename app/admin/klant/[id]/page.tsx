@@ -539,6 +539,12 @@ export default async function KlantDetail({
             <form action={koppelKlant} className="mt-3 flex gap-3 flex-wrap">
               <input type="hidden" name="siteId" value={site.id} />
               <input
+                name="naam"
+                required
+                placeholder="Naam"
+                className="flex-1 min-w-[10rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+              />
+              <input
                 name="email"
                 type="email"
                 required
@@ -564,6 +570,12 @@ export default async function KlantDetail({
               <input type="hidden" name="siteId" value={site.id} />
               <div className="flex gap-3 flex-wrap">
                 <input
+                  name="naam"
+                  required
+                  placeholder="Naam (bijv. Rogier Roding)"
+                  className="flex-1 min-w-[12rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+                />
+                <input
                   name="email"
                   type="email"
                   required
@@ -577,6 +589,15 @@ export default async function KlantDetail({
                   className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
                 />
               </div>
+              <label className="block text-xs text-stone-500">
+                Eigen berichtje onderaan de mail (mag leeg)
+                <textarea
+                  name="bericht"
+                  rows={2}
+                  placeholder="Bijv.: leuk dat we dit gaan doen — bel me gerust als je ergens over twijfelt."
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+                />
+              </label>
               <label className="block text-xs text-stone-500">
                 Link naar de website in de mail
                 <input
