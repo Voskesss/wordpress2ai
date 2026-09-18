@@ -14,9 +14,12 @@ import Kiezer, { type Dag } from "@/app/afspraak/[token]/Kiezer";
  */
 export default async function AfspraakBlok({ siteId }: { siteId: number }) {
   const { blokken, afspraken: rijen, token } = await afspraakStand(siteId);
-  const bevestigd = rijen.find((a) => a.status === "bevestigd");
-  const aangevraagd = rijen.find((a) => a.status === "aangevraagd");
-  const momenten = bevestigd || aangevraagd ? [] : vrijeMomenten(blokken, await bezetteTijden(), new Date());
+  // Alleen komende afspraken tellen; staan er nieuwe dagen klaar, dan gaan die voor
+  const nu = new Date();
+  const komend = rijen.filter((a) => a.start.getTime() > nu.getTime());
+  const bevestigd = komend.find((a) => a.status === "bevestigd");
+  const aangevraagd = komend.find((a) => a.status === "aangevraagd");
+  const momenten = aangevraagd ? [] : vrijeMomenten(blokken, await bezetteTijden(), nu);
   if (!bevestigd && !aangevraagd && momenten.length === 0) return null;
 
   // Ingelogd als de eigenaar van deze site? Dan hoeft hij niets in te vullen.
@@ -47,7 +50,7 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
   return (
     <div id="afspraak" className="mt-4 scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-5">
       <h3 className="font-display text-lg font-semibold">📅 Even samen kijken</h3>
-      {bevestigd ? (
+      {bevestigd && momenten.length === 0 && !aangevraagd ? (
         <p className="mt-1 text-sm leading-relaxed text-stone-700">
           Je afspraak met Jos staat: <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Hij
           belt je. Komt het toch niet uit, mail hem gerust op{" "}
@@ -67,6 +70,12 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
             Jos heeft tijd vrijgehouden om je website samen door te lopen: een gesprek van {dagen[0].duurTekst}. Kies
             een moment dat jou uitkomt; hij belt je dan.
           </p>
+          {bevestigd && (
+            <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm text-stone-800">
+              Er staat al een afspraak op <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>;
+              hieronder kies je een nieuw, extra moment.
+            </p>
+          )}
           {token && <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />}
         </>
       )}
