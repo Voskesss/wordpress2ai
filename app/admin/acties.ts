@@ -857,6 +857,22 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+/** Wijzigingenteller van deze maand op nul — voor als Jos zelf in het
+ * klantaccount heeft zitten testen en de klant er niet op mag inleveren. */
+export async function resetWijzigingenTeller(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { usage } = await import("@/db/schema");
+  const { and: en } = await import("drizzle-orm");
+  const maand = new Date().toISOString().slice(0, 7);
+  await db
+    .update(usage)
+    .set({ wijzigingen: 0 })
+    .where(en(eq(usage.siteId, siteId), eq(usage.maand, maand)));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 /** Fair-use-aantal wijzigingen per maand voor deze klant (pakketbelofte). */
 export async function bewaarWijzigingenLimiet(formData: FormData) {
   await requireAdmin();

@@ -33,6 +33,7 @@ import {
   bewaarAiExtra,
   bewaarWijzigingenLimiet,
   bewaarWijzigingenExtra,
+  resetWijzigingenTeller,
   siteResetten,
   sjabloonVastleggen,
   herstelVersie,
@@ -939,6 +940,17 @@ export default async function KlantDetail({
             . Dit is de fair-use-belofte uit het pakket; bij de grens stopt alleen de chat — zelf tekst, kleur of een
             foto aanpassen blijft werken. Het dollarbudget hierboven is een aparte rem: wat het eerst op is, geldt.
           </p>
+          {(verbruik?.wijzigingen ?? 0) > 0 && (
+            <form action={resetWijzigingenTeller} className="mt-2">
+              <input type="hidden" name="siteId" value={site.id} />
+              <ActieKnop
+                label="Teller op nul (zelf zitten testen)"
+                bezigLabel="Bezig..."
+                klaarLabel="✓ Op nul"
+                className="text-xs font-semibold text-stone-500 underline cursor-pointer"
+              />
+            </form>
+          )}
           <div className="mt-3 flex flex-wrap items-end gap-6">
             <form action={bewaarWijzigingenLimiet} className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="siteId" value={site.id} />
