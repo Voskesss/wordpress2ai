@@ -1255,6 +1255,9 @@ export default function Chat({
     pad = pad
       .replace(/^\/(?:preview|site-weergave)\/[^/]+\//, "/")
       .replace(/^\/+/, "");
+    // Ook de knoppen in de chat op "Bezig...": het weghalen zelf duurt een paar
+    // seconden, en zonder dit leek het in de chat of er niets gebeurde.
+    setZelfBezig(true);
     setOplevering(null);
     setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser, even geduld...");
     try {
@@ -1268,6 +1271,7 @@ export default function Chat({
       // niets gebeurt. fotoDirect zet er meteen zijn eigen tekst overheen.
       await fotoDirect(bestand);
     } catch {
+      setZelfBezig(false);
       setLaderTekst(null);
       setBerichten((b) => [
         ...b,
