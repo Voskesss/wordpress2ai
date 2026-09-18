@@ -108,3 +108,56 @@ ${opmerking ? `<li>Bericht: ${ontsnap(opmerking)}</li>` : ""}
     melding: `Gelukt — je voorkeur voor ${wanneer} is doorgegeven (aanvraag ${rij.id}). Je krijgt een bevestiging per mail.`,
   };
 }
+
+/**
+ * De klant zegt zelf af — een openstaande aanvraag of een bevestigde afspraak.
+ * De code in de link is het bewijs; Jos krijgt altijd bericht.
+ */
+export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: FormData): Promise<KiesUitkomst> {
+  const token = String(formData.get("token") ?? "");
+  const afspraakId = Number(formData.get("afspraakId"));
+  if (!token || token.length < 20 || !Number.isInteger(afspraakId)) {
+    return { ok: false, melding: "Afzeggen lukte niet. Mail Jos even op info@wordswap.nl." };
+  }
+  const [site] = await db.select().from(sites).where(eq(sites.afspraakToken, token));
+  if (!site) return { ok: false, melding: "Deze link werkt niet meer." };
+  const [afspraak] = await db
+    .select()
+    .from(afspraken)
+    .where(and(eq(afspraken.id, afspraakId), eq(afspraken.siteId, site.id)));
+  if (!afspraak || afspraak.status === "geannuleerd") {
+    return { ok: false, melding: "Deze afspraak staat niet (meer) open." };
+  }
+  const gebruiker = await currentUser().catch(() => null);
+  const ingelogd = Boolean(gebruiker && gebruiker.id === site.clerkUserId);
+  const wasBevestigd = afspraak.status === "bevestigd";
+  await db.update(afspraken).set({ status: "geannuleerd" }).where(eq(afspraken.id, afspraak.id));
+
+  const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
+  await mailVanJos({
+    naar: "jos@wordswap.nl",
+    bcc: false,
+    onderwerp: `❌ ${wasBevestigd ? "Afspraak afgezegd" : "Aanvraag ingetrokken"}: ${site.naam} — ${wanneer}`,
+    html: `<p>${ontsnap(afspraak.naam ?? site.naam)} heeft ${
+      wasBevestigd ? "de bevestigde afspraak" : "de aanvraag"
+    } voor <strong>${ontsnap(site.naam)}</strong> afgezegd: <strong>${ontsnap(wanneer)}</strong>.</p>
+<p>${ingelogd ? "✅ Ingelogd als de klant." : "🔗 Via de planlink."}${
+      wasBevestigd ? " Haal hem ook uit je agenda. Zet gerust nieuwe dagen klaar voor een ander moment." : ""
+    }</p>
+<p><a href="https://www.wordswap.nl/admin/klant/${site.id}#afspraken-blok">Naar de klant in de admin</a></p>`,
+  });
+  if (afspraak.email) {
+    await mailVanJos({
+      naar: afspraak.email,
+      van: "Jos van WordSwap",
+      onderwerp: "Je afspraak is afgezegd",
+      html: `<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
+<p>Je hebt ${wasBevestigd ? "de afspraak" : "je aanvraag"} voor <strong>${ontsnap(wanneer)}</strong> afgezegd. Helemaal goed — wil je een nieuw moment, mail me gerust of kijk of er tijden klaarstaan.</p>
+<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+    });
+  }
+  revalidatePath(`/afspraak/${token}`);
+  revalidatePath(`/admin/klant/${site.id}`);
+  revalidatePath("/portal");
+  return { ok: true, melding: `${wasBevestigd ? "De afspraak" : "Je aanvraag"} voor ${wanneer} is afgezegd.` };
+}

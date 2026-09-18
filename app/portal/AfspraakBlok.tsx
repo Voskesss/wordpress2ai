@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { duurInWoorden, momentInWoorden, vrijeMomenten } from "@/lib/afspraken";
 import { afspraakStand, bezetteTijden } from "@/lib/afspraken-db";
+import AfzegKnop from "@/app/afspraak/[token]/AfzegKnop";
 import Kiezer, { type Dag } from "@/app/afspraak/[token]/Kiezer";
 
 /**
@@ -52,25 +53,28 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
     <div id="afspraak" className="mt-4 scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-5">
       <h3 className="font-display text-lg font-semibold">📅 Even samen kijken</h3>
       {bevestigd && momenten.length === 0 && !aangevraagd ? (
-        <p className="mt-1 text-sm leading-relaxed text-stone-700">
+        <div className="mt-1 text-sm leading-relaxed text-stone-700">
           Je afspraak met Jos staat: <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Hij
-          belt je. Komt het toch niet uit, mail hem gerust op{" "}
+          belt je. Komt het toch niet uit? Zeg hem hieronder af, of mail{" "}
           <a href="mailto:info@wordswap.nl" className="font-semibold text-violet-700 hover:underline">
             info@wordswap.nl
-          </a>
-          .
-        </p>
+          </a>{" "}
+          voor een ander moment.
+          {token && <AfzegKnop token={token} afspraakId={bevestigd.id} />}
+        </div>
       ) : aangevraagd ? (
         <>
-          <p className="mt-1 text-sm leading-relaxed text-stone-700">
+          <div className="mt-1 text-sm leading-relaxed text-stone-700">
             Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
             doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-          </p>
+            {token && <AfzegKnop token={token} afspraakId={aangevraagd.id} label="Aanvraag intrekken" />}
+          </div>
           {bevestigd && (
-            <p className="mt-2 text-sm leading-relaxed text-stone-700">
+            <div className="mt-2 text-sm leading-relaxed text-stone-700">
               Je eerdere afspraak blijft gewoon staan:{" "}
               <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
-            </p>
+              {token && <AfzegKnop token={token} afspraakId={bevestigd.id} />}
+            </div>
           )}
         </>
       ) : (

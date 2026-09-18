@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { duurInWoorden, momentInWoorden, vrijeMomenten } from "@/lib/afspraken";
 import { afspraakStand, bezetteTijden } from "@/lib/afspraken-db";
+import AfzegKnop from "./AfzegKnop";
 import Kiezer, { type Dag } from "./Kiezer";
 
 // Planlinks horen niet in Google
@@ -60,23 +61,26 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
         </p>
       ) : aangevraagd ? (
         <>
-          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
             Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
             doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-          </p>
+            <AfzegKnop token={token} afspraakId={aangevraagd.id} label="Aanvraag intrekken" />
+          </div>
           {bevestigd && (
-            <p className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
+            <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
               Je eerdere afspraak blijft gewoon staan:{" "}
               <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
-            </p>
+              <AfzegKnop token={token} afspraakId={bevestigd.id} />
+            </div>
           )}
         </>
       ) : dagen.length === 0 ? (
         bevestigd ? (
-          <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
             Er staat al een afspraak: <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Komt
-            het toch niet uit? Mail Jos even, dan zoeken we een ander moment.
-          </p>
+            het toch niet uit? Zeg hem hieronder af, of mail Jos voor een ander moment.
+            <AfzegKnop token={token} afspraakId={bevestigd.id} />
+          </div>
         ) : (
           <p className="mt-4 text-stone-600">
             Er staan op dit moment geen tijden klaar. Jos zet ze binnenkort neer, of mail hem gerust op{" "}

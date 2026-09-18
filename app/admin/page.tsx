@@ -206,6 +206,12 @@ export default async function Admin() {
           >
             Migraties
           </Link>
+          <Link
+            href="/admin/afspraken"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+          >
+            📅 Afspraken
+          </Link>
         </div>
       </div>
 

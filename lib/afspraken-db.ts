@@ -36,3 +36,17 @@ export async function bezetteTijden() {
     .from(afspraken)
     .where(and(eq(afspraken.status, "bevestigd"), gte(afspraken.start, new Date())));
 }
+
+/** Alle komende aanvragen en bevestigde afspraken, over alle klanten heen,
+ * op volgorde van de afspraakdatum — voor het agenda-overzicht in de admin. */
+export async function alleKomendeAfspraken() {
+  const nu = Date.now();
+  const rijen = await db
+    .select({ afspraak: afspraken, siteNaam: sites.naam })
+    .from(afspraken)
+    .innerJoin(sites, eq(sites.id, afspraken.siteId))
+    .where(inArray(afspraken.status, ["aangevraagd", "bevestigd"]));
+  return rijen
+    .filter((r) => r.afspraak.start.getTime() + r.afspraak.duurMinuten * 60_000 > nu)
+    .sort((a, b) => a.afspraak.start.getTime() - b.afspraak.start.getTime());
+}
