@@ -64,12 +64,18 @@ export default async function WhatsappBlok({ siteId }: { siteId: number }) {
             ))}
           </ul>
           {nummer && (
-            <a
-              href={`https://wa.me/${nummer}?text=${encodeURIComponent("Hoi!")}`}
-              className="mt-4 inline-block rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
-            >
-              Open WhatsApp
-            </a>
+            <div className="mt-4">
+              <a
+                href={`https://wa.me/${nummer}?text=${encodeURIComponent("Hoi!")}`}
+                className="inline-block rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+              >
+                Open WhatsApp
+              </a>
+              <p className="mt-2 text-sm text-stone-600">
+                Of app zelf naar <strong className="whitespace-nowrap">+{nummer}</strong> — handig om
+                dit nummer in je telefoon op te slaan als &quot;Mijn website&quot;.
+              </p>
+            </div>
           )}
           <p className="mt-2 text-xs text-stone-500">
             Alleen deze telefoons kunnen je website aansturen. Wil je er een toevoegen of een
