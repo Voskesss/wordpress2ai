@@ -289,6 +289,9 @@ export default function Chat({
   const [seoOpen, setSeoOpen] = useState(false);
   const [fotobankOpen, setFotobankOpen] = useState(false);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
+  // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
+  // server precies de aangewezen plek raken als de foto vaker op de pagina staat
+  const [fotobankElement, setFotobankElement] = useState<string | null>(null);
   // Uit de fotobank gekozen foto om in de volgende chatopdracht te gebruiken
   const [fotobankKeuze, setFotobankKeuze] = useState<string | null>(null);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
@@ -1314,6 +1317,9 @@ export default function Chat({
       form.set("siteId", String(siteId));
       form.set("pad", src);
       form.set("pagina", huidigeRef.current);
+      // HTML van het aangewezen element: staat de foto vaker op de pagina,
+      // dan kan de server zo precies de aangewezen plek raken
+      form.set("element", selectie?.html ?? "");
       form.set("afbeelding", bestand);
       const res = await metSlotWacht(
         () => fetch("/api/foto-wijzig", { method: "POST", body: form }),
@@ -2405,13 +2411,16 @@ export default function Chat({
               beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               vervangDoel={fotobankDoel}
               pagina={huidigePagina}
+              element={fotobankElement}
               onSluit={() => {
                 setFotobankOpen(false);
                 setFotobankDoel(null);
+                setFotobankElement(null);
               }}
               onKlaar={(data) => {
                 setFotobankOpen(false);
                 setFotobankDoel(null);
+                setFotobankElement(null);
                 setSelectie(null);
                 setChatOpen(true);
                 setBerichten((b) => [
@@ -2676,6 +2685,7 @@ export default function Chat({
                       const src = selectie.html.match(/src=["']([^"']+)["']/)?.[1];
                       if (!src) return;
                       setFotobankDoel(src);
+                      setFotobankElement(selectie.html);
                       setFotobankOpen(true);
                     }}
                     disabled={bezig}
