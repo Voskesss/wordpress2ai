@@ -2,6 +2,9 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
 import { sites, whatsappKoppelingen } from "@/db/schema";
 import { toonNummer } from "@/lib/whatsapp/berichten";
+import { formulierInzendingen } from "@/db/schema";
+import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
+import { vraagWhatsappNummerAan } from "./acties";
 
 /** Toont "Stuur je website een appje": welke telefoons gekoppeld zijn en hoe
  * je begint. WordSwap zet de nummers vast (in de admin), zodat alleen de
@@ -13,6 +16,20 @@ export default async function WhatsappBlok({ siteId }: { siteId: number }) {
     .where(eq(sites.id, siteId));
   if (!site?.actief) return null;
   const nummer = (process.env.WHATSAPP_WEERGAVE_NUMMER ?? "").replace(/\D/g, "");
+
+  // Al een nummer doorgegeven dat nog niet gekoppeld is?
+  const aangevraagd = (
+    await db
+      .select({ velden: formulierInzendingen.velden })
+      .from(formulierInzendingen)
+      .where(
+        and(
+          eq(formulierInzendingen.formulier, "whatsapp-nummer"),
+          eq(formulierInzendingen.gearchiveerd, false),
+        ),
+      )
+      .catch(() => [])
+  ).some((r) => (r.velden as Record<string, string>).siteId === String(siteId));
 
   const gekoppeld = await db
     .select()
@@ -59,11 +76,39 @@ export default async function WhatsappBlok({ siteId }: { siteId: number }) {
             nummer eraf halen? Laat het ons even weten.
           </p>
         </>
-      ) : (
-        <p className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-          Er is nog geen telefoon gekoppeld. Geef ons je mobiele nummer door, dan zetten wij het
-          klaar. Daarna kun je meteen appen.
+      ) : aangevraagd ? (
+        <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          ✓ Je nummer is doorgegeven. Wij zetten het klaar en laten het je weten; daarna kun je
+          meteen appen.
         </p>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+          <p>
+            Er is nog geen telefoon gekoppeld. Geef je mobiele nummer door, dan zetten wij het voor
+            je klaar. Zo weten we zeker dat alleen jouw telefoon bij je website kan.
+          </p>
+          <form action={vraagWhatsappNummerAan} className="mt-3 flex flex-wrap items-end gap-3">
+            <input type="hidden" name="siteId" value={siteId} />
+            <label className="block text-sm font-semibold text-stone-700">
+              Mobiel nummer <span className="font-normal text-stone-500">(met landcode)</span>
+              <input
+                name="nummer"
+                placeholder="+31 6 12 34 56 78"
+                className="mt-1 block w-56 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <ActieKnop
+              label="Geef mijn nummer door"
+              bezigLabel="Doorgeven..."
+              klaarLabel="✓ Doorgegeven"
+              className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+            />
+          </form>
+          <p className="mt-2 text-xs text-stone-500">
+            Begin met + en je landcode (in Nederland +31), dan weten we zeker dat we de juiste
+            telefoon koppelen.
+          </p>
+        </div>
       )}
 
       <details className="mt-3 text-sm text-stone-600">

@@ -123,6 +123,52 @@ export async function chatbotInteresse(formData: FormData) {
   revalidatePath("/portal");
 }
 
+/** Klant geeft zijn mobiele nummer door voor WhatsApp. Koppelen doet WordSwap
+ * (zo kan een typefout niet stilletjes de telefoon van een vreemde koppelen);
+ * dit zet de aanvraag klaar in de admin en stuurt Jos een mail. */
+export async function vraagWhatsappNummerAan(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site || !site.whatsappActief) return;
+  const { normaliseerNummer, toonNummer } = await import("@/lib/whatsapp/berichten");
+  const telefoon = normaliseerNummer(String(formData.get("nummer") ?? ""));
+  if (!telefoon) return;
+  const { formulierInzendingen } = await import("@/db/schema");
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const u = await currentUser();
+  const naam = [u?.firstName, u?.lastName].filter(Boolean).join(" ") || site.naam;
+  await db.insert(formulierInzendingen).values({
+    siteRepo: "wordswap",
+    formulier: "whatsapp-nummer",
+    velden: {
+      naam,
+      email: u?.emailAddresses[0]?.emailAddress ?? "",
+      site: site.naam,
+      siteId: String(site.id),
+      nummer: telefoon,
+      bericht: `Wil WhatsApp koppelen met ${toonNummer(telefoon)}.`,
+    },
+  });
+  try {
+    const sleutel = process.env.RESEND_API_KEY;
+    if (sleutel) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sleutel}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "WordSwap portaal <info@wordswap.nl>",
+          to: ["info@wordswap.nl"],
+          subject: `WhatsApp koppelen: ${site.naam}`,
+          html: `<p>${naam} van <strong>${site.naam}</strong> wil WhatsApp gebruiken met nummer <strong>+${telefoon}</strong>.</p><p>Koppelen kan met één klik op de klantpagina in de admin.</p>`,
+        }),
+      });
+    }
+  } catch (e) {
+    console.error("WhatsApp-aanvraag mailen mislukt:", e);
+  }
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
 const MAX_DOCUMENTEN = 20;
 
 export async function uploadKennisDocument(formData: FormData) {

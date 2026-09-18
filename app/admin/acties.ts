@@ -986,6 +986,20 @@ export async function voegWhatsappNummer(formData: FormData) {
   revalidatePath("/portal");
 }
 
+/** Aangevraagd nummer uit het portaal met één klik koppelen. */
+export async function koppelAangevraagdNummer(formData: FormData) {
+  await requireAdmin();
+  const inzendingId = Number(formData.get("inzendingId"));
+  if (!Number.isInteger(inzendingId)) return;
+  await voegWhatsappNummer(formData);
+  const { formulierInzendingen } = await import("@/db/schema");
+  await db
+    .update(formulierInzendingen)
+    .set({ gearchiveerd: true })
+    .where(eq(formulierInzendingen.id, inzendingId));
+  revalidatePath(`/admin/klant/${Number(formData.get("siteId"))}`);
+}
+
 export async function verwijderWhatsappNummer(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));

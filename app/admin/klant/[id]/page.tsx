@@ -33,6 +33,7 @@ import {
   bewaarAiBudget,
   bewaarWhatsapp,
   voegWhatsappNummer,
+  koppelAangevraagdNummer,
   verwijderWhatsappNummer,
   bewaarAiExtra,
   bewaarWijzigingenLimiet,
@@ -126,6 +127,20 @@ export default async function KlantDetail({
       return { sleutel, label, rijen };
     }),
   );
+
+  // Nummers die de klant zelf heeft doorgegeven en nog gekoppeld moeten worden
+  const whatsappAanvragen = (
+    await db
+      .select({ id: formulierInzendingen.id, velden: formulierInzendingen.velden })
+      .from(formulierInzendingen)
+      .where(
+        and(
+          eq(formulierInzendingen.formulier, "whatsapp-nummer"),
+          eq(formulierInzendingen.gearchiveerd, false),
+        ),
+      )
+      .catch(() => [])
+  ).filter((r) => (r.velden as Record<string, string>).siteId === String(site.id));
 
   // Telefoons die via WhatsApp met deze website mogen praten
   const whatsappNummers = await db
@@ -1032,6 +1047,25 @@ export default async function KlantDetail({
           <input type="hidden" name="aan" value={site.whatsappActief ? "0" : "1"} />
           <ActieKnop label={site.whatsappActief ? "Zet uit" : "Zet aan"} bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>
+
+        {whatsappAanvragen.map((aanvraag) => {
+          const v = aanvraag.velden as Record<string, string>;
+          return (
+            <div key={aanvraag.id} className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+              <p className="text-amber-900">
+                <strong>{v.naam}</strong> gaf {toonNummer(v.nummer)} door om te koppelen.
+              </p>
+              <form action={koppelAangevraagdNummer} className="mt-2 flex flex-wrap items-center gap-3">
+                <input type="hidden" name="siteId" value={site.id} />
+                <input type="hidden" name="inzendingId" value={aanvraag.id} />
+                <input type="hidden" name="nummer" value={`+${v.nummer}`} />
+                <input type="hidden" name="omschrijving" value={v.naam ?? ""} />
+                <ActieKnop label="Koppelen" bezigLabel="Koppelen..." className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 cursor-pointer" />
+                <span className="text-xs text-amber-800">Volledig nummer: +{v.nummer}</span>
+              </form>
+            </div>
+          );
+        })}
 
         {whatsappNummers.length > 0 && (
           <ul className="mt-4 space-y-2">
