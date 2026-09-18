@@ -69,6 +69,9 @@ export const sites = pgTable("sites", {
   whatsappActief: boolean("whatsapp_actief").notNull().default(false),
   // Ontwerp-route: mag de klant het ontwerpvoorstel in zijn portaal zien?
   ontwerpZichtbaar: boolean("ontwerp_zichtbaar").notNull().default(false),
+  // Workernaam van het ontwerp (ontwerp-<slug>-<willekeur>): onraadbaar adres;
+  // verbergen vernieuwt hem zodat een gedeelde link vervalt. Leeg = geen adres.
+  ontwerpSlug: text("ontwerp_slug"),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });

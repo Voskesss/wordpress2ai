@@ -5,7 +5,7 @@ import {
   ontwerpPromoveren,
   ontwerpVerwijderen,
 } from "@/app/admin/acties";
-import { ontwerpStatus, ontwerpWorker } from "@/lib/ontwerp";
+import { ontwerpStatus } from "@/lib/ontwerp";
 import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
 
@@ -18,7 +18,7 @@ export default async function OntwerpBlok({
   site,
   melding,
 }: {
-  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean; ontwerpZichtbaar: boolean };
+  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean; ontwerpZichtbaar: boolean; ontwerpSlug: string | null };
   melding?: string;
 }) {
   if (site.isDemo || !site.siteSlug) return null;
@@ -28,7 +28,7 @@ export default async function OntwerpBlok({
   } catch {
     /* GitHub even niet bereikbaar: blok toont dat hieronder */
   }
-  const url = `https://${ontwerpWorker(site.siteSlug)}.wordswap.workers.dev`;
+  const url = site.ontwerpSlug ? `https://${site.ontwerpSlug}.wordswap.workers.dev` : null;
 
   return (
     <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
@@ -64,14 +64,18 @@ export default async function OntwerpBlok({
       {status?.bestaat && (
         <>
           <p className="mt-3 text-sm">
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-violet-700 underline"
-            >
-              {url.replace("https://", "")}
-            </a>{" "}
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-violet-700 underline"
+              >
+                {url.replace("https://", "")}
+              </a>
+            ) : (
+              <span className="text-stone-500">nog geen adres — klik Opnieuw deployen</span>
+            )}{" "}
             <span className="text-stone-500">
               — {status.voor} wijziging(en) vóór op live
               {status.achter > 0 ? (
@@ -121,11 +125,11 @@ export default async function OntwerpBlok({
               />
             </form>
           </div>
-          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen; akkoord geven kan pas na 'Naar de werkversie'.">
+          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen vernieuwt ook het adres, dus een eerder gedeelde link werkt daarna niet meer.">
             <input type="hidden" name="siteId" value={site.id} />
             <input type="hidden" name="aan" value={site.ontwerpZichtbaar ? "nee" : "ja"} />
             <ActieKnop
-              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen" : "Nog verborgen voor de klant — tonen in portaal"}
+              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen (oude link vervalt)" : "Nog verborgen voor de klant — tonen in portaal"}
               bezigLabel="Aanpassen..."
               className={`${KNOP} ${site.ontwerpZichtbaar ? "bg-emerald-600 text-white hover:bg-emerald-500" : "border border-stone-300 text-stone-700 hover:bg-stone-50"}`}
             />

@@ -1012,7 +1012,7 @@ export async function ontwerpMaken(formData: FormData) {
   const { siteVoorOntwerp, maakOfVerversOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  await maakOfVerversOntwerp(site.githubRepo, site.siteSlug);
+  await maakOfVerversOntwerp(site);
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
@@ -1023,7 +1023,7 @@ export async function ontwerpBijwerken(formData: FormData) {
   const { siteVoorOntwerp, werkOntwerpBij } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  const uitkomst = await werkOntwerpBij(site.githubRepo, site.siteSlug);
+  const uitkomst = await werkOntwerpBij(site);
   revalidatePath(`/admin/klant/${siteId}`);
   if (uitkomst === "conflict") {
     const { redirect } = await import("next/navigation");
@@ -1073,6 +1073,12 @@ export async function ontwerpZichtbaarheid(formData: FormData) {
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return;
   const aan = formData.get("aan") === "ja";
+  const { siteVoorOntwerp, maakOfVerversOntwerp, roteerOntwerpAdres } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  if (aan && !site.ontwerpSlug) await maakOfVerversOntwerp(site);
+  // Verbergen = ook het adres vernieuwen: wie de oude link kent, kan er niet meer bij
+  if (!aan && site.ontwerpSlug) await roteerOntwerpAdres(site);
   await db.update(sites).set({ ontwerpZichtbaar: aan }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
@@ -1085,8 +1091,7 @@ export async function ontwerpVerwijderen(formData: FormData) {
   const { siteVoorOntwerp, verwijderOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  await verwijderOntwerp(site.githubRepo, site.siteSlug);
-  await db.update(sites).set({ ontwerpZichtbaar: false }).where(eq(sites.id, siteId));
+  await verwijderOntwerp(site);
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
 }

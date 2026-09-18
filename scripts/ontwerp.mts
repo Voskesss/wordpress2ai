@@ -21,7 +21,6 @@ import {
   controleerOntwerp,
   maakOfVerversOntwerp,
   ontwerpStatus,
-  ontwerpWorker,
   promoveerOntwerp,
   verwijderOntwerp,
   werkOntwerpBij,
@@ -38,27 +37,28 @@ if (!site?.siteSlug) {
   console.error(`Geen site met repo "${repo}" (of zonder slug) in de database.`);
   process.exit(1);
 }
-const url = `https://${ontwerpWorker(site.siteSlug)}.${CF_SUBDOMEIN}.workers.dev`;
+const url = () => `https://${site.ontwerpSlug ?? "(nog geen adres)"}.${CF_SUBDOMEIN}.workers.dev`;
 
 switch (commando) {
   case "start":
   case "deploy": {
-    await maakOfVerversOntwerp(repo, site.siteSlug);
-    console.log(`Ontwerp staat op ${url}`);
+    const naam = await maakOfVerversOntwerp(site);
+    site.ontwerpSlug = naam;
+    console.log(`Ontwerp staat op ${url()}`);
     break;
   }
   case "status": {
     const s = await ontwerpStatus(repo);
     if (!s.bestaat) console.log("Geen ontwerp-branch.");
-    else console.log(`Ontwerp bestaat: ${s.voor} wijziging(en) vóór op live, ${s.achter} achter. ${url}`);
+    else console.log(`Ontwerp bestaat: ${s.voor} wijziging(en) vóór op live, ${s.achter} achter. ${url()}`);
     break;
   }
   case "bijwerken": {
-    const uitkomst = await werkOntwerpBij(repo, site.siteSlug);
+    const uitkomst = await werkOntwerpBij(site);
     console.log(
       uitkomst === "conflict"
         ? "CONFLICT: los lokaal op (git merge main op de ontwerp-branch), push, en draai daarna deploy."
-        : `Bijgewerkt (${uitkomst}) en opnieuw gedeployd: ${url}`,
+        : `Bijgewerkt (${uitkomst}) en opnieuw gedeployd: ${url()}`,
     );
     if (uitkomst === "conflict") process.exit(1);
     break;
@@ -88,7 +88,7 @@ switch (commando) {
     break;
   }
   case "weg": {
-    await verwijderOntwerp(repo, site.siteSlug);
+    await verwijderOntwerp(site);
     console.log("Ontwerp-branch en -worker opgeruimd.");
     break;
   }
