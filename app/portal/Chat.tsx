@@ -1313,6 +1313,7 @@ export default function Chat({
       const form = new FormData();
       form.set("siteId", String(siteId));
       form.set("pad", src);
+      form.set("pagina", huidigeRef.current);
       form.set("afbeelding", bestand);
       const res = await metSlotWacht(
         () => fetch("/api/foto-wijzig", { method: "POST", body: form }),
@@ -1350,7 +1351,9 @@ export default function Chat({
               : `${huidigeRef.current.replace(/^\/+|\/+$/g, "")}/index.html`,
           ],
         });
-        setChatOpen(false);
+        // Vraagt het antwoord nog iets (foto staat óók elders — knoppen)?
+        // Dan moet de chat open blijven, anders inklappen voor de kaart.
+        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0);
       } else if (data.fallback) {
         setLaderTekst(null);
         setBerichten((b) => [
@@ -2401,6 +2404,7 @@ export default function Chat({
               // nog niet bestaan (demo: persoonlijke sandbox ontstaat pas bij de eerste wijziging)
               beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               vervangDoel={fotobankDoel}
+              pagina={huidigePagina}
               onSluit={() => {
                 setFotobankOpen(false);
                 setFotobankDoel(null);

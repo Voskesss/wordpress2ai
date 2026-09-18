@@ -96,11 +96,13 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  const { siteId, pad, vervangDoel } = (await req.json()) as {
+  const { siteId, pad, vervangDoel, pagina } = (await req.json()) as {
     siteId: number;
     pad: string;
     /** Optioneel: de foto die nu op de pagina staat en vervangen moet worden */
     vervangDoel?: string;
+    /** Adres van de pagina die de eigenaar bekijkt ("/" of "/contact/") */
+    pagina?: string;
   };
   if (!Number.isInteger(siteId) || !pad || pad.includes("..")) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
@@ -161,9 +163,32 @@ export async function POST(req: Request) {
 
     const esc = huidig.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const verwijzing = new RegExp(`(/?)${esc}`, "g");
+    const verwijzend = [...perBron].filter(([, tekst]) => tekst.includes(huidig));
+
+    // Staat de te vervangen foto op méér pagina's (hero én projectkaart!),
+    // dan vervangen we hem standaard alleen op de aangewezen pagina en
+    // vragen we hieronder of de rest mee moet — zelfde regel als bij tekst.
+    const paginaKaal = (pagina ?? "")
+      .replace(/^\/(?:preview|site-weergave)\/[^/]+/, "")
+      .replace(/^\/+|\/+$/g, "");
+    const aangewezenPad = pagina
+      ? paginaKaal === ""
+        ? "index.html"
+        : /\.html?$/i.test(paginaKaal)
+          ? paginaKaal
+          : `${paginaKaal}/index.html`
+      : null;
+    const hierBron =
+      vervangDoel && aangewezenPad
+        ? verwijzend.find(([bron]) => bron === aangewezenPad)
+        : undefined;
+    const teVervangen = hierBron && verwijzend.length > 1 ? [hierBron] : verwijzend;
+    const eldersNog = verwijzend
+      .filter((v) => !teVervangen.includes(v))
+      .map(([bron]) => bron);
+
     const gewijzigd: { pad: string; inhoud: Buffer }[] = [];
-    for (const [bron, tekst] of perBron) {
-      if (!tekst.includes(huidig)) continue;
+    for (const [bron, tekst] of teVervangen) {
       const nieuw = tekst.replace(verwijzing, `$1${pad}`);
       await writeFile(path.join(werkmap, bron), nieuw);
       gewijzigd.push({ pad: bron, inhoud: Buffer.from(nieuw) });
@@ -227,15 +252,19 @@ export async function POST(req: Request) {
       await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
     }
 
-    // Stond de vervangen foto op meerdere pagina's, dan is hij dus óveral
-    // vervangen — dat mag nooit stilletjes: benoem de pagina's met de uitweg.
+    // Nooit stilletjes: staat de oude foto elders nog, vraag dan met knoppen
+    // of hij daar ook mee moet; is hij zonder aangewezen pagina tóch overal
+    // vervangen, benoem dan de pagina's.
+    const eldersLijst = eldersNog.filter((p) => p.endsWith(".html")).map(alsPagina);
     const fotoPaginas = paden.filter((p) => p.endsWith(".html")).map(alsPagina);
     const reply =
-      vervangDoel && fotoPaginas.length > 1
-        ? `Foto vervangen! ⚠️ **Let op:** de oude foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
-        : vervangDoel
-          ? `Foto vervangen! ${pad} staat nu op de plek van ${huidig}. Bekijk het voorbeeld en publiceer als je tevreden bent.`
-          : `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+      vervangDoel && eldersLijst.length > 0
+        ? `Foto vervangen op ${fotoPaginas[0] ?? "deze pagina"}!\n\n⚠️ **Let op:** dezelfde oude foto staat óók nog op ${eldersLijst.slice(0, 4).join(" en ")}${eldersLijst.length > 4 ? ` en nog ${eldersLijst.length - 4} plekken` : ""}. Zal ik hem daar ook vervangen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
+        : vervangDoel && fotoPaginas.length > 1
+          ? `Foto vervangen! ⚠️ **Let op:** de oude foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
+          : vervangDoel
+            ? `Foto vervangen! ${pad} staat nu op de plek van ${huidig}. Bekijk het voorbeeld en publiceer als je tevreden bent.`
+            : `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
     await db.insert(messages).values([
       { siteId: site.id, rol: "klant" as const, tekst: `[Zelf aangepast] ${omschrijving}`, clerkUserId: userId },
       { siteId: site.id, rol: "assistent" as const, tekst: reply, clerkUserId: userId },

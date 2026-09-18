@@ -11,6 +11,7 @@ export default function Fotobank({
   siteId,
   beeldBasis,
   vervangDoel,
+  pagina,
   onKlaar,
   onSluit,
   onGebruik,
@@ -19,6 +20,9 @@ export default function Fotobank({
   /** Gezet vanuit de aanwijs-flow: de foto die vervangen wordt — de bank
    * werkt dan als keuzemenu ("gebruik deze"). */
   vervangDoel?: string | null;
+  /** Adres van de pagina die de eigenaar bekijkt: staat de foto op méér
+   * pagina's, dan wordt hij alleen dáár vervangen en meldt de route de rest. */
+  pagina?: string | null;
   /** Domein waar de beelden nu draaien (werkversie of live) voor de miniaturen */
   beeldBasis?: string | null;
   onKlaar: (data: {
@@ -65,7 +69,7 @@ export default function Fotobank({
           fetch("/api/fotobank", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ siteId, pad, vervangDoel: vervangDoel ?? undefined }),
+            body: JSON.stringify({ siteId, pad, vervangDoel: vervangDoel ?? undefined, pagina: pagina ?? undefined }),
           }),
         { opWacht: () => setFout(SLOT_WACHTTEKST) },
       );

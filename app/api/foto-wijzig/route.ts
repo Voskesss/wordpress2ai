@@ -155,27 +155,56 @@ export async function POST(req: Request) {
       const nieuwPad = `${zonderExt}-v${Date.now().toString(36)}.${ext}`;
       await writeFile(path.join(werkmap, nieuwPad), nieuw);
 
-      // Alle verwijzingen naar het oude pad bijwerken (html + css)
+      // Verwijzingen naar het oude pad opzoeken (html + css)
       const { alleHtmlBestanden, alleCssBestanden } =
         await import("@/lib/werkmap");
       const teDoorzoeken = [
         ...(await alleHtmlBestanden(werkmap)),
         ...(await alleCssBestanden(werkmap)),
       ];
-      const gewijzigdeBronnen: { pad: string; inhoud: Buffer }[] = [];
       const padEsc = pad.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const verwijzing = new RegExp(`(/?)${padEsc}`, "g");
+      const verwijzend: { pad: string; inhoud: string }[] = [];
       for (const bron of teDoorzoeken) {
         const inhoud = await readFile(path.join(werkmap, bron), "utf8");
-        if (!verwijzing.test(inhoud)) continue;
         verwijzing.lastIndex = 0;
-        const nieuweInhoud = inhoud.replace(verwijzing, `$1${nieuwPad}`);
-        await writeFile(path.join(werkmap, bron), nieuweInhoud);
+        if (verwijzing.test(inhoud)) verwijzend.push({ pad: bron, inhoud });
+      }
+
+      // Aangewezen pagina ("/", "/contact/") → bestandspad. Staat de foto op
+      // méér pagina's (hero op de homepage én bij een project!), dan vervangen
+      // we hem standaard alleen op de aangewezen pagina en vragen we hieronder
+      // of de rest mee moet — zelfde regel als bij tekst.
+      const paginaKaal = String(form.get("pagina") ?? "")
+        .replace(/^\/(?:preview|site-weergave)\/[^/]+/, "")
+        .replace(/^\/+|\/+$/g, "");
+      const aangewezenPad = form.get("pagina")
+        ? paginaKaal === ""
+          ? "index.html"
+          : /\.html?$/i.test(paginaKaal)
+            ? paginaKaal
+            : `${paginaKaal}/index.html`
+        : null;
+      const hierBron = aangewezenPad
+        ? verwijzend.find((v) => v.pad === aangewezenPad)
+        : undefined;
+      const teVervangen =
+        hierBron && verwijzend.length > 1 ? [hierBron] : verwijzend;
+
+      const gewijzigdeBronnen: { pad: string; inhoud: Buffer }[] = [];
+      for (const bron of teVervangen) {
+        verwijzing.lastIndex = 0;
+        const nieuweInhoud = bron.inhoud.replace(verwijzing, `$1${nieuwPad}`);
+        await writeFile(path.join(werkmap, bron.pad), nieuweInhoud);
         gewijzigdeBronnen.push({
-          pad: bron,
+          pad: bron.pad,
           inhoud: Buffer.from(nieuweInhoud),
         });
       }
+      // Waar staat de oude foto ná deze beurt nog?
+      const eldersNog = verwijzend
+        .filter((v) => !teVervangen.includes(v))
+        .map((v) => v.pad);
       if (gewijzigdeBronnen.length === 0) {
         // Geen verwijzingen gevonden — dan toch in-place overschrijven als vangnet
         await writeFile(doel, nieuw);
@@ -277,15 +306,21 @@ export async function POST(req: Request) {
         }
       }
 
-      // Stond de foto op meerdere pagina's, dan is hij dus óveral vervangen —
-      // dat mag nooit stilletjes: benoem de pagina's, met de uitweg erbij.
+      // Nooit stilletjes: staat de oude foto elders nog, vraag dan met knoppen
+      // of hij daar ook mee moet (zelfde regel als tekst); is hij zonder
+      // aangewezen pagina tóch overal vervangen, benoem dan de pagina's.
+      const eldersLijst = eldersNog
+        .filter((p) => p.endsWith(".html"))
+        .map(alsPagina);
       const fotoPaginas = gewijzigdeBronnen
         .filter((b) => b.pad.endsWith(".html"))
         .map((b) => alsPagina(b.pad));
       const reply =
-        fotoPaginas.length > 1
-          ? `Foto vervangen! ⚠️ **Let op:** deze foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
-          : `Foto vervangen! De nieuwe foto staat overal waar de oude stond (${pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+        eldersLijst.length > 0
+          ? `Foto vervangen op ${fotoPaginas[0] ?? "deze pagina"}!\n\n⚠️ **Let op:** dezelfde oude foto staat óók nog op ${eldersLijst.slice(0, 4).join(" en ")}${eldersLijst.length > 4 ? ` en nog ${eldersLijst.length - 4} plekken` : ""}. Zal ik hem daar ook vervangen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
+          : fotoPaginas.length > 1
+            ? `Foto vervangen! ⚠️ **Let op:** deze foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
+            : `Foto vervangen! De nieuwe foto staat overal waar de oude stond (${pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
       await db.insert(messages).values([
         {
           siteId: site.id,
