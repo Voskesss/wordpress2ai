@@ -22,6 +22,12 @@ function kaleTekst(html: string): string {
     .trim();
 }
 
+/** Specifiek genoeg om op te zoeken: vanaf 12 tekens (korte koppen en
+ * projectnamen tellen dus mee) én met echte letters erin, zodat losse
+ * prijzen, getallen en datums geen ruis geven. */
+const specifiek = (s: string, max: number) =>
+  s.length >= 12 && s.length <= max && /\p{L}.*\p{L}.*\p{L}/u.test(s);
+
 /** Tekstfragmenten die specifiek genoeg zijn om op te zoeken. Blok-gebaseerd
  * (per alinea/kop/lijstregel uit de HTML), zodat koppen en prijzen niet aan
  * een zin vastplakken en het fragment overal exact terug te vinden is. */
@@ -33,11 +39,11 @@ function fragmenten(html: string): string[] {
     .map((b) => kaleTekst(b));
   const uit = new Set<string>();
   for (const blok of blokken) {
-    if (blok.length >= 25 && blok.length <= 220) uit.add(blok);
+    if (specifiek(blok, 220)) uit.add(blok);
     // lange alinea's ook per zin, voor deelwijzigingen binnen een alinea
     for (const zin of blok.split(/(?<=[.!?…])\s+/)) {
       const s = zin.trim();
-      if (s.length >= 25 && s.length <= 220) uit.add(s);
+      if (specifiek(s, 220)) uit.add(s);
     }
   }
   return [...uit];
@@ -54,7 +60,7 @@ function blokken(html: string): string[] {
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
       .split(/<\/(?:p|h[1-6]|li|blockquote|figcaption|td|th|summary|dd|dt)>|<br\s*\/?\s*>/i)
       .map((b) => kaleTekst(b))
-      .filter((b) => b.length >= 25 && b.length <= 400),
+      .filter((b) => specifiek(b, 400)),
   )];
 }
 

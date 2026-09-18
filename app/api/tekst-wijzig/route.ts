@@ -200,14 +200,14 @@ export async function POST(req: Request) {
           : /\.html?$/i.test(kaalPad)
             ? kaalPad
             : `${kaalPad}/index.html`;
-      // Kleur: overal vervangen. Tekst: op precies één plek — of, als de tekst
-      // op meer pagina's staat, eenduidig op de aangewezen pagina (de andere
-      // plekken melden we hieronder met de keuze om ze ook aan te passen).
+      // Kleur: overal vervangen. Tekst: alle vindplaatsen op de aangewezen
+      // pagina (identieke letterlijke tekst, bv. linktekst + alt-tekst van
+      // dezelfde kaart); staat hij daarnaast op andere pagina's, dan melden we
+      // die hieronder met de keuze om ze ook aan te passen.
       const hier = aangewezenPad
         ? treffers.find((t) => t.pad === aangewezenPad)
         : undefined;
-      const gekozen =
-        totaal === 1 ? treffers[0] : hier && hier.aantal === 1 ? hier : null;
+      const gekozen = totaal === 1 ? treffers[0] : (hier ?? null);
       if (body.kleur ? totaal === 0 : !gekozen) {
         return NextResponse.json({ fallback: true, gevonden: totaal });
       }
@@ -332,8 +332,8 @@ export async function POST(req: Request) {
       const reply = body.kleur
         ? `Kleur aangepast! ${oud.slice(0, 40)} is overal vervangen door ${nieuw.slice(0, 40)} (${totaal} plekken). Bekijk het voorbeeld en publiceer als je tevreden bent.`
         : elders.length
-          ? `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" op ${alsPagina(treffer.pad)}.\n\n⚠️ **Let op:** dezelfde tekst staat óók nog op ${elders.slice(0, 3).join(" en ")}${elders.length > 3 ? ` en nog ${elders.length - 3} andere plekken` : ""}. Zal ik hem daar ook aanpassen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
-          : `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${alsPagina(treffer.pad)}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+          ? `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" op ${alsPagina(treffer.pad)}${gekozen && gekozen.aantal > 1 ? ` (alle ${gekozen.aantal} plekken op die pagina)` : ""}.\n\n⚠️ **Let op:** dezelfde tekst staat óók nog op ${elders.slice(0, 3).join(" en ")}${elders.length > 3 ? ` en nog ${elders.length - 3} andere plekken` : ""}. Zal ik hem daar ook aanpassen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
+          : `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${alsPagina(treffer.pad)}${gekozen && gekozen.aantal > 1 ? `, ${gekozen.aantal} plekken` : ""}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
       await db.insert(messages).values([
         {
           siteId: site.id,

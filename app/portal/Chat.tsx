@@ -1104,10 +1104,12 @@ export default function Chat({
       const eindTekst = data.reply ?? "Er ging iets mis, probeer het opnieuw.";
       setBerichten((b) => {
         // Kwam het eindantwoord al binnen als "tussenstap" (omdat er daarna nog
-        // een statusmelding volgde)? Dan niet nog een keer tonen.
+        // een statusmelding volgde)? Dan niet nog een keer tonen. Het eindantwoord
+        // kan langer zijn dan de tussenstap: het vangnet plakt er soms nog een
+        // melding/keuze onder — daarom "begint met" en niet "is gelijk aan".
         const laatste = b[b.length - 1];
         const basis =
-          laatste?.rol === "assistent" && laatste.tussenstap && laatste.tekst.trim() === eindTekst.trim()
+          laatste?.rol === "assistent" && laatste.tussenstap && laatste.tekst.trim() && eindTekst.trim().startsWith(laatste.tekst.trim())
             ? b.slice(0, -1)
             : b;
         return [
@@ -1225,8 +1227,8 @@ export default function Chat({
           {
             rol: "assistent",
             tekst:
-              (data.gevonden ?? 0) > 1
-                ? "Deze tekst staat meerdere keren op deze pagina, dus ik weet niet zeker welke je bedoelt. Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan."
+              (data.gevonden ?? 0) > 0
+                ? "Deze tekst vond ik wel op de website, maar niet op de pagina die je nu bekijkt — dat kan ik niet zelf beslissen. Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan."
                 : "Ik kon deze tekst niet 1-op-1 in de website terugvinden (hij staat er waarschijnlijk nét iets anders in). Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig aan.",
           },
         ]);
