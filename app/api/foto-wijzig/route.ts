@@ -185,16 +185,15 @@ export async function POST(req: Request) {
             ? paginaKaal
             : `${paginaKaal}/index.html`
         : null;
-      const hierBron = aangewezenPad
-        ? verwijzend.find((v) => v.pad === aangewezenPad)
-        : undefined;
-      const teVervangen =
-        hierBron && verwijzend.length > 1 ? [hierBron] : verwijzend;
-
-      // HTML van het aangewezen element: daarmee raken we — als de foto vaker
-      // op de pagina staat — alleen de plek die de eigenaar écht aanwees
+      // HTML van het aangewezen element: daarmee kiezen we het juiste
+      // doelbestand (paginabestand, of het gedeelde blok waar de foto uit
+      // komt — gedeeld blok wijzigen = overal wijzigen, dat is de afspraak)
+      // en raken we binnen dat bestand alleen de plek die écht is aangewezen
       const elementHtml = String(form.get("element") ?? "") || null;
-      const { vervangFotoInPagina } = await import("@/lib/foto-vervang");
+      const { vervangFotoInPagina, kiesDoelBron } = await import("@/lib/foto-vervang");
+      const doelBron = kiesDoelBron(verwijzend, pad, aangewezenPad, elementHtml);
+      const teVervangen =
+        doelBron && verwijzend.length > 1 ? [doelBron] : verwijzend;
       let restantOpPagina = 0;
       let plekkenVervangen = 0;
       let gericht = false;

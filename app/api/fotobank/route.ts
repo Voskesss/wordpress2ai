@@ -181,27 +181,29 @@ export async function POST(req: Request) {
           ? paginaKaal
           : `${paginaKaal}/index.html`
       : null;
-    const hierBron =
-      vervangDoel && aangewezenPad
-        ? verwijzend.find(([bron]) => bron === aangewezenPad)
-        : undefined;
-    const teVervangen = hierBron && verwijzend.length > 1 ? [hierBron] : verwijzend;
-    const eldersNog = verwijzend
-      .filter((v) => !teVervangen.includes(v))
-      .map(([bron]) => bron);
+    // Doelbestand kiezen: het bekeken paginabestand, of het gedeelde blok
+    // (delen/) waar de aangewezen plek écht in staat — gedeeld blok wijzigen
+    // = overal wijzigen, dat is de afspraak. Binnen dat bestand raken we zo
+    // mogelijk alleen de aangewezen plek (herkenbaar aan de alt-tekst).
+    const { vervangFotoInPagina, kiesDoelBron } = await import("@/lib/foto-vervang");
+    const vindplaatsen = verwijzend.map(([bronPad, inhoud]) => ({ pad: bronPad, inhoud }));
+    const doelBron = vervangDoel
+      ? kiesDoelBron(vindplaatsen, huidig, aangewezenPad, element ?? null)
+      : undefined;
+    const teVervangen = doelBron && vindplaatsen.length > 1 ? [doelBron] : vindplaatsen;
+    const eldersNog = vindplaatsen
+      .filter((b) => !teVervangen.includes(b))
+      .map((b) => b.pad);
 
-    // De eigenaar wees één foto aan: staat hij vaker op de pagina, raak dan
-    // alleen díé plek (herkenbaar aan de alt-tekst van het aangewezen element)
-    const { vervangFotoInPagina } = await import("@/lib/foto-vervang");
     let restantOpPagina = 0;
     let plekkenVervangen = 0;
     let gericht = false;
     const gewijzigd: { pad: string; inhoud: Buffer }[] = [];
-    for (const [bron, tekst] of teVervangen) {
+    for (const b of teVervangen) {
       let nieuw: string;
-      if (vervangDoel && bron.endsWith(".html") && teVervangen.length === 1) {
+      if (vervangDoel && b.pad.endsWith(".html") && teVervangen.length === 1) {
         const uit = vervangFotoInPagina({
-          inhoud: tekst,
+          inhoud: b.inhoud,
           oudPad: huidig,
           nieuwPad: pad,
           elementHtml: element ?? null,
@@ -212,10 +214,10 @@ export async function POST(req: Request) {
         gericht = uit.gericht;
       } else {
         verwijzing.lastIndex = 0;
-        nieuw = tekst.replace(verwijzing, `$1${pad}`);
+        nieuw = b.inhoud.replace(verwijzing, `$1${pad}`);
       }
-      await writeFile(path.join(werkmap, bron), nieuw);
-      gewijzigd.push({ pad: bron, inhoud: Buffer.from(nieuw) });
+      await writeFile(path.join(werkmap, b.pad), nieuw);
+      gewijzigd.push({ pad: b.pad, inhoud: Buffer.from(nieuw) });
     }
 
     const { demoWorker } = await import("@/lib/demo");

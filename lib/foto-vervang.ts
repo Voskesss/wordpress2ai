@@ -14,6 +14,35 @@ function altVan(tag: string): string | undefined {
   return tag.match(/\balt=["']([^"']*)["']/i)?.[1];
 }
 
+/** Kiest het bestand waarin de aangewezen foto vervangen moet worden.
+ * Voorkeur: het paginabestand dat de eigenaar bekijkt. Maar staat de
+ * aangewezen plek daar niet in (herkenbaar aan de alt-tekst), dan komt de
+ * foto uit een gedeeld blok (delen/) — dan is DAT het doelbestand, en geldt
+ * de afspraak: een gedeeld blok wijzigen = overal wijzigen. Geen eenduidige
+ * keuze → undefined (de route valt dan terug op alle vindplaatsen). */
+export function kiesDoelBron<T extends { pad: string; inhoud: string }>(
+  bronnen: T[],
+  oudPad: string,
+  aangewezenPad: string | null,
+  elementHtml?: string | null,
+): T | undefined {
+  const alt = elementHtml ? altVan(elementHtml) : undefined;
+  const plekken = (b: T) =>
+    [...b.inhoud.matchAll(IMG_TAG)].filter((m) => m[0].includes(oudPad));
+  const heeftAlt = (b: T) =>
+    alt !== undefined && plekken(b).some((m) => (altVan(m[0]) ?? "") === alt);
+  const hier = aangewezenPad
+    ? bronnen.find((b) => b.pad === aangewezenPad)
+    : undefined;
+  // De bekeken pagina zelf, tenzij de aangewezen plek daar aantoonbaar níét
+  // in staat maar wél ergens anders (dan wees de eigenaar een gedeeld blok aan)
+  if (hier && (alt === undefined || heeftAlt(hier) || !bronnen.some(heeftAlt)))
+    return hier;
+  const deel = bronnen.filter((b) => b.pad.startsWith("delen/") && heeftAlt(b));
+  if (deel.length === 1) return deel[0];
+  return hier;
+}
+
 export function vervangFotoInPagina(opties: {
   inhoud: string;
   oudPad: string;
