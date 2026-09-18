@@ -17,6 +17,7 @@ import {
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 import { afspraakStand } from "@/lib/afspraken-db";
 import { klantAdres } from "@/lib/klant-adres";
+import { bouwAfspraakAfzegging, bouwAfspraakBevestiging, bouwAfspraakUitnodiging } from "@/lib/klant-mails";
 import { abonnementen } from "@/db/schema";
 
 const DUREN = [30, 60, 90, 120];
@@ -147,18 +148,8 @@ export async function bevestigAfspraak(formData: FormData) {
   const bijlagen = [{ bestandsnaam: "afspraak.ics", inhoud: ics }];
 
   if (afspraak.email) {
-    await mailVanJos({
-      naar: afspraak.email,
-      van: "Jos van WordSwap",
-      onderwerp: `Afspraak bevestigd: ${wanneer}`,
-      html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
-<p>De afspraak staat: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(afspraak.duurMinuten)}).</p>
-<p>Ik bel je op ${ontsnap(afspraak.telefoon ?? "het nummer dat ik van je heb")}. In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
-${afspraak.opmerking ? `<p>Je berichtje: ${ontsnap(afspraak.opmerking)}</p>` : ""}
-<p>Komt het toch niet uit? Mail of bel me gerust, dan zoeken we een ander moment.</p>
-<p>Groet,<br>Jos</p>`),
-      bijlagen,
-    });
+    const mail = bouwAfspraakBevestiging(afspraak);
+    await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, bijlagen });
   }
   await mailVanJos({
     naar: "jos@wordswap.nl",
@@ -196,15 +187,8 @@ export async function annuleerAfspraak(formData: FormData) {
     .set({ status: "geannuleerd", afzegReden: reden || null })
     .where(eq(afspraken.id, id));
   if (afspraak.email) {
-    await mailVanJos({
-      naar: afspraak.email,
-      van: "Jos van WordSwap",
-      onderwerp: "Afspraak gaat niet door",
-      html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
-<p>Het moment van <strong>${ontsnap(momentInWoorden(afspraak.start, afspraak.duurMinuten))}</strong> gaat helaas niet door.${reden ? ` ${ontsnap(reden)}` : ""}</p>
-<p>Ik neem contact met je op voor een nieuw moment.</p>
-<p>Groet,<br>Jos</p>`),
-    });
+    const mail = bouwAfspraakAfzegging({ ...afspraak, reden });
+    await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
   }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
@@ -231,50 +215,21 @@ export async function mailAfspraakVoorstel(
   if (!token) return { ok: false, melding: "Er is nog geen planlink; zet eerst een dag klaar." };
   const ontvanger = await klantAdres(site);
   if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
-  // Eigen berichtje van Jos: komt bovenaan de mail, in gewone alinea's
   const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
-  const eigenHtml = eigenTekst
-    .split(/\n{2,}/)
-    .map((stuk) => `<p>${ontsnap(stuk).replace(/\n/g, "<br>")}</p>`)
-    .join("");
-  // Desgewenst zonder de standaardzin ("om samen naar je website te kijken")
   const zonderStandaard = formData.get("zonderStandaard") === "on";
   if (zonderStandaard && !eigenTekst) {
     return { ok: false, melding: "Laat je de standaardzin weg, schrijf dan zelf een berichtje." };
   }
-
-  const link = `https://www.wordswap.nl/afspraak/${token}`;
-  const dagen = blokken
-    .map(
-      (b) =>
-        `<li>${ontsnap(
-          new Date(`${b.datum}T12:00:00`).toLocaleDateString("nl-NL", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          }),
-        )} tussen ${ontsnap(b.van)} en ${ontsnap(b.tot)}</li>`,
-    )
-    .join("");
-  const duur = duurInWoorden(blokken[0].duurMinuten);
-
-  const gelukt = await mailVanJos({
-    naar: ontvanger.email,
-    van: "Jos van WordSwap",
-    onderwerp: `Even samen kijken naar ${site.naam}?`,
-    html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((ontvanger.naam ?? "").split(" ")[0] || "klant")},</p>
-${eigenHtml}
-${
-      zonderStandaard
-        ? `<p>Je kunt kiezen uit deze momenten (${duur}):</p>`
-        : `<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>`
-    }
-<ul>${dagen}</ul>
-<p><a href="${link}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Kies een moment</span></a></p>
-<p style="color:#57534e;font-size:14px">Je kunt ook <a href="https://www.wordswap.nl/portal#afspraak" style="color:#6d28d9">inloggen op je eigen omgeving</a> en daar bij <em>Even samen kijken</em> een moment kiezen. Ben je ingelogd, dan hoef je niets in te vullen: je naam en e-mailadres neem ik over uit je account.</p>
-<p>Komt geen van deze dagen uit? Laat het gerust weten, met een dag en tijd die jou wél schikt, dan plan ik dat in.</p>
-<p>Groet,<br>Jos</p>`),
+  const mail = bouwAfspraakUitnodiging({
+    siteNaam: site.naam,
+    naam: ontvanger.naam,
+    link: `https://www.wordswap.nl/afspraak/${token}`,
+    duurMinuten: blokken[0].duurMinuten,
+    dagen: blokken,
+    eigenTekst,
+    zonderStandaard,
   });
+  const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
   if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
 
   await db.update(sites).set({ afspraakMailOp: new Date() }).where(eq(sites.id, siteId));

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { mailReviewVerzoek, type ReviewMailUitkomst } from "../../acties";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 
 /** Review- en referentieverzoek met één klik, met zichtbaar verstuurmoment. */
 export default function ReviewMailKnop({
@@ -27,6 +28,7 @@ export default function ReviewMailKnop({
       </label>
       <input type="hidden" name="siteId" value={siteId} />
       <div className="mt-3 flex flex-wrap items-center gap-3">
+        <MailVoorbeeldKnop soort="review" siteId={siteId} velden={[["bericht", "bericht"]]} />
         <button
           type="submit"
           disabled={bezig}

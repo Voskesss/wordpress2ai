@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { mailAfspraakVoorstel, type MailUitkomst } from "../../acties-afspraken";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 
 /** Nodigt de klant per mail uit voor de klaargezette dagen. Je ziet wanneer hij
  * verstuurd is, en kunt hem daarna nog een keer sturen (herinnering). */
@@ -39,6 +40,11 @@ export default function AfspraakMailKnop({
         </span>
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-3">
+      <MailVoorbeeldKnop
+        soort="afspraak-uitnodiging"
+        siteId={siteId}
+        velden={[["bericht", "bericht"], ["zonderStandaard", "zonderStandaard"]]}
+      />
       <button
         type="submit"
         disabled={bezig}

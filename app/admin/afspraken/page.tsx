@@ -4,6 +4,7 @@ import { duurInWoorden } from "@/lib/afspraken";
 import { alleKomendeAfspraken } from "@/lib/afspraken-db";
 import { bevestigAfspraak } from "../acties-afspraken";
 import AfzegMetReden from "../klant/[id]/AfzegMetReden";
+import MailVoorbeeldKnop from "../klant/[id]/MailVoorbeeldKnop";
 import ActieKnop from "../klant/[id]/ActieKnop";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +90,7 @@ export default async function AfsprakenOverzicht() {
                     </span>
                     {a.status === "aangevraagd" && (
                       <>
+                        <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} />
                         <form action={bevestigAfspraak}>
                           <input type="hidden" name="siteId" value={a.siteId} />
                           <input type="hidden" name="afspraakId" value={a.id} />
