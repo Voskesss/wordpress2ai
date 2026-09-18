@@ -1353,7 +1353,7 @@ export async function POST(req: Request) {
           // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
           if (werkmap && changeRowId && gewijzigd.length > 0) {
             try {
-              const vroegAlleenHier = /alleen (hier|op (die|deze|dat) (plek|pagina|blok))|(die|deze) (plek|pagina) alleen/i.test(bericht);
+              const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
               if (!vroegAlleenHier) {
                 const { dubbelingsMeldingen } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");

@@ -22,15 +22,25 @@ function kaleTekst(html: string): string {
     .trim();
 }
 
-/** Tekstfragmenten die specifiek genoeg zijn om op te zoeken (geen losse woorden). */
+/** Tekstfragmenten die specifiek genoeg zijn om op te zoeken. Blok-gebaseerd
+ * (per alinea/kop/lijstregel uit de HTML), zodat koppen en prijzen niet aan
+ * een zin vastplakken en het fragment overal exact terug te vinden is. */
 function fragmenten(html: string): string[] {
-  const tekst = kaleTekst(html);
-  return [...new Set(
-    tekst
-      .split(/(?<=[.!?;:…])\s+|\s{3,}/)
-      .map((z) => z.trim())
-      .filter((z) => z.length >= 25 && z.length <= 220),
-  )];
+  const blokken = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .split(/<\/(?:p|h[1-6]|li|blockquote|figcaption|td|th|summary|dd|dt)>|<br\s*\/?\s*>/i)
+    .map((b) => kaleTekst(b));
+  const uit = new Set<string>();
+  for (const blok of blokken) {
+    if (blok.length >= 25 && blok.length <= 220) uit.add(blok);
+    // lange alinea's ook per zin, voor deelwijzigingen binnen een alinea
+    for (const zin of blok.split(/(?<=[.!?…])\s+/)) {
+      const s = zin.trim();
+      if (s.length >= 25 && s.length <= 220) uit.add(s);
+    }
+  }
+  return [...uit];
 }
 
 /** Alle afbeeldingsverwijzingen (src, srcset-kandidaten en css-urls). */
@@ -78,9 +88,21 @@ export async function dubbelingsMeldingen(opties: {
     const na = nieuw.get(pad) ?? "";
     const naTekst = nieuweTekst.get(pad) ?? "";
 
-    // 1. Tekst die hier is weggehaald/veranderd maar elders nog staat
+    // 1. Tekst die hier (deels) is weggehaald/veranderd maar elders nog staat.
+    // Op AANTALLEN vergelijken: staat de zin op deze pagina minder vaak dan
+    // eerst, dan is er iets half doorgevoerd — ook als er op dezelfde pagina
+    // nog een kopie staat (bv. een footer-regel).
+    const oudeTekst = " " + kaleTekst(oud) + " ";
+    const tel = (tekst: string, fragment: string) => tekst.split(fragment).length - 1;
     for (const fragment of fragmenten(oud)) {
-      if (naTekst.includes(fragment)) continue; // staat hier gewoon nog
+      const voor = tel(oudeTekst, fragment);
+      const na = tel(naTekst, fragment);
+      if (na >= voor) continue; // niets van dit fragment verdwenen
+      if (na > 0) {
+        // Er staat er op deze pagina zelf ook nog één (bv. in de footer)
+        if (!tekstMeldingen.has(fragment)) tekstMeldingen.set(fragment, new Set());
+        tekstMeldingen.get(fragment)!.add(pad);
+      }
       for (const [ander, tekst] of nieuweTekst) {
         if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
         if (tekst.includes(fragment)) {
