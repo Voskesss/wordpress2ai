@@ -5,6 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { aiKosten, changes, chatFeedback, formulierInzendingen, messages, sites, usage } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { wijzigingenLimietVoor } from "@/lib/ai-budget";
 import { aanvraagVerwerken } from "./acties";
 
 export const metadata: Metadata = {
@@ -206,6 +207,12 @@ export default async function Admin() {
           >
             Migraties
           </Link>
+          <Link
+            href="/admin/afspraken"
+            className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+          >
+            📅 Afspraken
+          </Link>
         </div>
       </div>
 
@@ -220,6 +227,7 @@ export default async function Admin() {
           livegang,
           openConcepten,
           wijzigingen,
+          wijzigingenLimiet: wijzigingenLimietVoor(site, new Date().toISOString().slice(0, 7)),
           aiUsd: aiMicroUsd / 1_000_000,
           offlineNa: site.offlineNa,
         }))}

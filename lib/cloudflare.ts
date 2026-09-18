@@ -26,6 +26,9 @@ function hdr(json = true): Record<string, string> {
 
 /** Werkmappen en instructiebestanden die nooit publiek horen te staan.
  * "delen" bevat de bouwstenen die bij deploy al in de pagina's zijn gezet. */
+const ONTWERP_BANNER =
+  '<div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;font:600 13px/1.5 system-ui,sans-serif;text-align:center;padding:9px 14px">Ontwerpvoorstel door WordSwap &mdash; dit is niet je echte website</div>';
+
 const NIET_PUBLIEK_MAPPEN = new Set([".git", ".github", "delen", "wp2ai-controle"]);
 const NIET_PUBLIEK_BESTANDEN = new Set([
   "_redirects",
@@ -184,6 +187,8 @@ async function bereidBestandenVoor(
         ""
       );
       const injectie = PAGINA_MELDER;
+      if (naam.startsWith("ontwerp-"))
+        html = html.replace(/(<body[^>]*>)/i, `$1${ONTWERP_BANNER}`);
       html = html.includes("</body>")
         ? html.replace("</body>", `${injectie}</body>`)
         : html + injectie;

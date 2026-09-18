@@ -9,6 +9,8 @@ export const JOS_VIDEO_URL = ""; // bv. "https://www.youtube.com/watch?v=XXXX"
 /** Zakelijk telefoonnummer. TELEFOON is wat de bezoeker leest, TELEFOON_LINK
  * wat in de tel:-link staat — één plek, zodat het overal gelijk blijft. */
 export const TELEFOON = "026 234 01 22";
+/** Google-reviewpagina van WordSwap (Bedrijfsprofiel → "Vraag om reviews"). */
+export const REVIEW_LINK = "https://g.page/r/Caup_2JVRVuoEBM/review";
 export const TELEFOON_LINK = "+31262340122";
 
 export function josFoto(): string | null {

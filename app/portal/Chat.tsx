@@ -1688,16 +1688,19 @@ export default function Chat({
         )}
 
         {/* Bovenbalk */}
-        <div className={`${mobielChat ? "hidden" : "flex"} items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5 text-sm`}>
+        {/* Op een telefoon: korte labels en omklappen als het niet past — anders
+            schuiven "Open live site" en de rest rechts uit beeld */}
+        <div className={`${mobielChat ? "hidden" : "flex"} flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-b border-stone-200 px-4 py-2.5 text-sm`}>
           {concept ? (
             <span className="flex shrink-0 items-center gap-2 rounded-full bg-amber-50 border border-amber-300 px-3.5 py-1.5 text-sm font-medium text-amber-900">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
-              Concept — nog niet zichtbaar voor bezoekers
+              Concept<span className="hidden sm:inline"> — nog niet zichtbaar voor bezoekers</span>
             </span>
           ) : (
             <span className="flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 text-sm font-medium text-emerald-800">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Gelijk aan de live site
+              <span className="sm:hidden">Live</span>
+              <span className="hidden sm:inline">Gelijk aan de live site</span>
             </span>
           )}
           {/* Adres van de pagina die je nu bekijkt, zoals bezoekers hem zien */}
@@ -1727,7 +1730,7 @@ export default function Chat({
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Ververs
+              <span className="hidden sm:inline">Ververs</span>
             </button>
             <div className="hidden md:flex items-center gap-1 rounded-full border border-stone-200 p-0.5">
               {(
@@ -1785,7 +1788,8 @@ export default function Chat({
                 rel="noreferrer"
                 className="font-medium text-amber-700 hover:underline"
               >
-                Open concept
+                <span className="sm:hidden">Concept ↗</span>
+                <span className="hidden sm:inline">Open concept</span>
               </a>
             )}
             {liveUrl && (
@@ -1795,7 +1799,8 @@ export default function Chat({
                 rel="noreferrer"
                 className="text-violet-700 font-medium hover:underline"
               >
-                Open live site
+                <span className="sm:hidden">Live site ↗</span>
+                <span className="hidden sm:inline">Open live site</span>
               </a>
             )}
             <Tip

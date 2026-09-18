@@ -19,7 +19,9 @@
     "formulier-adres.mts",
     "opzegging.mts",
     "ai-budget.mts",
-    "whatsapp.mts"
+    "formulier-rem.mts",
+    "whatsapp.mts",
+    "afspraken.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

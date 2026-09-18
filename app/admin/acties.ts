@@ -86,6 +86,8 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
@@ -119,9 +121,17 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   if (!klantId) {
     // Account bestaat nog niet: meteen aanmaken (zonder wachtwoord). Dan kan de klant
     // direct inloggen met een code, ook zonder op de link in de mail te klikken.
+    // Naam meteen op het account: dan spreken ook alle latere mails (akkoord,
+    // afspraken) de klant met zijn voornaam aan.
+    const [voornaam, ...rest] = naam.split(/\s+/).filter(Boolean);
     const nieuw = await clerk("/users", {
       method: "POST",
-      body: JSON.stringify({ email_address: [email], skip_password_requirement: true }),
+      body: JSON.stringify({
+        email_address: [email],
+        skip_password_requirement: true,
+        ...(voornaam ? { first_name: voornaam } : {}),
+        ...(rest.length ? { last_name: rest.join(" ") } : {}),
+      }),
     });
     const data = (await nieuw.json().catch(() => ({}))) as { id?: string };
     if (!nieuw.ok || !data.id) {
@@ -145,7 +155,7 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst });
     const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }
@@ -847,6 +857,88 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+export type ReviewMailUitkomst = { ok: boolean; melding: string };
+
+/** Review- en referentieverzoek naar de klant: één klik, huisstijlmail met de
+ * Google-reviewknop en de vraag of de site als referentie genoemd mag worden. */
+export async function mailReviewVerzoek(
+  _vorige: ReviewMailUitkomst | null,
+  formData: FormData,
+): Promise<ReviewMailUitkomst> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return { ok: false, melding: "Onbekende klant." };
+  const { klantAdres } = await import("@/lib/klant-adres");
+  const ontvanger = await klantAdres(site);
+  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+  const { inWordSwapHuisstijl, mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
+  const { REVIEW_LINK, TELEFOON } = await import("@/lib/persoonlijk");
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
+  const eigenHtml = eigenTekst
+    ? eigenTekst.split(/\n{2,}/).map((stuk) => `<p>${ontsnap(stuk).replace(/\n/g, "<br>")}</p>`).join("")
+    : "";
+  const voornaam = (ontvanger.naam ?? "").trim().split(/\s+/)[0] || "klant";
+  const gelukt = await mailVanJos({
+    naar: ontvanger.email,
+    van: "Jos van WordSwap",
+    onderwerp: `Mag ik je twee kleine dingen vragen?`,
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam)},</p>
+${eigenHtml}
+<p>Fijn dat je website van <strong>${ontsnap(site.naam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn kleine bedrijf enorm.</p>
+<p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren — daar hebben andere ondernemers echt iets aan.</p>
+<p><a href="${REVIEW_LINK}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Laat een review achter</span></a></p>
+<p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg — en zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>
+<p>Dank je wel alvast! Vragen of wensen? Antwoord op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  });
+  if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
+  await db.update(sites).set({ reviewMailOp: new Date() }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  return { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` };
+}
+
+/** Wijzigingenteller van deze maand op nul — voor als Jos zelf in het
+ * klantaccount heeft zitten testen en de klant er niet op mag inleveren. */
+export async function resetWijzigingenTeller(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { usage } = await import("@/db/schema");
+  const { and: en } = await import("drizzle-orm");
+  const maand = new Date().toISOString().slice(0, 7);
+  await db
+    .update(usage)
+    .set({ wijzigingen: 0 })
+    .where(en(eq(usage.siteId, siteId), eq(usage.maand, maand)));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Fair-use-aantal wijzigingen per maand voor deze klant (pakketbelofte). */
+export async function bewaarWijzigingenLimiet(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const limiet = Number(formData.get("limiet"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 1 || limiet > 1000) return;
+  await db.update(sites).set({ wijzigingenLimiet: limiet }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Eenmalig extra wijzigingen voor deze maand; vervalt vanzelf op de 1e. */
+export async function bewaarWijzigingenExtra(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const extra = Number(formData.get("extra"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(extra) || extra < 0 || extra > 1000) return;
+  const { huidigeMaand } = await import("@/lib/ai-budget");
+  await db
+    .update(sites)
+    .set(extra > 0 ? { wijzigingenExtra: extra, wijzigingenExtraMaand: huidigeMaand() } : { wijzigingenExtra: 0, wijzigingenExtraMaand: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 /** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de
  * volgende maand, dus je hoeft hem niet terug te zetten. 0 = meteen weg. */
 export async function bewaarAiExtra(formData: FormData) {
@@ -1047,5 +1139,110 @@ export async function aankondigingBijwerken(formData: FormData) {
   else if (actie === "uit") await db.update(aankondigingen).set({ actief: false }).where(eq(aankondigingen.id, id));
   else if (actie === "aan") await db.update(aankondigingen).set({ actief: true }).where(eq(aankondigingen.id, id));
   revalidatePath("/admin/aankondigingen");
+  revalidatePath("/portal");
+}
+
+/* ---------- Ontwerp-route: nieuw ontwerp naast live en werkversie ---------- */
+
+export async function ontwerpMaken(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, maakOfVerversOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  await maakOfVerversOntwerp(site);
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+export async function ontwerpBijwerken(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, werkOntwerpBij } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  const uitkomst = await werkOntwerpBij(site);
+  revalidatePath(`/admin/klant/${siteId}`);
+  if (uitkomst === "conflict") {
+    const { redirect } = await import("next/navigation");
+    redirect(
+      `/admin/klant/${siteId}?ontwerp=${encodeURIComponent(
+        "Bijwerken gaf een conflict: dezelfde plek is op live én in het ontwerp gewijzigd. Los dit lokaal op (git merge main op de ontwerp-branch)."
+      )}`
+    );
+  }
+}
+
+export async function ontwerpPromoveren(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, promoveerOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  let melding: string;
+  try {
+    const uitkomst = await promoveerOntwerp(site);
+    if (uitkomst.soort === "ok")
+      melding = "Het ontwerp staat als concept op de werkversie. De klant kan het bekijken en akkoord geven; Publiceren zet het live.";
+    else if (uitkomst.soort === "open-concept")
+      melding = "Er staat al een concept open voor deze site. Publiceer of verwerp dat eerst; daarna kan het ontwerp erheen.";
+    else if (uitkomst.soort === "achter")
+      melding = `Het ontwerp loopt ${uitkomst.achter} wijziging(en) achter op de live site. Klik eerst op Bijwerken vanaf live, zodat tekstwijzigingen van de klant meegaan.`;
+    else {
+      const eerste = uitkomst.fouten
+        .slice(0, 3)
+        .map((f) => `${f.waar}: ${f.detail}`)
+        .join(" | ");
+      melding = `Bouw-controle: ${uitkomst.fouten.length} fout(en), promotie geblokkeerd. ${eerste}`;
+    }
+  } catch (e) {
+    console.error("Ontwerp promoveren:", e);
+    melding = "Promotie mislukt door een technische fout; zie de logs. Er is niets gepubliceerd.";
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  const { redirect } = await import("next/navigation");
+  redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(melding.slice(0, 600))}`);
+}
+
+
+export async function ontwerpZichtbaarheid(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const aan = formData.get("aan") === "ja";
+  const { siteVoorOntwerp, maakOfVerversOntwerp, verbergOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  try {
+    if (aan) {
+      // Tonen: zo nodig eerst een (nieuw) adres maken — dat is de trage stap,
+      // en pas als die slaagt gaat de kaart bij de klant aan.
+      if (!site.ontwerpSlug) await maakOfVerversOntwerp(site);
+      await db.update(sites).set({ ontwerpZichtbaar: true }).where(eq(sites.id, siteId));
+    } else {
+      // Verbergen: direct — adres weg, kaart weg, gedeelde link dood.
+      await verbergOntwerp(site);
+    }
+  } catch (e) {
+    console.error("Ontwerp-zichtbaarheid:", e);
+    revalidatePath(`/admin/klant/${siteId}`);
+    const { redirect } = await import("next/navigation");
+    redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(aan ? "Tonen is niet gelukt (adres maken brak af). Probeer het nog eens; bij een grote site kan de eerste keer lang duren." : "Verbergen is niet gelukt; het adres bestaat mogelijk nog. Probeer het nog eens.")}`);
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
+export async function ontwerpVerwijderen(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, verwijderOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  await verwijderOntwerp(site);
+  revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
 }

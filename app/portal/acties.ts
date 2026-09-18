@@ -344,7 +344,11 @@ export async function geefWebsiteAkkoord(formData: FormData) {
   // Alleen bij het eerste akkoord mailen (dubbel klikken of opnieuw laden geeft geen tweede mail)
   if (nieuw.length > 0) {
     if (email) {
-      const bevestiging = bouwAkkoordBevestiging({ siteNaam: site.naam, domein: site.domein });
+      const bevestiging = bouwAkkoordBevestiging({
+        siteNaam: site.naam,
+        domein: site.domein,
+        naam: (await currentUser())?.firstName ?? null,
+      });
       await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: bevestiging.onderwerp, html: bevestiging.html });
     }
     await mailVanJos({

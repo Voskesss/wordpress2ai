@@ -34,3 +34,12 @@ assert.equal(huidigeMaand(new Date("2026-09-17T10:00:00Z")), "2026-09");
 assert.equal(huidigeMaand(new Date("2026-09-30T22:30:00Z")), "2026-10");
 
 console.log("PASS ai-budget: eenmalige extra telt alleen in zijn eigen maand en vervalt vanzelf.");
+
+// Wijzigingenlimiet: zelfde maandregels als het budget
+import { wijzigingenLimietVoor } from "../lib/ai-budget";
+const wBasis = { wijzigingenLimiet: 30, wijzigingenExtra: 0, wijzigingenExtraMaand: null };
+assert.equal(wijzigingenLimietVoor(wBasis, "2026-09"), 30);
+assert.equal(wijzigingenLimietVoor({ wijzigingenLimiet: 30, wijzigingenExtra: 10, wijzigingenExtraMaand: "2026-09" }, "2026-09"), 40);
+assert.equal(wijzigingenLimietVoor({ wijzigingenLimiet: 30, wijzigingenExtra: 10, wijzigingenExtraMaand: "2026-09" }, "2026-10"), 30);
+assert.equal(wijzigingenLimietVoor({ wijzigingenLimiet: 50, wijzigingenExtra: 0, wijzigingenExtraMaand: "2026-09" }, "2026-09"), 50);
+console.log("PASS ai-budget: wijzigingenlimiet met eenmalige extra per maand.");

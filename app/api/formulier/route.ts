@@ -1,7 +1,14 @@
-import { eq } from "drizzle-orm";
+import { eq, type SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { formulierInzendingen, sites } from "@/db/schema";
+import {
+  beoordeel,
+  ipAfdruk,
+  ipUitKoppen,
+  veldenVoorMail,
+  type RemOordeel,
+} from "@/lib/formulier-rem";
 import { verstuurSiteMail } from "@/lib/mail";
 
 const ontsnap = (s: string) =>
@@ -117,29 +124,41 @@ export async function POST(req: Request) {
     ? await db.select().from(sites).where(eq(sites.githubRepo, siteRepo))
     : [];
 
-  // Rem tegen spam/mail-bombing: max 30 inzendingen per site per uur.
-  // Daarboven doen we alsof alles goed ging (bots niets wijzer maken),
-  // maar slaan we niets op en mailen we niet.
-  let binnenLimiet = true;
+  // Rem tegen spam en mail-misbruik: per site, per afzender en over alles
+  // samen (zie lib/formulier-rem). Boven een grens doen we alsof alles goed
+  // ging — bots niets wijzer maken — maar slaan we niets op en mailen we niet.
+  // Een onbekende sitecode bewaren we wél, maar mailen we niet over: anders
+  // kan iemand met een verzonnen code mail vanaf ons adres laten versturen.
+  const afdruk = ipAfdruk(ipUitKoppen(req.headers));
+  let oordeel: RemOordeel = { opslaan: false, mailen: false, reden: "ok" };
+  let eersteVanDitUur = false;
   if (siteRepo) {
     const { and, gte, sql } = await import("drizzle-orm");
     const uurGeleden = new Date(Date.now() - 60 * 60 * 1000);
-    const [telling] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(formulierInzendingen)
-      .where(
-        and(
-          eq(formulierInzendingen.siteRepo, siteRepo),
-          gte(formulierInzendingen.aangemaakt, uurGeleden),
-        ),
-      );
-    binnenLimiet = Number(telling?.n ?? 0) < 30;
+    const sinds = gte(formulierInzendingen.aangemaakt, uurGeleden);
+    const tel = async (extra?: SQL) => {
+      const [rij] = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(formulierInzendingen)
+        .where(extra ? and(extra, sinds) : sinds);
+      return Number(rij?.n ?? 0);
+    };
+    const perSite = await tel(eq(formulierInzendingen.siteRepo, siteRepo));
+    eersteVanDitUur = perSite === 0;
+    oordeel = beoordeel({
+      siteBestaat: Boolean(site),
+      perSite,
+      perIp: afdruk
+        ? await tel(eq(formulierInzendingen.ipAfdruk, afdruk))
+        : null,
+      totaal: await tel(),
+    });
   }
 
   // Honeypot gevuld = bot: stilletjes accepteren zonder opslaan of mailen
   const echt =
-    siteRepo && !honeypot && binnenLimiet && Object.keys(velden).length > 0;
-  if (websitecheckJson && !binnenLimiet)
+    siteRepo && !honeypot && oordeel.opslaan && Object.keys(velden).length > 0;
+  if (websitecheckJson && !oordeel.opslaan)
     return NextResponse.json(
       { error: "Probeer het later opnieuw." },
       { status: 429 },
@@ -194,7 +213,13 @@ export async function POST(req: Request) {
 
     await db
       .insert(formulierInzendingen)
-      .values({ siteRepo, formulier, velden, bijlagen: bewaardeBijlagen })
+      .values({
+        siteRepo,
+        formulier,
+        velden,
+        bijlagen: bewaardeBijlagen,
+        ipAfdruk: afdruk,
+      })
       .catch(() => {
         opgeslagen = false;
       });
@@ -204,10 +229,36 @@ export async function POST(req: Request) {
         { status: 503 },
       );
 
+    // Onbekende sitecode: bewaard, maar niemand krijgt er bericht van. Dat wil
+    // je weten — het is óf een hernoemde repo (dan mist een klant zijn mail),
+    // óf iemand die ons als postkantoor probeert te gebruiken. Eén seintje per
+    // uur per code: de teller hierboven stond dan nog op nul.
+    if (oordeel.reden === "site-onbekend" && eersteVanDitUur) {
+      const { after } = await import("next/server");
+      const code = siteRepo;
+      after(async () => {
+        const { mailVanJos } = await import("@/lib/wordswap-mail");
+        const merk = process.env.VERCEL_ENV === "production" ? "" : "[dev] ";
+        await mailVanJos({
+          naar: "jos@wordswap.nl",
+          onderwerp: `${merk}⚠️ Inzending op onbekende sitecode "${code}"`,
+          html: `<p>Er kwam een inzending binnen met sitecode <strong>${ontsnap(code)}</strong> (formulier "${ontsnap(formulier)}"), maar die code staat niet in de sites-tabel.</p><p>De inzending is bewaard, maar er ging géén bevestiging naar de invuller en géén melding naar een eigenaar. Is de repo hernoemd? Zet de code dan gelijk, anders mist deze klant zijn berichten.</p>`,
+          bcc: false,
+        }).catch((e) => console.error("Seintje onbekende sitecode:", e));
+      });
+    }
+
     const siteNaam = site?.naam ?? "de website";
-    const veldenHtml = Object.entries(velden)
-      .map(([k, v]) => `<p><strong>${ontsnap(k)}:</strong> ${ontsnap(v)}</p>`)
-      .join("");
+    // In de mail een beknopte weergave (zie lib/formulier-rem); het volledige
+    // bericht staat altijd in het portaal.
+    const voorMail = veldenVoorMail(velden);
+    const veldenHtml =
+      voorMail.velden
+        .map(([k, v]) => `<p><strong>${ontsnap(k)}:</strong> ${ontsnap(v)}</p>`)
+        .join("") +
+      (voorMail.afgekapt
+        ? `<p style="color:#78716c">(Ingekort — het volledige bericht staat in het portaal.)</p>`
+        : "");
 
     // Bevestiging naar de invuller (als er een e-mailveld is ingevuld)
     const invullerEmail = Object.entries(velden).find(
@@ -252,7 +303,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (invullerEmail) {
+    if (invullerEmail && oordeel.mailen) {
       if (formulier === "webinar") {
         await verstuurSiteMail({
           site: site ?? null,

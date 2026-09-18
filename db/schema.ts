@@ -30,6 +30,12 @@ export const sites = pgTable("sites", {
     .notNull()
     .default("migratie"),
   richtlijnen: text("richtlijnen"),
+  // Onraadbare code voor de deelbare planlink (/afspraak/<code>)
+  afspraakToken: text("afspraak_token"),
+  // Wanneer de klant de uitnodiging met de voorgestelde dagen kreeg
+  afspraakMailOp: timestamp("afspraak_mail_op", { withTimezone: true }),
+  // Wanneer het review-/referentieverzoek is gemaild
+  reviewMailOp: timestamp("review_mail_op", { withTimezone: true }),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
@@ -52,6 +58,11 @@ export const sites = pgTable("sites", {
   // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
   aiExtraUsd: integer("ai_extra_usd").notNull().default(0),
   aiExtraMaand: text("ai_extra_maand"),
+  // Fair-use-aantal wijzigingen per maand (pakketbelofte), plus eenmalige
+  // extra voor één maand — zelfde model als het AI-budget hierboven.
+  wijzigingenLimiet: integer("wijzigingen_limiet").notNull().default(30),
+  wijzigingenExtra: integer("wijzigingen_extra").notNull().default(0),
+  wijzigingenExtraMaand: text("wijzigingen_extra_maand"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),
@@ -63,6 +74,11 @@ export const sites = pgTable("sites", {
   chatGeheugen: text("chat_geheugen"),
   // Betaalde extra: de eigenaar kan zijn website via WhatsApp aansturen.
   whatsappActief: boolean("whatsapp_actief").notNull().default(false),
+  // Ontwerp-route: mag de klant het ontwerpvoorstel in zijn portaal zien?
+  ontwerpZichtbaar: boolean("ontwerp_zichtbaar").notNull().default(false),
+  // Workernaam van het ontwerp (ontwerp-<slug>-<willekeur>): onraadbaar adres;
+  // verbergen vernieuwt hem zodat een gedeelde link vervalt. Leeg = geen adres.
+  ontwerpSlug: text("ontwerp_slug"),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
@@ -223,6 +239,10 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   // eigen opslag en blijft server-side — downloaden gaat via een route die
   // eerst controleert of je bij deze site hoort.
   bijlagen: jsonb("bijlagen").notNull().default([]),
+  // Afdruk van het IP-adres van de afzender (HMAC, niet terug te rekenen):
+  // genoeg om te tellen voor de spamrem, niet om iemand mee te herleiden.
+  // Leeg als FORMULIER_IP_SALT niet is ingesteld. Zie lib/formulier-rem.
+  ipAfdruk: text("ip_afdruk"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
@@ -543,3 +563,37 @@ export const webinarMails = pgTable(
   },
   (t) => [unique("webinar_mails_inschrijving_soort").on(t.inschrijvingId, t.soort)],
 );
+
+/** Dagen die Jos per klant klaarzet om een afspraak op te maken. */
+export const afspraakBlokken = pgTable("afspraak_blokken", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  datum: text("datum").notNull(), // YYYY-MM-DD, Nederlandse tijd
+  van: text("van").notNull(), // HH:MM
+  tot: text("tot").notNull(), // HH:MM
+  duurMinuten: integer("duur_minuten").notNull().default(30),
+  aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Gekozen afspraken. Een bevestigde afspraak blokkeert die tijd bij alle klanten. */
+export const afspraken = pgTable("afspraken", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").notNull(),
+  start: timestamp("start", { withTimezone: true }).notNull(),
+  duurMinuten: integer("duur_minuten").notNull(),
+  status: text("status", { enum: ["aangevraagd", "bevestigd", "geannuleerd"] })
+    .notNull()
+    .default("aangevraagd"),
+  naam: text("naam"),
+  email: text("email"),
+  telefoon: text("telefoon"),
+  opmerking: text("opmerking"),
+  onderwerp: text("onderwerp"),
+  /** Aanvraag van een ingelogde klant (dan kloppen naam en e-mail zeker) */
+  ingelogd: boolean("ingelogd").notNull().default(false),
+  clerkUserId: text("clerk_user_id"),
+  /** Reden die de klant opgaf bij het afzeggen */
+  afzegReden: text("afzeg_reden"),
+  aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
+  bevestigdOp: timestamp("bevestigd_op", { withTimezone: true }),
+});
