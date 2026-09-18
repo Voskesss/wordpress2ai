@@ -223,6 +223,10 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   // eigen opslag en blijft server-side — downloaden gaat via een route die
   // eerst controleert of je bij deze site hoort.
   bijlagen: jsonb("bijlagen").notNull().default([]),
+  // Afdruk van het IP-adres van de afzender (HMAC, niet terug te rekenen):
+  // genoeg om te tellen voor de spamrem, niet om iemand mee te herleiden.
+  // Leeg als FORMULIER_IP_SALT niet is ingesteld. Zie lib/formulier-rem.
+  ipAfdruk: text("ip_afdruk"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
