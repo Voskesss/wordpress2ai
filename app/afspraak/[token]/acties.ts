@@ -81,15 +81,15 @@ export async function kiesMoment(_vorige: KiesUitkomst | null, formData: FormDat
   await mailVanJos({
     naar: "jos@wordswap.nl",
     bcc: false,
-    onderwerp: `📅 Nieuwe afspraakaanvraag: ${site.naam} — ${wanneer}`,
+    onderwerp: `⏳ Bevestigen: afspraak ${site.naam} — ${wanneer}`,
     html: `<p><strong>${ontsnap(naam)}</strong> (${ontsnap(email)}${telefoon ? `, ${ontsnap(telefoon)}` : ""}) wil afspreken over <strong>${ontsnap(site.naam)}</strong>.</p>
 <p>${ingelogd ? "✅ <strong>Ingelogd als de klant</strong> — naam en e-mail komen uit zijn eigen account." : "⚠️ Via de planlink, niet ingelogd — de opgegeven gegevens zijn niet gecontroleerd."}</p>
 <ul>
 <li>Wanneer: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(keuze.duurMinuten)})</li>
 ${opmerking ? `<li>Bericht: ${ontsnap(opmerking)}</li>` : ""}
 </ul>
-<p>Bevestig hem in de admin; dan krijgt de klant de bevestiging met agendabestand en verdwijnen de voorgestelde dagen.</p>
-<p><a href="https://www.wordswap.nl/admin/klant/${site.id}#afspraken">Naar de klant in de admin</a></p>`,
+<p style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:12px 16px"><strong>De afspraak staat nog niet vast.</strong> De klant wacht op jouw bevestiging — pas daarna krijgt hij het agendabestand en verdwijnen de voorgestelde dagen.</p>
+<p><a href="https://www.wordswap.nl/admin/klant/${site.id}#afspraken-blok" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Bevestigen op wordswap.nl</span></a></p>`,
   });
   await mailVanJos({
     naar: email,
