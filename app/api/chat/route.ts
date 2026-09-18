@@ -1375,6 +1375,11 @@ export async function POST(req: Request) {
                   reply += `\n\n${meldingen.join("\n")}\nZeg "overal doorvoeren" en ik pas het overal aan, of "alleen hier" als dit bewust maar op één plek moest.`;
                 }
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
+                const sonde = gewijzigd.find((p) => p.endsWith(".html"));
+                if (meldingen.length === 0 && sonde) {
+                  const oud0 = await leesBestand(site.githubRepo, sonde, basisRef).then((x) => `len=${x.length}`).catch((e) => `ERR=${e instanceof Error ? e.message.slice(0, 80) : e}`);
+                  vangnetDebug += ` oud(${sonde})=${oud0}`;
+                }
               } else {
                 vangnetDebug = "onderdrukt door alleen-hier in de opdracht";
               }
