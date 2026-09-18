@@ -1,5 +1,6 @@
 import {
   ontwerpBijwerken,
+  ontwerpZichtbaarheid,
   ontwerpMaken,
   ontwerpPromoveren,
   ontwerpVerwijderen,
@@ -17,7 +18,7 @@ export default async function OntwerpBlok({
   site,
   melding,
 }: {
-  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean };
+  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean; ontwerpZichtbaar: boolean };
   melding?: string;
 }) {
   if (site.isDemo || !site.siteSlug) return null;
@@ -120,6 +121,15 @@ export default async function OntwerpBlok({
               />
             </form>
           </div>
+          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen; akkoord geven kan pas na 'Naar de werkversie'.">
+            <input type="hidden" name="siteId" value={site.id} />
+            <input type="hidden" name="aan" value={site.ontwerpZichtbaar ? "nee" : "ja"} />
+            <ActieKnop
+              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen" : "Nog verborgen voor de klant — tonen in portaal"}
+              bezigLabel="Aanpassen..."
+              className={`${KNOP} ${site.ontwerpZichtbaar ? "bg-emerald-600 text-white hover:bg-emerald-500" : "border border-stone-300 text-stone-700 hover:bg-stone-50"}`}
+            />
+          </form>
           <p className="mt-3 text-xs text-stone-500">
             Bewerken kan ook lokaal (Claude Code): branch <code>ontwerp</code> in de
             klantrepo uitchecken, pushen, en <code>scripts/ontwerp.mts deploy {site.githubRepo}</code> draaien.

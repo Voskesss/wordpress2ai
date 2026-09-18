@@ -302,6 +302,27 @@ export default async function Portal({
                 </span>
               </div>
               <div className="mt-6">
+                {!site.isDemo && site.ontwerpZichtbaar && site.siteSlug && (
+                  <div className="mb-4 rounded-3xl border border-violet-200 bg-violet-50 p-5">
+                    <h3 className="font-display text-lg font-semibold text-violet-900">
+                      Er staat een ontwerpvoorstel voor je klaar
+                    </h3>
+                    <p className="mt-1 text-sm text-violet-900/80">
+                      We hebben een voorstel gemaakt voor een nieuwe uitstraling van je
+                      website. Kijk gerust rond — je echte website verandert hier niets
+                      door. Wil je er iets in anders, of zullen we hem doorvoeren? Laat
+                      het ons weten.
+                    </p>
+                    <a
+                      href={`https://ontwerp-${site.siteSlug}.wordswap.workers.dev`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-block rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
+                    >
+                      Bekijk het ontwerpvoorstel
+                    </a>
+                  </div>
+                )}
                 {herstelMap[site.id] && (
                   <HerstelMelding changeId={herstelMap[site.id]} />
                 )}

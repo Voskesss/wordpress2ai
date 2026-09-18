@@ -1067,6 +1067,17 @@ export async function ontwerpPromoveren(formData: FormData) {
   redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(melding.slice(0, 600))}`);
 }
 
+
+export async function ontwerpZichtbaarheid(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const aan = formData.get("aan") === "ja";
+  await db.update(sites).set({ ontwerpZichtbaar: aan }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
 export async function ontwerpVerwijderen(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -1075,5 +1086,7 @@ export async function ontwerpVerwijderen(formData: FormData) {
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
   await verwijderOntwerp(site.githubRepo, site.siteSlug);
+  await db.update(sites).set({ ontwerpZichtbaar: false }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
 }

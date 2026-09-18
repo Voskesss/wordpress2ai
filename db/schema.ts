@@ -67,6 +67,8 @@ export const sites = pgTable("sites", {
   chatGeheugen: text("chat_geheugen"),
   // Betaalde extra: de eigenaar kan zijn website via WhatsApp aansturen.
   whatsappActief: boolean("whatsapp_actief").notNull().default(false),
+  // Ontwerp-route: mag de klant het ontwerpvoorstel in zijn portaal zien?
+  ontwerpZichtbaar: boolean("ontwerp_zichtbaar").notNull().default(false),
   isDemo: boolean("is_demo").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
