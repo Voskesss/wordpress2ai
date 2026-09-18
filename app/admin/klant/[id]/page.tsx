@@ -9,6 +9,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
+import OntwerpBlok from "./OntwerpBlok";
 import AfsprakenBlok from "./AfsprakenBlok";
 import SnelMenu from "./SnelMenu";
 import BackupUpload from "./BackupUpload";
@@ -77,11 +78,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -322,6 +323,8 @@ export default async function KlantDetail({
           />
         </form>
       )}
+
+      <OntwerpBlok site={site} melding={ontwerpMelding} />
 
       {/* Beheer via chat (admin) */}
       <div className="mt-6">

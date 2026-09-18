@@ -1002,3 +1002,78 @@ export async function aankondigingBijwerken(formData: FormData) {
   revalidatePath("/admin/aankondigingen");
   revalidatePath("/portal");
 }
+
+/* ---------- Ontwerp-route: nieuw ontwerp naast live en werkversie ---------- */
+
+export async function ontwerpMaken(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, maakOfVerversOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  await maakOfVerversOntwerp(site.githubRepo, site.siteSlug);
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+export async function ontwerpBijwerken(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, werkOntwerpBij } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  const uitkomst = await werkOntwerpBij(site.githubRepo, site.siteSlug);
+  revalidatePath(`/admin/klant/${siteId}`);
+  if (uitkomst === "conflict") {
+    const { redirect } = await import("next/navigation");
+    redirect(
+      `/admin/klant/${siteId}?ontwerp=${encodeURIComponent(
+        "Bijwerken gaf een conflict: dezelfde plek is op live én in het ontwerp gewijzigd. Los dit lokaal op (git merge main op de ontwerp-branch)."
+      )}`
+    );
+  }
+}
+
+export async function ontwerpPromoveren(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, promoveerOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  let melding: string;
+  try {
+    const uitkomst = await promoveerOntwerp(site);
+    if (uitkomst.soort === "ok")
+      melding = "Het ontwerp staat als concept op de werkversie. De klant kan het bekijken en akkoord geven; Publiceren zet het live.";
+    else if (uitkomst.soort === "open-concept")
+      melding = "Er staat al een concept open voor deze site. Publiceer of verwerp dat eerst; daarna kan het ontwerp erheen.";
+    else if (uitkomst.soort === "achter")
+      melding = `Het ontwerp loopt ${uitkomst.achter} wijziging(en) achter op de live site. Klik eerst op Bijwerken vanaf live, zodat tekstwijzigingen van de klant meegaan.`;
+    else {
+      const eerste = uitkomst.fouten
+        .slice(0, 3)
+        .map((f) => `${f.waar}: ${f.detail}`)
+        .join(" | ");
+      melding = `Bouw-controle: ${uitkomst.fouten.length} fout(en), promotie geblokkeerd. ${eerste}`;
+    }
+  } catch (e) {
+    console.error("Ontwerp promoveren:", e);
+    melding = "Promotie mislukt door een technische fout; zie de logs. Er is niets gepubliceerd.";
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  const { redirect } = await import("next/navigation");
+  redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(melding.slice(0, 600))}`);
+}
+
+export async function ontwerpVerwijderen(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { siteVoorOntwerp, verwijderOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  await verwijderOntwerp(site.githubRepo, site.siteSlug);
+  revalidatePath(`/admin/klant/${siteId}`);
+}
