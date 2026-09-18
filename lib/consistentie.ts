@@ -93,6 +93,16 @@ export async function dubbelingsMeldingen(opties: {
   for (const p of allePaden)
     nieuw.set(p, await readFile(path.join(werkmap, p), "utf8").catch(() => ""));
   const nieuweTekst = new Map([...nieuw].map(([p, h]) => [p, " " + kaleTekst(h) + " "]));
+  // Blokken per pagina (lui berekend), voor de divergentie-check hieronder
+  const blokkenPer = new Map<string, Set<string>>();
+  const blokkenVan = (p: string) => {
+    let s = blokkenPer.get(p);
+    if (!s) {
+      s = new Set(blokken(nieuw.get(p) ?? ""));
+      blokkenPer.set(p, s);
+    }
+    return s;
+  };
 
   const tekstMeldingen = new Map<string, Set<string>>(); // fragment -> paden waar hij nog staat
   const beeldMeldingen = new Map<string, Set<string>>(); // beeldpad -> paden waar hij nog staat
@@ -129,12 +139,15 @@ export async function dubbelingsMeldingen(opties: {
 
     // 1b. Divergentie: een blok dat hier is veranderd (ook alleen maar
     // uitgebreid) terwijl de OUDE versie elders nog letterlijk staat.
+    // Op HELE blokken vergelijken, niet als substring: na "overal doorvoeren"
+    // is de oude zin nog steeds het begin van de nieuwe alinea op elke pagina,
+    // en als substring zou dat overal een vals alarm geven.
     const nieuweBlokkenHier = new Set(blokken(na));
     for (const blok of blokken(oud)) {
       if (nieuweBlokkenHier.has(blok)) continue; // blok hier ongewijzigd
-      for (const [ander, tekst] of nieuweTekst) {
+      for (const ander of nieuweTekst.keys()) {
         if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
-        if (tekst.includes(blok)) {
+        if (blokkenVan(ander).has(blok)) {
           if (!tekstMeldingen.has(blok)) tekstMeldingen.set(blok, new Set());
           tekstMeldingen.get(blok)!.add(ander);
         }
