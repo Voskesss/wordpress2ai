@@ -27,14 +27,14 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
     : null;
 
   const stand = site ? await afspraakStand(site.id) : null;
-  // Alleen afspraken die nog moeten komen tellen mee; wat geweest is, is geweest.
   const nu = new Date();
   // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
   const komend = (stand?.afspraken ?? []).filter(
     (a) => a.start.getTime() + a.duurMinuten * 60_000 > nu.getTime(),
   );
-  const bevestigd = komend.find((a) => a.status === "bevestigd");
-  const aangevraagd = komend.find((a) => a.status === "aangevraagd");
+  // Álle komende afspraken en aanvragen tonen, niet alleen de eerste
+  const bevestigde = komend.filter((a) => a.status === "bevestigd");
+  const aanvragen = komend.filter((a) => a.status === "aangevraagd");
   const dagen: Dag[] = stand
     ? vrijeMomenten(stand.blokken, await bezetteTijden(), nu).map((d) => ({
         datum: d.datum,
@@ -48,6 +48,18 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
       }))
     : [];
 
+  const afspraakLijst = bevestigde.length > 0 && (
+    <div className="mt-4 space-y-3">
+      {bevestigde.map((a) => (
+        <div key={a.id} className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
+          ✓ Afgesproken: <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong>. Jos belt je. Komt het toch niet
+          uit? Zeg hem hieronder af.
+          <AfzegKnop token={token} afspraakId={a.id} />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-14">
       <h1 className="font-display text-3xl font-semibold tracking-tight">Een moment afspreken met Jos</h1>
@@ -59,28 +71,20 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
           </a>
           .
         </p>
-      ) : aangevraagd ? (
+      ) : aanvragen.length > 0 ? (
         <>
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
-            Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
-            doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-            <AfzegKnop token={token} afspraakId={aangevraagd.id} label="Aanvraag intrekken" />
-          </div>
-          {bevestigd && (
-            <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
-              Je eerdere afspraak blijft gewoon staan:{" "}
-              <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
-              <AfzegKnop token={token} afspraakId={bevestigd.id} />
+          {aanvragen.map((a) => (
+            <div key={a.id} className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
+              Je voorkeur voor <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong> is doorgegeven. Jos bevestigt
+              hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
+              <AfzegKnop token={token} afspraakId={a.id} label="Aanvraag intrekken" />
             </div>
-          )}
+          ))}
+          {afspraakLijst}
         </>
       ) : dagen.length === 0 ? (
-        bevestigd ? (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
-            Er staat al een afspraak: <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Komt
-            het toch niet uit? Zeg hem hieronder af, of mail Jos voor een ander moment.
-            <AfzegKnop token={token} afspraakId={bevestigd.id} />
-          </div>
+        bevestigde.length > 0 ? (
+          afspraakLijst
         ) : (
           <p className="mt-4 text-stone-600">
             Er staan op dit moment geen tijden klaar. Jos zet ze binnenkort neer, of mail hem gerust op{" "}
@@ -95,13 +99,7 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
           <p className="mt-3 text-stone-600">
             Voor <strong>{site.naam}</strong>. Kies een moment dat jou uitkomt; Jos belt je dan.
           </p>
-          {bevestigd && (
-            <p className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-stone-800">
-              Goed om te weten: er staat al een afspraak op{" "}
-              <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Hieronder kies je een nieuw,
-              extra moment.
-            </p>
-          )}
+          {afspraakLijst}
           <div className="mt-6">
             <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />
           </div>

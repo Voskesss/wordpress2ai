@@ -15,14 +15,14 @@ import Kiezer, { type Dag } from "@/app/afspraak/[token]/Kiezer";
  */
 export default async function AfspraakBlok({ siteId }: { siteId: number }) {
   const { blokken, afspraken: rijen, token } = await afspraakStand(siteId);
-  // Alleen komende afspraken tellen; staan er nieuwe dagen klaar, dan gaan die voor
-  const nu = new Date();
   // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
+  const nu = new Date();
   const komend = rijen.filter((a) => a.start.getTime() + a.duurMinuten * 60_000 > nu.getTime());
-  const bevestigd = komend.find((a) => a.status === "bevestigd");
-  const aangevraagd = komend.find((a) => a.status === "aangevraagd");
-  const momenten = aangevraagd ? [] : vrijeMomenten(blokken, await bezetteTijden(), nu);
-  if (!bevestigd && !aangevraagd && momenten.length === 0) return null;
+  // Álle komende afspraken en aanvragen tonen, niet alleen de eerste
+  const bevestigde = komend.filter((a) => a.status === "bevestigd");
+  const aanvragen = komend.filter((a) => a.status === "aangevraagd");
+  const momenten = aanvragen.length > 0 ? [] : vrijeMomenten(blokken, await bezetteTijden(), nu);
+  if (bevestigde.length === 0 && aanvragen.length === 0 && momenten.length === 0) return null;
 
   // Ingelogd als de eigenaar van deze site? Dan hoeft hij niets in te vullen.
   const [site] = await db
@@ -49,47 +49,52 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
     tijden: d.tijden.map((t) => ({ tijd: t.tijd, iso: t.start.toISOString() })),
   }));
 
+  const afspraakLijst = bevestigde.length > 0 && token && (
+    <div className="mt-2 space-y-2">
+      {bevestigde.map((a) => (
+        <div key={a.id} className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm text-stone-800">
+          ✓ Afgesproken: <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong>. Jos belt je.
+          <AfzegKnop token={token} afspraakId={a.id} />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div id="afspraak" className="mt-4 scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-5">
       <h3 className="font-display text-lg font-semibold">📅 Even samen kijken</h3>
-      {bevestigd && momenten.length === 0 && !aangevraagd ? (
-        <div className="mt-1 text-sm leading-relaxed text-stone-700">
-          Je afspraak met Jos staat: <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>. Hij
-          belt je. Komt het toch niet uit? Zeg hem hieronder af, of mail{" "}
-          <a href="mailto:info@wordswap.nl" className="font-semibold text-violet-700 hover:underline">
-            info@wordswap.nl
-          </a>{" "}
-          voor een ander moment.
-          {token && <AfzegKnop token={token} afspraakId={bevestigd.id} />}
-        </div>
-      ) : aangevraagd ? (
+      {aanvragen.length > 0 ? (
         <>
-          <div className="mt-1 text-sm leading-relaxed text-stone-700">
-            Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
-            doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-            {token && <AfzegKnop token={token} afspraakId={aangevraagd.id} label="Aanvraag intrekken" />}
-          </div>
-          {bevestigd && (
-            <div className="mt-2 text-sm leading-relaxed text-stone-700">
-              Je eerdere afspraak blijft gewoon staan:{" "}
-              <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
-              {token && <AfzegKnop token={token} afspraakId={bevestigd.id} />}
+          {aanvragen.map((a) => (
+            <div key={a.id} className="mt-1 text-sm leading-relaxed text-stone-700">
+              Je voorkeur voor <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong> is doorgegeven. Jos bevestigt
+              hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
+              {token && <AfzegKnop token={token} afspraakId={a.id} label="Aanvraag intrekken" />}
             </div>
-          )}
+          ))}
+          {afspraakLijst}
         </>
-      ) : (
+      ) : momenten.length > 0 ? (
         <>
-          <p className="mt-1 mb-4 text-sm leading-relaxed text-stone-600">
+          <p className="mt-1 mb-2 text-sm leading-relaxed text-stone-600">
             Jos heeft tijd vrijgehouden om je website samen door te lopen: een gesprek van {dagen[0].duurTekst}. Kies
             een moment dat jou uitkomt; hij belt je dan.
           </p>
-          {bevestigd && (
-            <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm text-stone-800">
-              Er staat al een afspraak op <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>;
-              hieronder kies je een nieuw, extra moment.
-            </p>
-          )}
-          {token && <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />}
+          {afspraakLijst}
+          <div className="mt-4">
+            {token && <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />}
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm leading-relaxed text-stone-700">
+            Komt een afspraak toch niet uit? Zeg hem hieronder af, of mail{" "}
+            <a href="mailto:info@wordswap.nl" className="font-semibold text-violet-700 hover:underline">
+              info@wordswap.nl
+            </a>{" "}
+            voor een ander moment.
+          </p>
+          {afspraakLijst}
         </>
       )}
     </div>
