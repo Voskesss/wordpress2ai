@@ -72,7 +72,7 @@ function beeldPaden(html: string): Set<string> {
   return uit;
 }
 
-const alsPagina = (pad: string) =>
+export const alsPagina = (pad: string) =>
   pad.startsWith("delen/")
     ? `een gedeeld blok (${pad.slice(6).replace(/\.html$/, "")})`
     : "/" + pad.replace(/index\.html$/, "").replace(/\.html$/, "");

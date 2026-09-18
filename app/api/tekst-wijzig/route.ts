@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { alsPagina } from "@/lib/consistentie";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import {
@@ -51,8 +52,11 @@ function hexNaarRgbTriplet(hex: string): string {
 }
 
 /** Zelf tekst aanpassen via de aanwijs-tool: letterlijke vervanging zonder AI.
- * Lukt het niet eenduidig (tekst niet of vaker gevonden), dan meldt de route
- * dat de chat het via de AI moet doen — er kan dus nooit iets misgaan. */
+ * Staat de tekst óók op andere pagina's, dan vervangen we hem alleen op de
+ * aangewezen pagina en melden we de andere plekken met de keuze "Overal
+ * doorvoeren | Het moest alleen hier" (zelfde vangnet als de chat). Alleen als
+ * de tekst nérgens of op de eigen pagina meerdere keren staat, gaat het via
+ * de AI — er kan dus nooit iets stilletjes misgaan. */
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId)
@@ -62,6 +66,9 @@ export async function POST(req: Request) {
     siteId: number;
     oud: string;
     nieuw: string;
+    // Adres van de pagina waarop de eigenaar aanwees ("/" of "/contact/"):
+    // nodig om bij tekst die op meer pagina's staat de juiste te pakken
+    pad?: string;
     // Kleur-modus: vervang de kleur OVERAL (zoals een colorpicker in een thema)
     kleur?: boolean;
   };
@@ -184,13 +191,29 @@ export async function POST(req: Request) {
         if (aantal > 0) treffers.push({ pad, inhoud, aantal });
       }
       const totaal = treffers.reduce((som, t) => som + t.aantal, 0);
-      // Tekst: alleen bij precies één vindplaats (anders AI). Kleur: overal vervangen.
-      if (body.kleur ? totaal === 0 : totaal !== 1) {
+      // Adres van de aangewezen pagina ("/contact/") → bestandspad ("contact/index.html")
+      const kaalPad = (body.pad ?? "").replace(/^\/+|\/+$/g, "");
+      const aangewezenPad = !body.pad
+        ? null
+        : kaalPad === ""
+          ? "index.html"
+          : /\.html?$/i.test(kaalPad)
+            ? kaalPad
+            : `${kaalPad}/index.html`;
+      // Kleur: overal vervangen. Tekst: op precies één plek — of, als de tekst
+      // op meer pagina's staat, eenduidig op de aangewezen pagina (de andere
+      // plekken melden we hieronder met de keuze om ze ook aan te passen).
+      const hier = aangewezenPad
+        ? treffers.find((t) => t.pad === aangewezenPad)
+        : undefined;
+      const gekozen =
+        totaal === 1 ? treffers[0] : hier && hier.aantal === 1 ? hier : null;
+      if (body.kleur ? totaal === 0 : !gekozen) {
         return NextResponse.json({ fallback: true, gevonden: totaal });
       }
 
       const gewijzigdePaden: { pad: string; inhoud: string }[] = [];
-      for (const treffer of body.kleur ? treffers : [treffers[0]]) {
+      for (const treffer of body.kleur ? treffers : gekozen ? [gekozen] : []) {
         const nieuweInhoud = treffer.inhoud.replace(patroon, (m) =>
           m.startsWith("rgba") || m.startsWith("RGBA")
             ? `rgba(${hexNaarRgbTriplet(vervanging)},`
@@ -301,9 +324,16 @@ export async function POST(req: Request) {
         }
       }
 
+      // Staat dezelfde tekst óók nog op andere pagina's? Dan komt daar — net
+      // als bij de chat — altijd een duidelijke melding mét keuzeknoppen bij.
+      const elders = body.kleur
+        ? []
+        : treffers.filter((t) => t.pad !== treffer.pad).map((t) => alsPagina(t.pad));
       const reply = body.kleur
         ? `Kleur aangepast! ${oud.slice(0, 40)} is overal vervangen door ${nieuw.slice(0, 40)} (${totaal} plekken). Bekijk het voorbeeld en publiceer als je tevreden bent.`
-        : `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${treffer.pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+        : elders.length
+          ? `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" op ${alsPagina(treffer.pad)}.\n\n⚠️ **Let op:** dezelfde tekst staat óók nog op ${elders.slice(0, 3).join(" en ")}${elders.length > 3 ? ` en nog ${elders.length - 3} andere plekken` : ""}. Zal ik hem daar ook aanpassen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
+          : `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" (op ${alsPagina(treffer.pad)}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
       await db.insert(messages).values([
         {
           siteId: site.id,

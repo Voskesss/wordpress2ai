@@ -1359,6 +1359,7 @@ export async function POST(req: Request) {
           // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
           if (werkmap && changeRowId && gewijzigd.length > 0) {
             let vangnetDebug = "";
+            let vangnetVraag = false;
             try {
               const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
               if (!vroegAlleenHier) {
@@ -1372,7 +1373,12 @@ export async function POST(req: Request) {
                   oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
                 });
                 if (meldingen.length) {
-                  reply += `\n\n${meldingen.join("\n")}\nZeg "overal doorvoeren" en ik pas het overal aan, of "alleen hier" als dit bewust maar op één plek moest.`;
+                  // De vangnet-vraag krijgt de keuzeknoppen; een eventuele
+                  // KEUZES-regel van de AI zelf vervalt dan (er kan er maar één
+                  // onderaan staan, en deze waarschuwing gaat voor)
+                  reply = reply.replace(/\n\s*KEUZES:[^\n]*\s*$/, "");
+                  reply += `\n\n${meldingen.map((m) => `⚠️ **${m}**`).join("\n")}\nZal ik het overal gelijktrekken, of moest dit bewust alleen hier?`;
+                  vangnetVraag = true;
                 }
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
                 const sonde = gewijzigd.find((p) => p.endsWith(".html"));
@@ -1390,6 +1396,11 @@ export async function POST(req: Request) {
             // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
             if (process.env.VERCEL_ENV !== "production" && vangnetDebug)
               reply += `\n\n[vangnet: ${vangnetDebug}]`;
+            // De KEUZES-regel moet de allerlaatste regel zijn (zo wordt hij in
+            // het portaal knoppen en in WhatsApp een keuzelijst), dus ná de
+            // eventuele debugregel hierboven
+            if (vangnetVraag)
+              reply += `\nKEUZES: Overal doorvoeren | Het moest alleen hier`;
           }
 
           await db
