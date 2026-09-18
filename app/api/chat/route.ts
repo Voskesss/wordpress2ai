@@ -601,6 +601,12 @@ export async function POST(req: Request) {
           }
           clearTimeout(koudeStart);
           const snapshot = await maakSnapshot(werkmap);
+          // Basis voor het dubbeling-vangnet: de stand van de site aan het
+          // BEGIN van deze beurt. Zonder sha zou een vervolgbeurt binnen een
+          // concept met zichzelf vergelijken en nooit iets melden.
+          const vangnetBasisSha: string | null = await import("@/lib/cloudflare")
+            .then((m) => m.commitShaVan(site.githubRepo, openConcept?.branch ?? undefined))
+            .catch(() => null);
 
           // SNELPAD: pure tekstwissel op precies één plek → direct vervangen,
           // geen agent. In seconden klaar in plaats van minuten.
@@ -1358,7 +1364,8 @@ export async function POST(req: Request) {
               if (!vroegAlleenHier) {
                 const { dubbelingsMeldingen } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");
-                const basisRef = openConcept?.branch;
+                const basisRef = vangnetBasisSha ?? undefined;
+                if (!basisRef) throw new Error("geen basis-sha; vangnet overgeslagen om niet met zichzelf te vergelijken");
                 const meldingen = await dubbelingsMeldingen({
                   werkmap,
                   gewijzigd,
