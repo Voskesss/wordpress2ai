@@ -1259,8 +1259,12 @@ export default function Chat({
     // seconden, en zonder dit leek het in de chat of er niets gebeurde.
     setZelfBezig(true);
     setOplevering(null);
-    setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser, even geduld...");
+    setLaderTekst("Achtergrond weghalen — dit gebeurt in je eigen browser en duurt tot ongeveer een halve minuut...");
     try {
+      // Het weghalen rekent in deze pagina zelf en legt het scherm zolang stil.
+      // Even wachten tot de melding écht getekend is, anders ziet de eigenaar
+      // een lege zwarte balk tot het rekenwerk klaar is.
+      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 60)));
       const { removeBackground } = await import("@imgly/background-removal");
       const bron = await fetch(`/site-weergave/${previewAccess}/${pad}`).then((r) => r.blob());
       const uit = await removeBackground(bron);
@@ -1293,7 +1297,7 @@ export default function Chat({
     }
     setZelfBezig(true);
     setOplevering(null);
-    setLaderTekst("Even geduld — je nieuwe foto wordt geplaatst...");
+    setLaderTekst("Bijna klaar — je nieuwe foto wordt geplaatst...");
     setChatOpen(true);
     setBerichten((b) => [...b, { rol: "klant", tekst: "📷 Foto vervangen (zelf gekozen bestand)" }]);
     try {
