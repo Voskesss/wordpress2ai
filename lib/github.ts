@@ -356,3 +356,68 @@ export async function mergeBranchInMain(repo: string, branch: string) {
     }),
   });
 }
+
+/** Merget branch \`head\` in branch \`base\` (GitHub-merge, geen PR). Geeft
+ * "conflict" terug als het niet schoon kan, zodat de aanroeper dat netjes
+ * kan melden in plaats van een kale 409. */
+export async function mergeBranches(
+  repo: string,
+  base: string,
+  head: string
+): Promise<"samengevoegd" | "al-bij" | "conflict"> {
+  const token = await installationToken();
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_ORG}/${repo}/merges`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ base, head }),
+  });
+  if (res.status === 201) return "samengevoegd";
+  if (res.status === 204) return "al-bij";
+  if (res.status === 409) return "conflict";
+  throw new Error(`Merge ${head} → ${base} mislukt: ${res.status} ${await res.text()}`);
+}
+
+/** Zet (of maakt) branch \`doel\` op een nieuwe commit waarvan de INHOUD gelijk
+ * is aan \`bronRef\`, met de kop van main als ouder. Zo wordt een compleet
+ * ander ontwerp één gewone wijziging bovenop main — precies wat het
+ * bestaande publiceerpad (merge in main) verwacht, zonder conflicten. */
+export async function zetBranchOpInhoudVan(
+  repo: string,
+  doel: string,
+  bronRef: string,
+  boodschap: string
+): Promise<string> {
+  const repoInfo = (await gh(`/repos/${GITHUB_ORG}/${repo}`)) as {
+    default_branch: string;
+  };
+  const mainRef = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/ref/heads/${repoInfo.default_branch}`
+  )) as { object: { sha: string } };
+  const bron = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/commits/${encodeURIComponent(bronRef)}`
+  )) as { commit: { tree: { sha: string } } };
+  const commit = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits`, {
+    method: "POST",
+    body: JSON.stringify({
+      message: boodschap,
+      tree: bron.commit.tree.sha,
+      parents: [mainRef.object.sha],
+    }),
+  })) as { sha: string };
+  try {
+    await gh(`/repos/${GITHUB_ORG}/${repo}/git/refs`, {
+      method: "POST",
+      body: JSON.stringify({ ref: `refs/heads/${doel}`, sha: commit.sha }),
+    });
+  } catch {
+    await gh(`/repos/${GITHUB_ORG}/${repo}/git/refs/heads/${doel}`, {
+      method: "PATCH",
+      body: JSON.stringify({ sha: commit.sha, force: true }),
+    });
+  }
+  return commit.sha;
+}
