@@ -1073,13 +1073,25 @@ export async function ontwerpZichtbaarheid(formData: FormData) {
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return;
   const aan = formData.get("aan") === "ja";
-  const { siteVoorOntwerp, maakOfVerversOntwerp, roteerOntwerpAdres } = await import("@/lib/ontwerp");
+  const { siteVoorOntwerp, maakOfVerversOntwerp, verbergOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  if (aan && !site.ontwerpSlug) await maakOfVerversOntwerp(site);
-  // Verbergen = ook het adres vernieuwen: wie de oude link kent, kan er niet meer bij
-  if (!aan && site.ontwerpSlug) await roteerOntwerpAdres(site);
-  await db.update(sites).set({ ontwerpZichtbaar: aan }).where(eq(sites.id, siteId));
+  try {
+    if (aan) {
+      // Tonen: zo nodig eerst een (nieuw) adres maken — dat is de trage stap,
+      // en pas als die slaagt gaat de kaart bij de klant aan.
+      if (!site.ontwerpSlug) await maakOfVerversOntwerp(site);
+      await db.update(sites).set({ ontwerpZichtbaar: true }).where(eq(sites.id, siteId));
+    } else {
+      // Verbergen: direct — adres weg, kaart weg, gedeelde link dood.
+      await verbergOntwerp(site);
+    }
+  } catch (e) {
+    console.error("Ontwerp-zichtbaarheid:", e);
+    revalidatePath(`/admin/klant/${siteId}`);
+    const { redirect } = await import("next/navigation");
+    redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(aan ? "Tonen is niet gelukt (adres maken brak af). Probeer het nog eens; bij een grote site kan de eerste keer lang duren." : "Verbergen is niet gelukt; het adres bestaat mogelijk nog. Probeer het nog eens.")}`);
+  }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
 }

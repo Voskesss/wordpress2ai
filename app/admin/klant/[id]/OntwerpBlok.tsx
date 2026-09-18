@@ -74,7 +74,7 @@ export default async function OntwerpBlok({
                 {url.replace("https://", "")}
               </a>
             ) : (
-              <span className="text-stone-500">nog geen adres — klik Opnieuw deployen</span>
+              <span className="text-stone-500">geen actief adres — Tonen of Opnieuw deployen maakt een nieuw, onraadbaar adres</span>
             )}{" "}
             <span className="text-stone-500">
               — {status.voor} wijziging(en) vóór op live
@@ -94,7 +94,8 @@ export default async function OntwerpBlok({
               <input type="hidden" name="siteId" value={site.id} />
               <ActieKnop
                 label="Opnieuw deployen"
-                bezigLabel="Deployen..."
+                bezigLabel="Deployen... (nieuw adres kan ±1 min duren)"
+                klaarLabel="✓ Gedeployed"
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
@@ -103,6 +104,7 @@ export default async function OntwerpBlok({
               <ActieKnop
                 label="Bijwerken vanaf live"
                 bezigLabel="Bijwerken..."
+                klaarLabel="✓ Bijgewerkt"
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
@@ -125,12 +127,13 @@ export default async function OntwerpBlok({
               />
             </form>
           </div>
-          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen vernieuwt ook het adres, dus een eerder gedeelde link werkt daarna niet meer.">
+          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen haalt het adres direct weg, dus een eerder gedeelde link is meteen dood; opnieuw tonen maakt een vers adres (eerste keer kan ±1 min duren).">
             <input type="hidden" name="siteId" value={site.id} />
             <input type="hidden" name="aan" value={site.ontwerpZichtbaar ? "nee" : "ja"} />
             <ActieKnop
-              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen (oude link vervalt)" : "Nog verborgen voor de klant — tonen in portaal"}
-              bezigLabel="Aanpassen..."
+              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen (adres vervalt direct)" : "Nog verborgen voor de klant — tonen in portaal"}
+              bezigLabel={site.ontwerpZichtbaar ? "Verbergen..." : "Adres maken en tonen... (±1 min)"}
+              klaarLabel={site.ontwerpZichtbaar ? "✓ Verborgen — adres vervallen" : "✓ Zichtbaar voor de klant"}
               className={`${KNOP} ${site.ontwerpZichtbaar ? "bg-emerald-600 text-white hover:bg-emerald-500" : "border border-stone-300 text-stone-700 hover:bg-stone-50"}`}
             />
           </form>

@@ -78,17 +78,16 @@ export async function maakOfVerversOntwerp(site: OntwerpSite) {
   return naam;
 }
 
-/** Nieuw adres voor het ontwerp; het oude adres houdt op te bestaan. Voor
- * "verbergen": de klant (of wie de link ook heeft) kan er dan echt niet
- * meer bij. */
-export async function roteerOntwerpAdres(site: OntwerpSite) {
-  if (!site.siteSlug) throw new Error("Site heeft geen slug.");
-  const oud = site.ontwerpSlug;
-  const nieuw = nieuweOntwerpNaam(site.siteSlug);
-  await deployRepoNaarCloudflareRef(site.githubRepo, nieuw, ONTWERP_BRANCH);
-  await db.update(sites).set({ ontwerpSlug: nieuw }).where(eq(sites.id, site.id));
-  if (oud) await verwijderCloudflareSite(oud).catch(() => {});
-  return nieuw;
+/** Verbergen: het adres wordt direct verwijderd, dus een gedeelde link is
+ * meteen dood. Bewust GEEN nieuwe deploy hier — dat duurde bij grote sites
+ * langer dan een klik mag duren. Opnieuw tonen (of deployen) maakt vanzelf
+ * een vers, onraadbaar adres. */
+export async function verbergOntwerp(site: OntwerpSite) {
+  if (site.ontwerpSlug) await verwijderCloudflareSite(site.ontwerpSlug);
+  await db
+    .update(sites)
+    .set({ ontwerpSlug: null, ontwerpZichtbaar: false })
+    .where(eq(sites.id, site.id));
 }
 
 /** Haalt de laatste wijzigingen van de klant (main) het ontwerp in, zodat
