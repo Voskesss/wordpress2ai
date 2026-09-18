@@ -183,20 +183,25 @@ export async function annuleerAfspraak(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("afspraakId"));
   const siteId = Number(formData.get("siteId"));
+  const reden = String(formData.get("reden") ?? "").trim().slice(0, 500);
   if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
   const [afspraak] = await db
     .select()
     .from(afspraken)
     .where(and(eq(afspraken.id, id), eq(afspraken.siteId, siteId)));
   if (!afspraak || afspraak.status === "geannuleerd") return;
-  await db.update(afspraken).set({ status: "geannuleerd" }).where(eq(afspraken.id, id));
+  await db
+    .update(afspraken)
+    .set({ status: "geannuleerd", afzegReden: reden || null })
+    .where(eq(afspraken.id, id));
   if (afspraak.email) {
     await mailVanJos({
       naar: afspraak.email,
       van: "Jos van WordSwap",
       onderwerp: "Afspraak gaat niet door",
       html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
-<p>Het moment van <strong>${ontsnap(momentInWoorden(afspraak.start, afspraak.duurMinuten))}</strong> gaat helaas niet door. Ik neem contact met je op voor een nieuw moment.</p>
+<p>Het moment van <strong>${ontsnap(momentInWoorden(afspraak.start, afspraak.duurMinuten))}</strong> gaat helaas niet door.${reden ? ` ${ontsnap(reden)}` : ""}</p>
+<p>Ik neem contact met je op voor een nieuw moment.</p>
 <p>Groet,<br>Jos</p>`),
     });
   }
