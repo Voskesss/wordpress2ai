@@ -110,6 +110,7 @@ export async function bevestigAfspraak(formData: FormData) {
   // Contact: leeg = bellen op het opgegeven nummer; een nummer = dat nummer;
   // een zin ("Ik stuur je een Teams-uitnodiging.") wordt letterlijk gebruikt.
   const contact = String(formData.get("contact") ?? "").trim().slice(0, 200) || null;
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000) || null;
   if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
   const [afspraak] = await db
     .select()
@@ -151,7 +152,7 @@ export async function bevestigAfspraak(formData: FormData) {
   const bijlagen = [{ bestandsnaam: "afspraak.ics", inhoud: ics }];
 
   if (afspraak.email) {
-    const mail = bouwAfspraakBevestiging({ ...afspraak, contact });
+    const mail = bouwAfspraakBevestiging({ ...afspraak, contact, eigenTekst });
     await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, bijlagen });
   }
   await mailVanJos({

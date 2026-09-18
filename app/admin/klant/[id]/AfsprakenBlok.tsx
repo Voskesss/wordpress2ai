@@ -64,7 +64,13 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                   title="Leeg = bellen op het opgegeven nummer. Een zin wordt letterlijk in de mail gezet."
                   className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
                 />
-                <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"]]} />
+                <input
+                  name="bericht"
+                  placeholder="Eigen berichtje in de mail (mag leeg)"
+                  title="Komt onder de afspraakregels in de bevestigingsmail."
+                  className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
+                />
+                <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"]]} />
                   <ActieKnop
                     label="Bevestigen"
                     bezigLabel="Bevestigen..."

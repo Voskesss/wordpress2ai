@@ -82,6 +82,8 @@ export function bouwAfspraakBevestiging(o: {
   duurMinuten: number;
   /** Afwijkende contactzin; leeg = bellen op o.telefoon */
   contact?: string | null;
+  /** Eigen berichtje van Jos, onder de afspraakregels */
+  eigenTekst?: string | null;
 }): { onderwerp: string; html: string } {
   const wanneer = momentInWoorden(o.start, o.duurMinuten);
   return {
@@ -90,6 +92,7 @@ export function bouwAfspraakBevestiging(o: {
 <p>De afspraak staat: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(o.duurMinuten)}).</p>
 <p>${ontsnap(contactZin(o.contact ?? o.telefoon))} In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
 ${o.opmerking ? `<p>Je berichtje: ${ontsnap(o.opmerking)}</p>` : ""}
+${alineas(o.eigenTekst)}
 <p>Komt het toch niet uit? Mail of bel me gerust, dan zoeken we een ander moment.</p>
 <p>Groet,<br>Jos</p>`),
   };
