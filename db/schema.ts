@@ -34,6 +34,8 @@ export const sites = pgTable("sites", {
   afspraakToken: text("afspraak_token"),
   // Wanneer de klant de uitnodiging met de voorgestelde dagen kreeg
   afspraakMailOp: timestamp("afspraak_mail_op", { withTimezone: true }),
+  // Wanneer het review-/referentieverzoek is gemaild
+  reviewMailOp: timestamp("review_mail_op", { withTimezone: true }),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
@@ -56,6 +58,11 @@ export const sites = pgTable("sites", {
   // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
   aiExtraUsd: integer("ai_extra_usd").notNull().default(0),
   aiExtraMaand: text("ai_extra_maand"),
+  // Fair-use-aantal wijzigingen per maand (pakketbelofte), plus eenmalige
+  // extra voor één maand — zelfde model als het AI-budget hierboven.
+  wijzigingenLimiet: integer("wijzigingen_limiet").notNull().default(30),
+  wijzigingenExtra: integer("wijzigingen_extra").notNull().default(0),
+  wijzigingenExtraMaand: text("wijzigingen_extra_maand"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),
@@ -76,23 +83,28 @@ export const sites = pgTable("sites", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
-// WhatsApp-kanaal: welk telefoonnummer bij welke site hoort. Een rij begint
-// met alleen een koppelcode (in het portaal getoond); zodra de eigenaar
-// "KOPPEL <code>" appt, komt zijn nummer erin en vervalt de code.
+// WhatsApp-kanaal: welke telefoonnummers bij welke site horen. WordSwap zet ze
+// in de admin vast (met landcode); alleen berichten van zo'n nummer worden
+// verwerkt. Meerdere telefoons per site mag, één nummer hoort bij één site.
 export const whatsappKoppelingen = pgTable("whatsapp_koppelingen", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id")
     .notNull()
     .references(() => sites.id),
-  // Wie de koppeling maakte; namens deze gebruiker lopen de chatbeurten
+  // Namens wie de chatbeurten lopen (de eigenaar van de site)
   clerkUserId: text("clerk_user_id").notNull(),
-  // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678)
-  telefoon: text("telefoon").unique(),
-  koppelcode: text("koppelcode"),
-  codeVerloopt: timestamp("code_verloopt"),
+  // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678).
+  // Eén telefoon mag aan meerdere sites hangen (iemand met twee websites);
+  // per site komt hij hooguit één keer voor.
+  telefoon: text("telefoon"),
+  // Naam erbij, zodat je in de admin ziet wiens telefoon het is
+  omschrijving: text("omschrijving"),
+  // Hangt dit nummer aan meerdere sites, dan onthouden we hiermee aan welke
+  // website hij nu bezig is (zie WISSEL_NA_MS in lib/whatsapp/verwerk.ts).
+  laatstGebruikt: timestamp("laatst_gebruikt"),
   gekoppeldOp: timestamp("gekoppeld_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
-});
+}, (t) => [unique("whatsapp_koppelingen_telefoon_site").on(t.telefoon, t.siteId)]);
 
 // Elk binnenkomend WhatsApp-bericht, ook om dubbele aflevering door Meta te
 // herkennen (wa_message_id) en losse foto's samen te nemen tot één opdracht.

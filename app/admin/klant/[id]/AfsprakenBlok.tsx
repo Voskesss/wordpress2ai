@@ -1,7 +1,9 @@
 import { duurInWoorden, komendeWerkdagen, momentInWoorden } from "@/lib/afspraken";
 import { afspraakStand } from "@/lib/afspraken-db";
-import { annuleerAfspraak, bevestigAfspraak, verwijderAfspraakBlok } from "../../acties-afspraken";
+import { bevestigAfspraak, verwijderAfspraakBlok } from "../../acties-afspraken";
+import AfzegMetReden from "./AfzegMetReden";
 import DagKlaarzetten from "./DagKlaarzetten";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 import AfspraakMailKnop from "./AfspraakMailKnop";
 import ActieKnop from "./ActieKnop";
 
@@ -38,11 +40,7 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                   {a.telefoon ? ` · ${a.telefoon}` : ""}
                   {a.opmerking ? ` · "${a.opmerking}"` : ""}
                 </span>
-                <form action={annuleerAfspraak}>
-                  <input type="hidden" name="siteId" value={siteId} />
-                  <input type="hidden" name="afspraakId" value={a.id} />
-                  <ActieKnop label="Afzeggen" bezigLabel="..." klaarLabel="✓" className="text-xs font-semibold underline cursor-pointer" />
-                </form>
+                <AfzegMetReden siteId={siteId} afspraakId={a.id} label="Afzeggen" />
               </div>
             ) : (
               <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -55,6 +53,7 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                   {a.opmerking ? ` · "${a.opmerking}"` : ""}
                   {a.ingelogd ? " · ingelogd als deze klant" : " · via de planlink (gegevens niet gecontroleerd)"}
                 </span>
+                <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={siteId} extra={{ afspraakId: String(a.id) }} />
                 <form action={bevestigAfspraak}>
                   <input type="hidden" name="siteId" value={siteId} />
                   <input type="hidden" name="afspraakId" value={a.id} />
@@ -65,11 +64,7 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                     className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 cursor-pointer"
                   />
                 </form>
-                <form action={annuleerAfspraak}>
-                  <input type="hidden" name="siteId" value={siteId} />
-                  <input type="hidden" name="afspraakId" value={a.id} />
-                  <ActieKnop label="Afwijzen" bezigLabel="..." klaarLabel="✓" className="text-xs font-semibold underline cursor-pointer" />
-                </form>
+                <AfzegMetReden siteId={siteId} afspraakId={a.id} label="Afwijzen" />
               </div>
             ),
           )}

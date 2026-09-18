@@ -12,7 +12,7 @@ export default function UitnodigingVoorbeeldKnop({ siteId }: { siteId: number })
         const form = e.currentTarget.closest("form");
         const fd = form ? new FormData(form) : new FormData();
         const q = new URLSearchParams({ siteId: String(siteId) });
-        for (const [veld, param] of [["email", "email"], ["bekijkLink", "link"]] as const) {
+        for (const [veld, param] of [["email", "email"], ["bekijkLink", "link"], ["naam", "naam"], ["bericht", "bericht"]] as const) {
           const w = String(fd.get(veld) ?? "").trim();
           if (w) q.set(param, w);
         }

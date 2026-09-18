@@ -2,7 +2,9 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { duurInWoorden } from "@/lib/afspraken";
 import { alleKomendeAfspraken } from "@/lib/afspraken-db";
-import { annuleerAfspraak, bevestigAfspraak } from "../acties-afspraken";
+import { bevestigAfspraak } from "../acties-afspraken";
+import AfzegMetReden from "../klant/[id]/AfzegMetReden";
+import MailVoorbeeldKnop from "../klant/[id]/MailVoorbeeldKnop";
 import ActieKnop from "../klant/[id]/ActieKnop";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +90,7 @@ export default async function AfsprakenOverzicht() {
                     </span>
                     {a.status === "aangevraagd" && (
                       <>
+                        <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} />
                         <form action={bevestigAfspraak}>
                           <input type="hidden" name="siteId" value={a.siteId} />
                           <input type="hidden" name="afspraakId" value={a.id} />
@@ -98,19 +101,11 @@ export default async function AfsprakenOverzicht() {
                             className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 cursor-pointer"
                           />
                         </form>
-                        <form action={annuleerAfspraak}>
-                          <input type="hidden" name="siteId" value={a.siteId} />
-                          <input type="hidden" name="afspraakId" value={a.id} />
-                          <ActieKnop label="Afwijzen" bezigLabel="..." klaarLabel="✓" className="text-xs font-semibold underline cursor-pointer" />
-                        </form>
+                        <AfzegMetReden siteId={a.siteId} afspraakId={a.id} label="Afwijzen" />
                       </>
                     )}
                     {a.status === "bevestigd" && (
-                      <form action={annuleerAfspraak}>
-                        <input type="hidden" name="siteId" value={a.siteId} />
-                        <input type="hidden" name="afspraakId" value={a.id} />
-                        <ActieKnop label="Afzeggen" bezigLabel="..." klaarLabel="✓" className="text-xs font-semibold underline cursor-pointer" />
-                      </form>
+                      <AfzegMetReden siteId={a.siteId} afspraakId={a.id} label="Afzeggen" />
                     )}
                   </div>
                 ))}

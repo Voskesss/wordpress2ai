@@ -5,10 +5,12 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import {
   conceptCommando,
-  koppelcodeUit,
+  wisselCommando,
+  normaliseerNummer,
   leesKnop,
   leesWebhook,
   paginaVoorConcept,
+  toonNummer,
   splitsKeuzes,
   voegSamen,
 } from "../lib/whatsapp/berichten";
@@ -48,11 +50,19 @@ assert.equal(binnen[4].inhoud, "pub:42");
 assert.deepEqual(leesWebhook({}), [], "rommel geeft geen berichten");
 assert.deepEqual(leesWebhook(null), []);
 
-// 2) Koppelcode
-assert.equal(koppelcodeUit("KOPPEL 123456"), "123456");
-assert.equal(koppelcodeUit("  koppel   654321 "), "654321");
-assert.equal(koppelcodeUit("koppel 12345"), null, "te kort");
-assert.equal(koppelcodeUit("wil je koppel 123456 doen"), null, "alleen het hele bericht");
+// 2) Telefoonnummers: landcode verplicht, opmaak maakt niet uit
+assert.equal(normaliseerNummer("+31612345678"), "31612345678");
+assert.equal(normaliseerNummer("+31 (0)6 12 34 56 78"), "31612345678", "spaties en (0) eruit");
+assert.equal(normaliseerNummer("0031-6-12345678"), "31612345678", "00 telt als landcode");
+assert.equal(normaliseerNummer("  +49 171 1234567 "), "491711234567");
+assert.equal(normaliseerNummer("0612345678"), null, "zonder landcode weigeren");
+assert.equal(normaliseerNummer("612345678"), null);
+assert.equal(normaliseerNummer("+31 6"), null, "te kort");
+assert.equal(normaliseerNummer("+3112345678901234567"), null, "te lang");
+assert.equal(normaliseerNummer(""), null);
+assert.equal(normaliseerNummer(null), null);
+assert.equal(toonNummer("31610911365"), "+31 •••• 1365");
+assert.equal(toonNummer(null), "");
 
 // 3) Knoppen en getypte commando's
 assert.deepEqual(leesKnop("pub:42"), { actie: "publiceer", changeId: 42 });
@@ -66,6 +76,13 @@ assert.equal(conceptCommando("Publiceer!"), "publiceer");
 assert.equal(conceptCommando("zet het live"), "publiceer");
 assert.equal(conceptCommando("gooi weg"), "weggooien");
 assert.equal(conceptCommando("publiceer de nieuwe vacature ook op de homepage"), null, "gewone opdracht blijft een opdracht");
+
+// 3b) Wisselen van website (nummer aan meerdere sites)
+assert.ok(wisselCommando("andere website"));
+assert.ok(wisselCommando("Andere site!"));
+assert.ok(wisselCommando("wissel van website"));
+assert.ok(!wisselCommando("zet op de andere website ook de openingstijden"), "gewone opdracht blijft een opdracht");
+assert.ok(!wisselCommando(null));
 
 // 4) KEUZES-regel
 const k = splitsKeuzes("Waar moet hij komen?\nKEUZES: Doe maar zoals jij voorstelt | Op de homepage | ✏️ Ik vertel het zelf");

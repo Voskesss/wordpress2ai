@@ -55,18 +55,36 @@ const knop = (url: string, label: string, primair = true) => {
   }color:${kleur} !important;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px"><span style="color:${kleur} !important;text-decoration:none;font-weight:600">${label}</span></a></p>`;
 };
 
+/** "Hoi Rogier," als we een naam hebben, anders gewoon "Hoi," */
+function aanhef(naam?: string | null): string {
+  const voornaam = (naam ?? "").trim().split(/\s+/)[0];
+  return p(`Hoi${voornaam ? ` ${ontsnap(voornaam)}` : ""},`);
+}
+
+/** Eigen berichtje van Jos, als gewone alinea's. */
+function eigenAlineas(tekst?: string | null): string {
+  const schoon = (tekst ?? "").trim();
+  if (!schoon) return "";
+  return schoon
+    .split(/\n{2,}/)
+    .map((stuk) => p(ontsnap(stuk).replace(/\n/g, "<br>")))
+    .join("");
+}
+
 /** De mail die de klant krijgt bij het koppelen van zijn e-mailadres. */
 export function bouwOpleveringsMail(o: {
   siteNaam: string;
   bekijkUrl: string;
   inlogUrl: string;
+  naam?: string | null;
+  eigenTekst?: string | null;
 }): { onderwerp: string; html: string } {
   const site = ontsnap(o.siteNaam);
   const bekijkTekst = ontsnap(o.bekijkUrl.replace(/^https:\/\//, "").replace(/\/$/, ""));
   return {
     onderwerp: `Je nieuwe website staat klaar: ${o.siteNaam}`,
     html: inWordSwapHuisstijl(
-      p("Hoi,") +
+      aanhef(o.naam) +
         p(
           `Goed nieuws: je nieuwe website van <strong>${site}</strong> staat klaar. We hebben je e-mailadres eraan gekoppeld, dus je kunt nu rustig kijken of je tevreden bent.`,
         ) +
@@ -83,6 +101,7 @@ export function bouwOpleveringsMail(o: {
           "Je hebt geen wachtwoord nodig: je krijgt bij het inloggen een code op dit e-mailadres. <strong>Zie je die code niet binnen een minuut? Kijk dan even in je spam of ongewenste mail.</strong>",
         ) +
         p("Twijfel je ergens over of klopt er iets niet? Antwoord gewoon op deze mail of bel me op " + TELEFOON + ".") +
+        eigenAlineas(o.eigenTekst) +
         p("Groet,<br>Jos"),
       "Je krijgt deze mail omdat je website door WordSwap wordt overgezet.",
     ),
@@ -90,7 +109,7 @@ export function bouwOpleveringsMail(o: {
 }
 
 /** Voor een site die al draait (overdragen aan een ander account): toegang, zonder akkoordverhaal. */
-export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlogUrl: string }): {
+export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null }): {
   onderwerp: string;
   html: string;
 } {
@@ -98,7 +117,7 @@ export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlog
   return {
     onderwerp: `Je hebt toegang tot je website: ${o.siteNaam}`,
     html: inWordSwapHuisstijl(
-      p("Hoi,") +
+      aanhef(o.naam) +
         p(
           `Je e-mailadres is gekoppeld aan de website van <strong>${site}</strong>. Vanaf nu kun je hem zelf bijhouden: typ in de chat wat er anders moet, bekijk het voorbeeld en zet het live wanneer jij wilt.`,
         ) +
@@ -108,6 +127,7 @@ export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlog
           "Je hebt geen wachtwoord nodig: je krijgt bij het inloggen een code op dit e-mailadres. <strong>Zie je die code niet binnen een minuut? Kijk dan even in je spam of ongewenste mail.</strong>",
         ) +
         p("Vragen? Antwoord gewoon op deze mail of bel me op " + TELEFOON + ".") +
+        eigenAlineas(o.eigenTekst) +
         p("Groet,<br>Jos"),
     ),
   };
@@ -116,7 +136,7 @@ export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlog
 /** Welke mail hoort bij deze site: in opbouw = oplevering met akkoord, anders = toegang. */
 export function bouwKoppelMail(
   site: { naam: string; status: string; isDemo: boolean },
-  links: { bekijkUrl: string; inlogUrl: string },
+  links: { bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null },
 ) {
   return vraagtOpleveringsAkkoord(site)
     ? bouwOpleveringsMail({ siteNaam: site.naam, ...links })
@@ -125,13 +145,13 @@ export function bouwKoppelMail(
 
 /** Bevestiging aan de klant na het akkoord: Jos neemt contact op voor het koppelen van de domeinnaam
  * en eventuele andere afspraken. */
-export function bouwAkkoordBevestiging(o: { siteNaam: string; domein?: string | null }): { onderwerp: string; html: string } {
+export function bouwAkkoordBevestiging(o: { siteNaam: string; domein?: string | null; naam?: string | null }): { onderwerp: string; html: string } {
   const domein = (o.domein ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
   const eigenDomein = domein && !/\.workers\.dev$/.test(domein) ? domein : "";
   return {
     onderwerp: `Bedankt voor je akkoord: ${o.siteNaam}`,
     html: inWordSwapHuisstijl(
-      p("Hoi,") +
+      aanhef(o.naam) +
         p(
           `Dank je wel! Je hebt akkoord gegeven op je nieuwe website van <strong>${ontsnap(o.siteNaam)}</strong>. Dat hebben we netjes vastgelegd.`,
         ) +

@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -86,6 +86,8 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const naam = String(formData.get("naam") ?? "").trim().slice(0, 120);
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
   if (!Number.isInteger(siteId) || !email.includes("@")) return;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
@@ -119,9 +121,17 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   if (!klantId) {
     // Account bestaat nog niet: meteen aanmaken (zonder wachtwoord). Dan kan de klant
     // direct inloggen met een code, ook zonder op de link in de mail te klikken.
+    // Naam meteen op het account: dan spreken ook alle latere mails (akkoord,
+    // afspraken) de klant met zijn voornaam aan.
+    const [voornaam, ...rest] = naam.split(/\s+/).filter(Boolean);
     const nieuw = await clerk("/users", {
       method: "POST",
-      body: JSON.stringify({ email_address: [email], skip_password_requirement: true }),
+      body: JSON.stringify({
+        email_address: [email],
+        skip_password_requirement: true,
+        ...(voornaam ? { first_name: voornaam } : {}),
+        ...(rest.length ? { last_name: rest.join(" ") } : {}),
+      }),
     });
     const data = (await nieuw.json().catch(() => ({}))) as { id?: string };
     if (!nieuw.ok || !data.id) {
@@ -145,7 +155,7 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst });
     const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }
@@ -847,6 +857,73 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+export type ReviewMailUitkomst = { ok: boolean; melding: string };
+
+/** Review- en referentieverzoek naar de klant: één klik, huisstijlmail met de
+ * Google-reviewknop en de vraag of de site als referentie genoemd mag worden. */
+export async function mailReviewVerzoek(
+  _vorige: ReviewMailUitkomst | null,
+  formData: FormData,
+): Promise<ReviewMailUitkomst> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return { ok: false, melding: "Onbekende klant." };
+  const { klantAdres } = await import("@/lib/klant-adres");
+  const ontvanger = await klantAdres(site);
+  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+  const { mailVanJos } = await import("@/lib/wordswap-mail");
+  const { bouwReviewVerzoek } = await import("@/lib/klant-mails");
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
+  const mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger.naam, eigenTekst });
+  const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+  if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
+  await db.update(sites).set({ reviewMailOp: new Date() }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  return { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` };
+}
+
+/** Wijzigingenteller van deze maand op nul — voor als Jos zelf in het
+ * klantaccount heeft zitten testen en de klant er niet op mag inleveren. */
+export async function resetWijzigingenTeller(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { usage } = await import("@/db/schema");
+  const { and: en } = await import("drizzle-orm");
+  const maand = new Date().toISOString().slice(0, 7);
+  await db
+    .update(usage)
+    .set({ wijzigingen: 0 })
+    .where(en(eq(usage.siteId, siteId), eq(usage.maand, maand)));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Fair-use-aantal wijzigingen per maand voor deze klant (pakketbelofte). */
+export async function bewaarWijzigingenLimiet(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const limiet = Number(formData.get("limiet"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 1 || limiet > 1000) return;
+  await db.update(sites).set({ wijzigingenLimiet: limiet }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
+/** Eenmalig extra wijzigingen voor deze maand; vervalt vanzelf op de 1e. */
+export async function bewaarWijzigingenExtra(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const extra = Number(formData.get("extra"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(extra) || extra < 0 || extra > 1000) return;
+  const { huidigeMaand } = await import("@/lib/ai-budget");
+  await db
+    .update(sites)
+    .set(extra > 0 ? { wijzigingenExtra: extra, wijzigingenExtraMaand: huidigeMaand() } : { wijzigingenExtra: 0, wijzigingenExtraMaand: null })
+    .where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 /** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de
  * volgende maand, dus je hoeft hem niet terug te zetten. 0 = meteen weg. */
 export async function bewaarAiExtra(formData: FormData) {
@@ -874,6 +951,67 @@ export async function bewaarWhatsapp(formData: FormData) {
   revalidatePath("/portal");
 }
 
+
+/** Telefoonnummer van een klant koppelen aan zijn site. Alleen nummers die
+ * hier staan mogen via WhatsApp met de website praten. Landcode verplicht:
+ * "06..." bestaat in tientallen landen en een gok zou een vreemde telefoon
+ * aan een site kunnen hangen. */
+export async function voegWhatsappNummer(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const { normaliseerNummer } = await import("@/lib/whatsapp/berichten");
+  const telefoon = normaliseerNummer(String(formData.get("nummer") ?? ""));
+  const omschrijving = String(formData.get("omschrijving") ?? "").trim().slice(0, 60) || null;
+  if (!telefoon) return;
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { whatsappKoppelingen } = await import("@/db/schema");
+  const [bestaand] = await db
+    .select({ siteId: whatsappKoppelingen.siteId })
+    .from(whatsappKoppelingen)
+    .where(eq(whatsappKoppelingen.telefoon, telefoon));
+  // Eén nummer hoort bij één site; staat hij elders, dan niet stilletjes verhuizen
+  if (bestaand && bestaand.siteId !== siteId) return;
+  if (!bestaand) {
+    await db.insert(whatsappKoppelingen).values({
+      siteId,
+      clerkUserId: site.clerkUserId,
+      telefoon,
+      omschrijving,
+      gekoppeldOp: new Date(),
+    });
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
+/** Aangevraagd nummer uit het portaal met één klik koppelen. */
+export async function koppelAangevraagdNummer(formData: FormData) {
+  await requireAdmin();
+  const inzendingId = Number(formData.get("inzendingId"));
+  if (!Number.isInteger(inzendingId)) return;
+  await voegWhatsappNummer(formData);
+  const { formulierInzendingen } = await import("@/db/schema");
+  await db
+    .update(formulierInzendingen)
+    .set({ gearchiveerd: true })
+    .where(eq(formulierInzendingen.id, inzendingId));
+  revalidatePath(`/admin/klant/${Number(formData.get("siteId"))}`);
+}
+
+export async function verwijderWhatsappNummer(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const id = Number(formData.get("koppelingId"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(id)) return;
+  const { whatsappKoppelingen } = await import("@/db/schema");
+  await db
+    .delete(whatsappKoppelingen)
+    .where(and(eq(whatsappKoppelingen.id, id), eq(whatsappKoppelingen.siteId, siteId)));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
 
 /** Sjabloon vastleggen: de huidige live-versie (main) wordt het punt waarnaar
  * "Reset naar sjabloon" terugzet. Handig voor demo-/webinarsites. */

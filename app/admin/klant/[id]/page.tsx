@@ -1,20 +1,22 @@
 import HerstelMelding from "@/app/portal/HerstelMelding";
 import { createPreviewAccess } from "@/lib/preview-access";
-import { extraGeldt, huidigeMaand, maandbudgetVoor, vervaltOp } from "@/lib/ai-budget";
+import { extraGeldt, huidigeMaand, maandbudgetVoor, vervaltOp, wijzigingenLimietVoor } from "@/lib/ai-budget";
 import { datumInWoorden } from "@/lib/opzegging";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { changes, chatFeedback, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
+import { changes, chatFeedback, whatsappKoppelingen, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
 import OntwerpBlok from "./OntwerpBlok";
 import AfsprakenBlok from "./AfsprakenBlok";
 import SnelMenu from "./SnelMenu";
+import ReviewMailKnop from "./ReviewMailKnop";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
+import { toonNummer } from "@/lib/whatsapp/berichten";
 import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
@@ -30,7 +32,13 @@ import {
   bewaarVideoLimiet,
   bewaarAiBudget,
   bewaarWhatsapp,
+  voegWhatsappNummer,
+  koppelAangevraagdNummer,
+  verwijderWhatsappNummer,
   bewaarAiExtra,
+  bewaarWijzigingenLimiet,
+  bewaarWijzigingenExtra,
+  resetWijzigingenTeller,
   siteResetten,
   sjabloonVastleggen,
   herstelVersie,
@@ -120,6 +128,27 @@ export default async function KlantDetail({
     }),
   );
 
+  // Nummers die de klant zelf heeft doorgegeven en nog gekoppeld moeten worden
+  const whatsappAanvragen = (
+    await db
+      .select({ id: formulierInzendingen.id, velden: formulierInzendingen.velden })
+      .from(formulierInzendingen)
+      .where(
+        and(
+          eq(formulierInzendingen.formulier, "whatsapp-nummer"),
+          eq(formulierInzendingen.gearchiveerd, false),
+        ),
+      )
+      .catch(() => [])
+  ).filter((r) => (r.velden as Record<string, string>).siteId === String(site.id));
+
+  // Telefoons die via WhatsApp met deze website mogen praten
+  const whatsappNummers = await db
+    .select()
+    .from(whatsappKoppelingen)
+    .where(eq(whatsappKoppelingen.siteId, site.id))
+    .orderBy(desc(whatsappKoppelingen.id));
+
   // Feedback op de chatbeleving (duimpjes + algemene opmerkingen)
   const feedback = await db
     .select()
@@ -177,6 +206,10 @@ export default async function KlantDetail({
   const maandNu = new Date().toISOString().slice(0, 7);
   const dezeMaand = huidigeMaand();
   const extraActief = extraGeldt(site, dezeMaand);
+  const wijzigingenLimiet = wijzigingenLimietVoor(site, dezeMaand);
+  const wijzigingenExtraActief = Boolean(
+    site.wijzigingenExtra && site.wijzigingenExtra > 0 && site.wijzigingenExtraMaand === dezeMaand,
+  );
   const usd = (micro: number) => `$${(micro / 1_000_000).toFixed(2)}`;
   const kostenDezeMaand = kostenRijen
     .filter((r) => r.maand === maandNu)
@@ -276,7 +309,7 @@ export default async function KlantDetail({
           <p className="text-sm text-stone-500">Wijzigingen deze maand</p>
           <p className="font-display mt-1 text-3xl font-semibold">
             {verbruik?.wijzigingen ?? 0}
-            <span className="text-base font-normal text-stone-400"> / 30</span>
+            <span className="text-base font-normal text-stone-400"> / {wijzigingenLimiet}</span>
           </p>
         </div>
         <div className="rounded-3xl border border-stone-200 bg-white p-5">
@@ -533,6 +566,12 @@ export default async function KlantDetail({
             <form action={koppelKlant} className="mt-3 flex gap-3 flex-wrap">
               <input type="hidden" name="siteId" value={site.id} />
               <input
+                name="naam"
+                required
+                placeholder="Naam"
+                className="flex-1 min-w-[10rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+              />
+              <input
                 name="email"
                 type="email"
                 required
@@ -558,6 +597,12 @@ export default async function KlantDetail({
               <input type="hidden" name="siteId" value={site.id} />
               <div className="flex gap-3 flex-wrap">
                 <input
+                  name="naam"
+                  required
+                  placeholder="Naam (bijv. Rogier Roding)"
+                  className="flex-1 min-w-[12rem] rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+                />
+                <input
                   name="email"
                   type="email"
                   required
@@ -571,6 +616,15 @@ export default async function KlantDetail({
                   className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
                 />
               </div>
+              <label className="block text-xs text-stone-500">
+                Eigen berichtje onderaan de mail (mag leeg)
+                <textarea
+                  name="bericht"
+                  rows={2}
+                  placeholder="Bijv.: leuk dat we dit gaan doen — bel me gerust als je ergens over twijfelt."
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+                />
+              </label>
               <label className="block text-xs text-stone-500">
                 Link naar de website in de mail
                 <input
@@ -868,9 +922,35 @@ export default async function KlantDetail({
         <AfsprakenBlok siteId={site.id} />
       </div>
 
+      {/* Review- en referentieverzoek */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 id="review" className="scroll-mt-24 font-display text-xl font-semibold">⭐ Review &amp; referentie</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Vraagt de klant met één klik om een Google-review én of je zijn website als referentieproject mag noemen
+          (hij antwoordt gewoon &quot;ja&quot; op de mail). Jij krijgt de kopie, dus je ziet het antwoord vanzelf.
+        </p>
+        <div className="mt-3">
+          <ReviewMailKnop
+            siteId={site.id}
+            verstuurdOp={
+              site.reviewMailOp
+                ? site.reviewMailOp.toLocaleString("nl-NL", {
+                    timeZone: "Europe/Amsterdam",
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : null
+            }
+          />
+        </div>
+      </div>
+
       {/* AI-maandbudget */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 id="ai-budget" className="scroll-mt-24 font-display text-xl font-semibold">🤖 AI-maandbudget</h2>
+        <h2 id="ai-budget" className="scroll-mt-24 font-display text-xl font-semibold">🤖 AI-budget en wijzigingen per maand</h2>
         <p className="mt-2 text-sm text-stone-600">
           Deze maand verbruikt: <strong>{usd(kostenDezeMaand)}</strong> van maximaal{" "}
           <strong>${maandbudgetVoor(site, dezeMaand)}</strong>
@@ -901,6 +981,52 @@ export default async function KlantDetail({
               : "Voor een drukke maand: dit komt bovenop het vaste budget en geldt alleen deze maand. Op de 1e van de volgende maand vervalt het vanzelf."}
           </p>
         </form>
+
+        <div className="mt-5 border-t border-stone-200 pt-4">
+          <p className="text-sm text-stone-600">
+            Wijzigingen deze maand: <strong>{verbruik?.wijzigingen ?? 0}</strong> van{" "}
+            <strong>{wijzigingenLimiet}</strong>
+            {wijzigingenExtraActief && (
+              <> ({site.wijzigingenLimiet} vast + {site.wijzigingenExtra} eenmalig deze maand)</>
+            )}
+            . Dit is de fair-use-belofte uit het pakket; bij de grens stopt alleen de chat — zelf tekst, kleur of een
+            foto aanpassen blijft werken. Het dollarbudget hierboven is een aparte rem: wat het eerst op is, geldt.
+          </p>
+          {(verbruik?.wijzigingen ?? 0) > 0 && (
+            <form action={resetWijzigingenTeller} className="mt-2">
+              <input type="hidden" name="siteId" value={site.id} />
+              <ActieKnop
+                label="Teller op nul (zelf zitten testen)"
+                bezigLabel="Bezig..."
+                klaarLabel="✓ Op nul"
+                className="text-xs font-semibold text-stone-500 underline cursor-pointer"
+              />
+            </form>
+          )}
+          <div className="mt-3 flex flex-wrap items-end gap-6">
+            <form action={bewaarWijzigingenLimiet} className="flex flex-wrap items-end gap-3">
+              <input type="hidden" name="siteId" value={site.id} />
+              <label className="block text-sm font-semibold">
+                Wijzigingen per maand
+                <input name="limiet" type="number" min={1} max={1000} defaultValue={site.wijzigingenLimiet} className={`${invoerStijl} w-28`} />
+              </label>
+              <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+            </form>
+            <form action={bewaarWijzigingenExtra} className="flex flex-wrap items-end gap-3">
+              <input type="hidden" name="siteId" value={site.id} />
+              <label className="block text-sm font-semibold">
+                Eenmalig extra deze maand
+                <input name="extra" type="number" min={0} max={1000} defaultValue={wijzigingenExtraActief ? site.wijzigingenExtra : 0} className={`${invoerStijl} w-28`} />
+              </label>
+              <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+            </form>
+          </div>
+          <p className="mt-2 text-xs text-stone-500">
+            {wijzigingenExtraActief
+              ? `De eenmalige ${site.wijzigingenExtra} extra vervallen vanzelf op ${datumInWoorden(vervaltOp(dezeMaand))}. Op 0 zetten haalt ze meteen weg.`
+              : "De eenmalige extra komt bovenop het vaste aantal, geldt alleen deze maand en vervalt vanzelf op de 1e."}
+          </p>
+        </div>
       </div>
 
       {/* WhatsApp-kanaal */}
@@ -912,15 +1038,69 @@ export default async function KlantDetail({
           </span>
         </div>
         <p className="mt-2 text-sm text-stone-600">
-          Betaalde extra: de klant koppelt in het portaal zijn telefoon en stuurt zijn website
-          daarna wijzigingen via WhatsApp (tekst, foto&apos;s, pdf, spraak). Publiceren blijft een
-          bewuste knop. Uitzetten stopt het kanaal direct; koppelingen blijven bewaard.
+          Betaalde extra: de klant stuurt zijn website wijzigingen via WhatsApp (tekst, foto&apos;s,
+          spraak). Publiceren blijft een bewuste knop. <strong>Alleen de nummers hieronder komen
+          binnen</strong>; appt een ander nummer, dan gebeurt er niets en krijg jij een mail.
         </p>
         <form action={bewaarWhatsapp} className="mt-3">
           <input type="hidden" name="siteId" value={site.id} />
           <input type="hidden" name="aan" value={site.whatsappActief ? "0" : "1"} />
           <ActieKnop label={site.whatsappActief ? "Zet uit" : "Zet aan"} bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>
+
+        {whatsappAanvragen.map((aanvraag) => {
+          const v = aanvraag.velden as Record<string, string>;
+          return (
+            <div key={aanvraag.id} className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+              <p className="text-amber-900">
+                <strong>{v.naam}</strong> gaf {toonNummer(v.nummer)} door om te koppelen.
+              </p>
+              <form action={koppelAangevraagdNummer} className="mt-2 flex flex-wrap items-center gap-3">
+                <input type="hidden" name="siteId" value={site.id} />
+                <input type="hidden" name="inzendingId" value={aanvraag.id} />
+                <input type="hidden" name="nummer" value={`+${v.nummer}`} />
+                <input type="hidden" name="omschrijving" value={v.naam ?? ""} />
+                <ActieKnop label="Koppelen" bezigLabel="Koppelen..." className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 cursor-pointer" />
+                <span className="text-xs text-amber-800">Volledig nummer: +{v.nummer}</span>
+              </form>
+            </div>
+          );
+        })}
+
+        {whatsappNummers.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {whatsappNummers.map((n) => (
+              <li key={n.id} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm">
+                <span>
+                  <strong>{toonNummer(n.telefoon)}</strong>
+                  {n.omschrijving ? ` — ${n.omschrijving}` : ""}
+                </span>
+                <form action={verwijderWhatsappNummer}>
+                  <input type="hidden" name="siteId" value={site.id} />
+                  <input type="hidden" name="koppelingId" value={n.id} />
+                  <ActieKnop label="Verwijderen" bezigLabel="Bezig..." className="text-xs font-medium text-stone-500 hover:text-red-600 cursor-pointer" />
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={voegWhatsappNummer} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            Telefoonnummer <span className="font-normal text-stone-500">(met landcode)</span>
+            <input name="nummer" placeholder="+31612345678" className={`${invoerStijl} w-56`} />
+          </label>
+          <label className="block text-sm font-semibold">
+            Van wie <span className="font-normal text-stone-500">(optioneel)</span>
+            <input name="omschrijving" placeholder="Jan, eigenaar" className={`${invoerStijl} w-48`} />
+          </label>
+          <ActieKnop label="Nummer koppelen" bezigLabel="Koppelen..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+        <p className="mt-2 text-xs text-stone-500">
+          Zonder landcode wordt het nummer niet opgeslagen: 06… bestaat in tientallen landen.
+          Meerdere telefoons per site mag; één nummer hoort bij één site.
+        </p>
       </div>
 
       {/* Witlabel-mail (SMTP van de klant) */}

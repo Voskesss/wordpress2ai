@@ -39,7 +39,7 @@ export const maxDuration = 800;
  * aanvullingen op een pagina die al bestaat. */
 export const MAX_FOTOS = 10;
 
-const FAIR_USE_LIMIET = 30;
+// Fair-use-aantal per maand is per klant instelbaar: zie lib/ai-budget en de admin.
 
 // Documenten (pdf) die bezoekers kunnen downloaden: vacatures, voorwaarden,
 // menukaarten. Ze gaan gewoon mee in de repo van de site — grenzen houden dat
@@ -462,7 +462,8 @@ export async function POST(req: Request) {
       .select()
       .from(usage)
       .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
-    if (!site.isDemo && (verbruik?.wijzigingen ?? 0) >= FAIR_USE_LIMIET) {
+    const { maandbudgetVoor, wijzigingenLimietVoor } = await import("@/lib/ai-budget");
+    if (!site.isDemo && (verbruik?.wijzigingen ?? 0) >= wijzigingenLimietVoor(site, maand)) {
       return NextResponse.json({
         reply:
           "Je hebt deze maand het maximale aantal wijzigingen bereikt. Neem contact met ons op als je meer nodig hebt.",
@@ -471,7 +472,6 @@ export async function POST(req: Request) {
 
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
     // Eenmalige extra ruimte telt alleen mee in de maand waarvoor hij is gegeven
-    const { maandbudgetVoor } = await import("@/lib/ai-budget");
     const monthlyBudgetUsd = site.isDemo ? 1 : maandbudgetVoor(site, maand);
     if (
       !(await reserveAiBudget(scope, requestBudgetUsd, monthlyBudgetUsd, maand))

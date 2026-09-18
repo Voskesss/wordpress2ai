@@ -11,6 +11,7 @@ export default function SnelMenu({ heeft }: { heeft: Record<string, boolean> }) 
     { anker: "account", label: "Klantaccount" },
     { anker: "incasso", label: "💶 Incasso" },
     { anker: "afspraken-blok", label: "📅 Afspraken" },
+    { anker: "review", label: "⭐ Review" },
     { anker: "richtlijnen", label: "Richtlijnen" },
     { anker: "wijzigingen", label: "Wijzigingen" },
     { anker: "versies", label: "Versies" },
