@@ -28,7 +28,10 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
   const stand = site ? await afspraakStand(site.id) : null;
   // Alleen afspraken die nog moeten komen tellen mee; wat geweest is, is geweest.
   const nu = new Date();
-  const komend = (stand?.afspraken ?? []).filter((a) => a.start.getTime() > nu.getTime());
+  // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
+  const komend = (stand?.afspraken ?? []).filter(
+    (a) => a.start.getTime() + a.duurMinuten * 60_000 > nu.getTime(),
+  );
   const bevestigd = komend.find((a) => a.status === "bevestigd");
   const aangevraagd = komend.find((a) => a.status === "aangevraagd");
   const dagen: Dag[] = stand

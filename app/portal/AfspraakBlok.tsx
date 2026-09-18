@@ -16,7 +16,8 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
   const { blokken, afspraken: rijen, token } = await afspraakStand(siteId);
   // Alleen komende afspraken tellen; staan er nieuwe dagen klaar, dan gaan die voor
   const nu = new Date();
-  const komend = rijen.filter((a) => a.start.getTime() > nu.getTime());
+  // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
+  const komend = rijen.filter((a) => a.start.getTime() + a.duurMinuten * 60_000 > nu.getTime());
   const bevestigd = komend.find((a) => a.status === "bevestigd");
   const aangevraagd = komend.find((a) => a.status === "aangevraagd");
   const momenten = aangevraagd ? [] : vrijeMomenten(blokken, await bezetteTijden(), nu);
