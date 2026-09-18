@@ -64,19 +64,31 @@ ${knop(o.link, "Kies een moment")}
 }
 
 /** Bevestiging van een gekozen moment (het agendabestand gaat als bijlage mee). */
+/** De zin over hoe Jos contact opneemt: een los nummer wordt "Ik bel je op …",
+ * en alles anders (bv. "Ik stuur je een Teams-uitnodiging.") wordt letterlijk
+ * gebruikt — zo kan Jos bij het bevestigen afwijken van bellen. */
+export function contactZin(contact?: string | null): string {
+  const schoon = (contact ?? "").trim();
+  if (!schoon) return "Ik bel je op het nummer dat ik van je heb.";
+  if (/^[\d+()\-\s]{6,}$/.test(schoon)) return `Ik bel je op ${schoon}.`;
+  return schoon.endsWith(".") || schoon.endsWith("!") || schoon.endsWith("?") ? schoon : `${schoon}.`;
+}
+
 export function bouwAfspraakBevestiging(o: {
   naam?: string | null;
   telefoon?: string | null;
   opmerking?: string | null;
   start: Date;
   duurMinuten: number;
+  /** Afwijkende contactzin; leeg = bellen op o.telefoon */
+  contact?: string | null;
 }): { onderwerp: string; html: string } {
   const wanneer = momentInWoorden(o.start, o.duurMinuten);
   return {
     onderwerp: `Afspraak bevestigd: ${wanneer}`,
     html: inWordSwapHuisstijl(`<p>Beste ${ontsnap(voornaam(o.naam))},</p>
 <p>De afspraak staat: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(o.duurMinuten)}).</p>
-<p>Ik bel je op ${ontsnap(o.telefoon ?? "het nummer dat ik van je heb")}. In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
+<p>${ontsnap(contactZin(o.contact ?? o.telefoon))} In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
 ${o.opmerking ? `<p>Je berichtje: ${ontsnap(o.opmerking)}</p>` : ""}
 <p>Komt het toch niet uit? Mail of bel me gerust, dan zoeken we een ander moment.</p>
 <p>Groet,<br>Jos</p>`),

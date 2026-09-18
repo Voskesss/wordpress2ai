@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     if (!afspraak) return new Response("Afspraak niet gevonden", { status: 404 });
     mail =
       soort === "afspraak-bevestiging"
-        ? bouwAfspraakBevestiging(afspraak)
+        ? bouwAfspraakBevestiging({ ...afspraak, contact: q.get("contact")?.trim() || null })
         : bouwAfspraakAfzegging({ ...afspraak, reden: q.get("reden")?.trim() || null });
     if (soort === "afspraak-bevestiging") bijlageNoot = "Bij de echte mail zit het agendabestand (afspraak.ics) als bijlage.";
   } else if (soort === "review") {
