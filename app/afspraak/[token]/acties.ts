@@ -116,6 +116,7 @@ ${opmerking ? `<li>Bericht: ${ontsnap(opmerking)}</li>` : ""}
 export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: FormData): Promise<KiesUitkomst> {
   const token = String(formData.get("token") ?? "");
   const afspraakId = Number(formData.get("afspraakId"));
+  const reden = String(formData.get("reden") ?? "").trim().slice(0, 500);
   if (!token || token.length < 20 || !Number.isInteger(afspraakId)) {
     return { ok: false, melding: "Afzeggen lukte niet. Mail Jos even op info@wordswap.nl." };
   }
@@ -131,7 +132,10 @@ export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: Form
   const gebruiker = await currentUser().catch(() => null);
   const ingelogd = Boolean(gebruiker && gebruiker.id === site.clerkUserId);
   const wasBevestigd = afspraak.status === "bevestigd";
-  await db.update(afspraken).set({ status: "geannuleerd" }).where(eq(afspraken.id, afspraak.id));
+  await db
+    .update(afspraken)
+    .set({ status: "geannuleerd", afzegReden: reden || null })
+    .where(eq(afspraken.id, afspraak.id));
 
   const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
   await mailVanJos({
@@ -141,6 +145,7 @@ export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: Form
     html: `<p>${ontsnap(afspraak.naam ?? site.naam)} heeft ${
       wasBevestigd ? "de bevestigde afspraak" : "de aanvraag"
     } voor <strong>${ontsnap(site.naam)}</strong> afgezegd: <strong>${ontsnap(wanneer)}</strong>.</p>
+<p>Reden: ${reden ? `<strong>${ontsnap(reden)}</strong>` : "geen reden opgegeven"}</p>
 <p>${ingelogd ? "✅ Ingelogd als de klant." : "🔗 Via de planlink."}${
       wasBevestigd ? " Haal hem ook uit je agenda. Zet gerust nieuwe dagen klaar voor een ander moment." : ""
     }</p>

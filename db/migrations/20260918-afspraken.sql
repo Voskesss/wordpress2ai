@@ -38,3 +38,6 @@ ALTER TABLE sites ADD COLUMN IF NOT EXISTS afspraak_mail_op timestamptz;
 -- Kwam de aanvraag van een ingelogde klant (portaal) of via de losse link?
 ALTER TABLE afspraken ADD COLUMN IF NOT EXISTS ingelogd boolean NOT NULL DEFAULT false;
 ALTER TABLE afspraken ADD COLUMN IF NOT EXISTS clerk_user_id text;
+
+-- Reden die de klant opgeeft bij het afzeggen
+ALTER TABLE afspraken ADD COLUMN IF NOT EXISTS afzeg_reden text;
