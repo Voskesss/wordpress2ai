@@ -1012,7 +1012,7 @@ export async function ontwerpMaken(formData: FormData) {
   const { siteVoorOntwerp, maakOfVerversOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  await maakOfVerversOntwerp(site.githubRepo, site.siteSlug);
+  await maakOfVerversOntwerp(site);
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
@@ -1023,7 +1023,7 @@ export async function ontwerpBijwerken(formData: FormData) {
   const { siteVoorOntwerp, werkOntwerpBij } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  const uitkomst = await werkOntwerpBij(site.githubRepo, site.siteSlug);
+  const uitkomst = await werkOntwerpBij(site);
   revalidatePath(`/admin/klant/${siteId}`);
   if (uitkomst === "conflict") {
     const { redirect } = await import("next/navigation");
@@ -1067,6 +1067,35 @@ export async function ontwerpPromoveren(formData: FormData) {
   redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(melding.slice(0, 600))}`);
 }
 
+
+export async function ontwerpZichtbaarheid(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const aan = formData.get("aan") === "ja";
+  const { siteVoorOntwerp, maakOfVerversOntwerp, verbergOntwerp } = await import("@/lib/ontwerp");
+  const site = await siteVoorOntwerp(siteId);
+  if (!site?.siteSlug) return;
+  try {
+    if (aan) {
+      // Tonen: zo nodig eerst een (nieuw) adres maken — dat is de trage stap,
+      // en pas als die slaagt gaat de kaart bij de klant aan.
+      if (!site.ontwerpSlug) await maakOfVerversOntwerp(site);
+      await db.update(sites).set({ ontwerpZichtbaar: true }).where(eq(sites.id, siteId));
+    } else {
+      // Verbergen: direct — adres weg, kaart weg, gedeelde link dood.
+      await verbergOntwerp(site);
+    }
+  } catch (e) {
+    console.error("Ontwerp-zichtbaarheid:", e);
+    revalidatePath(`/admin/klant/${siteId}`);
+    const { redirect } = await import("next/navigation");
+    redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(aan ? "Tonen is niet gelukt (adres maken brak af). Probeer het nog eens; bij een grote site kan de eerste keer lang duren." : "Verbergen is niet gelukt; het adres bestaat mogelijk nog. Probeer het nog eens.")}`);
+  }
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
 export async function ontwerpVerwijderen(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
@@ -1074,6 +1103,7 @@ export async function ontwerpVerwijderen(formData: FormData) {
   const { siteVoorOntwerp, verwijderOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
-  await verwijderOntwerp(site.githubRepo, site.siteSlug);
+  await verwijderOntwerp(site);
   revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
 }

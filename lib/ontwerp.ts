@@ -28,8 +28,17 @@ import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
 export const ONTWERP_BRANCH = "ontwerp";
 
-export function ontwerpWorker(slug: string) {
-  return `ontwerp-${slug}`;
+export type OntwerpSite = {
+  id: number;
+  githubRepo: string;
+  siteSlug: string | null;
+  ontwerpSlug: string | null;
+};
+
+/** Onraadbare workernaam: verbergen roteert hem, dus een gedeelde link vervalt. */
+function nieuweOntwerpNaam(siteSlug: string) {
+  const willekeur = Math.random().toString(36).slice(2, 8);
+  return `ontwerp-${siteSlug}-${willekeur}`.slice(0, 54);
 }
 
 export type OntwerpStatus =
@@ -56,22 +65,39 @@ export async function ontwerpStatus(repo: string): Promise<OntwerpStatus> {
 /** Maakt de ontwerp-branch (vanaf main) als hij nog niet bestaat en zet hem
  * op de eigen ontwerp-worker. Idempotent: bestaat alles al, dan wordt alleen
  * opnieuw gedeployd (handig na lokale pushes vanuit Claude Code). */
-export async function maakOfVerversOntwerp(repo: string, slug: string) {
-  const status = await ontwerpStatus(repo);
-  if (!status.bestaat) await maakBranch(repo, ONTWERP_BRANCH);
-  await deployRepoNaarCloudflareRef(repo, ontwerpWorker(slug), ONTWERP_BRANCH);
-  return ontwerpWorker(slug);
+export async function maakOfVerversOntwerp(site: OntwerpSite) {
+  if (!site.siteSlug) throw new Error("Site heeft geen slug.");
+  const status = await ontwerpStatus(site.githubRepo);
+  if (!status.bestaat) await maakBranch(site.githubRepo, ONTWERP_BRANCH);
+  let naam = site.ontwerpSlug;
+  if (!naam) {
+    naam = nieuweOntwerpNaam(site.siteSlug);
+    await db.update(sites).set({ ontwerpSlug: naam }).where(eq(sites.id, site.id));
+  }
+  await deployRepoNaarCloudflareRef(site.githubRepo, naam, ONTWERP_BRANCH);
+  return naam;
+}
+
+/** Verbergen: het adres wordt direct verwijderd, dus een gedeelde link is
+ * meteen dood. Bewust GEEN nieuwe deploy hier — dat duurde bij grote sites
+ * langer dan een klik mag duren. Opnieuw tonen (of deployen) maakt vanzelf
+ * een vers, onraadbaar adres. */
+export async function verbergOntwerp(site: OntwerpSite) {
+  if (site.ontwerpSlug) await verwijderCloudflareSite(site.ontwerpSlug);
+  await db
+    .update(sites)
+    .set({ ontwerpSlug: null, ontwerpZichtbaar: false })
+    .where(eq(sites.id, site.id));
 }
 
 /** Haalt de laatste wijzigingen van de klant (main) het ontwerp in, zodat
  * teksten die hij intussen aanpaste niet verloren gaan bij promotie. */
 export async function werkOntwerpBij(
-  repo: string,
-  slug: string,
+  site: OntwerpSite,
 ): Promise<"samengevoegd" | "al-bij" | "conflict"> {
-  const uitkomst = await mergeBranches(repo, ONTWERP_BRANCH, "main");
-  if (uitkomst !== "conflict")
-    await deployRepoNaarCloudflareRef(repo, ontwerpWorker(slug), ONTWERP_BRANCH);
+  const uitkomst = await mergeBranches(site.githubRepo, ONTWERP_BRANCH, "main");
+  if (uitkomst !== "conflict" && site.ontwerpSlug)
+    await deployRepoNaarCloudflareRef(site.githubRepo, site.ontwerpSlug, ONTWERP_BRANCH);
   return uitkomst;
 }
 
@@ -165,11 +191,16 @@ export async function promoveerOntwerp(site: {
   return { soort: "ok", changeId: row.id };
 }
 
-/** Ruimt branch en worker op. Het concept (indien al gepromoveerd) blijft
- * gewoon bestaan; dit verwijdert alleen de ontwerp-omgeving zelf. */
-export async function verwijderOntwerp(repo: string, slug: string) {
-  await verwijderBranch(repo, ONTWERP_BRANCH).catch(() => {});
-  await verwijderCloudflareSite(ontwerpWorker(slug)).catch(() => {});
+/** Ruimt branch, worker en administratie op. Het concept (indien al
+ * gepromoveerd) blijft gewoon bestaan. */
+export async function verwijderOntwerp(site: OntwerpSite) {
+  await verwijderBranch(site.githubRepo, ONTWERP_BRANCH).catch(() => {});
+  if (site.ontwerpSlug)
+    await verwijderCloudflareSite(site.ontwerpSlug).catch(() => {});
+  await db
+    .update(sites)
+    .set({ ontwerpSlug: null, ontwerpZichtbaar: false })
+    .where(eq(sites.id, site.id));
 }
 
 /** Voor de admin: site-rij ophalen op id, met de velden die de route nodig heeft. */

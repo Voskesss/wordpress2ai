@@ -1,10 +1,11 @@
 import {
   ontwerpBijwerken,
+  ontwerpZichtbaarheid,
   ontwerpMaken,
   ontwerpPromoveren,
   ontwerpVerwijderen,
 } from "@/app/admin/acties";
-import { ontwerpStatus, ontwerpWorker } from "@/lib/ontwerp";
+import { ontwerpStatus } from "@/lib/ontwerp";
 import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
 
@@ -17,7 +18,7 @@ export default async function OntwerpBlok({
   site,
   melding,
 }: {
-  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean };
+  site: { id: number; githubRepo: string; siteSlug: string | null; isDemo: boolean; ontwerpZichtbaar: boolean; ontwerpSlug: string | null };
   melding?: string;
 }) {
   if (site.isDemo || !site.siteSlug) return null;
@@ -27,7 +28,7 @@ export default async function OntwerpBlok({
   } catch {
     /* GitHub even niet bereikbaar: blok toont dat hieronder */
   }
-  const url = `https://${ontwerpWorker(site.siteSlug)}.wordswap.workers.dev`;
+  const url = site.ontwerpSlug ? `https://${site.ontwerpSlug}.wordswap.workers.dev` : null;
 
   return (
     <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
@@ -63,14 +64,18 @@ export default async function OntwerpBlok({
       {status?.bestaat && (
         <>
           <p className="mt-3 text-sm">
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-violet-700 underline"
-            >
-              {url.replace("https://", "")}
-            </a>{" "}
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-violet-700 underline"
+              >
+                {url.replace("https://", "")}
+              </a>
+            ) : (
+              <span className="text-stone-500">geen actief adres — Tonen of Opnieuw deployen maakt een nieuw, onraadbaar adres</span>
+            )}{" "}
             <span className="text-stone-500">
               — {status.voor} wijziging(en) vóór op live
               {status.achter > 0 ? (
@@ -89,7 +94,8 @@ export default async function OntwerpBlok({
               <input type="hidden" name="siteId" value={site.id} />
               <ActieKnop
                 label="Opnieuw deployen"
-                bezigLabel="Deployen..."
+                bezigLabel="Deployen... (nieuw adres kan ±1 min duren)"
+                klaarLabel="✓ Gedeployed"
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
@@ -98,6 +104,7 @@ export default async function OntwerpBlok({
               <ActieKnop
                 label="Bijwerken vanaf live"
                 bezigLabel="Bijwerken..."
+                klaarLabel="✓ Bijgewerkt"
                 className={`${KNOP} border border-stone-300 text-stone-700 hover:bg-stone-50`}
               />
             </form>
@@ -120,6 +127,16 @@ export default async function OntwerpBlok({
               />
             </form>
           </div>
+          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3" title="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen haalt het adres direct weg, dus een eerder gedeelde link is meteen dood; opnieuw tonen maakt een vers adres (eerste keer kan ±1 min duren).">
+            <input type="hidden" name="siteId" value={site.id} />
+            <input type="hidden" name="aan" value={site.ontwerpZichtbaar ? "nee" : "ja"} />
+            <ActieKnop
+              label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal — verbergen (adres vervalt direct)" : "Nog verborgen voor de klant — tonen in portaal"}
+              bezigLabel={site.ontwerpZichtbaar ? "Verbergen..." : "Adres maken en tonen... (±1 min)"}
+              klaarLabel={site.ontwerpZichtbaar ? "✓ Verborgen — adres vervallen" : "✓ Zichtbaar voor de klant"}
+              className={`${KNOP} ${site.ontwerpZichtbaar ? "bg-emerald-600 text-white hover:bg-emerald-500" : "border border-stone-300 text-stone-700 hover:bg-stone-50"}`}
+            />
+          </form>
           <p className="mt-3 text-xs text-stone-500">
             Bewerken kan ook lokaal (Claude Code): branch <code>ontwerp</code> in de
             klantrepo uitchecken, pushen, en <code>scripts/ontwerp.mts deploy {site.githubRepo}</code> draaien.
