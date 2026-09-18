@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
@@ -226,9 +227,15 @@ export async function POST(req: Request) {
       await db.update(changes).set({ previewUrl }).where(eq(changes.id, row.id));
     }
 
-    const reply = vervangDoel
-      ? `Foto vervangen! ${pad} staat nu op de plek van ${huidig}. Bekijk het voorbeeld en publiceer als je tevreden bent.`
-      : `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+    // Stond de vervangen foto op meerdere pagina's, dan is hij dus óveral
+    // vervangen — dat mag nooit stilletjes: benoem de pagina's met de uitweg.
+    const fotoPaginas = paden.filter((p) => p.endsWith(".html")).map(alsPagina);
+    const reply =
+      vervangDoel && fotoPaginas.length > 1
+        ? `Foto vervangen! ⚠️ **Let op:** de oude foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
+        : vervangDoel
+          ? `Foto vervangen! ${pad} staat nu op de plek van ${huidig}. Bekijk het voorbeeld en publiceer als je tevreden bent.`
+          : `Oude foto teruggezet: ${pad} staat weer overal waar ${huidig} stond. Bekijk het voorbeeld en publiceer als je tevreden bent.`;
     await db.insert(messages).values([
       { siteId: site.id, rol: "klant" as const, tekst: `[Zelf aangepast] ${omschrijving}`, clerkUserId: userId },
       { siteId: site.id, rol: "assistent" as const, tekst: reply, clerkUserId: userId },

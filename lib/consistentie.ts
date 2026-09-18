@@ -10,7 +10,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { alleHtmlBestanden } from "./werkmap";
 
-/** Zichtbare tekst uit HTML, genormaliseerd op witruimte. */
+/** Zichtbare tekst uit HTML, genormaliseerd op witruimte en typografie
+ * (rechte/krullende aanhalingstekens en streepjes tellen als hetzelfde,
+ * anders glipt een kopie met nét andere leestekens erdoor). */
 function kaleTekst(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -18,8 +20,47 @@ function kaleTekst(html: string): string {
     .replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&nbsp;/g, " ")
+    .replace(/[’‘]|&#39;|&apos;/g, "'")
+    .replace(/[“”„]|&quot;/g, '"')
+    .replace(/[–—]/g, "-")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/** Onzichtbare tekst van een pagina: foto-omschrijvingen (alt), titels,
+ * meta-omschrijvingen en gestructureerde gegevens — wat Google wél leest
+ * maar een bezoeker niet ziet. */
+function onzichtbareTekst(html: string): string {
+  const stukken: string[] = [];
+  for (const m of html.matchAll(/(?:alt|title|aria-label|content)=["']([^"']+)["']/gi))
+    stukken.push(m[1]);
+  const titel = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (titel) stukken.push(titel[1]);
+  for (const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi))
+    stukken.push(m[1]);
+  return " " + kaleTekst(`<x>${stukken.join(" | ")}</x>`) + " ";
+}
+
+/** Contactgegevens en andere harde feiten uit de RUWE html (dus ook uit
+ * alt-teksten, tel:/mailto:-links en JSON-LD), genormaliseerd zodat
+ * "038-1234567" en "038 123 45 67" hetzelfde nummer zijn. */
+function gegevens(html: string): Map<string, { soort: string; toon: string }> {
+  const uit = new Map<string, { soort: string; toon: string }>();
+  const zet = (sleutel: string, soort: string, toon: string) => {
+    if (!uit.has(sleutel)) uit.set(sleutel, { soort, toon });
+  };
+  for (const m of html.matchAll(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g))
+    zet(`mail|${m[0].toLowerCase()}`, "het e-mailadres", m[0]);
+  for (const m of html.matchAll(/(?:\+31|0031|0)[\s\-().]{0,3}\d(?:[\s\-().]{0,3}\d){7,9}/g)) {
+    const cijfers = m[0].replace(/\D/g, "").replace(/^(?:0031|31)/, "0");
+    if (cijfers.length === 10 && cijfers.startsWith("0"))
+      zet(`tel|${cijfers}`, "het telefoonnummer", m[0].trim());
+  }
+  for (const m of html.matchAll(/\bNL\d{2}\s?[A-Z]{4}(?:\s?\d{4}){2}\s?\d{2}\b/g))
+    zet(`iban|${m[0].replace(/\s/g, "")}`, "het rekeningnummer", m[0]);
+  for (const m of html.matchAll(/\b(\d{4})\s?([A-Z]{2})\b/g))
+    zet(`pc|${m[1]}${m[2]}`, "de postcode", m[0]);
+  return uit;
 }
 
 /** Specifiek genoeg om op te zoeken: vanaf 12 tekens (korte koppen en
@@ -105,13 +146,35 @@ export async function dubbelingsMeldingen(opties: {
   const telGrens = (tekst: string, stuk: string) => {
     const r = new RegExp(
       `(?<![\\p{L}\\p{N}])${stuk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`,
-      "gu",
+      "giu", // hoofdletterongevoelig: "kerststol-actie" en "Kerststol-actie" zijn dezelfde kopie
     );
     return (tekst.match(r) ?? []).length;
   };
 
+  // Onzichtbare tekst en gegevens per pagina, lui berekend
+  const onzichtbaarPer = new Map<string, string>();
+  const onzichtbaarVan = (p: string) => {
+    let s = onzichtbaarPer.get(p);
+    if (s === undefined) {
+      s = onzichtbareTekst(nieuw.get(p) ?? "");
+      onzichtbaarPer.set(p, s);
+    }
+    return s;
+  };
+  const gegevensPer = new Map<string, Map<string, { soort: string; toon: string }>>();
+  const gegevensVan = (p: string) => {
+    let g = gegevensPer.get(p);
+    if (!g) {
+      g = gegevens(nieuw.get(p) ?? "");
+      gegevensPer.set(p, g);
+    }
+    return g;
+  };
+
   const tekstMeldingen = new Map<string, Set<string>>(); // fragment -> paden waar hij nog staat
   const beeldMeldingen = new Map<string, Set<string>>(); // beeldpad -> paden waar hij nog staat
+  const onzichtbaarMeldingen = new Map<string, Set<string>>(); // fragment -> paden (alt/titel/meta)
+  const gegevensMeldingen = new Map<string, { soort: string; toon: string; paden: Set<string> }>();
 
   for (const pad of gewijzigdeHtml) {
     const oud = await oudeInhoud(pad);
@@ -201,6 +264,40 @@ export async function dubbelingsMeldingen(opties: {
           tekstMeldingen.get(zoekOud)!.add(ander);
         }
       }
+
+      // Ook in ONZICHTBARE tekst zoeken (alt-teksten, paginatitels,
+      // meta-omschrijvingen, JSON-LD) — mét de eigen pagina, want een
+      // hernoemde naam blijft het vaakst hangen in de alt-tekst van de foto
+      // ernaast. Google leest die wél.
+      for (const ander of nieuw.keys()) {
+        if (ander !== pad && gewijzigdeHtml.includes(ander)) continue;
+        const verborgen = onzichtbaarVan(ander);
+        for (const [zoekOud, zoekNieuw] of zoekParen) {
+          if (telGrens(verborgen, zoekOud) === 0) continue;
+          if (zoekNieuw && telGrens(verborgen, zoekNieuw) > 0) continue;
+          if (tekstMeldingen.get(zoekOud)?.has(ander)) continue; // al gemeld als gewone tekst
+          if (!onzichtbaarMeldingen.has(zoekOud)) onzichtbaarMeldingen.set(zoekOud, new Set());
+          onzichtbaarMeldingen.get(zoekOud)!.add(ander === pad ? "__hier__" : ander);
+        }
+      }
+    }
+
+    // 1d. Contactgegevens en harde feiten: een telefoonnummer, e-mailadres,
+    // rekeningnummer of postcode die hier is veranderd of weggehaald maar
+    // elders (zichtbaar óf onzichtbaar) nog staat. Onder de 12-tekens-drempel
+    // van de tekstchecks, dus een eigen patroon-gebaseerde controle — dit
+    // zijn precies de feiten die op élke pagina kloppen moeten.
+    const oudeGegevens = gegevens(oud);
+    const nieuweGegevens = gegevens(na);
+    for (const [sleutel, g] of oudeGegevens) {
+      if (nieuweGegevens.has(sleutel)) continue; // hier niet verdwenen
+      for (const ander of nieuw.keys()) {
+        if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
+        if (!gegevensVan(ander).has(sleutel)) continue;
+        if (!gegevensMeldingen.has(sleutel))
+          gegevensMeldingen.set(sleutel, { ...g, paden: new Set() });
+        gegevensMeldingen.get(sleutel)!.paden.add(ander);
+      }
     }
 
     // 2. Foto's die hier zijn vervangen maar elders nog staan
@@ -223,6 +320,19 @@ export async function dubbelingsMeldingen(opties: {
     const kort = fragment.length > 70 ? fragment.slice(0, 67) + "..." : fragment;
     meldingen.push(
       `Let op: de tekst "${kort}" staat óók nog op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
+    );
+  }
+  for (const g of [...gegevensMeldingen.values()].slice(0, 3)) {
+    const lijst = [...g.paden].map(alsPagina);
+    meldingen.push(
+      `Let op: ${g.soort} ${g.toon} staat óók nog op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
+    );
+  }
+  for (const [fragment, paden] of [...onzichtbaarMeldingen].slice(0, 2)) {
+    const lijst = [...paden].map((p) => (p === "__hier__" ? "deze pagina zelf" : alsPagina(p)));
+    const kort = fragment.length > 70 ? fragment.slice(0, 67) + "..." : fragment;
+    meldingen.push(
+      `Let op: de oude tekst "${kort}" staat óók nog in onzichtbare tekst (een foto-omschrijving, paginatitel of zoekmachine-omschrijving) op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
     );
   }
   for (const [beeld, paden] of [...beeldMeldingen].slice(0, 2)) {

@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { db } from "@/db";
 import { changes, messages, sites, usage } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { alsPagina } from "@/lib/consistentie";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
@@ -276,7 +277,15 @@ export async function POST(req: Request) {
         }
       }
 
-      const reply = `Foto vervangen! De nieuwe foto staat overal waar de oude stond (${pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
+      // Stond de foto op meerdere pagina's, dan is hij dus óveral vervangen —
+      // dat mag nooit stilletjes: benoem de pagina's, met de uitweg erbij.
+      const fotoPaginas = gewijzigdeBronnen
+        .filter((b) => b.pad.endsWith(".html"))
+        .map((b) => alsPagina(b.pad));
+      const reply =
+        fotoPaginas.length > 1
+          ? `Foto vervangen! ⚠️ **Let op:** deze foto stond op meerdere plekken en is overal vervangen: ${fotoPaginas.slice(0, 4).join(", ")}${fotoPaginas.length > 4 ? ` en nog ${fotoPaginas.length - 4} plekken` : ""}. Moest hij maar op één plek anders? Zeg het hieronder, dan zet ik de andere plekken terug.\nKEUZES: Goed zo, overal vervangen | Zet de andere plekken terug`
+          : `Foto vervangen! De nieuwe foto staat overal waar de oude stond (${pad}). Bekijk het voorbeeld en publiceer als je tevreden bent.`;
       await db.insert(messages).values([
         {
           siteId: site.id,
