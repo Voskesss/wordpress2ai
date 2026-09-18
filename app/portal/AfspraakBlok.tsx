@@ -60,10 +60,18 @@ export default async function AfspraakBlok({ siteId }: { siteId: number }) {
           .
         </p>
       ) : aangevraagd ? (
-        <p className="mt-1 text-sm leading-relaxed text-stone-700">
-          Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
-          doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-        </p>
+        <>
+          <p className="mt-1 text-sm leading-relaxed text-stone-700">
+            Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
+            doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
+          </p>
+          {bevestigd && (
+            <p className="mt-2 text-sm leading-relaxed text-stone-700">
+              Je eerdere afspraak blijft gewoon staan:{" "}
+              <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
+            </p>
+          )}
+        </>
       ) : (
         <>
           <p className="mt-1 mb-4 text-sm leading-relaxed text-stone-600">

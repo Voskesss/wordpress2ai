@@ -56,10 +56,18 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
           .
         </p>
       ) : aangevraagd ? (
-        <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
-          Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
-          doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
-        </p>
+        <>
+          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-stone-800">
+            Je voorkeur voor <strong>{momentInWoorden(aangevraagd.start, aangevraagd.duurMinuten)}</strong> is
+            doorgegeven. Jos bevestigt hem zo snel mogelijk; je krijgt dan een mailtje met een agendabestand.
+          </p>
+          {bevestigd && (
+            <p className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
+              Je eerdere afspraak blijft gewoon staan:{" "}
+              <strong>{momentInWoorden(bevestigd.start, bevestigd.duurMinuten)}</strong>.
+            </p>
+          )}
+        </>
       ) : dagen.length === 0 ? (
         bevestigd ? (
           <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
