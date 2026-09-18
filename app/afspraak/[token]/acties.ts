@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { afspraken, sites } from "@/db/schema";
 import { duurInWoorden, momentInWoorden, vrijeMomenten } from "@/lib/afspraken";
 import { afspraakStand, bezetteTijden } from "@/lib/afspraken-db";
-import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 
 /** Hooguit zoveel aanvragen per site per uur: rem tegen misbruik van de link. */
 const MAX_PER_UUR = 5;
@@ -95,9 +95,9 @@ ${opmerking ? `<li>Bericht: ${ontsnap(opmerking)}</li>` : ""}
     naar: email,
     van: "Jos van WordSwap",
     onderwerp: `Je voorkeur is doorgegeven: ${wanneer}`,
-    html: `<p>Beste ${ontsnap(naam.split(" ")[0])},</p>
+    html: inWordSwapHuisstijl(`<p>Beste ${ontsnap(naam.split(" ")[0])},</p>
 <p>Je voorkeur voor <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(keuze.duurMinuten)}) is bij mij binnen. Ik bevestig hem zo snel mogelijk; dan krijg je een mailtje met een agendabestand erbij.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Groet,<br>Jos</p>`),
   });
 
   revalidatePath(`/afspraak/${token}`);
@@ -156,9 +156,9 @@ export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: Form
       naar: afspraak.email,
       van: "Jos van WordSwap",
       onderwerp: "Je afspraak is afgezegd",
-      html: `<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
+      html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
 <p>Je hebt ${wasBevestigd ? "de afspraak" : "je aanvraag"} voor <strong>${ontsnap(wanneer)}</strong> afgezegd. Helemaal goed — wil je een nieuw moment, mail me gerust of kijk of er tijden klaarstaan.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Groet,<br>Jos</p>`),
     });
   }
   revalidatePath(`/afspraak/${token}`);

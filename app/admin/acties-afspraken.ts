@@ -14,7 +14,7 @@ import {
 
   STAP_MINUTEN,
 } from "@/lib/afspraken";
-import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 import { afspraakStand } from "@/lib/afspraken-db";
 import { abonnementen } from "@/db/schema";
 
@@ -150,12 +150,12 @@ export async function bevestigAfspraak(formData: FormData) {
       naar: afspraak.email,
       van: "Jos van WordSwap",
       onderwerp: `Afspraak bevestigd: ${wanneer}`,
-      html: `<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
+      html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
 <p>De afspraak staat: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(afspraak.duurMinuten)}).</p>
 <p>Ik bel je op ${ontsnap(afspraak.telefoon ?? "het nummer dat ik van je heb")}. In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
 ${afspraak.opmerking ? `<p>Je berichtje: ${ontsnap(afspraak.opmerking)}</p>` : ""}
 <p>Komt het toch niet uit? Mail of bel me gerust, dan zoeken we een ander moment.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Groet,<br>Jos</p>`),
       bijlagen,
     });
   }
@@ -195,9 +195,9 @@ export async function annuleerAfspraak(formData: FormData) {
       naar: afspraak.email,
       van: "Jos van WordSwap",
       onderwerp: "Afspraak gaat niet door",
-      html: `<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
+      html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((afspraak.naam ?? "").split(" ")[0] || "klant")},</p>
 <p>Het moment van <strong>${ontsnap(momentInWoorden(afspraak.start, afspraak.duurMinuten))}</strong> gaat helaas niet door. Ik neem contact met je op voor een nieuw moment.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Groet,<br>Jos</p>`),
     });
   }
   revalidatePath(`/admin/klant/${siteId}`);
@@ -277,7 +277,7 @@ export async function mailAfspraakVoorstel(
     naar: ontvanger.email,
     van: "Jos van WordSwap",
     onderwerp: `Even samen kijken naar ${site.naam}?`,
-    html: `<p>Beste ${ontsnap((ontvanger.naam ?? "").split(" ")[0] || "klant")},</p>
+    html: inWordSwapHuisstijl(`<p>Beste ${ontsnap((ontvanger.naam ?? "").split(" ")[0] || "klant")},</p>
 ${eigenHtml}
 ${
       zonderStandaard
@@ -288,7 +288,7 @@ ${
 <p><a href="${link}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Kies een moment</span></a></p>
 <p style="color:#57534e;font-size:14px">Je kunt ook <a href="https://www.wordswap.nl/portal#afspraak" style="color:#6d28d9">inloggen op je eigen omgeving</a> en daar bij <em>Even samen kijken</em> een moment kiezen. Ben je ingelogd, dan hoef je niets in te vullen: je naam en e-mailadres neem ik over uit je account.</p>
 <p>Komt geen van deze dagen uit? Laat het gerust weten, met een dag en tijd die jou wél schikt, dan plan ik dat in.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Groet,<br>Jos</p>`),
   });
   if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
 
