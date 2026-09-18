@@ -252,6 +252,11 @@ export async function mailAfspraakVoorstel(
     .split(/\n{2,}/)
     .map((stuk) => `<p>${ontsnap(stuk).replace(/\n/g, "<br>")}</p>`)
     .join("");
+  // Desgewenst zonder de standaardzin ("om samen naar je website te kijken")
+  const zonderStandaard = formData.get("zonderStandaard") === "on";
+  if (zonderStandaard && !eigenTekst) {
+    return { ok: false, melding: "Laat je de standaardzin weg, schrijf dan zelf een berichtje." };
+  }
 
   const link = `https://www.wordswap.nl/afspraak/${token}`;
   const dagen = blokken
@@ -274,7 +279,11 @@ export async function mailAfspraakVoorstel(
     onderwerp: `Even samen kijken naar ${site.naam}?`,
     html: `<p>Beste ${ontsnap((ontvanger.naam ?? "").split(" ")[0] || "klant")},</p>
 ${eigenHtml}
-<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>
+${
+      zonderStandaard
+        ? `<p>Je kunt kiezen uit deze momenten (${duur}):</p>`
+        : `<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>`
+    }
 <ul>${dagen}</ul>
 <p><a href="${link}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Kies een moment</span></a></p>
 <p style="color:#57534e;font-size:14px">Je kunt ook <a href="https://www.wordswap.nl/portal#afspraak" style="color:#6d28d9">inloggen op je eigen omgeving</a> en daar bij <em>Even samen kijken</em> een moment kiezen. Ben je ingelogd, dan hoef je niets in te vullen: je naam en e-mailadres neem ik over uit je account.</p>

@@ -31,6 +31,13 @@ export default function AfspraakMailKnop({
       <p className="mt-1 text-xs text-stone-500">
         Komt bovenaan de mail, onder de aanhef. De dagen, de knop en de vraag om een ander moment zet ik er zelf onder.
       </p>
+      <label className="mt-2 flex items-start gap-2 text-sm text-stone-700">
+        <input type="checkbox" name="zonderStandaard" className="mt-1 accent-emerald-700" />
+        <span>
+          Standaardzin weglaten <span className="text-stone-500">(&quot;om samen naar je website te kijken&quot;)</span>{" "}
+          — dan staat alleen jouw eigen berichtje boven de dagen.
+        </span>
+      </label>
       <div className="mt-3 flex flex-wrap items-center gap-3">
       <button
         type="submit"
