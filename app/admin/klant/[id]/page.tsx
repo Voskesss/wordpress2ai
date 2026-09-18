@@ -12,6 +12,7 @@ import IncassoBlok from "./IncassoBlok";
 import OntwerpBlok from "./OntwerpBlok";
 import AfsprakenBlok from "./AfsprakenBlok";
 import SnelMenu from "./SnelMenu";
+import ReviewMailKnop from "./ReviewMailKnop";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
@@ -894,6 +895,32 @@ export default async function KlantDetail({
 
       <div id="afspraken-blok" className="scroll-mt-24">
         <AfsprakenBlok siteId={site.id} />
+      </div>
+
+      {/* Review- en referentieverzoek */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 id="review" className="scroll-mt-24 font-display text-xl font-semibold">⭐ Review &amp; referentie</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Vraagt de klant met één klik om een Google-review én of je zijn website als referentieproject mag noemen
+          (hij antwoordt gewoon &quot;ja&quot; op de mail). Jij krijgt de kopie, dus je ziet het antwoord vanzelf.
+        </p>
+        <div className="mt-3">
+          <ReviewMailKnop
+            siteId={site.id}
+            verstuurdOp={
+              site.reviewMailOp
+                ? site.reviewMailOp.toLocaleString("nl-NL", {
+                    timeZone: "Europe/Amsterdam",
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : null
+            }
+          />
+        </div>
       </div>
 
       {/* AI-maandbudget */}

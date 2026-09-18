@@ -857,6 +857,48 @@ export async function bewaarAiBudget(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+export type ReviewMailUitkomst = { ok: boolean; melding: string };
+
+/** Review- en referentieverzoek naar de klant: één klik, huisstijlmail met de
+ * Google-reviewknop en de vraag of de site als referentie genoemd mag worden. */
+export async function mailReviewVerzoek(
+  _vorige: ReviewMailUitkomst | null,
+  formData: FormData,
+): Promise<ReviewMailUitkomst> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return { ok: false, melding: "Onbekende klant." };
+  const { klantAdres } = await import("@/lib/klant-adres");
+  const ontvanger = await klantAdres(site);
+  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+  const { inWordSwapHuisstijl, mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
+  const { REVIEW_LINK, TELEFOON } = await import("@/lib/persoonlijk");
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
+  const eigenHtml = eigenTekst
+    ? eigenTekst.split(/\n{2,}/).map((stuk) => `<p>${ontsnap(stuk).replace(/\n/g, "<br>")}</p>`).join("")
+    : "";
+  const voornaam = (ontvanger.naam ?? "").trim().split(/\s+/)[0] || "klant";
+  const gelukt = await mailVanJos({
+    naar: ontvanger.email,
+    van: "Jos van WordSwap",
+    onderwerp: `Mag ik je twee kleine dingen vragen?`,
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam)},</p>
+${eigenHtml}
+<p>Fijn dat je website van <strong>${ontsnap(site.naam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn kleine bedrijf enorm.</p>
+<p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren — daar hebben andere ondernemers echt iets aan.</p>
+<p><a href="${REVIEW_LINK}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Laat een review achter</span></a></p>
+<p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg — en zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>
+<p>Dank je wel alvast! Vragen of wensen? Antwoord op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  });
+  if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
+  await db.update(sites).set({ reviewMailOp: new Date() }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  return { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` };
+}
+
 /** Wijzigingenteller van deze maand op nul — voor als Jos zelf in het
  * klantaccount heeft zitten testen en de klant er niet op mag inleveren. */
 export async function resetWijzigingenTeller(formData: FormData) {

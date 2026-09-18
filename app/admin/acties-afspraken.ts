@@ -16,6 +16,7 @@ import {
 } from "@/lib/afspraken";
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 import { afspraakStand } from "@/lib/afspraken-db";
+import { klantAdres } from "@/lib/klant-adres";
 import { abonnementen } from "@/db/schema";
 
 const DUREN = [30, 60, 90, 120];
@@ -209,27 +210,6 @@ export async function annuleerAfspraak(formData: FormData) {
   revalidatePath("/portal");
 }
 
-/** Het mailadres van de klant: abonnement, anders de uitnodiging, anders Clerk. */
-async function klantAdres(site: typeof sites.$inferSelect): Promise<{ email: string; naam: string } | null> {
-  const [abo] = await db
-    .select({ email: abonnementen.email, naam: abonnementen.naam })
-    .from(abonnementen)
-    .where(eq(abonnementen.siteId, site.id))
-    .catch(() => []);
-  if (abo?.email) return { email: abo.email, naam: abo.naam };
-  if (site.uitnodigingEmail) return { email: site.uitnodigingEmail, naam: site.naam };
-  try {
-    const res = await fetch(`https://api.clerk.com/v1/users/${site.clerkUserId}`, {
-      headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-    });
-    if (!res.ok) return null;
-    const u = (await res.json()) as { email_addresses?: { email_address: string }[]; first_name?: string };
-    const email = u.email_addresses?.[0]?.email_address;
-    return email ? { email, naam: u.first_name ?? site.naam } : null;
-  } catch {
-    return null;
-  }
-}
 
 export type MailUitkomst = { ok: boolean; melding: string };
 
