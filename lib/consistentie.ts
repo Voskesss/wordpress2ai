@@ -99,15 +99,15 @@ export async function dubbelingsMeldingen(opties: {
   for (const p of allePaden)
     nieuw.set(p, await readFile(path.join(werkmap, p), "utf8").catch(() => ""));
   const nieuweTekst = new Map([...nieuw].map(([p, h]) => [p, " " + kaleTekst(h) + " "]));
-  // Blokken per pagina (lui berekend), voor de divergentie-check hieronder
-  const blokkenPer = new Map<string, Set<string>>();
-  const blokkenVan = (p: string) => {
-    let s = blokkenPer.get(p);
-    if (!s) {
-      s = new Set(blokken(nieuw.get(p) ?? ""));
-      blokkenPer.set(p, s);
-    }
-    return s;
+
+  // Zoeken met woordgrenzen: "Kerststol-actie" mag niet meetellen binnen
+  // "Kerststol-acties", anders is een hernoemde naam onzichtbaar.
+  const telGrens = (tekst: string, stuk: string) => {
+    const r = new RegExp(
+      `(?<![\\p{L}\\p{N}])${stuk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`,
+      "gu",
+    );
+    return (tekst.match(r) ?? []).length;
   };
 
   const tekstMeldingen = new Map<string, Set<string>>(); // fragment -> paden waar hij nog staat
@@ -143,42 +143,63 @@ export async function dubbelingsMeldingen(opties: {
       }
     }
 
-    // 1b. Divergentie: een blok dat hier is veranderd (ook alleen maar
-    // uitgebreid) terwijl de OUDE versie elders nog letterlijk staat.
-    // Op HELE blokken vergelijken, niet als substring: na "overal doorvoeren"
-    // is de oude zin nog steeds het begin van de nieuwe alinea op elke pagina,
-    // en als substring zou dat overal een vals alarm geven.
+    // 1b. Divergentie: een blok dat hier is veranderd — herschreven, hernoemd
+    // of alleen maar uitgebreid — terwijl elders nog de OUDE versie staat.
+    // Elk verdwenen oud blok wordt gepaard aan zijn nieuwe versie (grootste
+    // gedeelde voor- en achterkant); elders zoeken we met woordgrenzen naar
+    // het oude blok én naar de veranderde kern (op spatiegrenzen geknipt, zo
+    // vangen we "Kerststol-actie" ook binnen een langere kop of alinea).
+    // Melding alleen als de oude tekst er staat en de níéuwe niet: een pagina
+    // die al is gelijkgetrokken bevat de oude zin nog als begin van de nieuwe
+    // alinea, en die mag geen vals alarm geven.
+    const oudeBlokkenHier = blokken(oud);
     const nieuweBlokkenHier = new Set(blokken(na));
-    for (const blok of blokken(oud)) {
+    const oudeSet = new Set(oudeBlokkenHier);
+    const nieuwAlleen = [...nieuweBlokkenHier].filter((b) => !oudeSet.has(b));
+    for (const blok of oudeBlokkenHier) {
       if (nieuweBlokkenHier.has(blok)) continue; // blok hier ongewijzigd
-      for (const ander of nieuweTekst.keys()) {
-        if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
-        if (blokkenVan(ander).has(blok)) {
-          if (!tekstMeldingen.has(blok)) tekstMeldingen.set(blok, new Set());
-          tekstMeldingen.get(blok)!.add(ander);
+
+      // Nieuwe tegenhanger zoeken: meeste gedeelde tekens aan begin + eind
+      let paar: string | null = null;
+      let paarP = 0;
+      let paarS = 0;
+      for (const kand of nieuwAlleen) {
+        let p = 0;
+        while (p < blok.length && p < kand.length && blok[p] === kand[p]) p++;
+        let s = 0;
+        const maxS = Math.min(blok.length, kand.length) - p;
+        while (s < maxS && blok[blok.length - 1 - s] === kand[kand.length - 1 - s]) s++;
+        if (p + s > paarP + paarS) {
+          paar = kand;
+          paarP = p;
+          paarS = s;
         }
       }
-    }
+      if (paar && paarP + paarS < blok.length / 2) paar = null; // te weinig overlap: geen tegenhanger
 
-    // 1c. Andersom: een blok dat op een ÓNgewijzigde pagina staat (bv. de
-    // projectnaam "Kerststol-actie" als kop) en op deze pagina — met
-    // woordgrenzen geteld — minder vaak voorkomt dan eerst. Vangt hernoemen
-    // binnen een langere kop ("Uitgelicht: Kerststol-actie" → "...-acties"),
-    // waar 1 en 1b niks zien omdat het blok hier nooit exact hetzelfde was.
-    // Woordgrenzen, want als substring telt "Kerststol-acties" nog gewoon mee.
-    const telGrens = (tekst: string, stuk: string) => {
-      const r = new RegExp(
-        `(?<![\\p{L}\\p{N}])${stuk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`,
-        "gu",
-      );
-      return (tekst.match(r) ?? []).length;
-    };
-    for (const [ander] of nieuweTekst) {
-      if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
-      for (const blok of blokkenVan(ander)) {
-        if (telGrens(oudeTekst, blok) <= telGrens(naTekst, blok)) continue;
-        if (!tekstMeldingen.has(blok)) tekstMeldingen.set(blok, new Set());
-        tekstMeldingen.get(blok)!.add(ander);
+      // Waar zoeken we op: het hele oude blok, en (als die specifiek genoeg
+      // is) de veranderde kern — teruggeknipt tot spatiegrenzen, zodat een
+      // hernoemde naam heel blijft ("Kerststol-actie", niet "actie").
+      const zoekParen: [string, string | null][] = [[blok, paar]];
+      if (paar) {
+        let p = paarP;
+        while (p > 0 && !/\s/.test(blok[p - 1])) p--;
+        let s = paarS;
+        while (s > 0 && !/\s/.test(blok[blok.length - s])) s--;
+        const oudKern = blok.slice(p, blok.length - s).trim();
+        const nieuwKern = paar.slice(p, paar.length - s).trim();
+        if (oudKern !== blok && specifiek(oudKern, 220))
+          zoekParen.push([oudKern, nieuwKern || null]);
+      }
+
+      for (const [ander, tekst] of nieuweTekst) {
+        if (ander === pad || gewijzigdeHtml.includes(ander)) continue;
+        for (const [zoekOud, zoekNieuw] of zoekParen) {
+          if (telGrens(tekst, zoekOud) === 0) continue;
+          if (zoekNieuw && telGrens(tekst, zoekNieuw) > 0) continue; // daar al gelijkgetrokken
+          if (!tekstMeldingen.has(zoekOud)) tekstMeldingen.set(zoekOud, new Set());
+          tekstMeldingen.get(zoekOud)!.add(ander);
+        }
       }
     }
 
