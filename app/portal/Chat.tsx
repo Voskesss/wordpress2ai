@@ -1104,10 +1104,12 @@ export default function Chat({
       const eindTekst = data.reply ?? "Er ging iets mis, probeer het opnieuw.";
       setBerichten((b) => {
         // Kwam het eindantwoord al binnen als "tussenstap" (omdat er daarna nog
-        // een statusmelding volgde)? Dan niet nog een keer tonen.
+        // een statusmelding volgde)? Dan niet nog een keer tonen. Het eindantwoord
+        // kan langer zijn dan de tussenstap: het vangnet plakt er soms nog een
+        // melding/keuze onder — daarom "begint met" en niet "is gelijk aan".
         const laatste = b[b.length - 1];
         const basis =
-          laatste?.rol === "assistent" && laatste.tussenstap && laatste.tekst.trim() === eindTekst.trim()
+          laatste?.rol === "assistent" && laatste.tussenstap && laatste.tekst.trim() && eindTekst.trim().startsWith(laatste.tekst.trim())
             ? b.slice(0, -1)
             : b;
         return [
@@ -1131,8 +1133,10 @@ export default function Chat({
         setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter(isEchtePagina);
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
-        // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht heeft
-        setChatOpen(false);
+        // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht
+        // heeft — maar NIET als er nog een vraag met keuzeknoppen open staat
+        // (zoals de vangnet-vraag "Overal doorvoeren?"), die moet juist opvallen
+        setChatOpen(parseKeuzes(eindTekst).keuzes.length > 0);
       }
     } catch (error) {
       mislukteOpdracht.current = opdracht;
@@ -1175,13 +1179,14 @@ export default function Chat({
           fetch("/api/tekst-wijzig", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ siteId, oud, nieuw }),
+            body: JSON.stringify({ siteId, oud, nieuw, pad: selectie.pad }),
           }),
         { opWacht: () => setLaderTekst(SLOT_WACHTTEKST) },
       );
       const data = (await res.json()) as {
         ok?: boolean;
         fallback?: boolean;
+        gevonden?: number;
         reply?: string;
         previewUrl?: string;
         changeId?: number;
@@ -1208,7 +1213,9 @@ export default function Chat({
         setOngedaanKans(null);
         const paginas = (data.bestanden ?? []).filter(isEchtePagina);
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
-        setChatOpen(false);
+        // Staat er een vraag met keuzeknoppen in het antwoord (tekst staat óók
+        // op andere pagina's), dan moet die zichtbaar blijven — anders inklappen
+        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0);
       } else if (data.fallback) {
         setLaderTekst(null);
         // Tekst niet eenduidig terug te vinden — de AI lost het veilig op
@@ -1220,7 +1227,9 @@ export default function Chat({
           {
             rol: "assistent",
             tekst:
-              "Deze tekst staat op meerdere plekken of kon ik niet 1-op-1 terugvinden. Ik heb je wijziging klaargezet in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan.",
+              (data.gevonden ?? 0) > 0
+                ? "Deze tekst vond ik wel op de website, maar niet op de pagina die je nu bekijkt — dat kan ik niet zelf beslissen. Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan."
+                : "Ik kon deze tekst niet 1-op-1 in de website terugvinden (hij staat er waarschijnlijk nét iets anders in). Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig aan.",
           },
         ]);
       } else {

@@ -85,7 +85,7 @@ export async function deployRepoNaarCloudflareRef(
 }
 
 /** Huidige commit van een branch (of HEAD); null als GitHub het niet weet. */
-async function commitShaVan(repo: string, ref?: string): Promise<string | null> {
+export async function commitShaVan(repo: string, ref?: string): Promise<string | null> {
   try {
     const { gh, GITHUB_ORG } = await import("./github");
     const commit = (await gh(

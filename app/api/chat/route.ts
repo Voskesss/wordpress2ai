@@ -601,6 +601,12 @@ export async function POST(req: Request) {
           }
           clearTimeout(koudeStart);
           const snapshot = await maakSnapshot(werkmap);
+          // Basis voor het dubbeling-vangnet: de stand van de site aan het
+          // BEGIN van deze beurt. Zonder sha zou een vervolgbeurt binnen een
+          // concept met zichzelf vergelijken en nooit iets melden.
+          const vangnetBasisSha: string | null = await import("@/lib/cloudflare")
+            .then((m) => m.commitShaVan(site.githubRepo, openConcept?.branch ?? undefined))
+            .catch(() => null);
 
           // SNELPAD: pure tekstwissel op precies één plek → direct vervangen,
           // geen agent. In seconden klaar in plaats van minuten.
@@ -1346,6 +1352,56 @@ export async function POST(req: Request) {
               tijden.ai ?? "?"
             }s totaal=${tijden.afgerond ?? "?"}s bestanden=${gewijzigd.length}`,
           );
+
+          // Consistentie-vangnet (mechanisch, geen AI): is hier tekst of een
+          // foto veranderd die elders op de site nog exact zo staat, dan komt
+          // daar ALTIJD een melding van — tenzij de eigenaar al "alleen hier"
+          // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
+          if (werkmap && changeRowId && gewijzigd.length > 0) {
+            let vangnetDebug = "";
+            let vangnetVraag = false;
+            try {
+              const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
+              if (!vroegAlleenHier) {
+                const { dubbelingsMeldingen } = await import("@/lib/consistentie");
+                const { leesBestand } = await import("@/lib/github");
+                const basisRef = vangnetBasisSha ?? undefined;
+                if (!basisRef) throw new Error("geen basis-sha; vangnet overgeslagen om niet met zichzelf te vergelijken");
+                const meldingen = await dubbelingsMeldingen({
+                  werkmap,
+                  gewijzigd,
+                  oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
+                });
+                if (meldingen.length) {
+                  // De vangnet-vraag krijgt de keuzeknoppen; een eventuele
+                  // KEUZES-regel van de AI zelf vervalt dan (er kan er maar één
+                  // onderaan staan, en deze waarschuwing gaat voor)
+                  reply = reply.replace(/\n\s*KEUZES:[^\n]*\s*$/, "");
+                  reply += `\n\n${meldingen.map((m) => `⚠️ **${m}**`).join("\n")}\nZal ik het overal gelijktrekken, of moest dit bewust alleen hier?`;
+                  vangnetVraag = true;
+                }
+                vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
+                const sonde = gewijzigd.find((p) => p.endsWith(".html"));
+                if (meldingen.length === 0 && sonde) {
+                  const oud0 = await leesBestand(site.githubRepo, sonde, basisRef).then((x) => `len=${x.length}`).catch((e) => `ERR=${e instanceof Error ? e.message.slice(0, 80) : e}`);
+                  vangnetDebug += ` oud(${sonde})=${oud0}`;
+                }
+              } else {
+                vangnetDebug = "onderdrukt door alleen-hier in de opdracht";
+              }
+            } catch (e) {
+              console.error("Consistentie-vangnet:", e);
+              vangnetDebug = `FOUT: ${e instanceof Error ? e.message.slice(0, 160) : String(e).slice(0, 160)}`;
+            }
+            // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
+            if (process.env.VERCEL_ENV !== "production" && vangnetDebug)
+              reply += `\n\n[vangnet: ${vangnetDebug}]`;
+            // De KEUZES-regel moet de allerlaatste regel zijn (zo wordt hij in
+            // het portaal knoppen en in WhatsApp een keuzelijst), dus ná de
+            // eventuele debugregel hierboven
+            if (vangnetVraag)
+              reply += `\nKEUZES: Overal doorvoeren | Het moest alleen hier`;
+          }
 
           await db
             .insert(messages)
