@@ -22,8 +22,10 @@ import {
   KEUZE,
   KNOP_DUIM,
   KNOP_PUBLICEER,
+  KNOP_SITE,
   KNOP_WEGGOOIEN,
   conceptCommando,
+  wisselCommando,
   leesKnop,
   paginaVoorConcept,
   splitsKeuzes,
@@ -40,6 +42,9 @@ const UITERLIJK_START_MS = 45_000;
 /** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
  * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
 const BUNDEL_MS = 8_000;
+/** Hangt een nummer aan meerdere websites, dan blijft de gekozen website zo
+ * lang "de huidige"; daarna vragen we het opnieuw. */
+const WISSEL_NA_MS = 2 * 60 * 60 * 1000;
 const MAX_FOTOS = 10;
 
 type Rij = typeof whatsappBerichten.$inferSelect;
@@ -87,20 +92,71 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
   const laatste = rijen.at(-1);
   if (laatste) void markeerGelezen(laatste.waMessageId).catch(() => {});
 
-  const [koppeling] = await db
-    .select()
+  // Alle websites waar dit nummer aan hangt (iemand kan er twee hebben)
+  const koppelingen = await db
+    .select({ koppeling: whatsappKoppelingen, site: sites })
     .from(whatsappKoppelingen)
+    .innerJoin(sites, eq(sites.id, whatsappKoppelingen.siteId))
     .where(eq(whatsappKoppelingen.telefoon, telefoon));
-  if (!koppeling) return onbekendNummer(telefoon, rijen);
-  const [site] = await db.select().from(sites).where(eq(sites.id, koppeling.siteId));
-  if (!site || site.isDemo || !site.whatsappActief) {
-    await zetStatus(rijen.map((r) => r.id), "genegeerd", site?.id);
+  if (!koppelingen.length) return onbekendNummer(telefoon, rijen);
+
+  const bruikbaar = koppelingen.filter((r) => r.site.whatsappActief && !r.site.isDemo);
+  if (!bruikbaar.length) {
+    await zetStatus(rijen.map((r) => r.id), "genegeerd", koppelingen[0].site.id);
     await stuurTekst(
       telefoon,
       "WhatsApp staat voor je website op dit moment niet aan. Je kunt je wijzigingen gewoon in het WordSwap-portaal doorgeven.",
     );
     return;
   }
+
+  // Keuze voor een website (knop uit de lijst hieronder) meteen vastleggen
+  let netGekozen = false;
+  for (const rij of rijen.filter((r) => r.soort === "knop" || r.soort === "keuze")) {
+    const id = Number(rij.inhoud?.startsWith(KNOP_SITE) ? rij.inhoud.slice(KNOP_SITE.length) : NaN);
+    const keus = bruikbaar.find((r) => r.koppeling.id === id);
+    if (!keus) continue;
+    rijen = rijen.filter((r) => r.id !== rij.id);
+    await db
+      .update(whatsappKoppelingen)
+      .set({ laatstGebruikt: new Date() })
+      .where(eq(whatsappKoppelingen.id, keus.koppeling.id));
+    await db
+      .update(whatsappKoppelingen)
+      .set({ laatstGebruikt: null })
+      .where(and(eq(whatsappKoppelingen.telefoon, telefoon), ne(whatsappKoppelingen.id, keus.koppeling.id)));
+    keus.koppeling.laatstGebruikt = new Date();
+    await zetStatus([rij.id], "klaar", keus.site.id);
+    await stuurTekst(telefoon, `Goed — we werken nu aan ${siteRegel(keus.site)}`);
+    netGekozen = true;
+  }
+
+  // "andere website": de lijst opnieuw
+  const wisselRij = rijen.find((r) => r.soort === "tekst" && wisselCommando(r.inhoud));
+  if (wisselRij && bruikbaar.length > 1) {
+    rijen = rijen.filter((r) => r.id !== wisselRij.id);
+    await db
+      .update(whatsappKoppelingen)
+      .set({ laatstGebruikt: null })
+      .where(eq(whatsappKoppelingen.telefoon, telefoon));
+    await zetStatus([wisselRij.id], "klaar");
+    await vraagWelkeSite(telefoon, bruikbaar);
+    return;
+  }
+
+  // Welke website is het? Eén gekoppeld: die. Meerdere: de laatst gekozene,
+  // en anders vragen we het en laten we de berichten wachten tot de keuze er is.
+  const actief = bruikbaar
+    .filter((r) => r.koppeling.laatstGebruikt && Date.now() - r.koppeling.laatstGebruikt.getTime() < WISSEL_NA_MS)
+    .sort((a, b) => (b.koppeling.laatstGebruikt!.getTime() - a.koppeling.laatstGebruikt!.getTime()))[0];
+  const gekozen = bruikbaar.length === 1 ? bruikbaar[0] : actief;
+  if (!gekozen) {
+    if (rijen.length) await vraagWelkeSite(telefoon, bruikbaar);
+    return;
+  }
+  const site = gekozen.site;
+  const koppeling = gekozen.koppeling;
+  const meerdere = bruikbaar.length > 1;
 
   if (site.status === "gepauzeerd" || site.status === "opgezegd") {
     await zetStatus(rijen.map((r) => r.id), "genegeerd", site.id);
@@ -123,7 +179,7 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     return;
   }
 
-  // 2. Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
+  // Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
   for (const rij of rijen) {
     const commando = rij.soort === "tekst" ? conceptCommando(rij.inhoud) : null;
     if (rij.soort !== "knop" && !commando) continue;
@@ -141,9 +197,16 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
       await stuurTekst(telefoon, "Dat lukte niet. Probeer het zo nog eens, of doe het in het portaal.");
     }
   }
+
+  // Berichten die op de sitekeuze wachtten: meteen oppakken, die hebben al gewacht
+  if (netGekozen) {
+    const wachtend = await claimAlleWachtende(telefoon);
+    if (wachtend.length) await chatBeurt(telefoon, eigenaar, site, wachtend, gestart, meerdere);
+    return;
+  }
   if (!rijen.length) return;
 
-  // 3. Even wachten op meer berichten; de láátste aanroep neemt alles mee
+  // Even wachten op meer berichten; de láátste aanroep neemt alles mee
   await slaap(BUNDEL_MS);
   const nieuwer = await db
     .select({ id: whatsappBerichten.id })
@@ -161,7 +224,34 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     .limit(1);
   if (nieuwer.length) return;
   const bundel = await claimAlleWachtende(telefoon);
-  if (bundel.length) await chatBeurt(telefoon, eigenaar, site, bundel, gestart);
+  if (bundel.length) await chatBeurt(telefoon, eigenaar, site, bundel, gestart, meerdere);
+}
+
+/** Site met adres, zodat in WhatsApp altijd duidelijk is waar je mee bezig bent. */
+function siteRegel(site: Site) {
+  const adres = site.domein
+    ? site.domein.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    : site.siteSlug
+      ? `${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev`
+      : "";
+  return adres ? `*${site.naam}* (${adres})` : `*${site.naam}*`;
+}
+
+/** Hangt het nummer aan meerdere websites, dan eerst vragen welke het is. */
+async function vraagWelkeSite(
+  telefoon: string,
+  bruikbaar: { koppeling: typeof whatsappKoppelingen.$inferSelect; site: Site }[],
+) {
+  await stuurKeuzelijst(
+    telefoon,
+    "Voor welke website is dit? Je kunt later altijd wisselen door \"andere website\" te appen.",
+    "Kies een website",
+    bruikbaar.slice(0, 10).map((r) => ({
+      id: `${KNOP_SITE}${r.koppeling.id}`,
+      titel: r.site.naam,
+      omschrijving: r.site.domein ?? r.site.siteSlug ?? undefined,
+    })),
+  );
 }
 
 /** Atomisch overnemen: bij gelijktijdige aanroepen krijgt er maar één de rij. */
@@ -339,6 +429,9 @@ async function chatBeurt(
   site: Site,
   rijen: Rij[],
   gestart: number,
+  /** Hangt dit nummer aan meerdere websites? Dan noemen we bij elk antwoord
+   * om welke site het gaat, zodat je nooit in de verkeerde zit te werken. */
+  meerdere = false,
 ) {
   const ids = rijen.map((r) => r.id);
   try {
@@ -414,7 +507,9 @@ async function chatBeurt(
       laatsteAanDeSlag.set(telefoon, Date.now());
       await stuurTekst(
         telefoon,
-        "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
+        meerdere
+          ? `Ik ga ermee aan de slag voor ${siteRegel(site)}. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.`
+          : "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
       ).catch(() => {});
     }
 
@@ -433,7 +528,7 @@ async function chatBeurt(
       res = await roepRouteAan("chat", eigenaar, form);
     }
     const uitkomst = await readChatResponse(res, () => {});
-    await stuurAntwoord(telefoon, site, uitkomst);
+    await stuurAntwoord(telefoon, site, uitkomst, meerdere);
     await zetStatus(ids, "klaar", site.id);
   } catch (e) {
     console.error("WhatsApp-chatbeurt:", e);
@@ -449,8 +544,14 @@ async function stuurAntwoord(
   telefoon: string,
   site: Site,
   uitkomst: { reply: string; changeId?: number | null; bestanden?: string[] },
+  meerdere = false,
 ) {
-  const { schoon, keuzes } = splitsKeuzes(uitkomst.reply);
+  const gesplitst = splitsKeuzes(uitkomst.reply);
+  const keuzes = gesplitst.keuzes;
+  // Bij meerdere websites altijd bovenaan welke site het is
+  const schoon = meerdere && gesplitst.schoon.trim()
+    ? `${siteRegel(site)}\n\n${gesplitst.schoon}`
+    : gesplitst.schoon;
   if (keuzes.length) {
     await stuurKeuzelijst(
       telefoon,

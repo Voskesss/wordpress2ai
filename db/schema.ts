@@ -93,13 +93,18 @@ export const whatsappKoppelingen = pgTable("whatsapp_koppelingen", {
     .references(() => sites.id),
   // Namens wie de chatbeurten lopen (de eigenaar van de site)
   clerkUserId: text("clerk_user_id").notNull(),
-  // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678)
-  telefoon: text("telefoon").unique(),
+  // Internationaal zonder plus, zoals WhatsApp het aanlevert (31612345678).
+  // Eén telefoon mag aan meerdere sites hangen (iemand met twee websites);
+  // per site komt hij hooguit één keer voor.
+  telefoon: text("telefoon"),
   // Naam erbij, zodat je in de admin ziet wiens telefoon het is
   omschrijving: text("omschrijving"),
+  // Hangt dit nummer aan meerdere sites, dan onthouden we hiermee aan welke
+  // website hij nu bezig is (zie WISSEL_NA_MS in lib/whatsapp/verwerk.ts).
+  laatstGebruikt: timestamp("laatst_gebruikt"),
   gekoppeldOp: timestamp("gekoppeld_op"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
-});
+}, (t) => [unique("whatsapp_koppelingen_telefoon_site").on(t.telefoon, t.siteId)]);
 
 // Elk binnenkomend WhatsApp-bericht, ook om dubbele aflevering door Meta te
 // herkennen (wa_message_id) en losse foto's samen te nemen tot één opdracht.

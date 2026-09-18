@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import {
   conceptCommando,
+  wisselCommando,
   normaliseerNummer,
   leesKnop,
   leesWebhook,
@@ -75,6 +76,13 @@ assert.equal(conceptCommando("Publiceer!"), "publiceer");
 assert.equal(conceptCommando("zet het live"), "publiceer");
 assert.equal(conceptCommando("gooi weg"), "weggooien");
 assert.equal(conceptCommando("publiceer de nieuwe vacature ook op de homepage"), null, "gewone opdracht blijft een opdracht");
+
+// 3b) Wisselen van website (nummer aan meerdere sites)
+assert.ok(wisselCommando("andere website"));
+assert.ok(wisselCommando("Andere site!"));
+assert.ok(wisselCommando("wissel van website"));
+assert.ok(!wisselCommando("zet op de andere website ook de openingstijden"), "gewone opdracht blijft een opdracht");
+assert.ok(!wisselCommando(null));
 
 // 4) KEUZES-regel
 const k = splitsKeuzes("Waar moet hij komen?\nKEUZES: Doe maar zoals jij voorstelt | Op de homepage | ✏️ Ik vertel het zelf");

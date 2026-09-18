@@ -149,6 +149,8 @@ export function splitsKeuzes(tekst: string) {
 export const KNOP_PUBLICEER = "pub:";
 export const KNOP_WEGGOOIEN = "weg:";
 export const KEUZE = "k:";
+/** Keuze voor een website, als een nummer aan meerdere sites hangt. */
+export const KNOP_SITE = "site:";
 /** Duimpje bij een antwoord — belandt in dezelfde feedbacklijst als in het portaal. */
 export const KNOP_DUIM = "duim:";
 
@@ -179,6 +181,12 @@ export function conceptCommando(tekst: string | null) {
   if (/^(weggooien|gooi (het )?weg|concept weggooien)$/.test(t))
     return "weggooien" as const;
   return null;
+}
+
+/** "andere website" / "wissel van website": opnieuw laten kiezen. */
+export function wisselCommando(tekst: string | null) {
+  const t = tekst?.trim().toLowerCase().replace(/[.!?]+$/, "") ?? "";
+  return /^(andere website|andere site|wissel( van)?( website| site)?|welke website)$/.test(t);
 }
 
 /** Op welke pagina het concept het best te bekijken is: de eerste gewijzigde
