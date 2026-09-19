@@ -42,6 +42,30 @@ async function gekoppeldeDomeinen(siteSlug: string | null): Promise<string[] | n
   }
 }
 
+/** URL's die in UptimeRobot bewaakt worden. Alleen-lezen API-aanroep, met een
+ * korte cache: het gratis plan staat maar 10 verzoeken per minuut toe en de
+ * adminlijst berekent de checklist voor meerdere sites tegelijk. */
+let monitorCache: { tijdstip: number; urls: string[] } | null = null;
+async function bewaakteUrls(): Promise<string[] | null> {
+  const sleutel = process.env.UPTIMEROBOT_API_KEY;
+  if (!sleutel) return null;
+  if (monitorCache && Date.now() - monitorCache.tijdstip < 5 * 60_000) return monitorCache.urls;
+  try {
+    const res = await fetch("https://api.uptimerobot.com/v2/getMonitors", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ api_key: sleutel, format: "json" }),
+      signal: AbortSignal.timeout(6000),
+    });
+    const data = (await res.json()) as { stat?: string; monitors?: { url: string }[] };
+    if (data.stat !== "ok") return monitorCache?.urls ?? null;
+    monitorCache = { tijdstip: Date.now(), urls: (data.monitors ?? []).map((m) => m.url.toLowerCase()) };
+    return monitorCache.urls;
+  } catch {
+    return monitorCache?.urls ?? null;
+  }
+}
+
 /** Antwoordt het domein met onze site? (de deploy zet in elke pagina het meldscript wp2ai-pagina) */
 async function domeinToontNieuweSite(domein: string): Promise<boolean> {
   try {
@@ -116,6 +140,22 @@ export async function livegangChecks(
       checks.find((c) => c.sleutel === "domein")!.dringend = true;
     }
     if (domeinIngevuld && site.domein) {
+      // Bewaking: er hoort een UptimeRobot-monitor op het ECHTE domein te staan
+      // (niet op workers.dev) — vooral belangrijk zodra de site live is
+      const bewaakt = await bewaakteUrls();
+      const domeinSchoon = site.domein.replace(/^www\./, "").toLowerCase();
+      const monitorOk =
+        bewaakt === null ? false : bewaakt.some((u) => u.includes(domeinSchoon));
+      checks.push({
+        sleutel: "monitor",
+        label: "Bewaking op het echte domein",
+        ok: monitorOk,
+        uitleg: monitorOk
+          ? ""
+          : bewaakt === null
+            ? "Kon UptimeRobot niet raadplegen (sleutel of storing). Controleer zelf of er een monitor op dit domein staat."
+            : `Maak in UptimeRobot een monitor aan voor https://${site.domein} — het echte domein, niet het workers.dev-adres.`,
+      });
       const domein = site.domein.replace(/^www\./, "").toLowerCase();
       const inCloudflare = gekoppeld === null ? null : gekoppeld.includes(domein);
       const online = await domeinToontNieuweSite(site.domein);
