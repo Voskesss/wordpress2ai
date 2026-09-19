@@ -17,6 +17,7 @@ import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, schrijfBestand } from "@/lib/github";
 import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
+import { grensVan } from "@/lib/chat-tijd";
 import { classificeerTekstwissel, pasTekstwisselToe } from "@/lib/snelpad";
 import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
 import {
@@ -239,13 +240,6 @@ async function haalFotosUitOpslag(ruweUrls: unknown, maximum: number) {
   return uit;
 }
 
-/** Een meegegeven maximum (seconden) binnen veilige grenzen houden. */
-function grensVan(waarde: unknown) {
-  const n = Number(waarde);
-  if (!Number.isFinite(n)) return maxDuration;
-  return Math.min(maxDuration, Math.max(120, Math.round(n)));
-}
-
 export async function POST(req: Request) {
   // Browser via Clerk, of een ondertekend intern verzoek (WhatsApp-kanaal)
   const userId = await gebruikerVanVerzoek(req);
@@ -301,7 +295,7 @@ export async function POST(req: Request) {
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
-    maxDuurS = grensVan(form.get("maxDuurS"));
+    maxDuurS = grensVan(form.get("maxDuurS"), maxDuration);
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -357,7 +351,7 @@ export async function POST(req: Request) {
     controle = body.controle === true;
     apparaat = apparaatVan(body.apparaat);
     if ((body as { kanaal?: string }).kanaal === "whatsapp") kanaal = "whatsapp";
-    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS);
+    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS, maxDuration);
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
