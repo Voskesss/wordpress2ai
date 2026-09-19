@@ -563,18 +563,25 @@ async function chatBeurt(
     // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
     // minuten, en zolang blijft het in WhatsApp anders doodstil. Loopt er net
     // al een beurt voor dit nummer, dan is die melding er al geweest.
-    // Alleen "ik ben bezig" melden als het écht even duurt: bij een vraag of
-    // een kort overleg is het antwoord er zo, en dan is die melding ruis.
-    bezigMelder = setTimeout(() => {
-      if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) < 20_000) return;
+    // Alleen melden dat hij aan het werk gaat als hij ook écht iets gaat
+    // wijzigen: dat horen we aan de werkstappen die de chat onderweg stuurt.
+    // Gaat het om een vraag of gewoon overleg, dan komt het antwoord vanzelf
+    // en is een tussenmelding alleen maar ruis.
+    let werkGemeld = false;
+    const meldWerk = () => {
+      if (werkGemeld) return;
+      werkGemeld = true;
       laatsteAanDeSlag.set(telefoon, Date.now());
       void stuurTekst(
         telefoon,
         meerdere
-          ? `Even bezig voor ${siteRegel(site)} — je hoort het zodra ik klaar ben.`
-          : "Even bezig — je hoort het zodra ik klaar ben.",
+          ? `Ik ga ermee aan de slag voor ${siteRegel(site)} — je hoort het zodra het klaar is.`
+          : "Ik ga ermee aan de slag — je hoort het zodra het klaar is.",
       ).catch(() => {});
-    }, 15_000);
+    };
+    // Vangnet: duurt het lang zonder dat er al iets gewijzigd is (veel lezen,
+    // foto's bekijken), dan toch even laten weten dat hij bezig is.
+    bezigMelder = setTimeout(meldWerk, 40_000);
 
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
@@ -596,8 +603,15 @@ async function chatBeurt(
       await slaap(10_000);
       res = await roepRouteAan("chat", eigenaar, form);
     }
+    const uitkomst = await readChatResponse(res, (gebeurtenis) => {
+      const soort = gebeurtenis.type;
+      const tekst = typeof gebeurtenis.tekst === "string" ? gebeurtenis.tekst : "";
+      // "bewerkt" komt zodra er een pagina wordt aangepast; de statusregels
+      // met "aanpassen/schrijven/bijwerken" zijn hetzelfde moment in woorden.
+      if (soort === "bewerkt" || (soort === "status" && /aanpass|schrijf|werk ik|bij\.\.\.|wissel/i.test(tekst)))
+        meldWerk();
+    });
     clearTimeout(bezigMelder);
-    const uitkomst = await readChatResponse(res, () => {});
     await stuurAntwoord(telefoon, site, uitkomst, meerdere);
     await zetStatus(ids, "klaar", site.id);
   } catch (e) {
