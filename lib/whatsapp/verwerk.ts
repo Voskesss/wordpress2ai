@@ -44,6 +44,15 @@ const UITERLIJK_START_MS = 45_000;
  * De chatbeurt krijgt hiervan een kortere grens mee, zodat hij zelf op tijd
  * stopt en oplevert wat af is in plaats van door Vercel te worden afgekapt. */
 const WEBHOOK_MAX_DUUR_S = 800;
+/** Wat we voor de chatbeurt reserveren voor het opleveren: het concept
+ * vastleggen, naar GitHub duwen en de werkversie uitrollen. Bij een grote
+ * klus (kleuren over de hele site) duurt dat minuten — te krap reserveren
+ * betekende dat Vercel de functie alsnog afkapte en de eigenaar niets hoorde
+ * (les 19-09: beurt van 08:27 werd op de seconde bij 800 s gestopt). */
+const OPLEVEREN_S = 270;
+/** Vlak voor de harde grens van Vercel hoe dan ook iets terugsturen: liever
+ * een eerlijk "niet op tijd af" dan doodse stilte in WhatsApp. */
+const LAATSTE_KANS_S = 60;
 /** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
  * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
 const BUNDEL_MS = 8_000;
@@ -79,8 +88,25 @@ async function zetStatus(ids: number[], status: Rij["status"], siteId?: number) 
     .where(inArray(whatsappBerichten.id, ids));
 }
 
+/** Berichten die "bezig" bleven staan doordat Vercel de functie halverwege
+ * afkapte: die komen nooit meer terug. Ze blokkeren niets (we pakken alleen
+ * "wacht" op), maar zo klopt de lijst en zien we in de admin wat er misging. */
+async function sluitVastgelopenAf() {
+  await db
+    .update(whatsappBerichten)
+    .set({ status: "mislukt" })
+    .where(
+      and(
+        eq(whatsappBerichten.status, "bezig"),
+        sql`${whatsappBerichten.ontvangen} < now() - make_interval(secs => ${WEBHOOK_MAX_DUUR_S + 120})`,
+      ),
+    )
+    .catch((e) => console.error("Vastgelopen WhatsApp-berichten opruimen:", e));
+}
+
 /** Alles wat één webhook-aanroep binnenbracht, per afzender afhandelen. */
 export async function verwerkWebhook(nieuw: Rij[], gestart: number) {
+  await sluitVastgelopenAf();
   const perTelefoon = new Map<string, Rij[]>();
   for (const r of nieuw)
     perTelefoon.set(r.telefoon, [...(perTelefoon.get(r.telefoon) ?? []), r]);
@@ -485,8 +511,27 @@ async function chatBeurt(
   meerdere = false,
 ) {
   const ids = rijen.map((r) => r.id);
-  // Buiten de try, zodat we hem ook bij een fout kunnen stoppen
+  // Buiten de try, zodat we ze ook bij een fout kunnen stoppen
   let bezigMelder: ReturnType<typeof setTimeout> | undefined;
+  // Vlak voordat Vercel de functie hard afkapt: hoe dan ook iets terugsturen.
+  // Zonder dit bleef het doodstil als een klus te groot was (les 19-09).
+  const laatsteKans = setTimeout(
+    () => {
+      void zetStatus(ids, "mislukt", site.id).catch(() => {});
+      void stuurTekst(
+        telefoon,
+        "Dit bleek een te grote klus voor één keer — ik kreeg hem niet op tijd af, dus er is niets aan je website veranderd. App het in kleinere stappen (bijvoorbeeld één pagina of één kleur tegelijk), dan lukt het wel. Wil je het toch in één keer? Dan pakt WordSwap het voor je op.",
+      ).catch(() => {});
+    },
+    Math.max(
+      5_000,
+      gestart + (WEBHOOK_MAX_DUUR_S - LAATSTE_KANS_S) * 1000 - Date.now(),
+    ),
+  );
+  const stopKlokken = () => {
+    clearTimeout(bezigMelder);
+    clearTimeout(laatsteKans);
+  };
   try {
     const opmerkingen: string[] = [];
 
@@ -556,7 +601,7 @@ async function chatBeurt(
     // make-over liep 800 s door en werd door Vercel afgekapt).
     form.set(
       "maxDuurS",
-      String(Math.round((gestart + (WEBHOOK_MAX_DUUR_S - 150) * 1000 - Date.now()) / 1000)),
+      String(Math.round((gestart + (WEBHOOK_MAX_DUUR_S - OPLEVEREN_S) * 1000 - Date.now()) / 1000)),
     );
     for (const f of fotos) form.append("afbeelding", f);
 
@@ -590,7 +635,7 @@ async function chatBeurt(
       const data = (await res.clone().json().catch(() => ({}))) as { slot?: boolean };
       if (!data.slot) break;
       if (Date.now() - gestart > UITERLIJK_START_MS) {
-        clearTimeout(bezigMelder);
+        stopKlokken();
         await zetStatus(ids, "genegeerd", site.id);
         const { leaseRestMinuten, operationScope } = await import("@/lib/operation-guards");
         const minuten = await leaseRestMinuten(operationScope(site, eigenaar)).catch(() => 2);
@@ -611,12 +656,12 @@ async function chatBeurt(
       if (soort === "bewerkt" || (soort === "status" && /aanpass|schrijf|werk ik|bij\.\.\.|wissel/i.test(tekst)))
         meldWerk();
     });
-    clearTimeout(bezigMelder);
+    stopKlokken();
     await stuurAntwoord(telefoon, site, uitkomst, meerdere);
     await zetStatus(ids, "klaar", site.id);
   } catch (e) {
     console.error("WhatsApp-chatbeurt:", e);
-    clearTimeout(bezigMelder);
+    stopKlokken();
     await zetStatus(ids, "mislukt", site.id);
     const melding = e instanceof Error && e.message && !/^(WhatsApp|Media|Whisper)/.test(e.message)
       ? e.message
