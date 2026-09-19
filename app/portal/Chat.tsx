@@ -677,6 +677,11 @@ export default function Chat({
   // Op een telefoon: site op ware grootte tonen (die is zelf al responsive)
   // in plaats van een gekrompen desktop-weergave
   const [isMobiel, setIsMobiel] = useState(false);
+  // Aanwijzen met een vinger gaat in twee stappen (eerst aantikken, dan
+  // bevestigen), want zonder muis kun je niet eerst even ergens overheen gaan.
+  // Die bevestigknop hing aan de schermbreedte, dus op een tablet — breed
+  // scherm, geen muis — zag je wel de paarse rand maar nooit de knoppen.
+  const [isTouch, setIsTouch] = useState(false);
   // Op mobiel start de chatbalk ingeklapt, zodat je eerst lekker de site ziet
   const [balkOpen, setBalkOpen] = useState(true);
   // Mobiel: chat en site als twee volledige schermen (zoals een artifact)
@@ -691,12 +696,19 @@ export default function Chat({
   // Smalle invoerbalk-indeling: op mobiel én in het smalle zijpaneel
   const smalleBalk = isMobiel || splitModus;
   useEffect(() => {
+    const grof = window.matchMedia("(pointer: coarse)");
+    const zetTouch = () => setIsTouch(grof.matches || navigator.maxTouchPoints > 0);
+    zetTouch();
+    grof.addEventListener("change", zetTouch);
     const mq = window.matchMedia("(max-width: 640px)");
     const zet = () => setIsMobiel(mq.matches);
     zet();
     if (mq.matches) setBalkOpen(false);
     mq.addEventListener("change", zet);
-    return () => mq.removeEventListener("change", zet);
+    return () => {
+      mq.removeEventListener("change", zet);
+      grof.removeEventListener("change", zetTouch);
+    };
   }, []);
 
   // Voorbeeldopdracht uit het demo-welkomscherm klaarzetten in de invoerbalk
@@ -1977,8 +1989,8 @@ export default function Chat({
           </div>
         )}
 
-        {/* Mobiel: aanwijs-hint over de site heen */}
-        {isMobiel && !mobielChat && aanwijzen && (
+        {/* Zonder muis (telefoon én tablet): aanwijs-hint over de site heen */}
+        {isTouch && !mobielChat && aanwijzen && (
           <div className="absolute left-1/2 top-3 z-20 flex w-[94%] -translate-x-1/2 items-center gap-3 rounded-2xl bg-stone-900/85 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
             <span className="min-w-0 flex-1 truncate">
               {aanwijsKandidaat
@@ -1991,8 +2003,8 @@ export default function Chat({
         )}
 
         {/* Mobiel: ingeklapte chat — eerst lekker de site bekijken */}
-        {/* Mobiel aanwijzen: grote bevestigbalk onderin (waar de duim zit) */}
-        {isMobiel && !mobielChat && aanwijzen && (
+        {/* Zonder muis: grote bevestigbalk onderin (waar de duim zit) */}
+        {isTouch && !mobielChat && aanwijzen && (
           <div className="absolute bottom-4 left-1/2 z-10 flex w-[94%] -translate-x-1/2 items-center gap-2">
             {aanwijsKandidaat && (
               <button
