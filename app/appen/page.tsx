@@ -14,6 +14,19 @@ export const metadata: Metadata = {
 const inputStijl =
   "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-[#31956B] focus:outline-none focus:ring-2 focus:ring-[#e3eedd]";
 
+/** Het bekende groene chatbolletje, zodat meteen duidelijk is dat het om WhatsApp gaat. */
+function WhatsAppTeken({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden className={className}>
+      <circle cx="16" cy="16" r="16" fill="#25D366" />
+      <path
+        fill="#fff"
+        d="M16.03 6.4c-5.28 0-9.57 4.29-9.57 9.57 0 1.69.44 3.34 1.29 4.8L6.4 25.6l4.96-1.3a9.53 9.53 0 0 0 4.67 1.21h.01c5.28 0 9.57-4.29 9.57-9.57s-4.3-9.54-9.58-9.54zm0 17.5h-.01a7.94 7.94 0 0 1-4.05-1.11l-.29-.17-2.94.77.78-2.87-.19-.3a7.93 7.93 0 0 1-1.22-4.25c0-4.39 3.57-7.96 7.96-7.96 2.13 0 4.13.83 5.63 2.33a7.9 7.9 0 0 1 2.33 5.63c0 4.39-3.57 7.93-7.96 7.93zm4.37-5.94c-.24-.12-1.41-.7-1.63-.78-.22-.08-.38-.12-.54.12s-.62.78-.76.94c-.14.16-.28.18-.52.06a6.5 6.5 0 0 1-1.92-1.18 7.2 7.2 0 0 1-1.33-1.65c-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.46-.39-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.41-.58 1.61-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z"
+      />
+    </svg>
+  );
+}
+
 const gesprek = [
   { van: "jij", tekst: "Klus in Velp klaar. Zet deze drie foto’s erbij." },
   { van: "site", tekst: "Staat klaar als voorstel. Bekijken?" },
@@ -106,8 +119,9 @@ export default function Appen() {
             website: foto’s van je laatste klus erop, prijzen aanpassen, een
             dienst erbij. Je typt het, je site doet het.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <a href="#aanmelden" className="button-primary">
+              <WhatsAppTeken className="h-5 w-5" />
               Ik wil bij de eerste groep <span>↗</span>
             </a>
             <Link href="/demo" className="button-text">
@@ -118,7 +132,10 @@ export default function Appen() {
 
         {/* Gesprek */}
         <div className="lg:col-span-2 rounded-2xl border border-stone-200 bg-[#f4f1ec] p-5 sm:p-6">
-          <p className="eyebrow">ZO GAAT DAT STRAKS</p>
+          <div className="flex items-center gap-2.5">
+            <WhatsAppTeken className="h-7 w-7 shrink-0" />
+            <p className="eyebrow !mt-0">ZO GAAT DAT STRAKS</p>
+          </div>
           <div className="mt-4 space-y-3">
             {gesprek.map((b, i) => (
               <div
