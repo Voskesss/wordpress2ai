@@ -239,6 +239,13 @@ async function haalFotosUitOpslag(ruweUrls: unknown, maximum: number) {
   return uit;
 }
 
+/** Een meegegeven maximum (seconden) binnen veilige grenzen houden. */
+function grensVan(waarde: unknown) {
+  const n = Number(waarde);
+  if (!Number.isFinite(n)) return maxDuration;
+  return Math.min(maxDuration, Math.max(120, Math.round(n)));
+}
+
 export async function POST(req: Request) {
   // Browser via Clerk, of een ondertekend intern verzoek (WhatsApp-kanaal)
   const userId = await gebruikerVanVerzoek(req);
@@ -264,6 +271,11 @@ export async function POST(req: Request) {
   // Via welk kanaal het bericht binnenkomt: het portaal (standaard) of WhatsApp.
   // Bepaalt alleen wat de AI over de omgeving weet — knoppen verschillen daar.
   let kanaal: "portaal" | "whatsapp" = "portaal";
+  /** Hoeveel seconden deze beurt hoogstens mag duren. Het WhatsApp-kanaal
+   * roept deze route aan bínnen zijn eigen functie en heeft daarvoor al tijd
+   * gebruikt; zonder die kortere grens wordt de hele functie afgekapt en gaat
+   * ook het antwoord verloren. */
+  let maxDuurS = maxDuration;
   const apparaatVan = (v: unknown): "telefoon" | "tablet" | "desktop" =>
     v === "telefoon" || v === "tablet" ? v : "desktop";
 
@@ -289,6 +301,7 @@ export async function POST(req: Request) {
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
+    maxDuurS = grensVan(form.get("maxDuurS"));
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -344,6 +357,7 @@ export async function POST(req: Request) {
     controle = body.controle === true;
     apparaat = apparaatVan(body.apparaat);
     if ((body as { kanaal?: string }).kanaal === "whatsapp") kanaal = "whatsapp";
+    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS);
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
@@ -835,7 +849,7 @@ export async function POST(req: Request) {
               : null,
             controleRegel,
             kanaal === "whatsapp"
-              ? `DIT BERICHT KOMT VIA WHATSAPP, niet via het portaal. De eigenaar zit op zijn telefoon in WhatsApp en ziet GEEN websitevoorbeeld, GEEN gele conceptbalk en GEEN enkele knop van het portaal — noem die dus niet en verwijs er nooit naar. Wat hij wél krijgt: na jouw antwoord stuurt WordSwap automatisch een link naar het concept met de knoppen "Publiceren" en "Weggooien" in WhatsApp; hij kan ook gewoon "publiceer" terugappen. Zeg dat niet in elk bericht; alleen als hij ernaar vraagt hoe hij iets live zet. Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag gewoon: die wordt in WhatsApp een keuzelijst.`
+              ? `DIT BERICHT KOMT VIA WHATSAPP, niet via het portaal. De eigenaar zit op zijn telefoon in WhatsApp en ziet GEEN websitevoorbeeld, GEEN gele conceptbalk en GEEN enkele knop van het portaal — noem die dus niet en verwijs er nooit naar. Wat hij wél krijgt: na jouw antwoord stuurt WordSwap automatisch een link naar het concept met de knoppen "Publiceren" en "Weggooien" in WhatsApp; hij kan ook gewoon "publiceer" terugappen. Zeg dat niet in elk bericht; alleen als hij ernaar vraagt hoe hij iets live zet. Is het verzoek een GROTE VERBOUWING (hele site een make-over, ander ontwerp, nieuwe huisstijl, veel pagina's tegelijk)? Zeg dan eerlijk dat zoiets te groot is voor een appje: via WhatsApp is er een tijdslimiet en zou je halverwege afbreken. Stel voor om het in het portaal te doen (daar is meer tijd en zie je het meteen), of om het via WhatsApp in kleine stappen te doen — bijvoorbeeld eerst de kleuren, dan de koppen, dan de knoppen — en begin met die eerste stap als de eigenaar dat wil. Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag gewoon: die wordt in WhatsApp een keuzelijst.`
               : null,
             // Eigen webadressen: vraagt de eigenaar om "de link", dan kan de AI die geven
             !site.isDemo && (site.domein || site.siteSlug)
@@ -864,7 +878,7 @@ export async function POST(req: Request) {
               tijdOp = true;
               stopper.abort();
             },
-            Math.max(30_000, (maxDuration - 80) * 1000 - (Date.now() - klok)),
+            Math.max(30_000, (maxDuurS - 80) * 1000 - (Date.now() - klok)),
           );
           // Pagina's die in deze beurt nieuw worden geschreven bestaan op de
           // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft

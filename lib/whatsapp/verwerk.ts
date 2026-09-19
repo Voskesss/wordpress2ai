@@ -39,6 +39,10 @@ import {
  * opslaan. Wie langer op een bezette website moet wachten, krijgt een eerlijk
  * "stuur het zo nog eens" in plaats van een beurt die halverwege wordt afgekapt. */
 const UITERLIJK_START_MS = 45_000;
+/** Moet gelijk zijn aan maxDuration van app/api/whatsapp/webhook/route.ts.
+ * De chatbeurt krijgt hiervan een kortere grens mee, zodat hij zelf op tijd
+ * stopt en oplevert wat af is in plaats van door Vercel te worden afgekapt. */
+const WEBHOOK_MAX_DUUR_S = 800;
 /** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
  * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
 const BUNDEL_MS = 8_000;
@@ -434,6 +438,8 @@ async function chatBeurt(
   meerdere = false,
 ) {
   const ids = rijen.map((r) => r.id);
+  // Buiten de try, zodat we hem ook bij een fout kunnen stoppen
+  let bezigMelder: ReturnType<typeof setTimeout> | undefined;
   try {
     const opmerkingen: string[] = [];
 
@@ -498,20 +504,30 @@ async function chatBeurt(
     form.set("siteId", String(site.id));
     form.set("bericht", bericht);
     form.set("kanaal", "whatsapp");
+    // De chat moet ruim vóór onze eigen functiegrens stoppen: zo krijg je altijd
+    // een antwoord en blijft een half werk niet verloren (les 19-09: een hele
+    // make-over liep 800 s door en werd door Vercel afgekapt).
+    form.set(
+      "maxDuurS",
+      String(Math.round((gestart + (WEBHOOK_MAX_DUUR_S - 150) * 1000 - Date.now()) / 1000)),
+    );
     for (const f of fotos) form.append("afbeelding", f);
 
     // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
     // minuten, en zolang blijft het in WhatsApp anders doodstil. Loopt er net
     // al een beurt voor dit nummer, dan is die melding er al geweest.
-    if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) > 20_000) {
+    // Alleen "ik ben bezig" melden als het écht even duurt: bij een vraag of
+    // een kort overleg is het antwoord er zo, en dan is die melding ruis.
+    bezigMelder = setTimeout(() => {
+      if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) < 20_000) return;
       laatsteAanDeSlag.set(telefoon, Date.now());
-      await stuurTekst(
+      void stuurTekst(
         telefoon,
         meerdere
-          ? `Ik ga ermee aan de slag voor ${siteRegel(site)}. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.`
-          : "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
+          ? `Even bezig voor ${siteRegel(site)} — je hoort het zodra ik klaar ben.`
+          : "Even bezig — je hoort het zodra ik klaar ben.",
       ).catch(() => {});
-    }
+    }, 15_000);
 
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
@@ -520,18 +536,26 @@ async function chatBeurt(
       const data = (await res.clone().json().catch(() => ({}))) as { slot?: boolean };
       if (!data.slot) break;
       if (Date.now() - gestart > UITERLIJK_START_MS) {
+        clearTimeout(bezigMelder);
         await zetStatus(ids, "genegeerd", site.id);
-        await stuurTekst(telefoon, "Er wordt nog aan je website gewerkt. Stuur je bericht over een paar minuten nog eens, dan pak ik het op.");
+        const { leaseRestMinuten, operationScope } = await import("@/lib/operation-guards");
+        const minuten = await leaseRestMinuten(operationScope(site, eigenaar)).catch(() => 2);
+        await stuurTekst(
+          telefoon,
+          `Er wordt nu aan je website gewerkt; dat kan nog ${minuten} ${minuten === 1 ? "minuut" : "minuten"} duren. Stuur je bericht daarna nog eens, dan pak ik het op.`,
+        );
         return;
       }
       await slaap(10_000);
       res = await roepRouteAan("chat", eigenaar, form);
     }
+    clearTimeout(bezigMelder);
     const uitkomst = await readChatResponse(res, () => {});
     await stuurAntwoord(telefoon, site, uitkomst, meerdere);
     await zetStatus(ids, "klaar", site.id);
   } catch (e) {
     console.error("WhatsApp-chatbeurt:", e);
+    clearTimeout(bezigMelder);
     await zetStatus(ids, "mislukt", site.id);
     const melding = e instanceof Error && e.message && !/^(WhatsApp|Media|Whisper)/.test(e.message)
       ? e.message
