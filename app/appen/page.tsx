@@ -101,8 +101,10 @@ export default function Appen() {
             inloggen, geen editor, geen avond eraan kwijt.
           </p>
           <p className="mt-4 text-lg text-stone-600 leading-relaxed">
-            Het appen testen we nu met een kleine groep. Wat vandaag al werkt:
-            hetzelfde doen in de chat van je eigen site.
+            Het appen zit in bèta. Maar zodra je site is omgezet, kun je dit
+            allemaal <strong>vandaag al</strong> in de chat van je eigen
+            website: foto’s van je laatste klus erop, prijzen aanpassen, een
+            dienst erbij. Je typt het, je site doet het.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <a href="#aanmelden" className="button-primary">
@@ -137,6 +139,38 @@ export default function Appen() {
           </p>
         </div>
       </div>
+
+      {/* Wat nu al kan */}
+      <section className="mx-auto max-w-4xl px-6 pt-20">
+        <p className="eyebrow">DIRECT NA DE OMZETTING</p>
+        <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight">
+          In de chat kan alles al
+        </h2>
+        <p className="mt-4 text-stone-600 leading-relaxed max-w-2xl">
+          Je hoeft niet op het appen te wachten. Zodra je site is omgezet, doe
+          je dit in de chat van je eigen website. Je krijgt eerst een voorstel
+          te zien, jij publiceert.
+        </p>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {[
+            "“Zet deze foto’s van de klus in Velp erbij, met een korte tekst.”",
+            "“Onze prijzen gaan omhoog: onderhoudsbeurt wordt €95.”",
+            "“We zijn dicht van 24 december tot 2 januari, meld dat op de site.”",
+            "“Voeg een pagina toe over onze nieuwe dienst dakkapellen.”",
+          ].map((zin) => (
+            <div
+              key={zin}
+              className="reveal rounded-xl border border-stone-200 bg-white p-5 text-stone-700 leading-relaxed"
+            >
+              {zin}
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-sm text-stone-500">
+          Het appen via WhatsApp komt daar straks bij, zodat het ook kan terwijl
+          je nog op de klus staat.
+        </p>
+      </section>
 
       {/* Wat je krijgt */}
       <section className="mx-auto max-w-4xl px-6 pt-20">
