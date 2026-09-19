@@ -25,6 +25,7 @@ import {
   KNOP_SITE,
   KNOP_WEGGOOIEN,
   conceptCommando,
+  vraagtOmMakeover,
   wisselCommando,
   leesKnop,
   paginaVoorConcept,
@@ -183,6 +184,14 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     return;
   }
 
+  // "Ja, laat WordSwap contact opnemen": interesse in een make-over doorgeven
+  for (const rij of rijen.filter((r) => vraagtOmMakeover(r.inhoud))) {
+    rijen = rijen.filter((r) => r.id !== rij.id);
+    if (!(await claim([rij.id])).length) continue;
+    await geefMakeoverDoor(telefoon, site);
+    await zetStatus([rij.id], "klaar", site.id);
+  }
+
   // Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
   for (const rij of rijen) {
     const commando = rij.soort === "tekst" ? conceptCommando(rij.inhoud) : null;
@@ -229,6 +238,44 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
   if (nieuwer.length) return;
   const bundel = await claimAlleWachtende(telefoon);
   if (bundel.length) await chatBeurt(telefoon, eigenaar, site, bundel, gestart, meerdere);
+}
+
+/** De eigenaar wil een nieuwe uitstraling of een make-over: dat doet WordSwap,
+ * niet de chat. Hier komt de aanvraag binnen (mail + lijst in de admin). */
+async function geefMakeoverDoor(telefoon: string, site: Site) {
+  const { formulierInzendingen } = await import("@/db/schema");
+  await db
+    .insert(formulierInzendingen)
+    .values({
+      siteRepo: "wordswap",
+      formulier: "make-over",
+      velden: {
+        naam: site.naam,
+        site: site.naam,
+        siteId: String(site.id),
+        website: site.domein ?? site.githubRepo,
+        telefoon: toonNummer(telefoon),
+        bericht: "Wil een frissere uitstraling of een complete make-over (gevraagd via WhatsApp).",
+      },
+    })
+    .catch((e) => console.error("Make-over-aanvraag opslaan:", e));
+  const sleutel = process.env.RESEND_API_KEY;
+  if (sleutel) {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sleutel}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "WordSwap portaal <info@wordswap.nl>",
+        to: ["info@wordswap.nl"],
+        subject: `Make-over gevraagd: ${site.naam}`,
+        html: `<p><strong>${site.naam}</strong> (${site.domein ?? site.githubRepo}) vroeg via WhatsApp om een frissere uitstraling of een complete make-over.</p><p>Telefoon: ${toonNummer(telefoon)}</p><p>Even bellen of mailen dus.</p>`,
+      }),
+    }).catch((e) => console.error("Make-over-seintje mailen mislukt:", e));
+  }
+  await stuurTekst(
+    telefoon,
+    "Top — ik geef het door aan WordSwap. Je hoort snel van ze over een frissere uitstraling. Ondertussen kun je hier gewoon kleine dingen blijven aanpassen.",
+  );
 }
 
 /** Site met adres, zodat in WhatsApp altijd duidelijk is waar je mee bezig bent. */

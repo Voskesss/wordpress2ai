@@ -6,6 +6,8 @@ import { createHmac } from "node:crypto";
 import {
   conceptCommando,
   wisselCommando,
+  vraagtOmMakeover,
+  MAKEOVER_KEUZE,
   normaliseerNummer,
   leesKnop,
   leesWebhook,
@@ -83,6 +85,13 @@ assert.ok(wisselCommando("Andere site!"));
 assert.ok(wisselCommando("wissel van website"));
 assert.ok(!wisselCommando("zet op de andere website ook de openingstijden"), "gewone opdracht blijft een opdracht");
 assert.ok(!wisselCommando(null));
+
+// 3c) Make-over doorgeven aan WordSwap
+assert.ok(vraagtOmMakeover(MAKEOVER_KEUZE));
+assert.ok(vraagtOmMakeover(`k:${MAKEOVER_KEUZE}`), "ook als keuze uit de lijst");
+assert.ok(vraagtOmMakeover(" ja, laat wordswap contact opnemen "));
+assert.ok(!vraagtOmMakeover("ja"), "alleen de hele keuze telt");
+assert.ok(!vraagtOmMakeover(null));
 
 // 4) KEUZES-regel
 const k = splitsKeuzes("Waar moet hij komen?\nKEUZES: Doe maar zoals jij voorstelt | Op de homepage | ✏️ Ik vertel het zelf");

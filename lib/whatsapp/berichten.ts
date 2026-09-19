@@ -183,6 +183,15 @@ export function conceptCommando(tekst: string | null) {
   return null;
 }
 
+/** De keuze waarmee de eigenaar zegt: laat WordSwap me bellen over een
+ * make-over. De chat biedt deze tekst letterlijk aan (zie de WhatsApp-regel
+ * in app/api/chat/route.ts), zodat we hem hier kunnen herkennen. */
+export const MAKEOVER_KEUZE = "Ja, laat WordSwap contact opnemen";
+export function vraagtOmMakeover(tekst: string | null) {
+  const t = (tekst ?? "").trim().toLowerCase().replace(/^k:/, "");
+  return t === MAKEOVER_KEUZE.toLowerCase();
+}
+
 /** "andere website" / "wissel van website": opnieuw laten kiezen. */
 export function wisselCommando(tekst: string | null) {
   const t = tekst?.trim().toLowerCase().replace(/[.!?]+$/, "") ?? "";
