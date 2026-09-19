@@ -12,6 +12,7 @@
     "site-onderhoud.mts",
     "actueel.mts",
     "foto-ordenen.mts",
+    "consistentie.mts",
     "chat-bestandsslot.mts",
     "slot-wacht.mts",
     "deploy-slot.mts",
