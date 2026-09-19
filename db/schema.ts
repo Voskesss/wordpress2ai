@@ -85,7 +85,8 @@ export const sites = pgTable("sites", {
 
 // WhatsApp-kanaal: welke telefoonnummers bij welke site horen. WordSwap zet ze
 // in de admin vast (met landcode); alleen berichten van zo'n nummer worden
-// verwerkt. Meerdere telefoons per site mag, één nummer hoort bij één site.
+// verwerkt. Meerdere telefoons per site mag, en dezelfde telefoon mag aan
+// meerdere sites hangen; daarom is alleen het paar (telefoon, site) uniek.
 export const whatsappKoppelingen = pgTable("whatsapp_koppelingen", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id")

@@ -1088,19 +1088,19 @@ export default async function KlantDetail({
         {whatsappMelding && (
           <p
             className={`mt-4 rounded-xl border px-3.5 py-2 text-sm ${
-              whatsappMelding === "gekoppeld" || whatsappMelding === "bestond"
+              whatsappMelding.startsWith("gekoppeld") || whatsappMelding === "bestond"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : "border-red-200 bg-red-50 text-red-900"
             }`}
           >
             {whatsappMelding === "gekoppeld"
               ? "✓ Nummer gekoppeld."
-              : whatsappMelding === "bestond"
-                ? "Dit nummer stond al bij deze website."
-                : whatsappMelding === "geen-landcode"
-                  ? "Niet opgeslagen: het nummer moet met de landcode beginnen, bijvoorbeeld +31612345678. Een nummer dat met 06 begint bestaat in tientallen landen."
-                  : whatsappMelding === "andere-site"
-                    ? "Niet opgeslagen: dit nummer hangt al aan een andere website. Haal het daar eerst weg; één telefoon hoort bij één site."
+              : whatsappMelding === "gekoppeld-meerdere"
+                ? "✓ Nummer gekoppeld. Deze telefoon hangt nu aan meerdere websites: bij een appje vraagt het kanaal eerst om welke het gaat, en die keuze blijft twee uur staan."
+                : whatsappMelding === "bestond"
+                  ? "Dit nummer stond al bij deze website."
+                  : whatsappMelding === "geen-landcode"
+                    ? "Niet opgeslagen: het nummer moet met de landcode beginnen, bijvoorbeeld +31612345678. Een nummer dat met 06 begint bestaat in tientallen landen."
                     : "Niet opgeslagen: onbekende website."}
           </p>
         )}
@@ -1127,7 +1127,8 @@ export default async function KlantDetail({
         </form>
         <p className="mt-2 text-xs text-stone-500">
           Zonder landcode wordt het nummer niet opgeslagen: 06… bestaat in tientallen landen.
-          Meerdere telefoons per site mag; één nummer hoort bij één site.
+          Meerdere telefoons per site mag, en dezelfde telefoon mag aan meerdere
+          websites hangen — dan vraagt het kanaal bij een appje eerst om welke website het gaat.
         </p>
       </div>
 

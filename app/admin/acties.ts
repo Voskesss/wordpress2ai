@@ -962,7 +962,7 @@ export async function bewaarWhatsapp(formData: FormData) {
  * denk je dat een nummer erin staat terwijl er niets is opgeslagen. */
 async function koppelNummer(
   formData: FormData,
-): Promise<"gekoppeld" | "bestond" | "geen-landcode" | "andere-site" | "onbekend"> {
+): Promise<"gekoppeld" | "gekoppeld-meerdere" | "bestond" | "geen-landcode" | "onbekend"> {
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return "onbekend";
   const { normaliseerNummer } = await import("@/lib/whatsapp/berichten");
@@ -972,13 +972,14 @@ async function koppelNummer(
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return "onbekend";
   const { whatsappKoppelingen } = await import("@/db/schema");
-  const [bestaand] = await db
+  // Eén telefoon mag aan meerdere websites hangen (iemand met twee zaken);
+  // bij een appje vraagt het kanaal dan eerst om welke website het gaat.
+  // Alleen dezelfde telefoon tweemaal bij dezelfde site is dubbelop.
+  const bestaandeSites = await db
     .select({ siteId: whatsappKoppelingen.siteId })
     .from(whatsappKoppelingen)
     .where(eq(whatsappKoppelingen.telefoon, telefoon));
-  // Eén nummer hoort bij één site; staat hij elders, dan niet stilletjes verhuizen
-  if (bestaand && bestaand.siteId !== siteId) return "andere-site";
-  if (bestaand) return "bestond";
+  if (bestaandeSites.some((r) => r.siteId === siteId)) return "bestond";
   await db.insert(whatsappKoppelingen).values({
     siteId,
     clerkUserId: site.clerkUserId,
@@ -987,7 +988,7 @@ async function koppelNummer(
     gekoppeldOp: new Date(),
   });
   revalidatePath("/portal");
-  return "gekoppeld";
+  return bestaandeSites.length ? "gekoppeld-meerdere" : "gekoppeld";
 }
 
 export async function voegWhatsappNummer(formData: FormData) {
