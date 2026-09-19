@@ -1385,9 +1385,10 @@ export async function POST(req: Request) {
           // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
           if (werkmap && changeRowId && gewijzigd.length > 0) {
             let vangnetDebug = "";
-            let vangnetVraag = false;
+            let vangnetMeldingen: string[] = [];
             try {
-              const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
+              const { vraagtAlleenHier } = await import("@/lib/vangnet-bericht");
+              const vroegAlleenHier = vraagtAlleenHier(bericht);
               if (!vroegAlleenHier) {
                 const { dubbelingsMeldingen } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");
@@ -1398,14 +1399,7 @@ export async function POST(req: Request) {
                   gewijzigd,
                   oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
                 });
-                if (meldingen.length) {
-                  // De vangnet-vraag krijgt de keuzeknoppen; een eventuele
-                  // KEUZES-regel van de AI zelf vervalt dan (er kan er maar één
-                  // onderaan staan, en deze waarschuwing gaat voor)
-                  reply = reply.replace(/\n\s*KEUZES:[^\n]*\s*$/, "");
-                  reply += `\n\n${meldingen.map((m) => `⚠️ **${m}**`).join("\n")}\nZal ik het overal gelijktrekken, of moest dit bewust alleen hier?`;
-                  vangnetVraag = true;
-                }
+                vangnetMeldingen = meldingen;
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
                 const sonde = gewijzigd.find((p) => p.endsWith(".html"));
                 if (meldingen.length === 0 && sonde) {
@@ -1439,14 +1433,16 @@ export async function POST(req: Request) {
                 }).catch((f) => console.error("Vangnet-seintje mislukt:", f));
               }
             }
-            // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
-            if (process.env.VERCEL_ENV !== "production" && vangnetDebug)
-              reply += `\n\n[vangnet: ${vangnetDebug}]`;
-            // De KEUZES-regel moet de allerlaatste regel zijn (zo wordt hij in
-            // het portaal knoppen en in WhatsApp een keuzelijst), dus ná de
-            // eventuele debugregel hierboven
-            if (vangnetVraag)
-              reply += `\nKEUZES: Overal doorvoeren | Het moest alleen hier`;
+            // Opbouw van de waarschuwing (en de keuzeregel als laatste regel)
+            // staat in lib/vangnet-bericht, zodat het te testen is.
+            const { bouwVangnetAntwoord } = await import("@/lib/vangnet-bericht");
+            reply = bouwVangnetAntwoord({
+              reply,
+              meldingen: vangnetMeldingen,
+              // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
+              debug:
+                process.env.VERCEL_ENV !== "production" ? vangnetDebug : "",
+            }).reply;
           }
 
           await db

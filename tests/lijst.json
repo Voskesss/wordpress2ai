@@ -13,6 +13,7 @@
     "actueel.mts",
     "foto-ordenen.mts",
     "consistentie.mts",
+    "vangnet-bericht.mts",
     "chat-bestandsslot.mts",
     "slot-wacht.mts",
     "deploy-slot.mts",
