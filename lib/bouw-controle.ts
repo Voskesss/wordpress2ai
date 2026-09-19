@@ -125,14 +125,21 @@ export async function controleerSiteMap(
     return false;
   };
 
-  // delen/ vooraf inlezen voor de markercontrole
+  // delen/ vooraf inlezen voor de markercontrole (en de inhoud voor controles
+  // op de pagina zoals de bezoeker hem ziet, mét ingevoegde blokken)
   const delenNamen = new Set<string>();
+  const delenInhoud = new Map<string, string>();
   try {
     for (const naam of await readdir(path.join(map, "delen")))
-      if (naam.endsWith(".html")) delenNamen.add(naam.slice(0, -5));
+      if (naam.endsWith(".html")) {
+        delenNamen.add(naam.slice(0, -5));
+        delenInhoud.set(naam.slice(0, -5), await readFile(path.join(map, "delen", naam), "utf8"));
+      }
   } catch {
     /* site zonder delen/ kan, markers vangen het hieronder */
   }
+  const uitgevouwen = (html: string) =>
+    html.replace(/<!--invoeg:([\w-]+)-->/g, (m, naam) => delenInhoud.get(naam) ?? m);
 
   const indexeerbaar: string[] = [];
 
@@ -171,6 +178,30 @@ export async function controleerSiteMap(
     for (const img of inhoud.matchAll(/<img\b[^>]*>/gi))
       if (!/\balt=/.test(img[0]))
         fout("alt-teksten", rel, `img zonder alt (regel ${eersteRegelNummer(inhoud, img.index ?? 0)}).`);
+
+    // 4b. Dezelfde foto niet twee keer groot op één pagina (bv. een
+    // dienst-tegel en een projectkaart met hetzelfde beeld onder elkaar).
+    // Zoals de bezoeker hem ziet: mét ingevoegde blokken. Formaatvarianten
+    // (-800, -klein, -v…) zijn dezelfde foto; duimnagels (≤ 120px) tellen niet.
+    {
+      const perFoto = new Map<string, number>();
+      for (const img of uitgevouwen(inhoud).matchAll(/<img\b[^>]*>/gi)) {
+        const breedte = Number(img[0].match(/\bwidth=["']?(\d+)/i)?.[1] ?? 0);
+        if (breedte && breedte <= 120) continue;
+        const src = img[0].match(/\bsrc=["']([^"']+)["']/i)?.[1];
+        // Logo's (kop én voet) en svg-iconen horen juist vaker terug te komen
+        if (!src || /\.svg(?:[?#]|$)/i.test(src) || /logo/i.test(path.basename(src))) continue;
+        const sleutel = path
+          .basename(src.split(/[?#]/)[0])
+          .replace(/\.[a-z0-9]+$/i, "")
+          .replace(/-v[0-9a-z]{6,}$/i, "")
+          .replace(/-(?:\d{3,4}|klein|groot)$/i, "");
+        perFoto.set(sleutel, (perFoto.get(sleutel) ?? 0) + 1);
+      }
+      for (const [foto, aantal] of perFoto)
+        if (aantal > 1)
+          waarschuw("foto-dubbel", rel, `Foto "${foto}" staat ${aantal} keer op deze pagina — kies voor de ene plek een ander beeld.`);
+    }
 
     // 5. Interne links en verwijzingen bestaan
     for (const m of inhoud.matchAll(/(?:href|src)=["'](\/[^"']*)["']/g)) {
