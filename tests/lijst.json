@@ -24,7 +24,8 @@
     "ai-budget.mts",
     "formulier-rem.mts",
     "whatsapp.mts",
-    "afspraken.mts"
+    "afspraken.mts",
+    "chat-tijdgrens.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",
