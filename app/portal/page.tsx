@@ -134,6 +134,25 @@ export default async function Portal({
       .map((m) => ({ rol: m.rol, tekst: m.tekst }));
   }
 
+  // Verbruikstand voor het tellertje bij de chat: alleen het aantal
+  // wijzigingen deze maand, nooit bedragen. Zelfde maandsleutel als de
+  // handhaving in de chatroute (UTC), zodat teller en rem altijd gelijklopen.
+  const maandNu = new Date().toISOString().slice(0, 7);
+  const { wijzigingenLimietVoor } = await import("@/lib/ai-budget");
+  const verbruikMap: Record<number, { gebruikt: number; limiet: number }> = {};
+  for (const site of mijnSites) {
+    if (site.isDemo) continue;
+    const { usage } = await import("@/db/schema");
+    const [rijVerbruik] = await db
+      .select()
+      .from(usage)
+      .where(and(eq(usage.siteId, site.id), eq(usage.maand, maandNu)));
+    verbruikMap[site.id] = {
+      gebruikt: rijVerbruik?.wijzigingen ?? 0,
+      limiet: wijzigingenLimietVoor(site, maandNu),
+    };
+  }
+
   const demoHeeftWijzigingen: Record<number, boolean> = {};
   const openConceptMap: Record<
     number,
@@ -332,6 +351,7 @@ export default async function Portal({
                   siteId={site.id}
                   previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}
+                  verbruik={verbruikMap[site.id] ?? null}
                   liveUrl={
                     site.isDemo && demoHeeftWijzigingen[site.id]
                       ? `${demoLiveWorker(site.githubRepo, userId)}.wordswap.workers.dev`

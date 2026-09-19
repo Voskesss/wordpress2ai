@@ -1596,6 +1596,22 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               }).catch((e) => console.error("Video-seintje mislukt:", e));
             }
           }
+          // Verbruikstand voor het tellertje in het portaal: alleen het
+          // begrijpelijke aantal wijzigingen, nooit bedragen (geen taximeter)
+          let verbruikNa: { gebruikt: number; limiet: number } | null = null;
+          if (!site.isDemo) {
+            try {
+              const [rijVerbruik] = await db
+                .select()
+                .from(usage)
+                .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
+              const { wijzigingenLimietVoor } = await import("@/lib/ai-budget");
+              verbruikNa = {
+                gebruikt: rijVerbruik?.wijzigingen ?? 0,
+                limiet: wijzigingenLimietVoor(site, maand),
+              };
+            } catch {}
+          }
           stuur({
             type: "klaar",
             reply,
@@ -1603,6 +1619,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             changeId: changeRowId,
             bestanden: gewijzigd,
             prompt: bericht,
+            verbruik: verbruikNa,
           });
 
           // Geheugen-onderhoud: oude berichten samenvatten zodra het gesprek te lang wordt
