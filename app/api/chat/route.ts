@@ -8,7 +8,7 @@ import { assertNoSymlinks } from "@/lib/agent-boundary";
 import { draaiChatAgent } from "@/lib/chat-agent";
 import { gebruikerVanVerzoek } from "@/lib/intern-verzoek";
 import sharp from "sharp";
-import { and, eq, sql, inArray } from "drizzle-orm";
+import { and, desc, eq, sql, inArray } from "drizzle-orm";
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
@@ -520,6 +520,29 @@ export async function POST(req: Request) {
         return vanafLaatsteNieuwGesprek(rows).slice(-12);
       });
 
+    // De knop "Overal doorvoeren" stuurt alleen die twee woorden: zoek de
+    // waarschuwing erbij waar hij over gaat, zodat de AI ook het juiste
+    // gelijktrekt als de historie is afgekapt of er iets tussendoor kwam.
+    let doorvoerWaarschuwing: string | null = null;
+    if (/^\s*overal (doorvoeren|gelijktrekken|aanpassen)[.!\s]*$/i.test(bericht)) {
+      const recente = await db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.siteId, site.id), eq(messages.clerkUserId, userId)))
+        .orderBy(desc(messages.id))
+        .limit(30);
+      const metMelding = recente.find(
+        (m) => m.rol === "assistent" && /Let op:.*staat óók nog op/.test(m.tekst),
+      );
+      if (metMelding) {
+        doorvoerWaarschuwing = metMelding.tekst
+          .split("\n")
+          .filter((r) => /Let op:.*staat óók nog op/.test(r))
+          .join("\n")
+          .slice(0, 1500);
+      }
+    }
+
     // Wijzigingslogboek: feitelijk geheugen van wat er eerder is gebeurd
     const logboek = await db
       .select()
@@ -812,6 +835,9 @@ export async function POST(req: Request) {
               : null,
             huidigePagina && huidigePagina !== "/"
               ? `De eigenaar bekijkt op dit moment de pagina ${huidigePagina} — "deze pagina" verwijst daarnaar.`
+              : null,
+            doorvoerWaarschuwing
+              ? `De eigenaar drukte op de knop "Overal doorvoeren". Die knop hoort bij deze eerdere waarschuwing van het dubbeling-vangnet:\n${doorvoerWaarschuwing}\nWerk ÉLKE daar genoemde plek bij zodat de tekst of foto overal weer exact gelijk is aan de nieuwste versie — verzin geen andere wijzigingen.`
               : null,
             kleur
               ? `De eigenaar heeft met de kleurkiezer een kleur gekozen: ${kleur}. Gebruik EXACT deze kleurcode voor wat hij in het bericht vraagt (en pas waar logisch ook hover-/accentvarianten aan zodat het consistent blijft).`
@@ -1375,9 +1401,10 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           // vroeg. Zo kan een halve doorvoering nooit stilletjes gebeuren.
           if (werkmap && changeRowId && gewijzigd.length > 0) {
             let vangnetDebug = "";
-            let vangnetVraag = false;
+            let vangnetMeldingen: string[] = [];
             try {
-              const vroegAlleenHier = /\balleen\b.{0,40}\b(hier|die|deze|dat|dit|daar|homepage|pagina|plek|kaart|blok|regel|zin|foto)\b|\b(die|deze) (plek|pagina|kaart) alleen\b|nergens anders|verder niets|de rest laten staan/i.test(bericht);
+              const { vraagtAlleenHier } = await import("@/lib/vangnet-bericht");
+              const vroegAlleenHier = vraagtAlleenHier(bericht);
               if (!vroegAlleenHier) {
                 const { dubbelingsMeldingen } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");
@@ -1388,14 +1415,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                   gewijzigd,
                   oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
                 });
-                if (meldingen.length) {
-                  // De vangnet-vraag krijgt de keuzeknoppen; een eventuele
-                  // KEUZES-regel van de AI zelf vervalt dan (er kan er maar één
-                  // onderaan staan, en deze waarschuwing gaat voor)
-                  reply = reply.replace(/\n\s*KEUZES:[^\n]*\s*$/, "");
-                  reply += `\n\n${meldingen.map((m) => `⚠️ **${m}**`).join("\n")}\nZal ik het overal gelijktrekken, of moest dit bewust alleen hier?`;
-                  vangnetVraag = true;
-                }
+                vangnetMeldingen = meldingen;
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
                 const sonde = gewijzigd.find((p) => p.endsWith(".html"));
                 if (meldingen.length === 0 && sonde) {
@@ -1408,15 +1428,37 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             } catch (e) {
               console.error("Consistentie-vangnet:", e);
               vangnetDebug = `FOUT: ${e instanceof Error ? e.message.slice(0, 160) : String(e).slice(0, 160)}`;
+              // Een stil uitgevallen vangnet is een vals gevoel van veiligheid:
+              // de klant merkt niets, dus Jos moet het horen (alleen productie)
+              if (
+                process.env.VERCEL_ENV === "production" &&
+                process.env.RESEND_API_KEY
+              ) {
+                fetch("https://api.resend.com/emails", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    from: "WordSwap portaal <info@wordswap.nl>",
+                    to: ["info@wordswap.nl"],
+                    subject: `⚠️ Dubbeling-vangnet uitgevallen: ${site.naam}`,
+                    html: `<p>Het dubbeling-vangnet is bij een chatwijziging stil overgeslagen — de klant merkt hier niets van, maar halve doorvoeringen worden nu niet gemeld.</p><p><strong>Site:</strong> ${site.naam} (${site.githubRepo})<br><strong>Fout:</strong> ${(e instanceof Error ? e.message : String(e)).replace(/</g, "&lt;").slice(0, 300)}<br><strong>Gewijzigd:</strong> ${gewijzigd.join(", ").slice(0, 200)}</p>`,
+                  }),
+                }).catch((f) => console.error("Vangnet-seintje mislukt:", f));
+              }
             }
-            // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
-            if (process.env.VERCEL_ENV !== "production" && vangnetDebug)
-              reply += `\n\n[vangnet: ${vangnetDebug}]`;
-            // De KEUZES-regel moet de allerlaatste regel zijn (zo wordt hij in
-            // het portaal knoppen en in WhatsApp een keuzelijst), dus ná de
-            // eventuele debugregel hierboven
-            if (vangnetVraag)
-              reply += `\nKEUZES: Overal doorvoeren | Het moest alleen hier`;
+            // Opbouw van de waarschuwing (en de keuzeregel als laatste regel)
+            // staat in lib/vangnet-bericht, zodat het te testen is.
+            const { bouwVangnetAntwoord } = await import("@/lib/vangnet-bericht");
+            reply = bouwVangnetAntwoord({
+              reply,
+              meldingen: vangnetMeldingen,
+              // Alleen buiten productie: laat de testomgeving zelf vertellen wat het vangnet deed
+              debug:
+                process.env.VERCEL_ENV !== "production" ? vangnetDebug : "",
+            }).reply;
           }
 
           await db
