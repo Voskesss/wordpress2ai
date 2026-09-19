@@ -289,9 +289,6 @@ export default function Chat({
   const [seoOpen, setSeoOpen] = useState(false);
   const [fotobankOpen, setFotobankOpen] = useState(false);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
-  // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
-  // server precies de aangewezen plek raken als de foto vaker op de pagina staat
-  const [fotobankElement, setFotobankElement] = useState<string | null>(null);
   // Uit de fotobank gekozen foto om in de volgende chatopdracht te gebruiken
   const [fotobankKeuze, setFotobankKeuze] = useState<string | null>(null);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
@@ -677,11 +674,6 @@ export default function Chat({
   // Op een telefoon: site op ware grootte tonen (die is zelf al responsive)
   // in plaats van een gekrompen desktop-weergave
   const [isMobiel, setIsMobiel] = useState(false);
-  // Aanwijzen met een vinger gaat in twee stappen (eerst aantikken, dan
-  // bevestigen), want zonder muis kun je niet eerst even ergens overheen gaan.
-  // Die bevestigknop hing aan de schermbreedte, dus op een tablet — breed
-  // scherm, geen muis — zag je wel de paarse rand maar nooit de knoppen.
-  const [isTouch, setIsTouch] = useState(false);
   // Op mobiel start de chatbalk ingeklapt, zodat je eerst lekker de site ziet
   const [balkOpen, setBalkOpen] = useState(true);
   // Mobiel: chat en site als twee volledige schermen (zoals een artifact)
@@ -696,19 +688,12 @@ export default function Chat({
   // Smalle invoerbalk-indeling: op mobiel én in het smalle zijpaneel
   const smalleBalk = isMobiel || splitModus;
   useEffect(() => {
-    const grof = window.matchMedia("(pointer: coarse)");
-    const zetTouch = () => setIsTouch(grof.matches || navigator.maxTouchPoints > 0);
-    zetTouch();
-    grof.addEventListener("change", zetTouch);
     const mq = window.matchMedia("(max-width: 640px)");
     const zet = () => setIsMobiel(mq.matches);
     zet();
     if (mq.matches) setBalkOpen(false);
     mq.addEventListener("change", zet);
-    return () => {
-      mq.removeEventListener("change", zet);
-      grof.removeEventListener("change", zetTouch);
-    };
+    return () => mq.removeEventListener("change", zet);
   }, []);
 
   // Voorbeeldopdracht uit het demo-welkomscherm klaarzetten in de invoerbalk
@@ -1328,10 +1313,6 @@ export default function Chat({
       const form = new FormData();
       form.set("siteId", String(siteId));
       form.set("pad", src);
-      form.set("pagina", huidigeRef.current);
-      // HTML van het aangewezen element: staat de foto vaker op de pagina,
-      // dan kan de server zo precies de aangewezen plek raken
-      form.set("element", selectie?.html ?? "");
       form.set("afbeelding", bestand);
       const res = await metSlotWacht(
         () => fetch("/api/foto-wijzig", { method: "POST", body: form }),
@@ -1369,9 +1350,7 @@ export default function Chat({
               : `${huidigeRef.current.replace(/^\/+|\/+$/g, "")}/index.html`,
           ],
         });
-        // Vraagt het antwoord nog iets (foto staat óók elders — knoppen)?
-        // Dan moet de chat open blijven, anders inklappen voor de kaart.
-        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0);
+        setChatOpen(false);
       } else if (data.fallback) {
         setLaderTekst(null);
         setBerichten((b) => [
@@ -1989,8 +1968,8 @@ export default function Chat({
           </div>
         )}
 
-        {/* Zonder muis (telefoon én tablet): aanwijs-hint over de site heen */}
-        {isTouch && !mobielChat && aanwijzen && (
+        {/* Mobiel: aanwijs-hint over de site heen */}
+        {isMobiel && !mobielChat && aanwijzen && (
           <div className="absolute left-1/2 top-3 z-20 flex w-[94%] -translate-x-1/2 items-center gap-3 rounded-2xl bg-stone-900/85 px-4 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur">
             <span className="min-w-0 flex-1 truncate">
               {aanwijsKandidaat
@@ -2003,8 +1982,8 @@ export default function Chat({
         )}
 
         {/* Mobiel: ingeklapte chat — eerst lekker de site bekijken */}
-        {/* Zonder muis: grote bevestigbalk onderin (waar de duim zit) */}
-        {isTouch && !mobielChat && aanwijzen && (
+        {/* Mobiel aanwijzen: grote bevestigbalk onderin (waar de duim zit) */}
+        {isMobiel && !mobielChat && aanwijzen && (
           <div className="absolute bottom-4 left-1/2 z-10 flex w-[94%] -translate-x-1/2 items-center gap-2">
             {aanwijsKandidaat && (
               <button
@@ -2422,17 +2401,13 @@ export default function Chat({
               // nog niet bestaan (demo: persoonlijke sandbox ontstaat pas bij de eerste wijziging)
               beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               vervangDoel={fotobankDoel}
-              pagina={huidigePagina}
-              element={fotobankElement}
               onSluit={() => {
                 setFotobankOpen(false);
                 setFotobankDoel(null);
-                setFotobankElement(null);
               }}
               onKlaar={(data) => {
                 setFotobankOpen(false);
                 setFotobankDoel(null);
-                setFotobankElement(null);
                 setSelectie(null);
                 setChatOpen(true);
                 setBerichten((b) => [
@@ -2697,7 +2672,6 @@ export default function Chat({
                       const src = selectie.html.match(/src=["']([^"']+)["']/)?.[1];
                       if (!src) return;
                       setFotobankDoel(src);
-                      setFotobankElement(selectie.html);
                       setFotobankOpen(true);
                     }}
                     disabled={bezig}
