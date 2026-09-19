@@ -27,7 +27,8 @@
     "whatsapp.mts",
     "afspraken.mts",
     "chat-tijdgrens.mts",
-    "herstel-rem.mts"
+    "herstel-rem.mts",
+    "bijhalen-hoofdversie.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

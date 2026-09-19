@@ -621,6 +621,42 @@ export async function POST(req: Request) {
               tekst: "Ik haal mijn nieuwste versie op...",
             });
           }, 2500);
+          // Bijhalen van de hoofdversie: is er iets gepubliceerd terwijl dit
+          // concept openstond (ander concept, WhatsApp), dan bouwt deze beurt
+          // anders op een verouderde site en botst het pas bij publiceren
+          // (gezien 19-09: geel gepubliceerd, oranje in het oude concept).
+          // Botst het nu al, dan melden we dat meteen eerlijk.
+          if (openConcept?.branch && !site.isDemo) {
+            const uitkomst = await import("@/lib/github")
+              .then((m) => m.mergeBranches(site.githubRepo, openConcept.branch!, "main"))
+              .catch((e) => {
+                // Bijhalen is een extraatje: lukt het niet (storing, afwijkende
+                // branchnaam), dan werken we gewoon door op de oude stand.
+                console.error("Hoofdversie bijhalen in concept mislukt:", e);
+                return "al-bij" as const;
+              });
+            if (uitkomst === "samengevoegd")
+              console.log(`Hoofdversie bijgehaald in concept ${openConcept.branch} (${site.githubRepo})`);
+            if (uitkomst === "conflict") {
+              const reply =
+                "Terwijl dit concept openstond is er iets anders gepubliceerd dat dezelfde onderdelen raakt — ik kan de twee versies niet veilig samenvoegen, en publiceren zou hier ook op stuklopen. Gooi dit concept weg met de knop \"Weggooien\" en stuur je verzoek daarna opnieuw: dan bouw ik op de nieuwste versie van de site. Wat er in dit concept stond vervalt dan; noem het gerust in je nieuwe bericht, dan neem ik het meteen mee.";
+              await db.insert(messages).values({
+                siteId: site.id,
+                rol: "assistent",
+                tekst: reply,
+                clerkUserId: userId,
+              });
+              stuur({
+                type: "klaar",
+                reply,
+                previewUrl: openConcept.previewUrl ?? null,
+                changeId: openConcept.id,
+                bestanden: [],
+                prompt: bericht,
+              });
+              return;
+            }
+          }
           if (openConcept?.branch) {
             werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
           } else if (eigenBranch) {
