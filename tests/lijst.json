@@ -22,7 +22,8 @@
     "formulier-rem.mts",
     "whatsapp.mts",
     "afspraken.mts",
-    "chat-tijdgrens.mts"
+    "chat-tijdgrens.mts",
+    "inlogroute.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

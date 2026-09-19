@@ -54,6 +54,16 @@ export async function GET(req: Request) {
         ? bouwAfspraakBevestiging({ ...afspraak, contact: q.get("contact")?.trim() || null, eigenTekst: bericht })
         : bouwAfspraakAfzegging({ ...afspraak, reden: q.get("reden")?.trim() || null });
     if (soort === "afspraak-bevestiging") bijlageNoot = "Bij de echte mail zit het agendabestand (afspraak.ics) als bijlage.";
+  } else if (soort === "inloguitleg") {
+    const { bouwToegangsMail, standaardBekijkLink } = await import("@/lib/website-akkoord");
+    const portaal = `https://www.wordswap.nl/portal?site=${site.id}`;
+    mail = bouwToegangsMail({
+      siteNaam: site.naam,
+      bekijkUrl: standaardBekijkLink(site),
+      inlogUrl: `https://www.wordswap.nl/sign-in?redirect_url=${encodeURIComponent(portaal)}`,
+      naam: ontvanger?.naam,
+      domein: site.domein,
+    });
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

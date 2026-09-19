@@ -71,6 +71,15 @@ function eigenAlineas(tekst?: string | null): string {
     .join("");
 }
 
+/** Onthoud-tip: je eigen adres + /wordswap brengt je altijd naar het inlogscherm. */
+function inlogTip(domein?: string | null): string {
+  const schoon = (domein ?? "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (!schoon) return "";
+  return p(
+    `<strong>Makkelijk te onthouden:</strong> ${ontsnap(schoon)}/wordswap brengt je altijd naar dit inlogscherm — gewoon je eigen websiteadres met /wordswap erachter.`,
+  );
+}
+
 /** De mail die de klant krijgt bij het koppelen van zijn e-mailadres. */
 export function bouwOpleveringsMail(o: {
   siteNaam: string;
@@ -78,6 +87,8 @@ export function bouwOpleveringsMail(o: {
   inlogUrl: string;
   naam?: string | null;
   eigenTekst?: string | null;
+  /** Eigen domein voor de onthoud-tip (domein.nl/wordswap) */
+  domein?: string | null;
 }): { onderwerp: string; html: string } {
   const site = ontsnap(o.siteNaam);
   const bekijkTekst = ontsnap(o.bekijkUrl.replace(/^https:\/\//, "").replace(/\/$/, ""));
@@ -100,6 +111,7 @@ export function bouwOpleveringsMail(o: {
         p(
           "Je hebt geen wachtwoord nodig: je krijgt bij het inloggen een code op dit e-mailadres. <strong>Zie je die code niet binnen een minuut? Kijk dan even in je spam of ongewenste mail.</strong>",
         ) +
+        inlogTip(o.domein) +
         p("Twijfel je ergens over of klopt er iets niet? Antwoord gewoon op deze mail of bel me op " + TELEFOON + ".") +
         eigenAlineas(o.eigenTekst) +
         p("Groet,<br>Jos"),
@@ -109,7 +121,7 @@ export function bouwOpleveringsMail(o: {
 }
 
 /** Voor een site die al draait (overdragen aan een ander account): toegang, zonder akkoordverhaal. */
-export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null }): {
+export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null; domein?: string | null }): {
   onderwerp: string;
   html: string;
 } {
@@ -126,6 +138,7 @@ export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlog
         p(
           "Je hebt geen wachtwoord nodig: je krijgt bij het inloggen een code op dit e-mailadres. <strong>Zie je die code niet binnen een minuut? Kijk dan even in je spam of ongewenste mail.</strong>",
         ) +
+        inlogTip(o.domein) +
         p("Vragen? Antwoord gewoon op deze mail of bel me op " + TELEFOON + ".") +
         eigenAlineas(o.eigenTekst) +
         p("Groet,<br>Jos"),
@@ -136,7 +149,7 @@ export function bouwToegangsMail(o: { siteNaam: string; bekijkUrl: string; inlog
 /** Welke mail hoort bij deze site: in opbouw = oplevering met akkoord, anders = toegang. */
 export function bouwKoppelMail(
   site: { naam: string; status: string; isDemo: boolean },
-  links: { bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null },
+  links: { bekijkUrl: string; inlogUrl: string; naam?: string | null; eigenTekst?: string | null; domein?: string | null },
 ) {
   return vraagtOpleveringsAkkoord(site)
     ? bouwOpleveringsMail({ siteNaam: site.naam, ...links })

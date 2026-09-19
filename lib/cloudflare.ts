@@ -166,6 +166,28 @@ export function mimeVoorPad(pad: string): string {
   );
 }
 
+/** Vaste inlog-doorstuurpagina's op elke klantsite: <domein>/wordswap (altijd)
+ * en <domein>/inloggen (alleen als de site zelf geen inlogpagina heeft). Zo
+ * hoeft een klant alleen zijn eigen websiteadres te onthouden. */
+export function inlogPaginas(bestaandePaden: string[]): { pad: string; data: Buffer }[] {
+  const inlogUrl = "https://www.wordswap.nl/sign-in?redirect_url=%2Fportal";
+  const html = `<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="0;url=${inlogUrl}">
+<title>Inloggen bij je website</title></head>
+<body style="font-family:system-ui,sans-serif;padding:40px;text-align:center">
+<p>Je wordt doorgestuurd naar het inlogscherm van je website…</p>
+<p><a href="${inlogUrl}">Klik hier als dat niet vanzelf gebeurt.</a></p>
+<script>location.replace(${JSON.stringify(inlogUrl)})</script>
+</body></html>`;
+  const uit = [{ pad: "wordswap/index.html", data: Buffer.from(html) }];
+  const heeftEigenInlog = bestaandePaden.some((p) =>
+    /^inloggen(\/index\.html?|\.html?)$/i.test(p)
+  );
+  if (!heeftEigenInlog) uit.push({ pad: "inloggen/index.html", data: Buffer.from(html) });
+  return uit;
+}
+
 /** Maakt de publiceerbare bestanden van een werkmap klaar: delen-markers
  * uitvouwen, meldscript en deploy-stempel injecteren, placeholder-domein
  * vervangen. Gedeeld door de R2- en de assets-variant. */
@@ -198,6 +220,10 @@ async function bereidBestandenVoor(
       data = Buffer.from(vervangPlaceholderDomein(data.toString("utf8"), echtDomein));
     }
     uit.push({ pad, data });
+  }
+  // Vaste inlogroutes: /wordswap en (als de site die zelf niet heeft) /inloggen
+  for (const extra of inlogPaginas(bestanden)) {
+    if (!bestanden.includes(extra.pad)) uit.push(extra);
   }
   // _redirects is bewust geen publiek bestand, maar het R2-script heeft hem nodig
   try {

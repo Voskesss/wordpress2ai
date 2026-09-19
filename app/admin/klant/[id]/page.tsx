@@ -13,6 +13,7 @@ import OntwerpBlok from "./OntwerpBlok";
 import AfsprakenBlok from "./AfsprakenBlok";
 import SnelMenu from "./SnelMenu";
 import ReviewMailKnop from "./ReviewMailKnop";
+import InlogMailKnop from "./InlogMailKnop";
 import BackupUpload from "./BackupUpload";
 import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
@@ -559,6 +560,7 @@ export default async function KlantDetail({
               />
             </form>
           )}
+          <InlogMailKnop siteId={site.id} />
           <details className="mt-4">
             <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
               Site overdragen aan een ander account…

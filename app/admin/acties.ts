@@ -163,7 +163,7 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst, domein: site.domein });
     const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }
@@ -863,6 +863,38 @@ export async function bewaarAiBudget(formData: FormData) {
   if (!Number.isInteger(siteId) || !Number.isInteger(budget) || budget < 1 || budget > 1000) return;
   await db.update(sites).set({ aiMaandbudgetUsd: budget }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
+}
+
+export type InlogMailUitkomst = { ok: boolean; melding: string };
+
+/** Stuurt de inloguitleg ("je hebt toegang"-mail) opnieuw naar de gekoppelde
+ * klant — voor het "waar moet ik ook alweer inloggen?"-moment. */
+export async function mailInlogUitleg(
+  _vorige: InlogMailUitkomst | null,
+  formData: FormData,
+): Promise<InlogMailUitkomst> {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return { ok: false, melding: "Onbekende klant." };
+  const { klantAdres } = await import("@/lib/klant-adres");
+  const ontvanger = await klantAdres(site);
+  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+  const { bouwToegangsMail, standaardBekijkLink } = await import("@/lib/website-akkoord");
+  const { mailVanJos } = await import("@/lib/wordswap-mail");
+  const portaal = `https://www.wordswap.nl/portal?site=${siteId}`;
+  const mail = bouwToegangsMail({
+    siteNaam: site.naam,
+    bekijkUrl: standaardBekijkLink(site),
+    inlogUrl: `https://www.wordswap.nl/sign-in?redirect_url=${encodeURIComponent(portaal)}`,
+    naam: ontvanger.naam,
+    domein: site.domein,
+  });
+  const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+  return gelukt
+    ? { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` }
+    : { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
 }
 
 export type ReviewMailUitkomst = { ok: boolean; melding: string };
