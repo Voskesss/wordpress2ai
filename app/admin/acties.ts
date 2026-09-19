@@ -38,7 +38,15 @@ export async function bewaarSite(formData: FormData) {
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return;
   const naam = String(formData.get("naam") ?? "").trim();
-  const domein = String(formData.get("domein") ?? "").trim();
+  // Domein vergevingsgezind schoonmaken: mensen plakken al snel https://,
+  // www. of een slash mee, en met een slash erin worden alle links 404
+  const domein = String(formData.get("domein") ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .replace(/\.$/, "");
   const siteSlug = String(formData.get("siteSlug") ?? "").trim();
   const plan = String(formData.get("plan") ?? "via_ons");
   const status = String(formData.get("status") ?? "migratie");
