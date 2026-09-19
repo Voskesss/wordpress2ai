@@ -769,13 +769,15 @@ export async function POST(req: Request) {
               uitkomst.rest.length === 0
                 ? ""
                 : herstelGedraaid
-                  ? "\n\nDe overige plekken heb ik ook laten bijwerken; hieronder meld ik het als er tóch iets is blijven staan."
+                  ? regels.length
+                    ? "\n\nDe overige plekken heb ik ook laten bijwerken; hieronder meld ik het als er tóch iets is blijven staan."
+                    : " Hieronder meld ik het als er tóch iets is blijven staan."
                   : `\n\nLet op: ${uitkomst.rest.length} plek${uitkomst.rest.length === 1 ? "" : "ken"} kon ik nu niet automatisch bijwerken — vraag het gerust in een volgend bericht.`;
             snelpad = {
               reply:
                 (regels.length
                   ? `Ik heb het overal doorgevoerd:\n${regels.join("\n")}`
-                  : "Ik heb de resterende plekken bijgewerkt.") + restZin,
+                  : `Ik heb het overal doorgevoerd (${[...new Set(uitkomst.rest.map((r) => alsPagina(r.pad)))].slice(0, 4).join(", ")}).`) + restZin,
               kostenUsd: herstelKosten.kostenUsd,
               tokensIn: herstelKosten.tokensIn,
               tokensUit: herstelKosten.tokensUit,
