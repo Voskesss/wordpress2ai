@@ -29,7 +29,8 @@
     "chat-tijdgrens.mts",
     "herstel-rem.mts",
     "bijhalen-hoofdversie.mts",
-    "doorvoeren.mts"
+    "doorvoeren.mts",
+    "wijzigingen-telling.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

@@ -1461,8 +1461,14 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 .where(eq(changes.id, row.id));
             }
 
-            if (openConcept || site.isDemo) {
-              // vervolg binnen hetzelfde concept of demo: geen telling
+            // Elke beurt die echt iets verandert telt als wijziging — óók een
+            // vervolg binnen een openstaand concept (anders is een concept dat
+            // nooit gepubliceerd wordt een onbeperkte gratis maand). Gratis
+            // blijven: vraag-beurten zonder wijziging (komen hier niet), de
+            // demo, en "Overal doorvoeren" — dat maakt een eerdere wijziging
+            // af en is geen nieuwe.
+            if (site.isDemo || bericht.trim() === "Overal doorvoeren") {
+              // geen telling
             } else if (verbruik) {
               await db
                 .update(usage)
