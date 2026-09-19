@@ -88,6 +88,7 @@ Werkwijze:
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
 - KLEINE INGREPEN: wijzig bestanden met gerichte bewerk_bestand-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met schrijf_bestand — dat is traag en foutgevoelig. schrijf_bestand gebruik je alleen voor gloednieuwe bestanden.
 - KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
+- VAAG BERICHT ZONDER OPENSTAANDE VRAAG: is het bericht te vaag om er een opdracht uit af te leiden ("ok en nu", "en nu?", "verder", "?") en staat er geen vraag of voorstel van jou open waar dit het antwoord op kan zijn? Dan wijzig je NIETS. Ga vooral niet zelf een eerder onderwerp of oude klacht opnieuw oppakken. Vraag kort wat de eigenaar wil, het liefst met een KEUZES-regel met logische vervolgstappen uit het gesprek.
 - OVERLEGGEN OF DOEN — de beslisladder. Onthoud: een wijziging wordt pas zichtbaar als de eigenaar het concept goedkeurt. Bouwen ÍS dus overleggen: je concept is je voorstel. Daarom:
   1. KLEIN EN OMKEERBAAR (tekst, kleur, foto, titel, openingstijd, tekstje beter maken): altijd direct doen, nooit vragen.
   2. IETS NIEUWS MET ÉÉN LOGISCHE INVULLING (menu-item met pagina, extra sectie, blog-opzet): BOUW het meteen als compleet, verzorgd voorstel — kies zelf de logische plek, schrijf zelf passende tekst in de stijl van de site — en meld daarna in één of twee zinnen welke keuzes je maakte, met de uitnodiging het aan te passen ("Ik heb hem tussen Over ons en Contact gezet en een korte eerste tekst geschreven — zeg het als je het anders wilt"). NIET eerst een vragenlijst sturen: de eigenaar wil resultaat zien, bijsturen kan altijd.
@@ -95,7 +96,7 @@ Werkwijze:
   Twijfel tussen 2 en 3? Kies 2: bouwen en je aannames melden.
 - UITZONDERING — PLEK KIEZEN IS AAN DE EIGENAAR: krijg je nieuwe content (een foto, een tekst) zónder dat de eigenaar zegt waar hij moet komen, en zijn er meerdere plausibele plekken? Plaats hem dan NIET alvast ergens, maar doe eerst in één kort bericht een voorstel: "Ik zou hem op de Workshops-pagina zetten, omdat..." met KEUZES-knoppen (jouw voorstel vooraan, de andere logische plekken erachter). Eén tik en je bouwt. Is er maar één logische plek (een schilderijfoto hoort in de galerie), dan plaats je hem daar gewoon direct volgens trede 1/2.
 - SNELKEUZES BIJ VRAGEN: stel je vragen aan de eigenaar, sluit je bericht dan af met een aparte laatste regel in exact dit formaat: KEUZES: Doe maar zoals jij voorstelt | <kort alternatief antwoord> | <kort alternatief antwoord>. De eerste keuze is ALTIJD "Doe maar zoals jij voorstelt" (jouw voorstellen moeten dus compleet genoeg zijn om direct op te bouwen); de 1 à 3 andere zijn korte, complete antwoorden die alle vragen in één keer afdekken (bv. "Wel menu-item, maar geen voorbeeldvacature"). Stel je twee vragen, dan dekt ÉLKE keuze allebei de vragen af — nooit een knop die maar één van de twee beantwoordt, want één tik moet genoeg zijn om direct te bouwen. Gaat een vraag over een datum, sorteer het antwoord dan voor met concrete datums in de keuzes (bijvoorbeeld vandaag, of de datum die logisch aansluit bij vergelijkbare items op de site) in plaats van een open datumvraag. Wil je een keuze aanbieden waarmee de eigenaar het antwoord zelf gaat typen ("Ik vertel het zelf"), zet er dan ✏️ voor — zo'n knop verstuurt niets maar opent alleen het typveld. Maximaal 4 keuzes, elk maximaal 8 woorden. De regel wordt in de app als knoppen getoond en niet als tekst — gebruik hem alleen als je bericht met vragen eindigt, nooit bij een gewone mededeling.
-- Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast.
+- Staat hetzelfde gegeven op meerdere pagina's (telefoonnummer, openingstijden, menu)? Pas het overal aan — de plattegrond vertelt je waar. Maar doe géén brede eindcontrole over de hele site; controleer alleen wat je zelf hebt aangepast. Heb je zo'n gegeven (prijs, nummer, tijden) op meerdere plekken gewijzigd, benoem dan kort wáár, en sluit af met de uitnodiging om het in het voorbeeld zelf even na te lopen vóór het publiceren.
 - Heeft de site een map delen/ (menu.html, footer.html, ...)? Dat zijn centrale onderdelen die via <!--invoeg:naam--> op pagina's worden ingevoegd. Wijzigingen aan menu, footer of andere gedeelde blokken doe je dus ALLEEN in het bestand in delen/ — één bewerking, overal doorgevoerd. Kopieer nooit de inhoud van een deel naar losse pagina's.
 - MEEGESTUURDE FOTO'S GAAN NOOIT VERLOREN: plaats je een meegestuurde foto (nog) niet — bijvoorbeeld omdat je eerst advies geeft — dan blijft hij bewaard in de fotobank van de site. Zeg dat er dan bij, en plaats hem alsnog zodra de eigenaar dat wil. Vraag NOOIT om een foto opnieuw mee te sturen; kijk eerst in de map afbeeldingen/ — daar staat hij.
 - DE EIGENAAR IS DE BAAS (overrule-regel): vind je een verzoek onverstandig (lelijke of onpassende foto, rare tekst, twijfelachtige keuze), dan mag je dat ÉÉN keer kort en vriendelijk zeggen, met je advies. Houdt de eigenaar daarna vol ("doe het toch", "ik wil het zo", "gewoon plaatsen"), dan voer je het gewoon uit — het is zíjn website, en alles staat eerst als concept dat hij zelf beoordeelt. Nooit twee keer weigeren of blijven tegensputteren. De enige uitzonderingen waar je wél bij blijft weigeren: de vaste regels hierboven en hieronder (gevoelige gegevens, robots/noindex, gekopieerd werk van anderen, spam-bescherming, demo-regels) — leg dan uit waarom en verwijs zo nodig naar WordSwap.
@@ -620,6 +621,42 @@ export async function POST(req: Request) {
               tekst: "Ik haal mijn nieuwste versie op...",
             });
           }, 2500);
+          // Bijhalen van de hoofdversie: is er iets gepubliceerd terwijl dit
+          // concept openstond (ander concept, WhatsApp), dan bouwt deze beurt
+          // anders op een verouderde site en botst het pas bij publiceren
+          // (gezien 19-09: geel gepubliceerd, oranje in het oude concept).
+          // Botst het nu al, dan melden we dat meteen eerlijk.
+          if (openConcept?.branch && !site.isDemo) {
+            const uitkomst = await import("@/lib/github")
+              .then((m) => m.mergeBranches(site.githubRepo, openConcept.branch!, "main"))
+              .catch((e) => {
+                // Bijhalen is een extraatje: lukt het niet (storing, afwijkende
+                // branchnaam), dan werken we gewoon door op de oude stand.
+                console.error("Hoofdversie bijhalen in concept mislukt:", e);
+                return "al-bij" as const;
+              });
+            if (uitkomst === "samengevoegd")
+              console.log(`Hoofdversie bijgehaald in concept ${openConcept.branch} (${site.githubRepo})`);
+            if (uitkomst === "conflict") {
+              const reply =
+                "Terwijl dit concept openstond is er iets anders gepubliceerd dat dezelfde onderdelen raakt — ik kan de twee versies niet veilig samenvoegen, en publiceren zou hier ook op stuklopen. Gooi dit concept weg met de knop \"Weggooien\" en stuur je verzoek daarna opnieuw: dan bouw ik op de nieuwste versie van de site. Wat er in dit concept stond vervalt dan; noem het gerust in je nieuwe bericht, dan neem ik het meteen mee.";
+              await db.insert(messages).values({
+                siteId: site.id,
+                rol: "assistent",
+                tekst: reply,
+                clerkUserId: userId,
+              });
+              stuur({
+                type: "klaar",
+                reply,
+                previewUrl: openConcept.previewUrl ?? null,
+                changeId: openConcept.id,
+                bestanden: [],
+                prompt: bericht,
+              });
+              return;
+            }
+          }
           if (openConcept?.branch) {
             werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
           } else if (eigenBranch) {
@@ -677,6 +714,74 @@ export async function POST(req: Request) {
                 tokensUit: wissel.tokensUit,
               };
             }
+          }
+
+          // OVERAL DOORVOEREN: de eigenaar bevestigt een vangnet-melding.
+          // Het vangnet weet al exact wát waar is blijven staan, dus dit
+          // gebeurt mechanisch — geen AI-zoektocht die kan missen en daarna
+          // "alles klopt" beweren. Alleen restjes zonder bekende nieuwe
+          // tegenhanger krijgen één strak geïnstrueerde reparatiebeurt, en
+          // het vangnet meet aan het eind van deze beurt sowieso opnieuw na.
+          if (
+            !snelpad &&
+            bericht.trim() === "Overal doorvoeren" &&
+            Array.isArray(openConcept?.vangnetVondsten) &&
+            (openConcept.vangnetVondsten as unknown[]).length > 0
+          ) {
+            stuur({ type: "status", tekst: "Ik voer het overal door..." });
+            const { voerVondstenDoor } = await import("@/lib/doorvoeren");
+            const { alsPagina } = await import("@/lib/consistentie");
+            const vondsten = openConcept.vangnetVondsten as import("@/lib/consistentie").VangnetVondst[];
+            const uitkomst = await voerVondstenDoor(werkmap, vondsten);
+            let herstelGedraaid = false;
+            let herstelKosten = { kostenUsd: 0, tokensIn: 0, tokensUit: 0 };
+            if (uitkomst.rest.length > 0) {
+              const restS = maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+              if (restS >= 120) {
+                const regels = uitkomst.rest.map(
+                  (r) =>
+                    `- In ${r.pad}: vervang ${r.vondst.soort === "beeld" ? `de afbeelding ${r.vondst.oud}` : `"${r.vondst.oud}"`}${
+                      r.vondst.nieuw
+                        ? ` door "${r.vondst.nieuw}"`
+                        : " door de nieuwe versie zoals die nu op de zojuist gewijzigde pagina staat (kijk daar eerst)"
+                    }`,
+                );
+                const herstel = await draaiChatAgent({
+                  werkmap,
+                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                  opdracht: `OVERAL DOORVOEREN (automatisch). De eigenaar heeft bevestigd dat deze achtergebleven restanten óók bijgewerkt moeten worden. Doe precies dit en verder niets:\n${regels.join(
+                    "\n",
+                  )}\n\nLet op: de aangehaalde tekst is genormaliseerd — in het bestand kan hij nét anders gespeld staan (witruimte, &nbsp;, aanhalingstekens). Lees het genoemde bestand en vervang daar de echte tekst. Antwoord met één korte zin.`,
+                  budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
+                  opGebeurtenis: () => {},
+                });
+                herstelGedraaid = true;
+                herstelKosten = { kostenUsd: herstel.kostenUsd, tokensIn: herstel.tokensIn, tokensUit: herstel.tokensUit };
+              }
+            }
+            const regels = uitkomst.gedaan.map(
+              (g) => `- "${g.oud}" → "${g.nieuw}" op ${alsPagina(g.pad)}${g.keer > 1 ? ` (${g.keer} plekken)` : ""}`,
+            );
+            const restZin =
+              uitkomst.rest.length === 0
+                ? ""
+                : herstelGedraaid
+                  ? regels.length
+                    ? "\n\nDe overige plekken heb ik ook laten bijwerken; hieronder meld ik het als er tóch iets is blijven staan."
+                    : " Hieronder meld ik het als er tóch iets is blijven staan."
+                  : `\n\nLet op: ${uitkomst.rest.length} plek${uitkomst.rest.length === 1 ? "" : "ken"} kon ik nu niet automatisch bijwerken — vraag het gerust in een volgend bericht.`;
+            snelpad = {
+              reply:
+                (regels.length
+                  ? `Ik heb het overal doorgevoerd:\n${regels.join("\n")}`
+                  : `Ik heb het overal doorgevoerd (${[...new Set(uitkomst.rest.map((r) => alsPagina(r.pad)))].slice(0, 4).join(", ")}).`) + restZin,
+              kostenUsd: herstelKosten.kostenUsd,
+              tokensIn: herstelKosten.tokensIn,
+              tokensUit: herstelKosten.tokensUit,
+            };
           }
 
           // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
@@ -1049,7 +1154,10 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           // Mobiel-controle: heeft deze beurt kolommen of vaste breedtes direct in de HTML gezet?
           // Die winnen van de media queries in de stylesheet en maken de pagina op een telefoon
           // te breed. Dan één korte herstelbeurt, vóórdat het concept klaarstaat.
-          if (mobielVoor && !snelpad && !tijdOp && !limietBereikt && !stopper.signal.aborted) {
+          // Alleen als er ruim tijd over is (zelfde bewaking als de afspraken-poort):
+          // een krappe WhatsApp-beurt slaat dit over in plaats van eroverheen te gaan.
+          const restVoorHerstelS = () => maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+          if (mobielVoor && !snelpad && !tijdOp && !limietBereikt && !stopper.signal.aborted && restVoorHerstelS() >= 120) {
             try {
               const { mobielRisicos, nieuweRisicos } = await import("@/lib/mobiel-check");
               const nieuw = nieuweRisicos(mobielVoor, await mobielRisicos(werkmap));
@@ -1064,6 +1172,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                     .map((r) => `- ${r}`)
                     .join("\n")}\n\nHerstel dit, zonder het ontwerp op een computer te veranderen: haal deze lay-out uit de style-attributen en regel het via klassen in de bestaande stylesheet. Kijk eerst of er al een klasse is die dit doet (vaak met media queries voor tablet en telefoon) en gebruik die; anders voeg je spaarzaam een klasse toe in de stylesheet met een @media-regel waarin het op smalle schermen (bijv. max-width: 700px) één kolom of 100% breedte wordt. Pas verder niets aan. Antwoord met één korte zin.`,
                   budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
                   signal: stopper.signal,
                   opGebeurtenis: () => {},
                 });
@@ -1137,6 +1247,69 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           }
 
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+
+          // Afspraken-poort: wat vroeger alleen prompttekst was, wordt hier
+          // afgedwongen. Stil repareren wat mechanisch kan (formulier-adres,
+          // _site, honeypot, enctype, lazy loading); wat niet te verzinnen
+          // valt (alt-teksten, formuliernaam, kapotte invoeg-marker) krijgt
+          // één herstelbeurt — zelfde patroon als de mobielcontrole.
+          if (gewijzigd.length > 0 && !stopper.signal.aborted) {
+            try {
+              const { herstelAfspraken, afsprakenMeldingen } = await import(
+                "@/lib/beurt-controle"
+              );
+              const gerepareerd = await herstelAfspraken(
+                werkmap,
+                gewijzigd,
+                site.githubRepo,
+              );
+              if (gerepareerd.length)
+                console.log(
+                  `Afspraken-poort ${site.githubRepo}: ${gerepareerd.join("; ")}`,
+                );
+              // Ruimte voor een herstelbeurt? Een WhatsApp-beurt heeft een
+              // krappe eigen grens (maxDuurS); een extra AI-beurt daaroverheen
+              // zou het kanaal weer stil laten vallen. Dus alleen herstellen
+              // als er ruim tijd over is; de stille reparaties hierboven zijn
+              // altijd veilig, die kosten geen AI-tijd.
+              const restS = maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+              const open =
+                tijdOp || restS < 90
+                  ? []
+                  : await afsprakenMeldingen(werkmap, gewijzigd);
+              if (open.length > 0) {
+                stuur({ type: "status", tekst: "Ik loop de vaste afspraken na..." });
+                const herstel = await draaiChatAgent({
+                  werkmap,
+                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                  opdracht: `AFSPRAKENCONTROLE (automatisch, na je vorige wijziging). Op de pagina's die je zojuist aanpaste ontbreekt nog het volgende:\n${open
+                    .slice(0, 10)
+                    .map((r) => `- ${r}`)
+                    .join("\n")}\n\nHerstel precies dit en verder niets. Alt-teksten schrijf je op basis van wat er echt op de afbeelding staat (bekijk hem zo nodig met lees_bestand). Antwoord met één korte zin.`,
+                  budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
+                  signal: stopper.signal,
+                  opGebeurtenis: () => {},
+                });
+                const { registreerAiKosten } = await import("@/lib/kosten");
+                await registreerAiKosten(site.id, "chat", {
+                  tokensIn: herstel.tokensIn,
+                  tokensUit: herstel.tokensUit,
+                  kostenUsd: herstel.kostenUsd,
+                }).catch(() => {});
+                const nog = await afsprakenMeldingen(werkmap, gewijzigd);
+                console.log(
+                  `Afsprakencontrole ${site.githubRepo}: ${open.length} gevonden, ${nog.length} over na herstel`,
+                );
+                gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+              }
+            } catch (e) {
+              console.error("Afspraken-poort mislukt (wijziging gaat gewoon door):", e);
+            }
+          }
+
           if (tijdOp && gewijzigd.length === 0) {
             // De "je foto's zijn wel bewaard"-toevoeging van hierboven behouden
             const bewaarNotitie = reply.match(/\n\n\(Je [^)]*\)$/)?.[0] ?? "";
@@ -1160,16 +1333,30 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             // Geen echte wijziging: geen concept, maar de foto('s) wél bewaren
             try {
               const { pushBestanden } = await import("@/lib/github");
+              const bewaarBestanden = await Promise.all(
+                gewijzigd.map(async (pad) => ({
+                  pad,
+                  inhoud: await readFile(path.join(werkmap!, pad)),
+                })),
+              );
               await pushBestanden(
                 site.githubRepo,
-                await Promise.all(
-                  gewijzigd.map(async (pad) => ({
-                    pad,
-                    inhoud: await readFile(path.join(werkmap!, pad)),
-                  })),
-                ),
+                bewaarBestanden,
                 "Meegestuurd bestand bewaard (nog niet geplaatst)",
               );
+              // Staat er een concept open, zet hem dan óók op die branch:
+              // de fotobank en de volgende beurt kijken naar de conceptbranch,
+              // en een foto die alleen op main staat is daar onvindbaar
+              // (gezien 19-09: "hij hoort in mijn fotobank" maar hij stond er
+              // niet). Zelfde inhoud op beide takken, dus nooit een conflict.
+              if (openConcept?.branch) {
+                await pushBestanden(
+                  site.githubRepo,
+                  bewaarBestanden,
+                  "Meegestuurd bestand bewaard (nog niet geplaatst)",
+                  openConcept.branch,
+                ).catch((e) => console.error("Bewaren op conceptbranch:", e));
+              }
               const alleenVideo = afbeeldingen.length === 0 && documenten.length === 0 && Boolean(videoPaden);
               const alleenDocument = afbeeldingen.length === 0 && !videoPaden && documenten.length > 0;
               reply = `${reply}\n\n(${
@@ -1288,8 +1475,14 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 .where(eq(changes.id, row.id));
             }
 
-            if (openConcept || site.isDemo) {
-              // vervolg binnen hetzelfde concept of demo: geen telling
+            // Elke beurt die echt iets verandert telt als wijziging — óók een
+            // vervolg binnen een openstaand concept (anders is een concept dat
+            // nooit gepubliceerd wordt een onbeperkte gratis maand). Gratis
+            // blijven: vraag-beurten zonder wijziging (komen hier niet), de
+            // demo, en "Overal doorvoeren" — dat maakt een eerdere wijziging
+            // af en is geen nieuwe.
+            if (site.isDemo || bericht.trim() === "Overal doorvoeren") {
+              // geen telling
             } else if (verbruik) {
               await db
                 .update(usage)
@@ -1327,7 +1520,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                   paginasOmTeMeten(gewijzigd),
                 );
                 const teBreed = metingen ? teBredePaginas(metingen) : [];
-                if (teBreed.length > 0 && !stopper.signal.aborted) {
+                if (teBreed.length > 0 && !stopper.signal.aborted && restVoorHerstelS() >= 120) {
                   stuur({ type: "status", tekst: "Ik controleer of het ook goed staat op een telefoon..." });
                   const voorHerstel = await maakSnapshot(werkmap);
                   const herstel = await draaiChatAgent({
@@ -1338,6 +1531,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                       teBreed,
                     )}\n\nHerstel dit zonder het ontwerp op een computer te veranderen. Veelvoorkomende oorzaken: vaste breedtes of kolommen in een style-attribuut, een raster zonder media query, of een foto/iframe/tabel met een vaste breedte. Regel het via klassen in de bestaande stylesheet met een @media-regel voor smalle schermen (bijv. max-width: 700px: één kolom, max-width: 100%). Gebruik eerst een bestaande klasse als die dit al doet. Pas verder niets aan. Antwoord met één korte zin.`,
                     budgetUsd: 0.15,
+                    maxBeurten: 8,
+                    maxDuurMs: 90_000,
                     signal: stopper.signal,
                     opGebeurtenis: () => {},
                   });
@@ -1400,16 +1595,23 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               const { vraagtAlleenHier } = await import("@/lib/vangnet-bericht");
               const vroegAlleenHier = vraagtAlleenHier(bericht);
               if (!vroegAlleenHier) {
-                const { dubbelingsMeldingen } = await import("@/lib/consistentie");
+                const { dubbelingsRapport } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");
                 const basisRef = vangnetBasisSha ?? undefined;
                 if (!basisRef) throw new Error("geen basis-sha; vangnet overgeslagen om niet met zichzelf te vergelijken");
-                const meldingen = await dubbelingsMeldingen({
+                const { meldingen, vondsten } = await dubbelingsRapport({
                   werkmap,
                   gewijzigd,
                   oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
                 });
                 vangnetMeldingen = meldingen;
+                // Vondsten bij het concept bewaren zodat "Overal doorvoeren"
+                // in de volgende beurt mechanisch kan; elke beurt overschrijft
+                await db
+                  .update(changes)
+                  .set({ vangnetVondsten: meldingen.length ? vondsten : null })
+                  .where(eq(changes.id, changeRowId))
+                  .catch((e) => console.error("Vangnet-vondsten bewaren:", e));
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
                 const sonde = gewijzigd.find((p) => p.endsWith(".html"));
                 if (meldingen.length === 0 && sonde) {
@@ -1418,6 +1620,13 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 }
               } else {
                 vangnetDebug = "onderdrukt door alleen-hier in de opdracht";
+                // De eigenaar koos bewust "alleen hier": oude vondsten opruimen
+                // zodat een latere doorvoer-knop niet iets verouderds toepast
+                await db
+                  .update(changes)
+                  .set({ vangnetVondsten: null })
+                  .where(eq(changes.id, changeRowId))
+                  .catch(() => {});
               }
             } catch (e) {
               console.error("Consistentie-vangnet:", e);
@@ -1489,6 +1698,22 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               }).catch((e) => console.error("Video-seintje mislukt:", e));
             }
           }
+          // Verbruikstand voor het tellertje in het portaal: alleen het
+          // begrijpelijke aantal wijzigingen, nooit bedragen (geen taximeter)
+          let verbruikNa: { gebruikt: number; limiet: number } | null = null;
+          if (!site.isDemo) {
+            try {
+              const [rijVerbruik] = await db
+                .select()
+                .from(usage)
+                .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
+              const { wijzigingenLimietVoor } = await import("@/lib/ai-budget");
+              verbruikNa = {
+                gebruikt: rijVerbruik?.wijzigingen ?? 0,
+                limiet: wijzigingenLimietVoor(site, maand),
+              };
+            } catch {}
+          }
           stuur({
             type: "klaar",
             reply,
@@ -1496,6 +1721,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             changeId: changeRowId,
             bestanden: gewijzigd,
             prompt: bericht,
+            verbruik: verbruikNa,
           });
 
           // Geheugen-onderhoud: oude berichten samenvatten zodra het gesprek te lang wordt

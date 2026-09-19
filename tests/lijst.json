@@ -12,6 +12,7 @@
     "site-onderhoud.mts",
     "actueel.mts",
     "foto-ordenen.mts",
+    "beurt-controle.mts",
     "consistentie.mts",
     "vangnet-bericht.mts",
     "vangnet-basis.mts",
@@ -26,7 +27,12 @@
     "whatsapp.mts",
     "afspraken.mts",
     "chat-tijdgrens.mts",
-    "inlogroute.mts"
+    "inlogroute.mts",
+    "herstel-rem.mts",
+    "bijhalen-hoofdversie.mts",
+    "doorvoeren.mts",
+    "wijzigingen-telling.mts",
+    "fotobank-bewaren.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

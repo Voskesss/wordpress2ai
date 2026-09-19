@@ -124,15 +124,32 @@ export const alsPagina = (pad: string) =>
     ? `een gedeeld blok (${pad.slice(6).replace(/\.html$/, "")})`
     : "/" + pad.replace(/index\.html$/, "").replace(/\.html$/, "");
 
-export async function dubbelingsMeldingen(opties: {
+/** Eén vondst van het vangnet, machine-leesbaar: wat er oud is blijven staan,
+ * wat (indien bekend) de nieuwe versie is, en op welke bestanden. Hiermee kan
+ * "Overal doorvoeren" mechanisch, zonder dat de AI opnieuw hoeft te zoeken. */
+export type VangnetVondst = {
+  soort: "tekst" | "onzichtbaar" | "gegeven" | "beeld";
+  /** Genormaliseerde oude tekst (of het beeldpad) zoals het vangnet hem vond */
+  oud: string;
+  /** De nieuwe tegenhanger, als het vangnet die kon paren; anders null */
+  nieuw: string | null;
+  /** Bestandspaden (relatief) waar de oude versie nog staat */
+  paden: string[];
+};
+
+export async function dubbelingsMeldingen(opties: Parameters<typeof dubbelingsRapport>[0]): Promise<string[]> {
+  return (await dubbelingsRapport(opties)).meldingen;
+}
+
+export async function dubbelingsRapport(opties: {
   werkmap: string;
   gewijzigd: string[];
   /** Inhoud van het bestand vóór deze wijziging (null = nieuw bestand). */
   oudeInhoud: (pad: string) => Promise<string | null>;
-}): Promise<string[]> {
+}): Promise<{ meldingen: string[]; vondsten: VangnetVondst[] }> {
   const { werkmap, gewijzigd, oudeInhoud } = opties;
   const gewijzigdeHtml = gewijzigd.filter((p) => p.endsWith(".html"));
-  if (!gewijzigdeHtml.length) return [];
+  if (!gewijzigdeHtml.length) return { meldingen: [], vondsten: [] };
 
   // Nieuwe stand van de hele site één keer inlezen
   const allePaden = (await alleHtmlBestanden(werkmap)).filter((p) => !p.startsWith("wp2ai-"));
@@ -172,6 +189,7 @@ export async function dubbelingsMeldingen(opties: {
   };
 
   const tekstMeldingen = new Map<string, Set<string>>(); // fragment -> paden waar hij nog staat
+  const nieuwPer = new Map<string, string | null>(); // fragment -> nieuwe tegenhanger (als gepaard)
   const beeldMeldingen = new Map<string, Set<string>>(); // beeldpad -> paden waar hij nog staat
   const onzichtbaarMeldingen = new Map<string, Set<string>>(); // fragment -> paden (alt/titel/meta)
   const gegevensMeldingen = new Map<string, { soort: string; toon: string; paden: Set<string> }>();
@@ -251,7 +269,12 @@ export async function dubbelingsMeldingen(opties: {
         while (s > 0 && !/\s/.test(blok[blok.length - s])) s--;
         const oudKern = blok.slice(p, blok.length - s).trim();
         const nieuwKern = paar.slice(p, paar.length - s).trim();
-        if (oudKern !== blok && specifiek(oudKern, 220))
+        // Lagere drempel dan bij losse fragmenten: dit is een GEPAARDE
+        // hernoeming (oud→nieuw uit dezelfde alinea), dus het signaal is
+        // sterk. "Spoedcursus" (11 tekens) glipte anders onder de 12 door,
+        // terwijl hij nog in vijf alt-teksten stond. Wel echte letters
+        // eisen, zodat prijzen en getallen ("64"→"70") geen ruis geven.
+        if (oudKern !== blok && oudKern.length >= 5 && oudKern.length <= 220 && /\p{L}.*\p{L}.*\p{L}/u.test(oudKern))
           zoekParen.push([oudKern, nieuwKern || null]);
       }
 
@@ -262,6 +285,7 @@ export async function dubbelingsMeldingen(opties: {
           if (zoekNieuw && telGrens(tekst, zoekNieuw) > 0) continue; // daar al gelijkgetrokken
           if (!tekstMeldingen.has(zoekOud)) tekstMeldingen.set(zoekOud, new Set());
           tekstMeldingen.get(zoekOud)!.add(ander);
+          if (zoekNieuw) nieuwPer.set(zoekOud, zoekNieuw);
         }
       }
 
@@ -277,7 +301,8 @@ export async function dubbelingsMeldingen(opties: {
           if (zoekNieuw && telGrens(verborgen, zoekNieuw) > 0) continue;
           if (tekstMeldingen.get(zoekOud)?.has(ander)) continue; // al gemeld als gewone tekst
           if (!onzichtbaarMeldingen.has(zoekOud)) onzichtbaarMeldingen.set(zoekOud, new Set());
-          onzichtbaarMeldingen.get(zoekOud)!.add(ander === pad ? "__hier__" : ander);
+          onzichtbaarMeldingen.get(zoekOud)!.add(ander);
+          if (zoekNieuw) nieuwPer.set(zoekOud, zoekNieuw);
         }
       }
     }
@@ -315,31 +340,36 @@ export async function dubbelingsMeldingen(opties: {
   }
 
   const meldingen: string[] = [];
+  const vondsten: VangnetVondst[] = [];
   for (const [fragment, paden] of [...tekstMeldingen].slice(0, 3)) {
     const lijst = [...paden].map(alsPagina);
     const kort = fragment.length > 70 ? fragment.slice(0, 67) + "..." : fragment;
     meldingen.push(
       `Let op: de tekst "${kort}" staat óók nog op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
     );
+    vondsten.push({ soort: "tekst", oud: fragment, nieuw: nieuwPer.get(fragment) ?? null, paden: [...paden] });
   }
   for (const g of [...gegevensMeldingen.values()].slice(0, 3)) {
     const lijst = [...g.paden].map(alsPagina);
     meldingen.push(
       `Let op: ${g.soort} ${g.toon} staat óók nog op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
     );
+    vondsten.push({ soort: "gegeven", oud: g.toon, nieuw: null, paden: [...g.paden] });
   }
   for (const [fragment, paden] of [...onzichtbaarMeldingen].slice(0, 2)) {
-    const lijst = [...paden].map((p) => (p === "__hier__" ? "deze pagina zelf" : alsPagina(p)));
+    const lijst = [...paden].map((p) => (gewijzigdeHtml.includes(p) ? "deze pagina zelf" : alsPagina(p)));
     const kort = fragment.length > 70 ? fragment.slice(0, 67) + "..." : fragment;
     meldingen.push(
       `Let op: de oude tekst "${kort}" staat óók nog in onzichtbare tekst (een foto-omschrijving, paginatitel of zoekmachine-omschrijving) op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
     );
+    vondsten.push({ soort: "onzichtbaar", oud: fragment, nieuw: nieuwPer.get(fragment) ?? null, paden: [...paden] });
   }
   for (const [beeld, paden] of [...beeldMeldingen].slice(0, 2)) {
     const lijst = [...paden].map(alsPagina);
     meldingen.push(
       `Let op: de foto die je hier verving (${path.basename(beeld)}) staat óók nog op ${lijst.slice(0, 3).join(" en ")}${lijst.length > 3 ? " en meer plekken" : ""}.`,
     );
+    vondsten.push({ soort: "beeld", oud: beeld, nieuw: null, paden: [...paden] });
   }
-  return meldingen;
+  return { meldingen, vondsten };
 }
