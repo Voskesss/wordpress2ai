@@ -32,6 +32,8 @@ import {
   splitsKeuzes,
   toonNummer,
   voegSamen,
+  haalAan,
+  werkMelding,
   type Binnenkomend,
 } from "./berichten";
 
@@ -182,7 +184,7 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     .sort((a, b) => (b.koppeling.laatstGebruikt!.getTime() - a.koppeling.laatstGebruikt!.getTime()))[0];
   const gekozen = bruikbaar.length === 1 ? bruikbaar[0] : actief;
   if (!gekozen) {
-    if (rijen.length) await vraagWelkeSite(telefoon, bruikbaar);
+    if (rijen.length) await vraagWelkeSite(telefoon, bruikbaar, voegSamen(rijen));
     return;
   }
   const site = gekozen.site;
@@ -318,10 +320,15 @@ function siteRegel(site: Site) {
 async function vraagWelkeSite(
   telefoon: string,
   bruikbaar: { koppeling: typeof whatsappKoppelingen.$inferSelect; site: Site }[],
+  /** Het bericht dat op de keuze wacht: dat voeren we daarna uit, dus we
+   * laten zien wélk bericht, zodat niemand verrast wordt. */
+  wachtend?: string,
 ) {
   await stuurKeuzelijst(
     telefoon,
-    "Voor welke website is dit? Je kunt later altijd wisselen door \"andere website\" te appen.",
+    wachtend?.trim()
+      ? `Voor welke website is dit?\n\n“${haalAan(wachtend)}”\n\nNa je keuze ga ik daarmee aan de slag. Wisselen kan later altijd door "andere website" te appen.`
+      : "Voor welke website is dit? Je kunt later altijd wisselen door \"andere website\" te appen.",
     "Kies een website",
     bruikbaar.slice(0, 10).map((r) => ({
       id: `${KNOP_SITE}${r.koppeling.id}`,
@@ -613,20 +620,18 @@ async function chatBeurt(
     // Gaat het om een vraag of gewoon overleg, dan komt het antwoord vanzelf
     // en is een tussenmelding alleen maar ruis.
     let werkGemeld = false;
-    const meldWerk = () => {
+    const meldWerk = (status: string | null = null) => {
       if (werkGemeld) return;
       werkGemeld = true;
       laatsteAanDeSlag.set(telefoon, Date.now());
       void stuurTekst(
         telefoon,
-        meerdere
-          ? `Ik ga ermee aan de slag voor ${siteRegel(site)} — je hoort het zodra het klaar is.`
-          : "Ik ga ermee aan de slag — je hoort het zodra het klaar is.",
+        werkMelding(status, bericht, meerdere ? siteRegel(site) : undefined),
       ).catch(() => {});
     };
     // Vangnet: duurt het lang zonder dat er al iets gewijzigd is (veel lezen,
     // foto's bekijken), dan toch even laten weten dat hij bezig is.
-    bezigMelder = setTimeout(meldWerk, 40_000);
+    bezigMelder = setTimeout(() => meldWerk(), 40_000);
 
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
@@ -653,8 +658,8 @@ async function chatBeurt(
       const tekst = typeof gebeurtenis.tekst === "string" ? gebeurtenis.tekst : "";
       // "bewerkt" komt zodra er een pagina wordt aangepast; de statusregels
       // met "aanpassen/schrijven/bijwerken" zijn hetzelfde moment in woorden.
-      if (soort === "bewerkt" || (soort === "status" && /aanpass|schrijf|werk ik|bij\.\.\.|wissel/i.test(tekst)))
-        meldWerk();
+      if (soort === "status" && /aanpass|schrijf|werk ik|bij\.\.\.|wissel/i.test(tekst)) meldWerk(tekst);
+      else if (soort === "bewerkt") meldWerk();
     });
     stopKlokken();
     await stuurAntwoord(telefoon, site, uitkomst, meerdere);

@@ -239,3 +239,27 @@ export function voegSamen(
   }
   return bericht;
 }
+
+/** Een opdracht kort aanhalen in een WhatsApp-bericht (één regel). */
+export function haalAan(tekst: string, max = 80) {
+  const plat = tekst.replace(/\s+/g, " ").trim();
+  return plat.length > max ? `${plat.slice(0, max - 1).trimEnd()}…` : plat;
+}
+
+/** De melding "ik ga ermee aan de slag", maar dan concreet: wát de website
+ * gaat doen. Liefst de eigen werkstap van de chat ("Ik pas mijn homepage
+ * aan..."); is die er (nog) niet, dan halen we de opdracht zelf aan. Zo zie
+ * je meteen of hij je goed begreep (les 19-09: "Ok en nu" werd een wijziging
+ * op de homepage, en "ik ga ermee aan de slag" zei niet waarmee). */
+export function werkMelding(status: string | null, verzoek: string, siteNaam?: string) {
+  const stap = (status ?? "")
+    .split(" — ")[0]
+    .replace(/\s*\(stap \d+\)\s*$/, "")
+    .replace(/(\.\.\.|…)\s*$/, "")
+    .trim();
+  const zin = stap
+    ? stap
+    : `Ik ga aan de slag met “${haalAan(verzoek)}”`;
+  const metSite = siteNaam ? `Voor ${siteNaam}: ${zin.charAt(0).toLowerCase()}${zin.slice(1)}` : zin;
+  return `${metSite} — je hoort het zodra het klaar is.`;
+}
