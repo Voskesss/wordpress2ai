@@ -815,9 +815,21 @@ export default async function KlantDetail({
           portaal alléén zijn eigen gesprek — jouw beheer-chats blijven voor de
           klant onzichtbaar. Wissen verwijdert de berichten definitief.
         </p>
+        {site.meelezenUit && (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
+            Deze klant heeft <strong>meelezen uitgezet</strong>. Open de gesprekken hieronder alleen bij een storing
+            of supportvraag — niet om routineus mee te kijken.
+          </p>
+        )}
         {chatPerGebruiker.length === 0 ? (
           <p className="mt-3 text-sm text-stone-500">Nog geen chatberichten op deze site.</p>
         ) : (
+          <details className="mt-3" open={!site.meelezenUit}>
+            <summary className="cursor-pointer text-sm font-semibold text-stone-600">
+              {site.meelezenUit
+                ? "Toch openen (alleen bij een storing of supportvraag)"
+                : `Gesprekken per persoon (${chatPerGebruiker.length})`}
+            </summary>
           <div className="mt-4 space-y-3">
             {chatPerGebruiker.map((g) => (
               <details key={g.sleutel} className="rounded-2xl border border-stone-200 px-4 py-3">
@@ -862,6 +874,7 @@ export default async function KlantDetail({
               </details>
             ))}
           </div>
+          </details>
         )}
       </div>
 

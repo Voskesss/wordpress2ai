@@ -360,6 +360,16 @@ ${verwijderen ? "<li>Account en gegevens verwijderen binnen drie maanden (factur
   revalidatePath("/portal");
 }
 
+/** AVG: meelezen-voor-verbetering aan- of uitzetten voor je eigen site. */
+export async function zetMeelezen(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const uit = formData.get("uit") === "1";
+  await db.update(sites).set({ meelezenUit: uit }).where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+  revalidatePath(`/admin/klant/${site.id}`);
+}
+
 /** Toch blijven: de opzegging intrekken. Kan zolang de website nog niet
  * offline is (tot de einddatum in het portaal). */
 export async function trekOpzeggingIn(formData: FormData) {

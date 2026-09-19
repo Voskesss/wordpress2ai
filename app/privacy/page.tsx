@@ -52,7 +52,9 @@ export default function Privacy() {
           aan de AI doorgeeft bewaren we, zodat je geschiedenis en versies terug
           te vinden zijn. In het portaal zie je alleen je eigen gesprek; WordSwap
           kan gesprekken inzien om de kwaliteit en veiligheid van de dienst te
-          bewaken en te verbeteren.
+          bewaken en te verbeteren. Dat meelezen voor verbetering kun je in je
+          portaal uitzetten; inzage om je te helpen bij een storing of
+          supportvraag blijft dan mogelijk.
         </p>
         <p>
           <strong>WhatsApp (als je die optie gebruikt):</strong> koppel je je

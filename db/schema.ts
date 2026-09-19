@@ -36,6 +36,8 @@ export const sites = pgTable("sites", {
   afspraakMailOp: timestamp("afspraak_mail_op", { withTimezone: true }),
   // Wanneer het review-/referentieverzoek is gemaild
   reviewMailOp: timestamp("review_mail_op", { withTimezone: true }),
+  // AVG: klant heeft meelezen-voor-verbetering van zijn chats uitgezet
+  meelezenUit: boolean("meelezen_uit").notNull().default(false),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),

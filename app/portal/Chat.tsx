@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import Fotobank from "./Fotobank";
 import ChatHulp from "./ChatHulp";
+import MeelezenMelding from "./MeelezenMelding";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import Vindbaarheid from "./Vindbaarheid";
@@ -163,12 +164,15 @@ export default function Chat({
   suggesties,
   terugLink,
   isDemo = false,
+  meelezenUit = false,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
   isDemo?: boolean;
   /** Link naar het websiteoverzicht (alleen bij meerdere websites) */
   terugLink?: string | null;
+  /** AVG: klant heeft meelezen-voor-verbetering uitgezet */
+  meelezenUit?: boolean;
   previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
@@ -2108,6 +2112,9 @@ export default function Chat({
                     : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
                 }
               >
+                {!isDemo && berichten.length <= 2 && (
+                  <MeelezenMelding siteId={siteId} meelezenUit={meelezenUit} />
+                )}
                 {berichten.length === 0 && !bezig && (
                   <div className="text-sm">
                     <p className="font-semibold text-stone-800">Zo pas je je website aan</p>

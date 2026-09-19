@@ -18,6 +18,7 @@ import KlantFacturen from "./KlantFacturen";
 import BevestigingsMails from "./BevestigingsMails";
 import MeenemenBlok from "./MeenemenBlok";
 import AfspraakBlok from "./AfspraakBlok";
+import MeelezenRegel from "./MeelezenRegel";
 
 export const metadata: Metadata = {
   title: "Mijn websites",
@@ -329,6 +330,7 @@ export default async function Portal({
                 <Chat
                   terugLink={mijnSites.length > 1 ? "/portal" : null}
                   isDemo={site.isDemo}
+                  meelezenUit={site.meelezenUit}
                   siteId={site.id}
                   previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}
@@ -381,6 +383,7 @@ export default async function Portal({
                   <BevestigingsMails siteId={site.id} />
                   <KlantFacturen siteId={site.id} />
                   <MeenemenBlok siteId={site.id} />
+                  <MeelezenRegel siteId={site.id} meelezenUit={site.meelezenUit} />
                 </>
               )}
             </div>
