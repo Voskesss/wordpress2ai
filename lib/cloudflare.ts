@@ -166,9 +166,10 @@ export function mimeVoorPad(pad: string): string {
   );
 }
 
-/** Vaste inlog-doorstuurpagina's op elke klantsite: <domein>/wordswap (altijd)
- * en <domein>/inloggen (alleen als de site zelf geen inlogpagina heeft). Zo
- * hoeft een klant alleen zijn eigen websiteadres te onthouden. */
+/** Vaste inlog-doorstuurpagina op elke klantsite: <domein>/wordswap. Zo hoeft
+ * een klant alleen zijn eigen websiteadres te onthouden. Bewust alleen deze
+ * ene route (geen /inloggen): dan kan hij nooit botsen met eigen pagina's, en
+ * met noindex + niet gelinkt heeft hij nul SEO-effect. */
 export function inlogPaginas(bestaandePaden: string[]): { pad: string; data: Buffer }[] {
   const inlogUrl = "https://www.wordswap.nl/sign-in?redirect_url=%2Fportal";
   const html = `<!doctype html>
@@ -180,12 +181,8 @@ export function inlogPaginas(bestaandePaden: string[]): { pad: string; data: Buf
 <p><a href="${inlogUrl}">Klik hier als dat niet vanzelf gebeurt.</a></p>
 <script>location.replace(${JSON.stringify(inlogUrl)})</script>
 </body></html>`;
-  const uit = [{ pad: "wordswap/index.html", data: Buffer.from(html) }];
-  const heeftEigenInlog = bestaandePaden.some((p) =>
-    /^inloggen(\/index\.html?|\.html?)$/i.test(p)
-  );
-  if (!heeftEigenInlog) uit.push({ pad: "inloggen/index.html", data: Buffer.from(html) });
-  return uit;
+  void bestaandePaden;
+  return [{ pad: "wordswap/index.html", data: Buffer.from(html) }];
 }
 
 /** Maakt de publiceerbare bestanden van een werkmap klaar: delen-markers
