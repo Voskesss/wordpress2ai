@@ -17,7 +17,7 @@ import {
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 import { afspraakStand } from "@/lib/afspraken-db";
 import { klantAdres } from "@/lib/klant-adres";
-import { bouwAfspraakAfzegging, bouwAfspraakBevestiging, bouwAfspraakUitnodiging } from "@/lib/klant-mails";
+import { bouwAfspraakAfzegging, bouwAfspraakBevestiging, bouwAfspraakUitnodiging, contactZin } from "@/lib/klant-mails";
 import { abonnementen } from "@/db/schema";
 
 const DUREN = [30, 60, 90, 120];
@@ -107,6 +107,10 @@ export async function bevestigAfspraak(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("afspraakId"));
   const siteId = Number(formData.get("siteId"));
+  // Contact: leeg = bellen op het opgegeven nummer; een nummer = dat nummer;
+  // een zin ("Ik stuur je een Teams-uitnodiging.") wordt letterlijk gebruikt.
+  const contact = String(formData.get("contact") ?? "").trim().slice(0, 200) || null;
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000) || null;
   if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
   const [afspraak] = await db
     .select()
@@ -138,7 +142,7 @@ export async function bevestigAfspraak(formData: FormData) {
       titel,
       omschrijving: `${afspraak.onderwerp ?? "Afspraak over je website"}${
         afspraak.opmerking ? `\n\n${afspraak.opmerking}` : ""
-      }\n\nJos belt je op ${afspraak.telefoon ?? "het afgesproken nummer"}.`,
+      }\n\n${contactZin(contact ?? afspraak.telefoon)}`,
       organisator: { naam: "Jos Klijnhout", email: "jos@wordswap.nl" },
       deelnemerEmail: afspraak.email,
       gemaaktOp: afspraak.aangemaakt,
@@ -148,7 +152,7 @@ export async function bevestigAfspraak(formData: FormData) {
   const bijlagen = [{ bestandsnaam: "afspraak.ics", inhoud: ics }];
 
   if (afspraak.email) {
-    const mail = bouwAfspraakBevestiging(afspraak);
+    const mail = bouwAfspraakBevestiging({ ...afspraak, contact, eigenTekst });
     await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, bijlagen });
   }
   await mailVanJos({

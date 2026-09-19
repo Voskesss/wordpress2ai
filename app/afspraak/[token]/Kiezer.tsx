@@ -80,7 +80,13 @@ export default function Kiezer({
             )}
             <label className="block text-sm font-semibold text-stone-700">
               Telefoonnummer <span className="font-normal text-stone-500">(waarop Jos je belt)</span>
-              <input name="telefoon" className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal" />
+              <input
+                name="telefoon"
+                type="tel"
+                pattern="[0-9+()\-\s]{6,20}"
+                title="Alleen je telefoonnummer — een opmerking (bijvoorbeeld liever videobellen) kun je hieronder kwijt."
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal"
+              />
             </label>
             <label className="block text-sm font-semibold text-stone-700 sm:col-span-2">
               Waar wil je het over hebben? <span className="font-normal text-stone-500">(mag leeg)</span>

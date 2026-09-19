@@ -57,6 +57,20 @@ export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
                 <form action={bevestigAfspraak}>
                   <input type="hidden" name="siteId" value={siteId} />
                   <input type="hidden" name="afspraakId" value={a.id} />
+                <input
+                  name="contact"
+                  defaultValue={a.telefoon ?? ""}
+                  placeholder="Bellen op… of bv. 'Ik stuur je een Teams-uitnodiging.'"
+                  title="Leeg = bellen op het opgegeven nummer. Een zin wordt letterlijk in de mail gezet."
+                  className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
+                />
+                <input
+                  name="bericht"
+                  placeholder="Eigen berichtje in de mail (mag leeg)"
+                  title="Komt onder de afspraakregels in de bevestigingsmail."
+                  className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
+                />
+                <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"]]} />
                   <ActieKnop
                     label="Bevestigen"
                     bezigLabel="Bevestigen..."

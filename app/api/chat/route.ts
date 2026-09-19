@@ -239,6 +239,13 @@ async function haalFotosUitOpslag(ruweUrls: unknown, maximum: number) {
   return uit;
 }
 
+/** Een meegegeven maximum (seconden) binnen veilige grenzen houden. */
+function grensVan(waarde: unknown) {
+  const n = Number(waarde);
+  if (!Number.isFinite(n)) return maxDuration;
+  return Math.min(maxDuration, Math.max(120, Math.round(n)));
+}
+
 export async function POST(req: Request) {
   // Browser via Clerk, of een ondertekend intern verzoek (WhatsApp-kanaal)
   const userId = await gebruikerVanVerzoek(req);
@@ -264,6 +271,11 @@ export async function POST(req: Request) {
   // Via welk kanaal het bericht binnenkomt: het portaal (standaard) of WhatsApp.
   // Bepaalt alleen wat de AI over de omgeving weet — knoppen verschillen daar.
   let kanaal: "portaal" | "whatsapp" = "portaal";
+  /** Hoeveel seconden deze beurt hoogstens mag duren. Het WhatsApp-kanaal
+   * roept deze route aan bínnen zijn eigen functie en heeft daarvoor al tijd
+   * gebruikt; zonder die kortere grens wordt de hele functie afgekapt en gaat
+   * ook het antwoord verloren. */
+  let maxDuurS = maxDuration;
   const apparaatVan = (v: unknown): "telefoon" | "tablet" | "desktop" =>
     v === "telefoon" || v === "tablet" ? v : "desktop";
 
@@ -289,6 +301,7 @@ export async function POST(req: Request) {
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
+    maxDuurS = grensVan(form.get("maxDuurS"));
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -344,6 +357,7 @@ export async function POST(req: Request) {
     controle = body.controle === true;
     apparaat = apparaatVan(body.apparaat);
     if ((body as { kanaal?: string }).kanaal === "whatsapp") kanaal = "whatsapp";
+    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS);
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;
@@ -861,7 +875,9 @@ export async function POST(req: Request) {
               : null,
             controleRegel,
             kanaal === "whatsapp"
-              ? `DIT BERICHT KOMT VIA WHATSAPP, niet via het portaal. De eigenaar zit op zijn telefoon in WhatsApp en ziet GEEN websitevoorbeeld, GEEN gele conceptbalk en GEEN enkele knop van het portaal — noem die dus niet en verwijs er nooit naar. Wat hij wél krijgt: na jouw antwoord stuurt WordSwap automatisch een link naar het concept met de knoppen "Publiceren" en "Weggooien" in WhatsApp; hij kan ook gewoon "publiceer" terugappen. Zeg dat niet in elk bericht; alleen als hij ernaar vraagt hoe hij iets live zet. Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag gewoon: die wordt in WhatsApp een keuzelijst.`
+              ? `DIT BERICHT KOMT VIA WHATSAPP, niet via het portaal. De eigenaar zit op zijn telefoon in WhatsApp en ziet GEEN websitevoorbeeld, GEEN gele conceptbalk en GEEN enkele knop van het portaal — noem die dus niet en verwijs er nooit naar. Wat hij wél krijgt: na jouw antwoord stuurt WordSwap automatisch een link naar het concept met de knoppen "Publiceren" en "Weggooien" in WhatsApp; hij kan ook gewoon "publiceer" terugappen. Zeg dat niet in elk bericht; alleen als hij ernaar vraagt hoe hij iets live zet. WAT JE HIER GEWOON DOET (niet doorverwijzen, gewoon bouwen): tekst, openingstijden, prijzen, foto's, knoppen en links, contactgegevens, een nieuw project of nieuwsbericht, een nieuwe pagina met menu-item, én ook kleuren en lettertypes over de hele site. Een andere uitstraling mag de eigenaar hier gerust proberen.
+BIJ EEN ECHT GROTE VERBOUWING (de hele website omgooien, een compleet nieuw ontwerp, alles tegelijk anders): begin met ÉÉN duidelijke stap die je nu kunt doen — bijvoorbeeld de kleuren, of alleen de homepage — en zeg er in één zin bij dat WordSwap de hele website kan oppakken als hij echt een nieuwe uitstraling wil, zodat het overal net en consistent blijft. Sluit dan af met een KEUZES-regel waarvan de eerste keuze letterlijk "Ja, laat WordSwap contact opnemen" is (precies deze tekst, daarmee geven we het door), naast een keuze om hier stap voor stap verder te gaan. Dring niet aan en herhaal het aanbod niet elk bericht.
+Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag gewoon: die wordt in WhatsApp een keuzelijst.`
               : null,
             // Eigen webadressen: vraagt de eigenaar om "de link", dan kan de AI die geven
             !site.isDemo && (site.domein || site.siteSlug)
@@ -890,7 +906,7 @@ export async function POST(req: Request) {
               tijdOp = true;
               stopper.abort();
             },
-            Math.max(30_000, (maxDuration - 80) * 1000 - (Date.now() - klok)),
+            Math.max(30_000, (maxDuurS - 80) * 1000 - (Date.now() - klok)),
           );
           // Pagina's die in deze beurt nieuw worden geschreven bestaan op de
           // uitgerolde werkversie nog niet: daar alvast naartoe springen geeft

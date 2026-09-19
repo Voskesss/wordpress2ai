@@ -25,6 +25,7 @@ import {
   KNOP_SITE,
   KNOP_WEGGOOIEN,
   conceptCommando,
+  vraagtOmMakeover,
   wisselCommando,
   leesKnop,
   paginaVoorConcept,
@@ -39,6 +40,10 @@ import {
  * opslaan. Wie langer op een bezette website moet wachten, krijgt een eerlijk
  * "stuur het zo nog eens" in plaats van een beurt die halverwege wordt afgekapt. */
 const UITERLIJK_START_MS = 45_000;
+/** Moet gelijk zijn aan maxDuration van app/api/whatsapp/webhook/route.ts.
+ * De chatbeurt krijgt hiervan een kortere grens mee, zodat hij zelf op tijd
+ * stopt en oplevert wat af is in plaats van door Vercel te worden afgekapt. */
+const WEBHOOK_MAX_DUUR_S = 800;
 /** Zo lang wachten we op een volgend bericht voordat we aan de slag gaan:
  * vijf foto's in WhatsApp komen binnen als vijf losse berichten. */
 const BUNDEL_MS = 8_000;
@@ -179,6 +184,14 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
     return;
   }
 
+  // "Ja, laat WordSwap contact opnemen": interesse in een make-over doorgeven
+  for (const rij of rijen.filter((r) => vraagtOmMakeover(r.inhoud))) {
+    rijen = rijen.filter((r) => r.id !== rij.id);
+    if (!(await claim([rij.id])).length) continue;
+    await geefMakeoverDoor(telefoon, site);
+    await zetStatus([rij.id], "klaar", site.id);
+  }
+
   // Knoppen en getypte "publiceer"/"weggooien" direct uitvoeren
   for (const rij of rijen) {
     const commando = rij.soort === "tekst" ? conceptCommando(rij.inhoud) : null;
@@ -225,6 +238,44 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
   if (nieuwer.length) return;
   const bundel = await claimAlleWachtende(telefoon);
   if (bundel.length) await chatBeurt(telefoon, eigenaar, site, bundel, gestart, meerdere);
+}
+
+/** De eigenaar wil een nieuwe uitstraling of een make-over: dat doet WordSwap,
+ * niet de chat. Hier komt de aanvraag binnen (mail + lijst in de admin). */
+async function geefMakeoverDoor(telefoon: string, site: Site) {
+  const { formulierInzendingen } = await import("@/db/schema");
+  await db
+    .insert(formulierInzendingen)
+    .values({
+      siteRepo: "wordswap",
+      formulier: "make-over",
+      velden: {
+        naam: site.naam,
+        site: site.naam,
+        siteId: String(site.id),
+        website: site.domein ?? site.githubRepo,
+        telefoon: toonNummer(telefoon),
+        bericht: "Wil een frissere uitstraling of een complete make-over (gevraagd via WhatsApp).",
+      },
+    })
+    .catch((e) => console.error("Make-over-aanvraag opslaan:", e));
+  const sleutel = process.env.RESEND_API_KEY;
+  if (sleutel) {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sleutel}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "WordSwap portaal <info@wordswap.nl>",
+        to: ["info@wordswap.nl"],
+        subject: `Make-over gevraagd: ${site.naam}`,
+        html: `<p><strong>${site.naam}</strong> (${site.domein ?? site.githubRepo}) vroeg via WhatsApp om een frissere uitstraling of een complete make-over.</p><p>Telefoon: ${toonNummer(telefoon)}</p><p>Even bellen of mailen dus.</p>`,
+      }),
+    }).catch((e) => console.error("Make-over-seintje mailen mislukt:", e));
+  }
+  await stuurTekst(
+    telefoon,
+    "Top — ik geef het door aan WordSwap. Je hoort snel van ze over een frissere uitstraling. Ondertussen kun je hier gewoon kleine dingen blijven aanpassen.",
+  );
 }
 
 /** Site met adres, zodat in WhatsApp altijd duidelijk is waar je mee bezig bent. */
@@ -434,6 +485,8 @@ async function chatBeurt(
   meerdere = false,
 ) {
   const ids = rijen.map((r) => r.id);
+  // Buiten de try, zodat we hem ook bij een fout kunnen stoppen
+  let bezigMelder: ReturnType<typeof setTimeout> | undefined;
   try {
     const opmerkingen: string[] = [];
 
@@ -498,20 +551,37 @@ async function chatBeurt(
     form.set("siteId", String(site.id));
     form.set("bericht", bericht);
     form.set("kanaal", "whatsapp");
+    // De chat moet ruim vóór onze eigen functiegrens stoppen: zo krijg je altijd
+    // een antwoord en blijft een half werk niet verloren (les 19-09: een hele
+    // make-over liep 800 s door en werd door Vercel afgekapt).
+    form.set(
+      "maxDuurS",
+      String(Math.round((gestart + (WEBHOOK_MAX_DUUR_S - 150) * 1000 - Date.now()) / 1000)),
+    );
     for (const f of fotos) form.append("afbeelding", f);
 
     // Even een teken van leven: een beurt duurt al gauw een halve tot een paar
     // minuten, en zolang blijft het in WhatsApp anders doodstil. Loopt er net
     // al een beurt voor dit nummer, dan is die melding er al geweest.
-    if (Date.now() - (laatsteAanDeSlag.get(telefoon) ?? 0) > 20_000) {
+    // Alleen melden dat hij aan het werk gaat als hij ook écht iets gaat
+    // wijzigen: dat horen we aan de werkstappen die de chat onderweg stuurt.
+    // Gaat het om een vraag of gewoon overleg, dan komt het antwoord vanzelf
+    // en is een tussenmelding alleen maar ruis.
+    let werkGemeld = false;
+    const meldWerk = () => {
+      if (werkGemeld) return;
+      werkGemeld = true;
       laatsteAanDeSlag.set(telefoon, Date.now());
-      await stuurTekst(
+      void stuurTekst(
         telefoon,
         meerdere
-          ? `Ik ga ermee aan de slag voor ${siteRegel(site)}. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.`
-          : "Ik ga ermee aan de slag. Meestal ben ik binnen een paar minuten klaar; je hoort het vanzelf.",
+          ? `Ik ga ermee aan de slag voor ${siteRegel(site)} — je hoort het zodra het klaar is.`
+          : "Ik ga ermee aan de slag — je hoort het zodra het klaar is.",
       ).catch(() => {});
-    }
+    };
+    // Vangnet: duurt het lang zonder dat er al iets gewijzigd is (veel lezen,
+    // foto's bekijken), dan toch even laten weten dat hij bezig is.
+    bezigMelder = setTimeout(meldWerk, 40_000);
 
     let res = await roepRouteAan("chat", eigenaar, form);
     // Loopt er al een bewerking (bijvoorbeeld in het portaal)? Even wachten,
@@ -520,18 +590,33 @@ async function chatBeurt(
       const data = (await res.clone().json().catch(() => ({}))) as { slot?: boolean };
       if (!data.slot) break;
       if (Date.now() - gestart > UITERLIJK_START_MS) {
+        clearTimeout(bezigMelder);
         await zetStatus(ids, "genegeerd", site.id);
-        await stuurTekst(telefoon, "Er wordt nog aan je website gewerkt. Stuur je bericht over een paar minuten nog eens, dan pak ik het op.");
+        const { leaseRestMinuten, operationScope } = await import("@/lib/operation-guards");
+        const minuten = await leaseRestMinuten(operationScope(site, eigenaar)).catch(() => 2);
+        await stuurTekst(
+          telefoon,
+          `Er wordt nu aan je website gewerkt; dat kan nog ${minuten} ${minuten === 1 ? "minuut" : "minuten"} duren. Stuur je bericht daarna nog eens, dan pak ik het op.`,
+        );
         return;
       }
       await slaap(10_000);
       res = await roepRouteAan("chat", eigenaar, form);
     }
-    const uitkomst = await readChatResponse(res, () => {});
+    const uitkomst = await readChatResponse(res, (gebeurtenis) => {
+      const soort = gebeurtenis.type;
+      const tekst = typeof gebeurtenis.tekst === "string" ? gebeurtenis.tekst : "";
+      // "bewerkt" komt zodra er een pagina wordt aangepast; de statusregels
+      // met "aanpassen/schrijven/bijwerken" zijn hetzelfde moment in woorden.
+      if (soort === "bewerkt" || (soort === "status" && /aanpass|schrijf|werk ik|bij\.\.\.|wissel/i.test(tekst)))
+        meldWerk();
+    });
+    clearTimeout(bezigMelder);
     await stuurAntwoord(telefoon, site, uitkomst, meerdere);
     await zetStatus(ids, "klaar", site.id);
   } catch (e) {
     console.error("WhatsApp-chatbeurt:", e);
+    clearTimeout(bezigMelder);
     await zetStatus(ids, "mislukt", site.id);
     const melding = e instanceof Error && e.message && !/^(WhatsApp|Media|Whisper)/.test(e.message)
       ? e.message
