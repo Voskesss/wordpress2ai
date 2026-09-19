@@ -166,6 +166,11 @@ export const changes = pgTable("changes", {
   clerkUserId: text("clerk_user_id"),
   // Demo: stand van de branch vóór dit concept, zodat Verwijder netjes terugdraait
   baseSha: text("base_sha"),
+  // Vondsten van het dubbeling-vangnet uit de laatste beurt (oud → nieuw +
+  // plekken), zodat "Overal doorvoeren" mechanisch kan in plaats van dat de
+  // AI opnieuw moet zoeken (en kan missen). Elke beurt met wijzigingen
+  // overschrijft dit.
+  vangnetVondsten: jsonb("vangnet_vondsten"),
 });
 
 export const usage = pgTable("usage", {

@@ -716,6 +716,72 @@ export async function POST(req: Request) {
             }
           }
 
+          // OVERAL DOORVOEREN: de eigenaar bevestigt een vangnet-melding.
+          // Het vangnet weet al exact wát waar is blijven staan, dus dit
+          // gebeurt mechanisch — geen AI-zoektocht die kan missen en daarna
+          // "alles klopt" beweren. Alleen restjes zonder bekende nieuwe
+          // tegenhanger krijgen één strak geïnstrueerde reparatiebeurt, en
+          // het vangnet meet aan het eind van deze beurt sowieso opnieuw na.
+          if (
+            !snelpad &&
+            bericht.trim() === "Overal doorvoeren" &&
+            Array.isArray(openConcept?.vangnetVondsten) &&
+            (openConcept.vangnetVondsten as unknown[]).length > 0
+          ) {
+            stuur({ type: "status", tekst: "Ik voer het overal door..." });
+            const { voerVondstenDoor } = await import("@/lib/doorvoeren");
+            const { alsPagina } = await import("@/lib/consistentie");
+            const vondsten = openConcept.vangnetVondsten as import("@/lib/consistentie").VangnetVondst[];
+            const uitkomst = await voerVondstenDoor(werkmap, vondsten);
+            let herstelGedraaid = false;
+            let herstelKosten = { kostenUsd: 0, tokensIn: 0, tokensUit: 0 };
+            if (uitkomst.rest.length > 0) {
+              const restS = maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+              if (restS >= 120) {
+                const regels = uitkomst.rest.map(
+                  (r) =>
+                    `- In ${r.pad}: vervang ${r.vondst.soort === "beeld" ? `de afbeelding ${r.vondst.oud}` : `"${r.vondst.oud}"`}${
+                      r.vondst.nieuw
+                        ? ` door "${r.vondst.nieuw}"`
+                        : " door de nieuwe versie zoals die nu op de zojuist gewijzigde pagina staat (kijk daar eerst)"
+                    }`,
+                );
+                const herstel = await draaiChatAgent({
+                  werkmap,
+                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                  opdracht: `OVERAL DOORVOEREN (automatisch). De eigenaar heeft bevestigd dat deze achtergebleven restanten óók bijgewerkt moeten worden. Doe precies dit en verder niets:\n${regels.join(
+                    "\n",
+                  )}\n\nLet op: de aangehaalde tekst is genormaliseerd — in het bestand kan hij nét anders gespeld staan (witruimte, &nbsp;, aanhalingstekens). Lees het genoemde bestand en vervang daar de echte tekst. Antwoord met één korte zin.`,
+                  budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
+                  opGebeurtenis: () => {},
+                });
+                herstelGedraaid = true;
+                herstelKosten = { kostenUsd: herstel.kostenUsd, tokensIn: herstel.tokensIn, tokensUit: herstel.tokensUit };
+              }
+            }
+            const regels = uitkomst.gedaan.map(
+              (g) => `- "${g.oud}" → "${g.nieuw}" op ${alsPagina(g.pad)}${g.keer > 1 ? ` (${g.keer} plekken)` : ""}`,
+            );
+            const restZin =
+              uitkomst.rest.length === 0
+                ? ""
+                : herstelGedraaid
+                  ? "\n\nDe overige plekken heb ik ook laten bijwerken; hieronder meld ik het als er tóch iets is blijven staan."
+                  : `\n\nLet op: ${uitkomst.rest.length} plek${uitkomst.rest.length === 1 ? "" : "ken"} kon ik nu niet automatisch bijwerken — vraag het gerust in een volgend bericht.`;
+            snelpad = {
+              reply:
+                (regels.length
+                  ? `Ik heb het overal doorgevoerd:\n${regels.join("\n")}`
+                  : "Ik heb de resterende plekken bijgewerkt.") + restZin,
+              kostenUsd: herstelKosten.kostenUsd,
+              tokensIn: herstelKosten.tokensIn,
+              tokensUit: herstelKosten.tokensUit,
+            };
+          }
+
           // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
           let fotobankKwaliteit: string | null = null;
           if (fotobankPad) {
@@ -1507,16 +1573,23 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               const { vraagtAlleenHier } = await import("@/lib/vangnet-bericht");
               const vroegAlleenHier = vraagtAlleenHier(bericht);
               if (!vroegAlleenHier) {
-                const { dubbelingsMeldingen } = await import("@/lib/consistentie");
+                const { dubbelingsRapport } = await import("@/lib/consistentie");
                 const { leesBestand } = await import("@/lib/github");
                 const basisRef = vangnetBasisSha ?? undefined;
                 if (!basisRef) throw new Error("geen basis-sha; vangnet overgeslagen om niet met zichzelf te vergelijken");
-                const meldingen = await dubbelingsMeldingen({
+                const { meldingen, vondsten } = await dubbelingsRapport({
                   werkmap,
                   gewijzigd,
                   oudeInhoud: (pad) => leesBestand(site.githubRepo, pad, basisRef).catch(() => null),
                 });
                 vangnetMeldingen = meldingen;
+                // Vondsten bij het concept bewaren zodat "Overal doorvoeren"
+                // in de volgende beurt mechanisch kan; elke beurt overschrijft
+                await db
+                  .update(changes)
+                  .set({ vangnetVondsten: meldingen.length ? vondsten : null })
+                  .where(eq(changes.id, changeRowId))
+                  .catch((e) => console.error("Vangnet-vondsten bewaren:", e));
                 vangnetDebug = `basis=${(basisRef ?? "main").slice(0, 7)} gewijzigd=${gewijzigd.join(",")} meldingen=${meldingen.length}`;
                 const sonde = gewijzigd.find((p) => p.endsWith(".html"));
                 if (meldingen.length === 0 && sonde) {
@@ -1525,6 +1598,13 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 }
               } else {
                 vangnetDebug = "onderdrukt door alleen-hier in de opdracht";
+                // De eigenaar koos bewust "alleen hier": oude vondsten opruimen
+                // zodat een latere doorvoer-knop niet iets verouderds toepast
+                await db
+                  .update(changes)
+                  .set({ vangnetVondsten: null })
+                  .where(eq(changes.id, changeRowId))
+                  .catch(() => {});
               }
             } catch (e) {
               console.error("Consistentie-vangnet:", e);
