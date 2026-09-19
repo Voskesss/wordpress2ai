@@ -369,6 +369,14 @@ export default async function KlantDetail({
           siteId={site.id}
           previewAccess={createPreviewAccess(site.id, admin.id)}
           historie={chatHistorie}
+          verbruik={
+            site.isDemo
+              ? null
+              : {
+                  gebruikt: verbruik?.wijzigingen ?? 0,
+                  limiet: (await import("@/lib/ai-budget")).wijzigingenLimietVoor(site, maand),
+                }
+          }
           liveUrl={site.domein}
           werkversieUrl={
             site.isDemo
