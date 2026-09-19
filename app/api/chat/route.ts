@@ -1050,7 +1050,10 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           // Mobiel-controle: heeft deze beurt kolommen of vaste breedtes direct in de HTML gezet?
           // Die winnen van de media queries in de stylesheet en maken de pagina op een telefoon
           // te breed. Dan één korte herstelbeurt, vóórdat het concept klaarstaat.
-          if (mobielVoor && !snelpad && !tijdOp && !limietBereikt && !stopper.signal.aborted) {
+          // Alleen als er ruim tijd over is (zelfde bewaking als de afspraken-poort):
+          // een krappe WhatsApp-beurt slaat dit over in plaats van eroverheen te gaan.
+          const restVoorHerstelS = () => maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+          if (mobielVoor && !snelpad && !tijdOp && !limietBereikt && !stopper.signal.aborted && restVoorHerstelS() >= 120) {
             try {
               const { mobielRisicos, nieuweRisicos } = await import("@/lib/mobiel-check");
               const nieuw = nieuweRisicos(mobielVoor, await mobielRisicos(werkmap));
@@ -1065,6 +1068,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                     .map((r) => `- ${r}`)
                     .join("\n")}\n\nHerstel dit, zonder het ontwerp op een computer te veranderen: haal deze lay-out uit de style-attributen en regel het via klassen in de bestaande stylesheet. Kijk eerst of er al een klasse is die dit doet (vaak met media queries voor tablet en telefoon) en gebruik die; anders voeg je spaarzaam een klasse toe in de stylesheet met een @media-regel waarin het op smalle schermen (bijv. max-width: 700px) één kolom of 100% breedte wordt. Pas verder niets aan. Antwoord met één korte zin.`,
                   budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
                   signal: stopper.signal,
                   opGebeurtenis: () => {},
                 });
@@ -1179,6 +1184,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                     .map((r) => `- ${r}`)
                     .join("\n")}\n\nHerstel precies dit en verder niets. Alt-teksten schrijf je op basis van wat er echt op de afbeelding staat (bekijk hem zo nodig met lees_bestand). Antwoord met één korte zin.`,
                   budgetUsd: 0.15,
+                  maxBeurten: 8,
+                  maxDuurMs: 90_000,
                   signal: stopper.signal,
                   opGebeurtenis: () => {},
                 });
@@ -1389,7 +1396,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                   paginasOmTeMeten(gewijzigd),
                 );
                 const teBreed = metingen ? teBredePaginas(metingen) : [];
-                if (teBreed.length > 0 && !stopper.signal.aborted) {
+                if (teBreed.length > 0 && !stopper.signal.aborted && restVoorHerstelS() >= 120) {
                   stuur({ type: "status", tekst: "Ik controleer of het ook goed staat op een telefoon..." });
                   const voorHerstel = await maakSnapshot(werkmap);
                   const herstel = await draaiChatAgent({
@@ -1400,6 +1407,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                       teBreed,
                     )}\n\nHerstel dit zonder het ontwerp op een computer te veranderen. Veelvoorkomende oorzaken: vaste breedtes of kolommen in een style-attribuut, een raster zonder media query, of een foto/iframe/tabel met een vaste breedte. Regel het via klassen in de bestaande stylesheet met een @media-regel voor smalle schermen (bijv. max-width: 700px: één kolom, max-width: 100%). Gebruik eerst een bestaande klasse als die dit al doet. Pas verder niets aan. Antwoord met één korte zin.`,
                     budgetUsd: 0.15,
+                    maxBeurten: 8,
+                    maxDuurMs: 90_000,
                     signal: stopper.signal,
                     opGebeurtenis: () => {},
                   });

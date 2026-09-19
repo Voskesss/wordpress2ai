@@ -120,6 +120,13 @@ export async function draaiChatAgent(opties: {
   budgetUsd: number;
   signal?: AbortSignal;
   opGebeurtenis: (g: AgentGebeurtenis) => void;
+  /** Maximum aantal AI-stappen; standaard MAX_BEURTEN. Korte reparatiebeurten
+   *  horen hier een lage waarde te krijgen, anders kan zo'n "korte" beurt
+   *  minutenlang doorploeteren binnen zijn budget. */
+  maxBeurten?: number;
+  /** Wandkloklimiet in ms: na afloop van de lopende stap wordt netjes gestopt
+   *  (nooit midden in een bestandsbewerking). */
+  maxDuurMs?: number;
 }): Promise<AgentUitkomst> {
   const { werkmap, opGebeurtenis } = opties;
   const opBestand = maakBestandsSlot();
@@ -272,7 +279,7 @@ export async function draaiChatAgent(opties: {
     {
       model: opties.model,
       max_tokens: 16000,
-      max_iterations: MAX_BEURTEN,
+      max_iterations: Math.min(opties.maxBeurten ?? MAX_BEURTEN, MAX_BEURTEN),
       stream: true,
       system: [
         {
@@ -287,6 +294,7 @@ export async function draaiChatAgent(opties: {
     { signal: opties.signal },
   );
 
+  const startMs = Date.now();
   let reply = "";
   let tokensIn = 0;
   let tokensUit = 0;
@@ -358,6 +366,10 @@ export async function draaiChatAgent(opties: {
         uitTok * prijsUit) /
       1_000_000;
     if (kostenUsd >= opties.budgetUsd) {
+      limietBereikt = true;
+      break;
+    }
+    if (opties.maxDuurMs && Date.now() - startMs >= opties.maxDuurMs) {
       limietBereikt = true;
       break;
     }
