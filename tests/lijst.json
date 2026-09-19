@@ -30,7 +30,8 @@
     "herstel-rem.mts",
     "bijhalen-hoofdversie.mts",
     "doorvoeren.mts",
-    "wijzigingen-telling.mts"
+    "wijzigingen-telling.mts",
+    "fotobank-bewaren.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

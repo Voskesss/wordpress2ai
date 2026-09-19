@@ -1333,16 +1333,30 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             // Geen echte wijziging: geen concept, maar de foto('s) wél bewaren
             try {
               const { pushBestanden } = await import("@/lib/github");
+              const bewaarBestanden = await Promise.all(
+                gewijzigd.map(async (pad) => ({
+                  pad,
+                  inhoud: await readFile(path.join(werkmap!, pad)),
+                })),
+              );
               await pushBestanden(
                 site.githubRepo,
-                await Promise.all(
-                  gewijzigd.map(async (pad) => ({
-                    pad,
-                    inhoud: await readFile(path.join(werkmap!, pad)),
-                  })),
-                ),
+                bewaarBestanden,
                 "Meegestuurd bestand bewaard (nog niet geplaatst)",
               );
+              // Staat er een concept open, zet hem dan óók op die branch:
+              // de fotobank en de volgende beurt kijken naar de conceptbranch,
+              // en een foto die alleen op main staat is daar onvindbaar
+              // (gezien 19-09: "hij hoort in mijn fotobank" maar hij stond er
+              // niet). Zelfde inhoud op beide takken, dus nooit een conflict.
+              if (openConcept?.branch) {
+                await pushBestanden(
+                  site.githubRepo,
+                  bewaarBestanden,
+                  "Meegestuurd bestand bewaard (nog niet geplaatst)",
+                  openConcept.branch,
+                ).catch((e) => console.error("Bewaren op conceptbranch:", e));
+              }
               const alleenVideo = afbeeldingen.length === 0 && documenten.length === 0 && Boolean(videoPaden);
               const alleenDocument = afbeeldingen.length === 0 && !videoPaden && documenten.length > 0;
               reply = `${reply}\n\n(${
