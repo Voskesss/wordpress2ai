@@ -1690,12 +1690,17 @@ export default function Chat({
                 {label}
               </button>
             ))}
+            {/* Duidelijke weg terug naar het portaal met menu — een kaal
+                kruisje herkende niemand als uitgang */}
             <button
               onClick={() => setMobielVol(false)}
-              aria-label="Editor verkleinen — terug naar de pagina"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-stone-400 cursor-pointer"
+              aria-label="Editor verkleinen — terug naar de pagina met het menu"
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-stone-300 px-3 text-sm font-semibold text-stone-600 cursor-pointer"
             >
-              ✕
+              <svg width="15" height="15" viewBox="0 0 20 20" aria-hidden>
+                <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              Menu
             </button>
           </div>
         )}
