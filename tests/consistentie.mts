@@ -120,6 +120,24 @@ assert.ok(
   "achtergebleven alt-tekst moet gemeld worden",
 );
 
+// 8b) Hernoeming korter dan 12 tekens die in de alt-tekst van een ÁNDERE
+// pagina blijft hangen (Groene Golf 19-09: "Spoedcursus" → "VlotOpWeg-cursus",
+// 11 tekens, bleef in vijf tegel-alts staan zonder melding). Een gepaarde
+// hernoeming is een sterk signaal, dus daar geldt een lagere drempel.
+const tegel = (naam: string) =>
+  `<html><body><h2>Onze cursussen op een rij</h2><img src="c.jpg" alt="${naam} bij Rijschool De Test"><p>Bekijk het aanbod van onze rijschool.</p>${VOET}</body></html>`;
+const cursusPagina = (naam: string) =>
+  `<html><body><h1>${naam}</h1><p>Kies voor de ${naam} en haal in twee weken je rijbewijs met een intensief programma.</p>${VOET}</body></html>`;
+m = await meldingenVoor(
+  { "cursus.html": cursusPagina("VlotOpWeg-cursus"), "index.html": tegel("Spoedcursus") },
+  ["cursus.html"],
+  { "cursus.html": cursusPagina("Spoedcursus") },
+);
+assert.ok(
+  m.some((r) => /Spoedcursus/.test(r) && /onzichtbare tekst|staat óók nog/.test(r)),
+  "korte hernoemde naam in een alt-tekst elders moet gemeld worden",
+);
+
 // 9) Gewone kopwijziging terwijl het nummer overal in de voet staat → geen ruis
 const metVoetnummer = (kopTekst: string) =>
   `<html><body><h2>${kopTekst}</h2>${VOET}<footer>038 - 123 45 67</footer></body></html>`;

@@ -269,7 +269,12 @@ export async function dubbelingsRapport(opties: {
         while (s > 0 && !/\s/.test(blok[blok.length - s])) s--;
         const oudKern = blok.slice(p, blok.length - s).trim();
         const nieuwKern = paar.slice(p, paar.length - s).trim();
-        if (oudKern !== blok && specifiek(oudKern, 220))
+        // Lagere drempel dan bij losse fragmenten: dit is een GEPAARDE
+        // hernoeming (oud→nieuw uit dezelfde alinea), dus het signaal is
+        // sterk. "Spoedcursus" (11 tekens) glipte anders onder de 12 door,
+        // terwijl hij nog in vijf alt-teksten stond. Wel echte letters
+        // eisen, zodat prijzen en getallen ("64"→"70") geen ruis geven.
+        if (oudKern !== blok && oudKern.length >= 5 && oudKern.length <= 220 && /\p{L}.*\p{L}.*\p{L}/u.test(oudKern))
           zoekParen.push([oudKern, nieuwKern || null]);
       }
 
