@@ -86,11 +86,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -1083,6 +1083,34 @@ export default async function KlantDetail({
               </li>
             ))}
           </ul>
+        )}
+
+        {whatsappMelding && (
+          <p
+            className={`mt-4 rounded-xl border px-3.5 py-2 text-sm ${
+              whatsappMelding === "gekoppeld" || whatsappMelding === "bestond"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-red-200 bg-red-50 text-red-900"
+            }`}
+          >
+            {whatsappMelding === "gekoppeld"
+              ? "✓ Nummer gekoppeld."
+              : whatsappMelding === "bestond"
+                ? "Dit nummer stond al bij deze website."
+                : whatsappMelding === "geen-landcode"
+                  ? "Niet opgeslagen: het nummer moet met de landcode beginnen, bijvoorbeeld +31612345678. Een nummer dat met 06 begint bestaat in tientallen landen."
+                  : whatsappMelding === "andere-site"
+                    ? "Niet opgeslagen: dit nummer hangt al aan een andere website. Haal het daar eerst weg; één telefoon hoort bij één site."
+                    : "Niet opgeslagen: onbekende website."}
+          </p>
+        )}
+
+        {whatsappNummers.length > 0 && !site.whatsappActief && (
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
+            Er staan nummers klaar, maar WhatsApp staat voor deze website <strong>uit</strong>. Zolang
+            dat zo is komt er niets binnen en ziet de klant het blok in zijn portaal niet. Koppelen
+            mag alvast; zet het daarna aan.
+          </p>
         )}
 
         <form action={voegWhatsappNummer} className="mt-4 flex flex-wrap items-end gap-3">

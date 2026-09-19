@@ -956,48 +956,63 @@ export async function bewaarWhatsapp(formData: FormData) {
  * hier staan mogen via WhatsApp met de website praten. Landcode verplicht:
  * "06..." bestaat in tientallen landen en een gok zou een vreemde telefoon
  * aan een site kunnen hangen. */
-export async function voegWhatsappNummer(formData: FormData) {
-  await requireAdmin();
+/** Het koppelen zelf. Geeft terug wát er gebeurde, zodat beide knoppen
+ * (handmatig toevoegen en "Koppelen" bij een aanvraag uit het portaal)
+ * dezelfde melding kunnen tonen. Stil mislukken is hier het ergste: dan
+ * denk je dat een nummer erin staat terwijl er niets is opgeslagen. */
+async function koppelNummer(
+  formData: FormData,
+): Promise<"gekoppeld" | "bestond" | "geen-landcode" | "andere-site" | "onbekend"> {
   const siteId = Number(formData.get("siteId"));
-  if (!Number.isInteger(siteId)) return;
+  if (!Number.isInteger(siteId)) return "onbekend";
   const { normaliseerNummer } = await import("@/lib/whatsapp/berichten");
   const telefoon = normaliseerNummer(String(formData.get("nummer") ?? ""));
   const omschrijving = String(formData.get("omschrijving") ?? "").trim().slice(0, 60) || null;
-  if (!telefoon) return;
+  if (!telefoon) return "geen-landcode";
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site) return;
+  if (!site) return "onbekend";
   const { whatsappKoppelingen } = await import("@/db/schema");
   const [bestaand] = await db
     .select({ siteId: whatsappKoppelingen.siteId })
     .from(whatsappKoppelingen)
     .where(eq(whatsappKoppelingen.telefoon, telefoon));
   // Eén nummer hoort bij één site; staat hij elders, dan niet stilletjes verhuizen
-  if (bestaand && bestaand.siteId !== siteId) return;
-  if (!bestaand) {
-    await db.insert(whatsappKoppelingen).values({
-      siteId,
-      clerkUserId: site.clerkUserId,
-      telefoon,
-      omschrijving,
-      gekoppeldOp: new Date(),
-    });
-  }
-  revalidatePath(`/admin/klant/${siteId}`);
+  if (bestaand && bestaand.siteId !== siteId) return "andere-site";
+  if (bestaand) return "bestond";
+  await db.insert(whatsappKoppelingen).values({
+    siteId,
+    clerkUserId: site.clerkUserId,
+    telefoon,
+    omschrijving,
+    gekoppeldOp: new Date(),
+  });
   revalidatePath("/portal");
+  return "gekoppeld";
+}
+
+export async function voegWhatsappNummer(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const uitkomst = await koppelNummer(formData);
+  redirect(`/admin/klant/${siteId}?whatsapp=${uitkomst}#whatsapp`);
 }
 
 /** Aangevraagd nummer uit het portaal met één klik koppelen. */
 export async function koppelAangevraagdNummer(formData: FormData) {
   await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
   const inzendingId = Number(formData.get("inzendingId"));
   if (!Number.isInteger(inzendingId)) return;
-  await voegWhatsappNummer(formData);
-  const { formulierInzendingen } = await import("@/db/schema");
-  await db
-    .update(formulierInzendingen)
-    .set({ gearchiveerd: true })
-    .where(eq(formulierInzendingen.id, inzendingId));
-  revalidatePath(`/admin/klant/${Number(formData.get("siteId"))}`);
+  const uitkomst = await koppelNummer(formData);
+  // De aanvraag alleen wegstrepen als het nummer er echt in staat
+  if (uitkomst === "gekoppeld" || uitkomst === "bestond") {
+    const { formulierInzendingen } = await import("@/db/schema");
+    await db
+      .update(formulierInzendingen)
+      .set({ gearchiveerd: true })
+      .where(eq(formulierInzendingen.id, inzendingId));
+  }
+  redirect(`/admin/klant/${siteId}?whatsapp=${uitkomst}#whatsapp`);
 }
 
 export async function verwijderWhatsappNummer(formData: FormData) {
