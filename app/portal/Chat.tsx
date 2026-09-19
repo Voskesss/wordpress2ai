@@ -1854,11 +1854,11 @@ export default function Chat({
                   door iedereen herkend als "hier kom je er weer uit". */}
               <button
                 onClick={() => setVolledigScherm(!volledigScherm)}
-                aria-label={volledigScherm ? "Volledig scherm sluiten" : "Volledig scherm"}
-                className={`hidden sm:flex items-center justify-center rounded-full border cursor-pointer ${
+                aria-label={volledigScherm ? "Volledig scherm sluiten" : "Maak groot"}
+                className={`hidden sm:flex items-center justify-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer ${
                   volledigScherm
-                    ? "gap-1.5 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
-                    : "h-8 w-8 border-stone-200 text-stone-500 hover:border-violet-400 hover:text-violet-700"
+                    ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+                    : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
                 }`}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -1868,7 +1868,7 @@ export default function Chat({
                     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   )}
                 </svg>
-                {volledigScherm && <span className="hidden md:inline">Volledig scherm uit</span>}
+                {volledigScherm ? <span className="hidden md:inline">Volledig scherm uit</span> : <span>Maak groot</span>}
               </button>
             </Tip>
           </div>
