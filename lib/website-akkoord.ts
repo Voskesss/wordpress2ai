@@ -32,8 +32,11 @@ export async function opleveringsAkkoord(siteId: number) {
 
 /** Link naar de nieuwe site: de live worker werkt altijd, ook vóór het omzetten van het domein. */
 export function standaardBekijkLink(site: { siteSlug: string | null; domein: string | null }): string {
-  if (site.siteSlug) return `https://${site.siteSlug}.wordswap.workers.dev`;
   const d = (site.domein ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  // Eigen domein gaat vóór het workers.dev-adres: is de site live op zijn
+  // domein, dan hoort elke "bekijk je website"-knop dáárheen te wijzen
+  if (d && !/\.workers\.dev$/.test(d)) return `https://${d}`;
+  if (site.siteSlug) return `https://${site.siteSlug}.wordswap.workers.dev`;
   return d ? `https://${d}` : "";
 }
 
