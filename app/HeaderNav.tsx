@@ -35,8 +35,8 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
           >
             Gratis websitecheck ↗
           </Link>
-          <SignInButton mode="modal">
-            <button className="px-2 py-1 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
+          <SignInButton mode="modal" forceRedirectUrl="/portal">
+            <button className="rounded-lg border border-zinc-300 px-4 py-2 text-zinc-700 hover:border-violet-500 hover:text-violet-700 transition-colors cursor-pointer">
               Inloggen
             </button>
           </SignInButton>
@@ -128,15 +128,15 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
               )}
             </Show>
             <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button className="rounded-lg px-4 py-3 text-left hover:bg-zinc-50 cursor-pointer">
-                  Inloggen
+              <SignInButton mode="modal" forceRedirectUrl="/portal">
+                <button className="mt-2 rounded-lg border-2 border-violet-700 px-4 py-3 text-center font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer">
+                  Inloggen op je website
                 </button>
               </SignInButton>
               <Link
                 href="/contact"
                 onClick={() => setOpen(false)}
-                className="mt-2 rounded-lg bg-violet-700 px-4 py-3 text-center text-white"
+                className="mt-1 rounded-lg bg-violet-700 px-4 py-3 text-center text-white"
               >
                 Gratis websitecheck ↗
               </Link>
