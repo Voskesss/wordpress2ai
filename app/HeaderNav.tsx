@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, Show, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, Show, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -126,6 +126,12 @@ export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { i
                   Admin
                 </Link>
               )}
+              {/* Uitloggen zichtbaar in het menu — het profielrondje herkent niet iedereen */}
+              <SignOutButton redirectUrl="/">
+                <button className="rounded-lg px-4 py-3 text-left text-zinc-500 hover:bg-zinc-50 cursor-pointer">
+                  Uitloggen
+                </button>
+              </SignOutButton>
             </Show>
             <Show when="signed-out">
               <SignInButton mode="modal" forceRedirectUrl="/portal">
