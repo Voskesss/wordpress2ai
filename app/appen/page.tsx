@@ -5,9 +5,9 @@ import ContactVoorkeur from "../contact/ContactVoorkeur";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
-  title: "Je laatste klus op je website? Stuur een appje.",
+  title: "Je laatste project op je website? Stuur een appje.",
   description:
-    "Foto’s van je werk op je site zetten door ze te appen. In bèta bij WordSwap. Vandaag kan het al via de chat van je eigen website: je zegt wat erop moet, je site past het aan.",
+    "Foto’s van je laatste project op je site zetten door ze te appen. In bèta bij WordSwap. Vandaag kan het al via de chat van je eigen website: je zegt wat erop moet, je site past het aan.",
   alternates: { canonical: "/appen" },
 };
 
@@ -28,7 +28,7 @@ function WhatsAppTeken({ className = "h-6 w-6" }: { className?: string }) {
 }
 
 const gesprek = [
-  { van: "jij", tekst: "Klus in Velp klaar. Zet deze drie foto’s erbij." },
+  { van: "jij", tekst: "Project in Velp klaar. Zet deze drie foto’s erbij." },
   { van: "site", tekst: "Staat klaar als voorstel. Bekijken?" },
   { van: "jij", tekst: "Ja, en zet er ‘dakkapel vervangen’ boven." },
   { van: "site", tekst: "Gedaan. Jij drukt op publiceren." },
@@ -38,7 +38,7 @@ const watJeKrijgt = [
   {
     kop: "Je zegt het, je website doet het",
     tekst:
-      "Nieuwe prijzen, een vakantiemelding, foto’s van je laatste klus. Je typt het in de chat van je eigen site. Je krijgt een voorstel te zien en publiceert zelf.",
+      "Nieuwe prijzen, een vakantiemelding, foto’s van je laatste project. Je typt het in de chat van je eigen site. Je krijgt een voorstel te zien en publiceert zelf.",
   },
   {
     kop: "Geen plugins en geen updates",
@@ -104,7 +104,7 @@ export default function Appen() {
         <div className="lg:col-span-3">
           <p className="eyebrow">IN BÈTA — MELD JE AAN VOOR DE EERSTE GROEP</p>
           <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
-            Je laatste klus op je website?
+            Je laatste project op je website?
             <br />
             <em className="not-italic text-[#31956B]">Stuur een appje.</em>
           </h1>
@@ -116,7 +116,7 @@ export default function Appen() {
           <p className="mt-4 text-lg text-stone-600 leading-relaxed">
             Het appen zit in bèta. Maar zodra je site is omgezet, kun je dit
             allemaal <strong>vandaag al</strong> in de chat van je eigen
-            website: foto’s van je laatste klus erop, prijzen aanpassen, een
+            website: foto’s van je laatste project erop, prijzen aanpassen, een
             dienst erbij. Je typt het, je site doet het.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -170,7 +170,7 @@ export default function Appen() {
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
-            "“Zet deze foto’s van de klus in Velp erbij, met een korte tekst.”",
+            "“Zet deze foto’s van het project in Velp erbij, met een korte tekst.”",
             "“Onze prijzen gaan omhoog: onderhoudsbeurt wordt €95.”",
             "“We zijn dicht van 24 december tot 2 januari, meld dat op de site.”",
             "“Voeg een pagina toe over onze nieuwe dienst dakkapellen.”",
@@ -185,7 +185,7 @@ export default function Appen() {
         </div>
         <p className="mt-5 text-sm text-stone-500">
           Het appen via WhatsApp komt daar straks bij, zodat het ook kan terwijl
-          je nog op de klus staat.
+          je nog op locatie bent.
         </p>
       </section>
 
@@ -359,7 +359,7 @@ export default function Appen() {
               id="bericht"
               name="bericht"
               rows={3}
-              placeholder="Bijvoorbeeld: foto’s van mijn laatste klus, of nieuwe prijzen."
+              placeholder="Bijvoorbeeld: foto’s van mijn laatste project, of nieuwe prijzen."
               className={inputStijl}
             />
           </div>
