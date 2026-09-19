@@ -1137,6 +1137,67 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           }
 
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+
+          // Afspraken-poort: wat vroeger alleen prompttekst was, wordt hier
+          // afgedwongen. Stil repareren wat mechanisch kan (formulier-adres,
+          // _site, honeypot, enctype, lazy loading); wat niet te verzinnen
+          // valt (alt-teksten, formuliernaam, kapotte invoeg-marker) krijgt
+          // één herstelbeurt — zelfde patroon als de mobielcontrole.
+          if (gewijzigd.length > 0 && !stopper.signal.aborted) {
+            try {
+              const { herstelAfspraken, afsprakenMeldingen } = await import(
+                "@/lib/beurt-controle"
+              );
+              const gerepareerd = await herstelAfspraken(
+                werkmap,
+                gewijzigd,
+                site.githubRepo,
+              );
+              if (gerepareerd.length)
+                console.log(
+                  `Afspraken-poort ${site.githubRepo}: ${gerepareerd.join("; ")}`,
+                );
+              // Ruimte voor een herstelbeurt? Een WhatsApp-beurt heeft een
+              // krappe eigen grens (maxDuurS); een extra AI-beurt daaroverheen
+              // zou het kanaal weer stil laten vallen. Dus alleen herstellen
+              // als er ruim tijd over is; de stille reparaties hierboven zijn
+              // altijd veilig, die kosten geen AI-tijd.
+              const restS = maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+              const open =
+                tijdOp || restS < 90
+                  ? []
+                  : await afsprakenMeldingen(werkmap, gewijzigd);
+              if (open.length > 0) {
+                stuur({ type: "status", tekst: "Ik loop de vaste afspraken na..." });
+                const herstel = await draaiChatAgent({
+                  werkmap,
+                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
+                  opdracht: `AFSPRAKENCONTROLE (automatisch, na je vorige wijziging). Op de pagina's die je zojuist aanpaste ontbreekt nog het volgende:\n${open
+                    .slice(0, 10)
+                    .map((r) => `- ${r}`)
+                    .join("\n")}\n\nHerstel precies dit en verder niets. Alt-teksten schrijf je op basis van wat er echt op de afbeelding staat (bekijk hem zo nodig met lees_bestand). Antwoord met één korte zin.`,
+                  budgetUsd: 0.15,
+                  signal: stopper.signal,
+                  opGebeurtenis: () => {},
+                });
+                const { registreerAiKosten } = await import("@/lib/kosten");
+                await registreerAiKosten(site.id, "chat", {
+                  tokensIn: herstel.tokensIn,
+                  tokensUit: herstel.tokensUit,
+                  kostenUsd: herstel.kostenUsd,
+                }).catch(() => {});
+                const nog = await afsprakenMeldingen(werkmap, gewijzigd);
+                console.log(
+                  `Afsprakencontrole ${site.githubRepo}: ${open.length} gevonden, ${nog.length} over na herstel`,
+                );
+                gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
+              }
+            } catch (e) {
+              console.error("Afspraken-poort mislukt (wijziging gaat gewoon door):", e);
+            }
+          }
+
           if (tijdOp && gewijzigd.length === 0) {
             // De "je foto's zijn wel bewaard"-toevoeging van hierboven behouden
             const bewaarNotitie = reply.match(/\n\n\(Je [^)]*\)$/)?.[0] ?? "";
