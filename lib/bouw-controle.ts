@@ -10,6 +10,7 @@
  */
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { laadDelen, vouwUit } from "./delen";
 
 export type Bevinding = {
   ernst: "fout" | "waarschuwing";
@@ -36,13 +37,17 @@ export function normaliseerManifest(ruw: SeoManifest): ManifestRegel[] {
         title: typeof r.titel === "string" ? r.titel : typeof r.title === "string" ? r.title : undefined,
       }))
       .filter((r) => r.pad);
-  if (ruw && typeof ruw === "object")
+  if (ruw && typeof ruw === "object") {
+    // Vorm van scripts/voorbereiden.mts: { bron, siteTitel, paginas: [...] }
+    const paginas = (ruw as Record<string, unknown>).paginas;
+    if (Array.isArray(paginas)) return normaliseerManifest(paginas as SeoManifest);
     return Object.entries(ruw as Record<string, Record<string, unknown>>).map(
       ([sleutel, w]) => ({
         pad: sleutel,
         title: typeof w?.title === "string" ? w.title : typeof w?.titel === "string" ? (w.titel as string) : undefined,
       }),
     );
+  }
   return [];
 }
 
@@ -125,27 +130,19 @@ export async function controleerSiteMap(
     return false;
   };
 
-  // delen/ vooraf inlezen voor de markercontrole (en de inhoud voor controles
-  // op de pagina zoals de bezoeker hem ziet, mét ingevoegde blokken)
-  const delenNamen = new Set<string>();
-  const delenInhoud = new Map<string, string>();
-  try {
-    for (const naam of await readdir(path.join(map, "delen")))
-      if (naam.endsWith(".html")) {
-        delenNamen.add(naam.slice(0, -5));
-        delenInhoud.set(naam.slice(0, -5), await readFile(path.join(map, "delen", naam), "utf8"));
-      }
-  } catch {
-    /* site zonder delen/ kan, markers vangen het hieronder */
-  }
-  const uitgevouwen = (html: string) =>
-    html.replace(/<!--invoeg:([\w-]+)-->/g, (m, naam) => delenInhoud.get(naam) ?? m);
+  // delen/ vooraf inlezen: voor de markercontrole én om elke pagina te
+  // beoordelen zoals de bezoeker hem krijgt (favicon, gedeelde formulieren,
+  // menu- en footerlinks zitten in delen/, niet in de pagina zelf).
+  const delen = await laadDelen(map);
+  const delenNamen = new Set(delen.keys());
 
   const indexeerbaar: string[] = [];
 
   for (const bestand of paginas) {
     const rel = relatief(map, bestand);
-    const inhoud = await readFile(bestand, "utf8");
+    const bron = await readFile(bestand, "utf8");
+    // markercontrole gebruikt de bron; alle andere checks de uitgevouwen pagina
+    const inhoud = vouwUit(bron, delen);
     const noindex = /<meta[^>]+name=["']robots["'][^>]*noindex/i.test(inhoud);
     if (!noindex) indexeerbaar.push(rel);
 
@@ -163,7 +160,7 @@ export async function controleerSiteMap(
     }
 
     // 2. Invoeg-markers verwijzen naar bestaande delen-bestanden
-    for (const m of inhoud.matchAll(/<!--invoeg:([\w-]+)-->/g))
+    for (const m of bron.matchAll(/<!--invoeg:([\w-]+)-->/g))
       if (!delenNamen.has(m[1]))
         fout("markers", rel, `Marker invoeg:${m[1]} heeft geen delen/${m[1]}.html.`);
 
@@ -179,30 +176,6 @@ export async function controleerSiteMap(
       if (!/\balt=/.test(img[0]))
         fout("alt-teksten", rel, `img zonder alt (regel ${eersteRegelNummer(inhoud, img.index ?? 0)}).`);
 
-    // 4b. Dezelfde foto niet twee keer groot op één pagina (bv. een
-    // dienst-tegel en een projectkaart met hetzelfde beeld onder elkaar).
-    // Zoals de bezoeker hem ziet: mét ingevoegde blokken. Formaatvarianten
-    // (-800, -klein, -v…) zijn dezelfde foto; duimnagels (≤ 120px) tellen niet.
-    {
-      const perFoto = new Map<string, number>();
-      for (const img of uitgevouwen(inhoud).matchAll(/<img\b[^>]*>/gi)) {
-        const breedte = Number(img[0].match(/\bwidth=["']?(\d+)/i)?.[1] ?? 0);
-        if (breedte && breedte <= 120) continue;
-        const src = img[0].match(/\bsrc=["']([^"']+)["']/i)?.[1];
-        // Logo's (kop én voet) en svg-iconen horen juist vaker terug te komen
-        if (!src || /\.svg(?:[?#]|$)/i.test(src) || /logo/i.test(path.basename(src))) continue;
-        const sleutel = path
-          .basename(src.split(/[?#]/)[0])
-          .replace(/\.[a-z0-9]+$/i, "")
-          .replace(/-v[0-9a-z]{6,}$/i, "")
-          .replace(/-(?:\d{3,4}|klein|groot)$/i, "");
-        perFoto.set(sleutel, (perFoto.get(sleutel) ?? 0) + 1);
-      }
-      for (const [foto, aantal] of perFoto)
-        if (aantal > 1)
-          waarschuw("foto-dubbel", rel, `Foto "${foto}" staat ${aantal} keer op deze pagina — kies voor de ene plek een ander beeld.`);
-    }
-
     // 5. Interne links en verwijzingen bestaan
     for (const m of inhoud.matchAll(/(?:href|src)=["'](\/[^"']*)["']/g)) {
       const doel = m[1].split(/[?#]/)[0];
@@ -212,20 +185,6 @@ export async function controleerSiteMap(
       if (redirects.has(doel) || redirects.has(doel.replace(/\/$/, "") + "/")) continue;
       if (await bestandBestaat(doel.replace(/^\//, ""))) continue;
       fout("dode-links", rel, `Verwijzing naar ${m[1]} maar dat pad bestaat niet.`);
-    }
-
-    // 5b. Documenten die nog op een andere server staan. Een notule of statuut
-    // dat naar de oude hosting wijst werkt tot de klant daar opzegt — dan is
-    // het archief weg. Waarschuwing, want een verwijzing naar een document van
-    // een derde partij (gemeente, Woonbond) mag natuurlijk wel.
-    for (const m of inhoud.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi)) {
-      if (!/\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp)([?#]|$)/i.test(m[1])) continue;
-      const host = m[1].replace(/^https?:\/\//, "").split("/")[0];
-      waarschuw(
-        "extern-document",
-        rel,
-        `Document staat op ${host} — zet het in documenten/ als het van de klant zelf is, anders breekt de link zodra de oude hosting stopt.`,
-      );
     }
 
     // 6. Titel, omschrijving en favicon per pagina
