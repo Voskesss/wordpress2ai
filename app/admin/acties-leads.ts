@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { leadActies, leads } from "@/db/schema";
+import { leadActies, leadPost, leads } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { LEAD_STATUSSEN } from "@/lib/leads";
 
@@ -23,6 +23,7 @@ function leadVelden(formData: FormData) {
     soort: formData.get("soort") === "partner" ? "partner" : "klant",
     status: LEAD_STATUSSEN.some((s) => s.waarde === status) ? status : "nieuw",
     notities: veld(formData, "notities"),
+    oordeel: veld(formData, "oordeel"),
   };
 }
 
@@ -87,6 +88,41 @@ export async function leadVerwijderen(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return;
   await db.delete(leadActies).where(eq(leadActies.leadId, id));
+  await db.delete(leadPost).where(eq(leadPost.leadId, id));
   await db.delete(leads).where(eq(leads.id, id));
+  revalidatePath("/admin/leads");
+}
+
+/** Klaarstaande opvolgstap overslaan: de tekst verdwijnt, de soort blijft staan
+ * zodat de cron precies deze stap niet opnieuw klaarzet. */
+export async function conceptOverslaan(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  await db
+    .update(leads)
+    .set({ conceptOnderwerp: null, conceptTekst: null, conceptKlaarOp: null, bijgewerkt: new Date() })
+    .where(eq(leads.id, id));
+  revalidatePath("/admin/leads");
+}
+
+/** De formulier-stap is met de hand gedaan: vastleggen in de tijdlijn en het concept opruimen. */
+export async function formulierGedaan(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  await db.insert(leadPost).values({
+    leadId: id,
+    richting: "uit",
+    bron: "contactformulier",
+    onderwerp: "Bericht via hun eigen contactformulier",
+    fragment: null,
+    messageId: `formulier-${id}-${Date.now()}`,
+    datum: new Date(),
+  });
+  await db
+    .update(leads)
+    .set({ conceptOnderwerp: null, conceptTekst: null, conceptKlaarOp: null, bijgewerkt: new Date() })
+    .where(eq(leads.id, id));
   revalidatePath("/admin/leads");
 }

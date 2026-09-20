@@ -41,13 +41,26 @@ export async function POST(req: Request) {
   try {
     const { id: resendId } = (await res.json()) as { id?: string };
     const { db } = await import("@/db");
-    const { verzondenMails } = await import("@/db/schema");
+    const { leads, verzondenMails } = await import("@/db/schema");
     await db.insert(verzondenMails).values({
       aan: aan.trim(),
       onderwerp: onderwerp.trim(),
       tekst: tekst.trim(),
       resendId: resendId ?? null,
     });
+    // Hoort de ontvanger bij een lead? Dan schuift die mee: een eventueel
+    // klaarstaand concept is hiermee verstuurd, en een nieuwe lead wacht nu op reactie.
+    const { sql } = await import("drizzle-orm");
+    await db
+      .update(leads)
+      .set({
+        conceptOnderwerp: null,
+        conceptTekst: null,
+        conceptKlaarOp: null,
+        status: sql`CASE WHEN ${leads.status} = 'nieuw' THEN 'wacht_op_reactie' ELSE ${leads.status} END`,
+        bijgewerkt: new Date(),
+      })
+      .where(sql`lower(${leads.email}) = ${aan.trim().toLowerCase()}`);
   } catch (e) {
     console.error("Verzonden mail niet kunnen vastleggen:", e);
   }

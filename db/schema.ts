@@ -464,9 +464,39 @@ export const leads = pgTable("leads", {
   volgendeActie: text("volgende_actie"),
   actieDatum: text("actie_datum"), // YYYY-MM-DD
   notities: text("notities"),
+  // AI-oordeel over de fit (kort, door de check of door Jos aangepast)
+  oordeel: text("oordeel"),
+  // Klaarstaande volgende stap: de cron zet hier een concept neer, Jos verstuurt.
+  // Soort: opvolger | laatste | formulier — zie lib/lead-opvolging.ts. Een gewiste
+  // tekst met behouden soort betekent: deze stap is bewust overgeslagen.
+  conceptSoort: text("concept_soort"),
+  conceptOnderwerp: text("concept_onderwerp"),
+  conceptTekst: text("concept_tekst"),
+  conceptKlaarOp: timestamp("concept_klaar_op"),
+  // Eenmalige terugblik in het Soverin-postvak (oude mails aan deze lead ophalen)
+  soverinDoorzocht: boolean("soverin_doorzocht").notNull().default(false),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });
+
+// Postlog per lead: mails die via het Soverin-postvak zijn gezien — reacties in
+// de inbox en mails die Jos zelf vanuit Soverin stuurde. Mails via de Mailer
+// staan in verzonden_mails; de tijdlijn combineert beide op e-mailadres.
+export const leadPost = pgTable(
+  "lead_post",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull(),
+    richting: text("richting").notNull(), // uit | in
+    bron: text("bron").notNull(), // soverin-inbox | soverin-verzonden
+    onderwerp: text("onderwerp"),
+    fragment: text("fragment"),
+    messageId: text("message_id"),
+    datum: timestamp("datum").notNull(),
+    aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.leadId, t.messageId)],
+);
 
 // Acties per lead: Jos voegt ze toe en vinkt ze af; afgevinkte blijven zichtbaar
 export const leadActies = pgTable("lead_acties", {
