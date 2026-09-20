@@ -126,6 +126,20 @@ type SpeechRecognitionachtig = {
   stop: () => void;
 };
 
+/** Tips onder de invoerbalk. Eigenaren durven vaak niet gewoon te práten
+ * tegen de chat ("mag ik zeggen dat ik het niet mooi vind?") en missen dat
+ * inspreken en aanwijzen bestaan. Eén regel tegelijk, in gewone taal. */
+const TIPS = [
+  "Praat gewoon zoals tegen een mens: “de foto op mijn contactpagina is somber, kun je een vrolijkere kiezen?”",
+  "Vind je iets niet mooi? Zeg dat rustig zo: “deze kop vind ik niet mooi, mag het strakker en korter?” Ik pas het net zo vaak aan tot het klopt.",
+  "Liever praten dan typen? Tik op het microfoontje en spreek je wijziging gewoon in — handig op je telefoon.",
+  "Weet je niet hoe iets heet? Klik op “Wijs aan” en tik het onderdeel op je site aan; dan weet ik precies wat je bedoelt.",
+  "Twijfel je over een tekst? Vraag “schrijf dit wat wervender”, “maak het korter” of “mag dit wat persoonlijker?”",
+  "Je kunt foto’s, een pdf, een video of een podcast meesturen met de 📎 — ik zet ze op de juiste plek.",
+  "Alles wat ik maak is eerst een concept: pas als jíj op Publiceer klikt, ziet een bezoeker het.",
+  "Bevalt een wijziging niet? Zeg “doe maar terug”, of gooi het concept weg — je site blijft dan precies zoals hij was.",
+];
+
 /** Direct zichtbare tooltip bij hover (de native title-tooltip is te traag). */
 /** Uitlegballonnetje bij een knop. Staat standaard linksboven de knop; bij een
  * knop rechts in beeld of bovenaan het scherm zou die buiten beeld vallen —
@@ -267,6 +281,18 @@ export default function Chat({
   }
   // Werkbalk rustig houden: extra gereedschap pas na een klik op ⋯
   const [meerOpties, setMeerOpties] = useState(false);
+  // Wisselende tip onder de invoerbalk (klikken = volgende, ✕ = nooit meer)
+  const [tipNr, setTipNr] = useState(0);
+  const [tipWeg, setTipWeg] = useState(true); // pas tonen na de check hieronder
+  useEffect(() => {
+    let weg = false;
+    try {
+      weg = localStorage.getItem("ws-tips-weg") === "1";
+    } catch {}
+    setTipWeg(weg);
+    // Niet elke keer met dezelfde tip beginnen, anders leest niemand de rest
+    setTipNr(Math.floor(Math.random() * TIPS.length));
+  }, []);
   // Aanwijs-flow: na de upload automatisch "vervang de aangewezen video" sturen
   const videoVervangRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -3336,8 +3362,27 @@ export default function Chat({
                 </button>
                 </Tip>
               </div>
+              {/* Inspreken staat altijd in beeld: wie het icoontje niet ziet,
+                  bedenkt ook niet dat hij zijn wijziging gewoon kán inspreken. */}
+              {spraakKan && (
+                <Tip tekst={luistert ? "Klik om te stoppen met luisteren" : "Spreek je wijziging in — vertel gewoon wat er anders moet"}>
+                  <button
+                    onClick={wisselSpraak}
+                    disabled={bezig}
+                    aria-label={luistert ? "Stop met inspreken" : "Spreek je wijziging in"}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
+                      luistert ? "bg-red-600 text-white animate-pulse" : "text-stone-500 hover:bg-stone-100"
+                    }`}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+                      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </Tip>
+              )}
               {!meerOpties && (
-                <Tip tekst="Meer gereedschap: inspreken, kleur kiezen, fotobank en SEO">
+                <Tip tekst="Meer gereedschap: kleur kiezen, fotobank en vindbaarheid">
                 <button
                   onClick={() => setMeerOpties(true)}
                   aria-label="Meer opties"
@@ -3350,23 +3395,6 @@ export default function Chat({
                 </Tip>
               )}
               {meerOpties && (<>
-              {spraakKan && (
-                <Tip tekst={luistert ? "Klik om te stoppen met luisteren" : "Spreek je wijziging in"}>
-                <button
-                  onClick={wisselSpraak}
-                  disabled={bezig}
-                  aria-label={luistert ? "Stop met inspreken" : "Spreek je wijziging in"}
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
-                    luistert ? "bg-red-600 text-white animate-pulse" : "text-stone-500 hover:bg-stone-100"
-                  }`}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
-                    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </button>
-                </Tip>
-              )}
               <Tip tekst="Kies een kleur — handig voor 'maak de knoppen deze kleur'">
               <button
                 onClick={() => kleurInputRef.current?.click()}
@@ -3495,6 +3523,34 @@ export default function Chat({
               </Tip>
             </div>
           </div>
+
+          {/* Wisselende tip: mensen weten vaak niet dat ze gewoon mogen práten
+              tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
+              keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
+          {!tipWeg && !bezig && (
+            <div className="mt-2 flex items-center justify-center gap-1.5 px-2">
+              <button
+                onClick={() => setTipNr((n) => (n + 1) % TIPS.length)}
+                title="Volgende tip"
+                className="max-w-[46rem] text-left text-xs leading-relaxed text-stone-500 hover:text-stone-700 cursor-pointer"
+              >
+                <span aria-hidden>💡</span> {TIPS[tipNr % TIPS.length]}
+              </button>
+              <button
+                onClick={() => {
+                  setTipWeg(true);
+                  try {
+                    localStorage.setItem("ws-tips-weg", "1");
+                  } catch {}
+                }}
+                aria-label="Tips niet meer tonen"
+                title="Tips niet meer tonen"
+                className="shrink-0 text-xs text-stone-300 hover:text-stone-600 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Suggesties onder de invoerbalk */}
           {suggesties && suggesties.length > 0 && !bezig && (

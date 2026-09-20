@@ -36,7 +36,8 @@
     "audiobank.mts",
     "banken-opruimen.mts",
     "videobank.mts",
-    "video-geluid.mts"
+    "video-geluid.mts",
+    "chat-tips.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",
