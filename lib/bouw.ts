@@ -1,6 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import sharp from "sharp";
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { db } from "@/db";
@@ -10,8 +10,14 @@ import { laadWerkmap } from "@/lib/werkmap";
 import { HUISREGELS } from "@/lib/huisregels";
 import { ruimWerkmapOp } from "@/lib/werkmap";
 import { maakSeoManifest, parseWxr } from "@/lib/wxr";
+import { kiesGalerijPaginas, maakGalerijFragment } from "@/lib/galerij";
 
 const MAX_MEDIA = 30;
+// Bovengrens voor het aantal foto's per migratie: een fotosite met honderden
+// albums moet gewoon mee kunnen; dit is een noodrem, geen budget.
+const MAX_FOTOS_MIGRATIE = 2000;
+// Om de zoveel nieuwe foto's een checkpoint, zodat een afgebroken run verder gaat
+const CHECKPOINT_PER_FOTOS = 200;
 
 // Opgeteld AI-verbruik van de lopende bouw (hoofdbouw + verbeterrondes);
 // wordt per job gereset in voerBouwUit en daarna per site geregistreerd.
@@ -68,8 +74,14 @@ export async function haalLiveOntwerp(
   let paginasOpgehaald = 0;
   const cssUrls = new Set<string>();
 
+  // Screenshots en bewaarde HTML: alleen de eerste pagina's (dat is waar de AI
+  // het ontwerp uit leest). Foto's en embeds oogsten we van ÁLLE pagina's —
+  // anders vallen bij een fotosite hele albums buiten de boot.
   const tePakken = paden.slice(0, 12);
-  for (const pad of tePakken) {
+  const teOogsten = paden.slice(0, 400);
+  if (teOogsten.length > tePakken.length)
+    await stuur(`Beelden en embeds van alle ${teOogsten.length} pagina's registreren...`);
+  for (const [index, pad] of teOogsten.entries()) {
     try {
       const res = await fetch(new URL(pad, bronUrl).href, {
         signal: AbortSignal.timeout(15000),
@@ -78,7 +90,7 @@ export async function haalLiveOntwerp(
       if (!res.ok) continue;
       const html = await res.text();
       const naam = (pad.replace(/\//g, "-").replace(/^-|-$/g, "") || "home") + ".html";
-      await writeFile(path.join(doelDir, naam), html);
+      if (index < tePakken.length) await writeFile(path.join(doelDir, naam), html);
       paginasOpgehaald++;
       for (const m of html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/g)) {
         try {
@@ -595,7 +607,9 @@ export async function voerBouwUit(
   // die groeperen we en we downloaden alleen het beste formaat per foto —
   // anders gaat het budget op aan duplicaten en vallen echte foto's buiten de boot.
   const basisVan = (u: string) => u.replace(/-\d+x\d+(?=\.\w+(?:[?#]|$))/, "");
-  const alleUrls = hervatten || mediaHervat
+  // Bij een eerder afbeeldingen-checkpoint (mediaHervat) lopen we de lijst
+  // gewoon opnieuw langs: wat er al staat wordt overgeslagen, de rest komt alsnog.
+  const alleUrls = hervatten
     ? []
     : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])];
   const groepen = new Map<string, { beste: string; besteOpp: number; varianten: string[] }>();
@@ -611,39 +625,55 @@ export async function voerBouwUit(
     }
     groepen.set(b, g);
   }
-  const teDownloaden = [...groepen.values()].slice(0, 250);
+  const teDownloaden = [...groepen.values()].slice(0, MAX_FOTOS_MIGRATIE);
+  if (groepen.size > MAX_FOTOS_MIGRATIE)
+    await stuurStatus(
+      `Let op: ${groepen.size} unieke afbeeldingen gevonden, alleen de eerste ${MAX_FOTOS_MIGRATIE} worden opgehaald.`
+    );
   const mediaMap: Record<string, string> = {};
   let gedownload = 0;
+  let alAanwezig = 0;
+  let sindsCheckpoint = 0;
   await mkdir(path.join(siteDir, "afbeeldingen"), { recursive: true });
   stuur({
     type: "status",
     tekst: `Afbeeldingen ophalen (${teDownloaden.length} uniek van ${alleUrls.length})...`,
   });
+  const doelVoor = (url: string) => {
+    const basis = path
+      .basename(new URL(basisVan(url)).pathname)
+      .replace(/\.[^.]+$/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .slice(0, 60);
+    return `afbeeldingen/${basis}.webp`;
+  };
   for (let i = 0; i < teDownloaden.length; i += 5) {
     await Promise.all(
       teDownloaden.slice(i, i + 5).map(async (groep) => {
         try {
           const url = groep.beste;
-          const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-          if (!res.ok) return;
-          const buf = Buffer.from(await res.arrayBuffer());
-          if (buf.length > 10 * 1024 * 1024) return;
-          const basis = path
-            .basename(new URL(basisVan(url)).pathname)
-            .replace(/\.[^.]+$/, "")
-            .toLowerCase()
-            .replace(/[^a-z0-9-]+/g, "-")
-            .slice(0, 60);
-          const doel = `afbeeldingen/${basis}.webp`;
-          const data = await sharp(buf)
-            .rotate()
-            .resize({ width: 2000, withoutEnlargement: true })
-            .webp({ quality: 82 })
-            .toBuffer();
-          await writeFile(path.join(siteDir, doel), data);
+          const doel = doelVoor(url);
+          // Staat hij er al (eerder checkpoint of dezelfde naam)? Dan alleen koppelen.
+          const bestaat = await access(path.join(siteDir, doel)).then(() => true).catch(() => false);
+          if (!bestaat) {
+            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+            if (!res.ok) return;
+            const buf = Buffer.from(await res.arrayBuffer());
+            if (buf.length > 10 * 1024 * 1024) return;
+            const data = await sharp(buf)
+              .rotate()
+              .resize({ width: 2000, withoutEnlargement: true })
+              .webp({ quality: 82 })
+              .toBuffer();
+            await writeFile(path.join(siteDir, doel), data);
+            gedownload++;
+            sindsCheckpoint++;
+          } else {
+            alAanwezig++;
+          }
           // Alle formaat-varianten van deze foto wijzen naar hetzelfde bestand
           for (const variant of groep.varianten) mediaMap[variant] = `/${doel}`;
-          gedownload++;
         } catch {
           // overslaan
         }
@@ -651,20 +681,54 @@ export async function voerBouwUit(
     );
     stuur({
       type: "status",
-      tekst: `Afbeeldingen ophalen (${Math.min(i + 5, teDownloaden.length)}/${teDownloaden.length})...`,
+      tekst: `Afbeeldingen ophalen (${Math.min(i + 5, teDownloaden.length)}/${teDownloaden.length}${alAanwezig ? `, ${alAanwezig} al aanwezig` : ""})...`,
     });
+    // Tussentijds checkpoint bij grote fotosites: een afgebroken run gaat verder
+    if (sindsCheckpoint >= CHECKPOINT_PER_FOTOS) {
+      sindsCheckpoint = 0;
+      await stuurStatus(`Checkpoint: ${gedownload} afbeeldingen veiligstellen...`);
+      await slaTussenstandOp(repoNaam, siteNaam, siteDir, `Checkpoint: ${gedownload} afbeeldingen`).catch(
+        (e) => console.error("Tussentijds checkpoint afbeeldingen mislukt:", e)
+      );
+    }
   }
   await writeFile(
     path.join(werkmap, "media-map.json"),
     JSON.stringify(mediaMap, null, 2)
   );
   await stuurStatus(
-    `${gedownload} unieke afbeeldingen gedownload en gekoppeld aan pagina's`
+    `${gedownload} unieke afbeeldingen gedownload${alAanwezig ? ` (${alAanwezig} stonden er al)` : ""} en gekoppeld aan pagina's`
   );
 
-  // Checkpoint 1: afbeeldingen veiligstellen — bij een latere fout hoeven ze
-  // niet opnieuw gedownload te worden
-  if (!hervatten && !mediaHervat && gedownload > 0) {
+  // Fotogalerijen mechanisch bouwen: pagina's met veel foto's krijgen hun grid
+  // kant-en-klaar als centraal onderdeel; de AI plaatst alleen de marker.
+  let galerijBlok = "";
+  if (!hervatten) {
+    try {
+      const perPagina = JSON.parse(
+        await readFile(path.join(werkmap, "oud-ontwerp", "afbeeldingen-op-paginas.json"), "utf8").catch(() => "{}")
+      ) as Record<string, { src: string; alt: string }[]>;
+      const titels = Object.fromEntries(paginas.map((p) => [p.pad, p.titel]));
+      const galerijen = kiesGalerijPaginas(perPagina, mediaMap, titels);
+      if (galerijen.length > 0) {
+        await mkdir(path.join(siteDir, "delen"), { recursive: true });
+        for (const g of galerijen) {
+          await writeFile(path.join(siteDir, "delen", `galerij-${g.slug}.html`), maakGalerijFragment(g.fotos));
+        }
+        const totaal = galerijen.reduce((n, g) => n + g.fotos.length, 0);
+        galerijBlok = `\n- FOTOGALERIJEN STAAN AL KLAAR: voor de pagina's hieronder is het fotogrid al gebouwd als centraal onderdeel (lazy loading en klik-vergroting zitten erin). Plaats op die pagina de marker op de plek waar de galerij/het album stond en bouw alléén kop, intro-tekst, menu en de rest van de pagina eromheen. Zet die foto's NIET nogmaals los op de pagina (dat telt als dubbel) en bouw het grid niet opnieuw:\n${galerijen
+          .map((g) => `  - ${g.pad} → <!--invoeg:galerij-${g.slug}--> (site/delen/galerij-${g.slug}.html, ${g.fotos.length} foto's)`)
+          .join("\n")}`;
+        await stuurStatus(`${galerijen.length} fotogalerijen kant-en-klaar gebouwd (${totaal} foto's)`);
+      }
+    } catch (e) {
+      console.error("Galerijen bouwen mislukt:", e);
+    }
+  }
+
+  // Checkpoint 1: afbeeldingen (en galerijen) veiligstellen — bij een latere
+  // fout hoeven ze niet opnieuw gedownload te worden
+  if (!hervatten && (gedownload > 0 || galerijBlok)) {
     await stuurStatus("Checkpoint: afbeeldingen veiligstellen...");
     await slaTussenstandOp(repoNaam, siteNaam, siteDir, "Checkpoint: afbeeldingen").catch(
       (e) => console.error("Checkpoint afbeeldingen mislukt:", e)
@@ -701,7 +765,7 @@ Instructies:
   - Logo-carrousel (partners, keurmerken, klanten): een statische rij of grid met ALLE logo's naast elkaar (grijs/klein zoals origineel), eventueel een subtiele CSS-marquee; nooit logo's weglaten.
   - Testimonial-/quoteslider: alle quotes statisch onder elkaar of in een grid; tekst mag nooit verloren gaan.
   - Fotogalerij-slider: een fotogrid met alle beelden.
-- AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.
+- AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.${galerijBlok}
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.
 - Berichten (type post): maak ook een blogoverzichtspagina op site/blog/index.html met links, als er berichten zijn.
