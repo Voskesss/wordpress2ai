@@ -29,6 +29,8 @@ export type SeoManifest = unknown;
 
 type ManifestRegel = { pad: string; title?: string };
 
+import { vergelijkOnderdelen } from "./verlies";
+
 export function normaliseerManifest(ruw: SeoManifest): ManifestRegel[] {
   if (Array.isArray(ruw))
     return ruw
@@ -83,7 +85,7 @@ function eersteRegelNummer(inhoud: string, index: number): number {
 
 export async function controleerSiteMap(
   map: string,
-  opties: { seoManifest?: SeoManifest } = {},
+  opties: { seoManifest?: SeoManifest; bronMap?: string } = {},
 ): Promise<Bevinding[]> {
   const uit: Bevinding[] = [];
   const fout = (regel: string, waar: string, detail: string) =>
@@ -358,6 +360,28 @@ export async function controleerSiteMap(
     }
   } catch {
     /* geen afbeeldingen-map */
+  }
+
+  // 11. Wat had de oude site dat deze niet meer heeft? Alleen mogelijk als we
+  // de bron erbij krijgen. Dit vangt het stilste soort fout: er ontstaat geen
+  // fout, er is gewoon iets minder. Zo verdween de zoekfunctie van
+  // evc-professionals zonder dat iemand het merkte. Zie lib/verlies.ts.
+  if (opties.bronMap) {
+    const oudeHtml: string[] = [];
+    for (const bestand of await htmlBestanden(opties.bronMap)) {
+      oudeHtml.push(await readFile(bestand, "utf8").catch(() => ""));
+    }
+    const nieuweHtml: string[] = [];
+    for (const bestand of await htmlBestanden(map)) {
+      nieuweHtml.push(await readFile(bestand, "utf8").catch(() => ""));
+    }
+    for (const v of vergelijkOnderdelen(oudeHtml, nieuweHtml)) {
+      waarschuw(
+        "verdwenen",
+        "hele site",
+        `De oude site had een ${v.naam} (${v.oudAantal} vindplaatsen), deze niet: ${v.advies}.`,
+      );
+    }
   }
 
   return uit;

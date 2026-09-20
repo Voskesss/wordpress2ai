@@ -42,7 +42,17 @@ try {
   console.log("Geen seo-manifest.json in de bron-map — oud-adres-controle overgeslagen.");
 }
 
-const bevindingen: Bevinding[] = await controleerSiteMap(map, { seoManifest: manifest });
+// De bron-map (de opgehaalde oude site) maakt de verdwenen-controle mogelijk:
+// onderdelen die er wél waren en nu nergens meer staan.
+const bronMapPad = `${map}-bron`;
+const bronMap = (await stat(bronMapPad).catch(() => null))?.isDirectory() ? bronMapPad : undefined;
+console.log(
+  bronMap
+    ? `Bron-map gevonden: ${bronMap} (controle op verdwenen onderdelen aan)`
+    : "Geen bron-map: controle op verdwenen onderdelen overgeslagen.",
+);
+
+const bevindingen: Bevinding[] = await controleerSiteMap(map, { seoManifest: manifest, bronMap });
 
 // ---- Mobiele controle in een echte browser (markers uitvouwen, lokaal serveren)
 if (!zonderMobiel) {

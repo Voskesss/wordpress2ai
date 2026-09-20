@@ -20,6 +20,24 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.2.0 (20 september 2026)
+
+**De opleveringspoort merkt nu wanneer er iets is kwijtgeraakt.** Tot nu toe
+controleerde hij of de nieuwe site in zichzelf klopte: werkende links, een
+favicon, niet te zware foto's, goed op een telefoon. Maar bijna niets
+vergeleek hem met de site zoals die was. Daardoor kon een onderdeel stil
+wegvallen zonder dat er ergens een foutmelding ontstond. Er was gewoon iets
+minder.
+
+Zo verloor een site zijn zoekfunctie bij het overzetten. De oude site had er
+tientallen verwijzingen naar, de nieuwe geen enkele, en dat viel pas weken
+later op.
+
+De poort legt nu de oude site naast de nieuwe en waarschuwt bij een
+zoekfunctie, taalknop, nieuwsbriefaanmelding, agenda, webshop, ledeninlog of
+reacties die wel bestonden en nu nergens meer staan. Het is een waarschuwing
+en geen blokkade: soms wil een klant iets juist niet meer, en dat mag.
+
 ## 1.1.0 (20 september 2026)
 
 **Zoeken op je eigen website.** Had je oude site een vergrootglas in het menu,
