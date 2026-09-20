@@ -7,13 +7,10 @@ import { useEffect, useState } from "react";
  * concept — verwijderen kan alleen hier, als bewuste actie. */
 export default function AudioBank({
   siteId,
-  afspeelBasis,
   onGebruik,
   onSluit,
 }: {
   siteId: number;
-  /** Domein van de werkversie of live site, voor het beluisteren */
-  afspeelBasis?: string | null;
   /** Zet een plaats-opdracht klaar in de invoerbalk */
   onGebruik: (pad: string) => void;
   onSluit: () => void;
@@ -90,9 +87,12 @@ export default function AudioBank({
           {audio?.map((naam) => (
             <div key={naam} className="rounded-2xl border border-stone-200 p-3">
               <p className="mb-2 truncate text-sm font-medium text-stone-800" title={naam}>{naam}</p>
-              {afspeelBasis && (
-                <audio controls preload="none" className="mb-2 w-full" src={`https://${afspeelBasis}/audio/${naam}`} />
-              )}
+              <audio
+                controls
+                preload="none"
+                className="mb-2 w-full"
+                src={`/api/audiobank?siteId=${siteId}&bestand=${encodeURIComponent(naam)}`}
+              />
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {

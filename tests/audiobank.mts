@@ -54,3 +54,16 @@ const weergave = await readFile("app/site-weergave/[siteId]/[[...pad]]/route.ts"
 assert.ok(/pad\.startsWith\("audio\/"\)/.test(weergave), "voorbeeld-route stuurt /audio/ niet door naar de worker");
 
 console.log("audiobank: naamschoonmaak, workerroute, media-voorvoegsel en route-bedrading kloppen");
+
+// 7. Afspelen gaat via onze eigen route, niet via de site-worker: die kent
+//    het /audio/-adres pas nadat de site opnieuw is uitgerold, waardoor een
+//    net geüploade aflevering in de bank stil bleef (20-09).
+const bankRoute = await readFile("app/api/audiobank/route.ts", "utf8");
+const bankUi = await readFile("app/portal/AudioBank.tsx", "utf8");
+assert.ok(/streamObject/.test(bankRoute), "de bank streamt het bestand niet zelf uit de media-opslag");
+assert.ok(/content-range/.test(bankRoute), "spoelen (Range) wordt niet doorgegeven");
+assert.ok(/src=\{`\/api\/audiobank\?siteId=/.test(bankUi), "de speler haalt het bestand nog van de site-worker");
+assert.ok(!/afspeelBasis/.test(bankUi), "de oude worker-afhankelijkheid staat er nog");
+const r2 = await readFile("lib/r2.ts", "utf8");
+assert.ok(/export async function streamObject/.test(r2), "streamObject ontbreekt");
+assert.ok(!/arrayBuffer\(\)/.test(r2.slice(r2.indexOf("streamObject"), r2.indexOf("streamObject") + 700)), "grote bestanden worden nog in het geheugen geladen");

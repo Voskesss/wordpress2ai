@@ -110,6 +110,23 @@ export async function leesObject(key: string): Promise<Buffer | null> {
   return Buffer.from(await res.arrayBuffer());
 }
 
+
+/** Een object doorsluizen zoals het binnenkomt (stream, geen buffer), met
+ * ondersteuning voor Range-verzoeken. Voor grote bestanden zoals
+ * podcastafleveringen: zo hoeft er nooit 100 MB in het geheugen van een
+ * functie, en kan een speler gewoon vooruitspoelen. */
+export async function streamObject(
+  key: string,
+  range?: string | null,
+): Promise<Response | null> {
+  const koppen: Record<string, string> = { ...auth() };
+  if (range) koppen.range = range;
+  const res = await fetch(`${basis()}/objects/${sleutelPad(key)}`, { headers: koppen });
+  if (res.status === 404) return null;
+  if (!res.ok && res.status !== 206) return null;
+  return res;
+}
+
 export async function verwijderObject(key: string): Promise<void> {
   const res = await metHerkansing(
     () => fetch(`${basis()}/objects/${sleutelPad(key)}`, { method: "DELETE", headers: auth() }),

@@ -21,9 +21,35 @@ async function magErbij(siteId: number, userId: string) {
 export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  const siteId = Number(new URL(req.url).searchParams.get("siteId"));
+  const url = new URL(req.url);
+  const siteId = Number(url.searchParams.get("siteId"));
   const site = await magErbij(siteId, userId);
   if (!site?.siteSlug) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+
+  // Eén bestand afspelen? Rechtstreeks uit de media-opslag doorsluizen.
+  // Niet via de site-worker: die kent het /audio/-adres pas nadat de site
+  // opnieuw is uitgerold, waardoor een net geüploade aflevering in de bank
+  // stil bleef (20-09). Zo speelt hij altijd, ook vóór het publiceren.
+  const bestand = url.searchParams.get("bestand");
+  if (bestand) {
+    const { AUDIO_EXTENSIES, schoneAudioNaam } = await import("@/lib/media");
+    if (!AUDIO_EXTENSIES.test(bestand)) return new Response("Niet gevonden", { status: 404 });
+    const { streamObject } = await import("@/lib/r2");
+    const res = await streamObject(
+      `media/${site.siteSlug}/audio/${schoneAudioNaam(bestand)}`,
+      req.headers.get("range"),
+    );
+    if (!res) return new Response("Niet gevonden", { status: 404 });
+    const koppen = new Headers();
+    for (const naam of ["content-type", "content-length", "content-range", "accept-ranges", "etag"]) {
+      const w = res.headers.get(naam);
+      if (w) koppen.set(naam, w);
+    }
+    if (!koppen.has("accept-ranges")) koppen.set("accept-ranges", "bytes");
+    koppen.set("cache-control", "private, max-age=300");
+    return new Response(res.body, { status: res.status, headers: koppen });
+  }
+
   const { lijstAudio } = await import("@/lib/media");
   return NextResponse.json({ audio: await lijstAudio(site.siteSlug), limiet: site.audioLimiet });
 }

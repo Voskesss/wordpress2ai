@@ -2684,7 +2684,6 @@ export default function Chat({
           {audioBankOpen && (
             <AudioBank
               siteId={siteId}
-              afspeelBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               onGebruik={(pad) => {
                 setInvoer(`Zet de audio ${pad} op `);
                 setChatOpen(true);
