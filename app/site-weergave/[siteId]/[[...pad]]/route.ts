@@ -39,6 +39,15 @@ export async function GET(
   let pad = (padDelen ?? []).join("/") || "index.html";
   if (pad.endsWith("/")) pad += "index.html";
 
+  // Audiobank: /audio/* staat niet in de repo maar in de media-map in R2.
+  // Doorverwijzen naar de werkversie-worker, die er mét range-ondersteuning
+  // (spoelen in de speler) en de juiste mime uit serveert.
+  if (pad.startsWith("audio/") && site.siteSlug)
+    return Response.redirect(
+      `https://wv-${site.siteSlug}.wordswap.workers.dev/${pad.split("/").map(encodeURIComponent).join("/")}`,
+      302,
+    );
+
   const gevonden = await vindSiteBestand(
     site.githubRepo,
     pad,

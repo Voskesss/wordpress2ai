@@ -48,4 +48,9 @@ assert.ok(
 const bank = await readFile("app/api/audiobank/route.ts", "utf8");
 assert.ok(/insert\(messages\)/.test(bank) && bank.includes("Audio meegestuurd"), "upload-berichten worden niet in de gespreksgeschiedenis bewaard");
 
+// 6. Het voorbeeldvenster leest uit de repo — /audio/ moet daar worden
+//    doorgestuurd naar de worker, anders is de speler stil in het voorbeeld.
+const weergave = await readFile("app/site-weergave/[siteId]/[[...pad]]/route.ts", "utf8");
+assert.ok(/pad\.startsWith\("audio\/"\)/.test(weergave), "voorbeeld-route stuurt /audio/ niet door naar de worker");
+
 console.log("audiobank: naamschoonmaak, workerroute, media-voorvoegsel en route-bedrading kloppen");
