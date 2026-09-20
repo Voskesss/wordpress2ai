@@ -42,7 +42,8 @@
     "budgetbalk.mts",
     "banken-direct.mts",
     "fair-use.mts",
-    "opruimen-takken.mts"
+    "opruimen-takken.mts",
+    "documentbank.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",
