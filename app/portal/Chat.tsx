@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import Fotobank from "./Fotobank";
+import AudioBank from "./AudioBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import { readChatResponse } from "@/lib/chat-response";
@@ -247,7 +248,7 @@ export default function Chat({
   // ook een video of een pdf mee kan
   const [bijlageMenu, setBijlageMenu] = useState(false);
   /** Opent de bestandskiezer, met alleen het gekozen soort bestand erin. */
-  function kiesBijlage(soort: "foto" | "video" | "pdf") {
+  function kiesBijlage(soort: "foto" | "video" | "pdf" | "audio") {
     setBijlageMenu(false);
     const invoerveld = fileInputRef.current;
     if (!invoerveld) return;
@@ -256,8 +257,10 @@ export default function Chat({
         ? "image/*"
         : soort === "video"
           ? "video/mp4,video/quicktime,video/webm"
-          : "application/pdf,.pdf";
-    invoerveld.multiple = soort !== "video";
+          : soort === "audio"
+            ? "audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav"
+            : "application/pdf,.pdf";
+    invoerveld.multiple = soort === "foto" || soort === "pdf";
     invoerveld.click();
   }
   // Werkbalk rustig houden: extra gereedschap pas na een klik op ⋯
@@ -298,6 +301,9 @@ export default function Chat({
   const [laderTekst, setLaderTekst] = useState<string | null>(null);
   const [seoOpen, setSeoOpen] = useState(false);
   const [fotobankOpen, setFotobankOpen] = useState(false);
+  // Audiobank (podcasts e.d. in de media-map in R2)
+  const [audioBankOpen, setAudioBankOpen] = useState(false);
+  const [audioBezig, setAudioBezig] = useState(false);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
   // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
   // server precies de aangewezen plek raken als de foto vaker op de pagina staat
@@ -885,6 +891,57 @@ export default function Chat({
       { rol: "assistent", tekst: "De videoverwerking duurt ongebruikelijk lang. Probeer het later nog eens — je tegoed is niet verbruikt als hij niet geplaatst is." },
     ]);
     setChatOpen(true);
+  }
+
+  /** Audio (podcast e.d.): rechtstreeks naar de Blob-opslag en dan naar de
+   * media-map van de site in R2 — nooit door de repo (te groot voor git).
+   * Daarna vertelt de klant gewoon in de chat waar de speler moet komen. */
+  async function audioUploaden(bestand: File) {
+    if (audioBezig) return;
+    if (isDemo) {
+      setChatOpen(true);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: "In deze demo kun je geen audio meesturen. Bij je eigen website stuur je gewoon een mp3 mee — bijvoorbeeld een podcastaflevering — en zet ik er een nette speler voor op je site." },
+      ]);
+      return;
+    }
+    setAudioBezig(true);
+    setChatOpen(true);
+    setBerichten((b) => [...b, { rol: "klant", tekst: `🎧 Audio meegestuurd: ${bestand.name}` }]);
+    try {
+      setStatusTekst("Audio uploaden... 0%");
+      const { upload } = await import("@vercel/blob/client");
+      const blob = await upload(bestand.name, bestand, {
+        access: "public",
+        handleUploadUrl: "/api/audio-upload",
+        clientPayload: JSON.stringify({ siteId }),
+        onUploadProgress: (p) => setStatusTekst(`Audio uploaden... ${Math.round(p.percentage)}%`),
+      });
+      setStatusTekst("Ik zet hem in je audiobank...");
+      const r = await fetch("/api/audiobank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
+      }).then((x) => x.json() as Promise<{ pad?: string; error?: string }>);
+      if (!r.pad) throw new Error(r.error ?? "Opslaan in de audiobank mislukte");
+      setStatusTekst(null);
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: `Je audio staat klaar in de audiobank (${r.pad}). Typ waar hij moet komen — bijvoorbeeld "zet deze aflevering bovenaan de blogpagina" — dan zet ik er een nette speler neer. Je vindt hem altijd terug via 📎 → Audiobank.`,
+        },
+      ]);
+    } catch (e) {
+      setStatusTekst(null);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: `Het uploaden van je audio lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.` },
+      ]);
+    } finally {
+      setAudioBezig(false);
+    }
   }
 
   async function videoUploaden(bestand: File) {
@@ -2494,6 +2551,18 @@ export default function Chat({
               }}
             />
           )}
+          {audioBankOpen && (
+            <AudioBank
+              siteId={siteId}
+              afspeelBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
+              onGebruik={(pad) => {
+                setInvoer(`Zet de audio ${pad} op `);
+                setChatOpen(true);
+                invoerRef.current?.focus();
+              }}
+              onSluit={() => setAudioBankOpen(false)}
+            />
+          )}
           {seoOpen && (
             <Vindbaarheid
               siteId={siteId}
@@ -3033,6 +3102,11 @@ export default function Chat({
                 className="hidden"
                 onChange={(e) => {
                   const alles = Array.from(e.target.files ?? []);
+                  // Audio (podcast e.d.): rechtstreeks naar de audiobank in R2
+                  const isAudio = (f: File) =>
+                    f.type.startsWith("audio/") || /\.(mp3|m4a|aac|ogg|wav)$/i.test(f.name);
+                  const audioBestand = alles.find(isAudio);
+                  if (audioBestand) audioUploaden(audioBestand);
                   // Video: apart uploaden en comprimeren (via Rendi), daarna meesturen
                   const video = alles.find((f) => f.type.startsWith("video/"));
                   if (video) videoUploaden(video);
@@ -3066,7 +3140,7 @@ export default function Chat({
                       setDocumenten((vorige) => [...vorige, ...pdfs].slice(0, 4));
                     }
                   }
-                  const bestanden = alles.filter((f) => !f.type.startsWith("video/") && !isPdf(f));
+                  const bestanden = alles.filter((f) => !f.type.startsWith("video/") && !isPdf(f) && !isAudio(f));
                   // Alleen een pdf gekozen tijdens "vervang deze foto"? Dan is
                   // die flow hier klaar — anders zou de volgende foto er stil in vallen.
                   if (bestanden.length === 0 && pdfs.length > 0) fotoVervangRef.current = false;
@@ -3125,6 +3199,7 @@ export default function Chat({
                         [
                           { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
                           { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt automatisch verkleind" },
+                          { soort: "audio", icoon: "🎧", titel: "Audio / podcast", uitleg: "mp3 of m4a, tot 150 MB" },
                           { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
                         ] as const
                       ).map((k) => (
@@ -3140,6 +3215,21 @@ export default function Chat({
                           </span>
                         </button>
                       ))}
+                      {!isDemo && (
+                        <button
+                          onClick={() => {
+                            setBijlageMenu(false);
+                            setAudioBankOpen(true);
+                          }}
+                          className="flex w-full items-start gap-3 border-t border-stone-100 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                        >
+                          <span aria-hidden className="mt-0.5 text-base">📻</span>
+                          <span>
+                            <span className="block text-sm font-semibold text-stone-800">Audiobank</span>
+                            <span className="block text-xs text-stone-500">eerder geüploade audio beluisteren, plaatsen of verwijderen</span>
+                          </span>
+                        </button>
+                      )}
                     </div>
                   </>
                 )}

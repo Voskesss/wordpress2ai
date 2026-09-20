@@ -54,6 +54,8 @@ export const sites = pgTable("sites", {
   // Video-uploads via de chat: hoeveel al gebruikt en hoeveel er in het pakket zitten
   videoUploads: integer("video_uploads").notNull().default(0),
   videoLimiet: integer("video_limiet").notNull().default(10),
+  // Audiobank (podcasts e.d. in de media-map in R2): maximum aantal bestanden
+  audioLimiet: integer("audio_limiet").notNull().default(10),
   // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de admin.
   aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(5),
   // Eenmalige extra ruimte bovenop het maandbudget, alleen voor de maand

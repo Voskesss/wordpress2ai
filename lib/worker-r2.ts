@@ -16,7 +16,7 @@
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "4";
+export const R2_SCRIPT_VERSIE = "5";
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -101,7 +101,13 @@ export const R2_WORKER_SCRIPT = [
   "    const rel = pad.slice(1);",
   '    const laatste = pad.split("/").pop();',
   "    let key;",
-  '    if (pad.endsWith("/")) key = prefix + rel + "index.html";',
+  "    // Audiobank: /audio/* komt uit de gedeelde media-map van de site",
+  "    // (media/<slug>/audio/...), niet uit de deploy-sync. Live en werkversie",
+  "    // (wv-) lezen dezelfde map, dus een aflevering staat meteen in het",
+  "    // voorbeeld. Het pad audio/ is daarmee gereserveerd voor de audiobank.",
+  '    if (pad.startsWith("/audio/") && laatste.includes("."))',
+  '      key = "media/" + env.PREFIX.replace(/^wv-/, "") + "/" + rel;',
+  '    else if (pad.endsWith("/")) key = prefix + rel + "index.html";',
   '    else if (laatste.includes(".")) key = prefix + rel;',
   "    else {",
   '      if (await env.SITES.head(prefix + rel + "/index.html")) {',

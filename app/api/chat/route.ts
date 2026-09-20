@@ -784,6 +784,20 @@ export async function POST(req: Request) {
             };
           }
 
+          // Audiobank: alleen als het bericht over audio gaat de lijst ophalen
+          // (situationeel — de vaste prompt blijft licht). De bestanden staan
+          // in de media-map in R2, niet in de werkmap.
+          let audioBank: string[] | null = null;
+          if (
+            !site.isDemo &&
+            site.siteSlug &&
+            !snelpad &&
+            /audio|podcast|aflever|spreek|opname|\.(mp3|m4a|aac|ogg|wav)\b/i.test(bericht)
+          ) {
+            const { lijstAudio } = await import("@/lib/media");
+            audioBank = await lijstAudio(site.siteSlug).catch(() => null);
+          }
+
           // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
           let fotobankKwaliteit: string | null = null;
           if (fotobankPad) {
@@ -950,6 +964,11 @@ export async function POST(req: Request) {
             videoPaden
               ? `De eigenaar heeft een VIDEO meegestuurd; die is al gecomprimeerd voor het web en staat op ${videoPaden.video}${videoPaden.poster ? ` met poster-afbeelding ${videoPaden.poster}` : ""}. Plaats hem waar het bericht om vraagt. Als achtergrond/hero-video: <video autoplay muted loop playsinline preload="metadata"${videoPaden.poster ? ` poster="/${videoPaden.poster}"` : ""}> met <source src="/${videoPaden.video}" type="video/mp4">, netjes gepositioneerd achter de tekst, en respecteer prefers-reduced-motion (dan alleen de poster). Als gewone video op een pagina: <video controls preload="metadata" poster=...>. Verwijder een eventuele oude hero-video-verwijzing die hij vervangt, maar laat het oude bestand staan.`
               : null,
+            audioBank && audioBank.length > 0
+              ? `AUDIOBANK van deze site (podcasts/audio): ${audioBank.map((n) => `/audio/${n}`).join(", ")}. Deze bestanden staan NIET in de werkmap — ze worden apart geserveerd op precies deze /audio/-adressen; kopieer of verplaats ze nooit en open ze niet met lees_bestand. Vraagt de eigenaar om audio te plaatsen, zet dan een nette speler neer in de stijl van de site: <audio controls preload="metadata" src="/audio/bestandsnaam"></audio>, met een kop of korte tekst erbij (bijv. de titel van de aflevering). Verwijderen van de bestanden zelf kan alleen via de audiobank in het portaal — verwijs daarnaar als daarom wordt gevraagd.`
+              : audioBank !== null && audioBank.length === 0
+                ? `Het bericht gaat mogelijk over audio, maar de audiobank van deze site is leeg. Vraag de eigenaar het bestand via 📎 → Audio/podcast mee te sturen (mp3 of m4a, tot 150 MB); verzin nooit zelf een audio-adres.`
+                : null,
             afbeeldingen.length > 1
               ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan al klaar in de werkmap (geoptimaliseerd, max 1600px breed) en zijn voor je bekeken — hieronder staat per foto wat erop te zien is:\n${afbeeldingen
                   .map((a) => {
