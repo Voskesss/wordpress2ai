@@ -25,16 +25,28 @@ assert.ok(weg[0].advies.includes("invoeg:zoeken"), "advies mist de concrete stap
 assert.deepEqual(vergelijkOnderdelen([MET_ZOEKEN], [`<!--invoeg:zoeken-->`]), []);
 assert.deepEqual(vergelijkOnderdelen([MET_ZOEKEN], [`<div role="search"></div>`]), []);
 
-// 3. Eén losse vermelding haalt de drempel niet: liever een gemist geval dan
-//    een vals alarm, want daar stopt iemand naar te kijken
-assert.deepEqual(vergelijkOnderdelen([`<p>agenda</p>`], [ZONDER]), []);
+// 3. Eén zwakke aanwijzing haalt de drempel niet: liever een gemist geval dan
+//    een vals alarm, want daar stopt iemand naar te kijken. (name="s" alleen
+//    zegt niets; drie keer wel.)
+assert.deepEqual(vergelijkOnderdelen([`<input name="s">`], [ZONDER]), []);
+assert.equal(
+  vergelijkOnderdelen([`<input name="s"><input name="s"><input name="s">`], [ZONDER]).length,
+  1,
+  "drie zwakke aanwijzingen horen samen wél te tellen",
+);
+
+// 3b. Eén onmiskenbaar spoor is meteen genoeg. Nodig voor onze eigen sites als
+//     bron: <!--invoeg:zoeken--> staat precies één keer in delen/menu.html.
+const ontwerpVerlies = vergelijkOnderdelen([`<!--invoeg:zoeken-->`], [ZONDER]);
+assert.equal(ontwerpVerlies.length, 1, "eigen merkteken in de bron wordt niet herkend");
+assert.equal(ontwerpVerlies[0].naam, "zoekfunctie");
 
 // 4. Zonder bron doen we geen enkele uitspraak
 assert.deepEqual(vergelijkOnderdelen([], [ZONDER]), []);
 
 // 5. Elk onderdeel herkent zichzelf, en een meegenomen versie zwijgt
 for (const o of ONDERDELEN) {
-  const bron = o.oud.source.split("|")[0].replace(/\\/g, "");
+  const bron = o.sterk.source.split("|")[0].replace(/\\/g, "");
   const oudeHtml = [`<div>${bron} ${bron} ${bron} ${bron}</div>`];
   const gemeld = vergelijkOnderdelen(oudeHtml, [ZONDER]).map((v) => v.naam);
   assert.ok(gemeld.includes(o.naam), `${o.naam} herkent zijn eigen kenmerk niet`);

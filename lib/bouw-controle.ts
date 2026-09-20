@@ -362,7 +362,7 @@ export async function controleerSiteMap(
     /* geen afbeeldingen-map */
   }
 
-  // 11. Wat had de oude site dat deze niet meer heeft? Alleen mogelijk als we
+  // 11. Wat had de vorige versie dat deze niet meer heeft? Alleen mogelijk als we
   // de bron erbij krijgen. Dit vangt het stilste soort fout: er ontstaat geen
   // fout, er is gewoon iets minder. Zo verdween de zoekfunctie van
   // evc-professionals zonder dat iemand het merkte. Zie lib/verlies.ts.
@@ -376,10 +376,11 @@ export async function controleerSiteMap(
       nieuweHtml.push(await readFile(bestand, "utf8").catch(() => ""));
     }
     for (const v of vergelijkOnderdelen(oudeHtml, nieuweHtml)) {
+      const vind = v.oudAantal === 1 ? "1 vindplaats" : `${v.oudAantal} vindplaatsen`;
       waarschuw(
         "verdwenen",
         "hele site",
-        `De oude site had een ${v.naam} (${v.oudAantal} vindplaatsen), deze niet: ${v.advies}.`,
+        `De vorige versie had een ${v.naam} (${vind}), deze niet: ${v.advies}.`,
       );
     }
   }

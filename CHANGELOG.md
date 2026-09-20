@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.2.1 (20 september 2026)
+
+De controle op kwijtgeraakte onderdelen keek alleen naar WordPress-kenmerken.
+Daardoor zag hij niets zodra de vorige versie een site van onszelf was, en dat
+is precies het geval bij een nieuw ontwerp dat een blok laat vallen. Hij
+herkent nu ook onze eigen bouwstenen, dus een ontwerp dat het zoekvak uit het
+menu haalt wordt voortaan gemeld.
+
 ## 1.2.0 (20 september 2026)
 
 **De opleveringspoort merkt nu wanneer er iets is kwijtgeraakt.** Tot nu toe
