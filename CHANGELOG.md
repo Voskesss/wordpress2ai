@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.0.1 (20 september 2026)
+
+Kleine verbeteringen in het portaal, uit de testdag met de banken:
+
+- Een bericht van WordSwap (zo'n aankondiging bovenin) komt nu één keer duidelijk
+  in beeld over de hele pagina, met een knop om hem te sluiten. Eerder stond hij
+  op een plek die je bijna nooit zag.
+- Eén keer wegklikken is genoeg: dat onthouden we voortaan bij je account. Log je
+  later op je telefoon in, dan hoef je niet alles opnieuw weg te klikken.
+- De chat opent elke vraag weer gewoon met "Momentje..." in plaats van een
+  mededeling over het openstaande concept die niets met je vraag te maken had.
+
 ## 1.0.0 (20 september 2026)
 
 De eerste echte versie. Aanleiding: Roelie (RoelArt) staat live, heeft betaald
