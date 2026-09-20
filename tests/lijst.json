@@ -51,7 +51,8 @@
     "fair-use.mts",
     "opruimen-takken.mts",
     "documentbank.mts",
-    "pdf-lezen-of-opslaan.mts"
+    "pdf-lezen-of-opslaan.mts",
+    "uploads-parallel.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

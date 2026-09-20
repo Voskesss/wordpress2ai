@@ -262,7 +262,11 @@ export default function Chat({
     videoKlaarRef.current = v;
     setVideoKlaarState(v);
   }
-  const [videoBezig, setVideoBezig] = useState(false);
+  const [videoBezig, setVideoBezigState] = useState(false);
+  function setVideoBezig(v: boolean) {
+    videoBezigRef.current = v;
+    setVideoBezigState(v);
+  }
   // Keuzemenu onder de paperclip: zo is meteen duidelijk dat er naast foto's
   // ook een video of een pdf mee kan
   const [bijlageMenu, setBijlageMenu] = useState(false);
@@ -337,8 +341,34 @@ export default function Chat({
   const [audioBankOpen, setAudioBankOpen] = useState(false);
   const [videoBankOpen, setVideoBankOpen] = useState(false);
   const [docBankOpen, setDocBankOpen] = useState(false);
-  const [audioBezig, setAudioBezig] = useState(false);
-  const [docBezig, setDocBezig] = useState(false);
+  const [audioBezig, setAudioBezigState] = useState(false);
+  const [docBezig, setDocBezigState] = useState(false);
+  // Refs naast de vlaggen: een wachtende upload moet de áctuele stand zien,
+  // niet de waarde uit zijn eigen closure.
+  const audioBezigRef = useRef(false);
+  const docBezigRef = useRef(false);
+  const videoBezigRef = useRef(false);
+  function setAudioBezig(v: boolean) {
+    audioBezigRef.current = v;
+    setAudioBezigState(v);
+  }
+  function setDocBezig(v: boolean) {
+    docBezigRef.current = v;
+    setDocBezigState(v);
+  }
+  /** Wachten tot een lopende upload van hetzelfde soort klaar is, in plaats
+   * van het tweede bestand stil te laten vallen. Je kunt dus gerust een
+   * audiobestand kiezen terwijl een video nog verwerkt wordt — die twee
+   * lopen sowieso naast elkaar — en ook twee video's achter elkaar. */
+  async function wachtOpVrij(ref: React.RefObject<boolean>, wat: string) {
+    if (!ref.current) return;
+    setChatOpen(true);
+    setBerichten((b) => [
+      ...b,
+      { rol: "assistent", tekst: `Ik ben nog met ${wat} bezig — deze pak ik er daarna meteen bij.` },
+    ]);
+    while (ref.current) await new Promise((ok) => setTimeout(ok, 1200));
+  }
   // Welk soort de eigenaar in het 📎-menu koos: kiest hij daarna tóch een
   // ander soort bestand (in de kiezer kun je op "alle bestanden" zetten),
   // dan zeggen we wat we ermee doen in plaats van stil om te schakelen.
@@ -950,7 +980,7 @@ export default function Chat({
    * media-map van de site in R2 — nooit door de repo (te groot voor git).
    * Daarna vertelt de klant gewoon in de chat waar de speler moet komen. */
   async function audioUploaden(bestand: File) {
-    if (audioBezig) return;
+    await wachtOpVrij(audioBezigRef, "het vorige geluidsbestand");
     if (isDemo) {
       setChatOpen(true);
       setBerichten((b) => [
@@ -1021,7 +1051,7 @@ export default function Chat({
    * Voorheen bleef hij als chip aan de invoerbalk hangen tot je óók nog een
    * opdracht typte — deed je dat niet, dan gebeurde er niets. */
   async function documentUploaden(bestand: File) {
-    if (docBezig) return;
+    await wachtOpVrij(docBezigRef, "het vorige document");
     setDocBezig(true);
     setChatOpen(true);
     setBerichten((b) => [...b, { rol: "klant", tekst: `📄 Document meegestuurd: ${bestand.name}` }]);
@@ -1060,7 +1090,7 @@ export default function Chat({
   }
 
   async function videoUploaden(bestand: File) {
-    if (videoBezig) return;
+    await wachtOpVrij(videoBezigRef, "de vorige video");
     const duur = await videoDuur(bestand).catch(() => null);
     if (duur && duur > VIDEO_MAX_SECONDEN) {
       const minuten = Math.floor(duur / 60);
@@ -3477,11 +3507,10 @@ export default function Chat({
                     </div>
                   </>
                 )}
-                <Tip tekst="Stuur een foto, video of pdf mee. Een pdf — bijvoorbeeld een vacature of je voorwaarden — zet ik op je site met een nette downloadlink.">
+                <Tip tekst="Stuur een foto, video, podcast of pdf mee — ook terwijl ik nog bezig ben. Alles wordt meteen bewaard in je banken; waar het moet komen vertel je daarna.">
                 <button
                   onClick={() => setBijlageMenu((v) => !v)}
-                  disabled={bezig}
-                  aria-label="Bestand toevoegen: foto, video of pdf"
+                  aria-label="Bestand toevoegen: foto, video, audio of pdf"
                   aria-expanded={bijlageMenu}
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
                     bijlageMenu ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"
