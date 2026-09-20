@@ -15,6 +15,7 @@ export const RENDI_DEELGROOTTE = 4 * 1024 * 1024; // past onder de Vercel-grens
 export async function rendiInitUpload(bestandsnaam: string, grootte: number) {
   const res = await fetch(`${BASIS}/files/init-upload`, {
     method: "POST",
+    signal: AbortSignal.timeout(30_000),
     headers: kop(),
     body: JSON.stringify({
       filename: bestandsnaam,
@@ -33,6 +34,7 @@ export async function rendiCompleteUpload(
 ) {
   const res = await fetch(`${BASIS}/files/${fileId}/complete-upload`, {
     method: "POST",
+    signal: AbortSignal.timeout(60_000),
     headers: kop(),
     body: JSON.stringify({ parts }),
   });
@@ -55,6 +57,7 @@ export { VIDEO_MAX_SECONDEN };
 export async function rendiComprimeer(bronUrl: string, basisnaam: string) {
   const res = await fetch(`${BASIS}/run-ffmpeg-command`, {
     method: "POST",
+    signal: AbortSignal.timeout(30_000),
     headers: kop(),
     body: JSON.stringify({
       input_files: { in_1: bronUrl },
@@ -74,7 +77,7 @@ export type RendiStatus = {
 };
 
 export async function rendiStatus(commandId: string): Promise<RendiStatus> {
-  const res = await fetch(`${BASIS}/commands/${commandId}`, { headers: kop(), cache: "no-store" });
+  const res = await fetch(`${BASIS}/commands/${commandId}`, { headers: kop(), cache: "no-store", signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`Rendi status: ${res.status}`);
   return (await res.json()) as RendiStatus;
 }

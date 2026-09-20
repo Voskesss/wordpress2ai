@@ -948,7 +948,9 @@ export async function POST(req: Request) {
 
           // Gecomprimeerde video (via Rendi) ophalen en in de site zetten
           const haalBinair = async (url: string): Promise<Buffer> => {
-            const ab = await fetch(url).then((r) => r.arrayBuffer());
+            // Met tijdslimiet: een gestrande download hield anders de hele
+            // beurt vast tot de platform-kill, zonder melding (20-09)
+            const ab = await fetch(url, { signal: AbortSignal.timeout(120_000) }).then((r) => r.arrayBuffer());
             return Buffer.from(ab as ArrayBuffer);
           };
           const videoPaden: { video: string; poster: string | null } | null =

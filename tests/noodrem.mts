@@ -24,7 +24,18 @@ assert.ok(
   "de werkmap-download kan nog eindeloos hangen",
 );
 
-// 1c. R2: elke poging binnen metHerkansing is begrensd
+// 1c. Rendi (videoverwerker): status, uploads en opdracht — en de download
+// van de klaargezette video in de chatroute (haalBinair)
+const rendi = await readFile("lib/rendi.ts", "utf8");
+assert.ok(
+  (rendi.match(/AbortSignal\.timeout\(/g) ?? []).length >= 4,
+  "niet elke Rendi-aanroep heeft een tijdslimiet",
+);
+const route = await readFile("app/api/chat/route.ts", "utf8");
+const haalBinair = route.slice(route.indexOf("const haalBinair"), route.indexOf("const haalBinair") + 500);
+assert.ok(/AbortSignal\.timeout\(/.test(haalBinair), "de videodownload in de chatroute kan nog eindeloos hangen");
+
+// 1d. R2: elke poging binnen metHerkansing is begrensd
 const r2 = await readFile("lib/r2.ts", "utf8");
 assert.ok(/geen antwoord binnen 30 s/.test(r2), "R2-aanroepen hebben geen tijdslimiet per poging");
 assert.ok(
