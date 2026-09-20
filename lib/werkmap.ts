@@ -20,7 +20,7 @@ export async function laadWerkmap(repo: string, ref?: string): Promise<string> {
   try {
     const commit = (await fetch(
       `https://api.github.com/repos/${GITHUB_ORG}/${repo}/commits/${ref ? encodeURIComponent(ref) : "HEAD"}`,
-      { headers: kop }
+      { headers: kop, signal: AbortSignal.timeout(30_000) }
     ).then((r) => (r.ok ? r.json() : null))) as { sha?: string } | null;
     if (commit?.sha) {
       cacheSleutel = `${repo}@${commit.sha}`;
@@ -31,9 +31,11 @@ export async function laadWerkmap(repo: string, ref?: string): Promise<string> {
   }
 
   if (!buffer) {
+    // Een grote site mag even duren, maar nooit eindeloos: een gestrande
+    // download hield op 20-09 een chatbeurt 800 s vast zonder enige melding.
     const res = await fetch(
       `https://api.github.com/repos/${GITHUB_ORG}/${repo}/tarball${ref ? `/${encodeURIComponent(ref)}` : ""}`,
-      { headers: kop }
+      { headers: kop, signal: AbortSignal.timeout(120_000) }
     );
     if (!res.ok) throw new Error(`Tarball ophalen mislukt: ${res.status}`);
     buffer = Buffer.from(await res.arrayBuffer());

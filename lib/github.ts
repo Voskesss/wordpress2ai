@@ -46,6 +46,9 @@ export async function installationToken(): Promise<string> {
         Authorization: `Bearer ${appJwt()}`,
         Accept: "application/vnd.github+json",
       },
+      // Nooit eindeloos hangen: een gestrande aanvraag hield op 20-09 een hele
+      // chatbeurt 800 s vast (Vercel-kill), zonder antwoord voor de eigenaar.
+      signal: AbortSignal.timeout(30_000),
     }
   );
   if (!res.ok) throw new Error(`Token ophalen mislukt: ${res.status}`);
@@ -75,6 +78,8 @@ export async function gh(
         "Content-Type": "application/json",
         ...init.headers,
       },
+      // Ruim genoeg voor grote schrijfacties, maar nooit eindeloos (zie boven)
+      signal: init.signal ?? AbortSignal.timeout(90_000),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -413,6 +418,7 @@ export async function mergeBranches(
   const token = await installationToken();
   const res = await fetch(`https://api.github.com/repos/${GITHUB_ORG}/${repo}/merges`, {
     method: "POST",
+    signal: AbortSignal.timeout(60_000),
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",

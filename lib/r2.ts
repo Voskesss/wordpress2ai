@@ -37,7 +37,16 @@ async function metHerkansing(
   let laatste: unknown = null;
   for (let i = 0; i < pogingen; i++) {
     try {
-      const res = await doe();
+      // Per poging hooguit 30 s wachten: een gestrande aanvraag telt dan als
+      // mislukte poging (en krijgt zijn herkansingen), in plaats van een hele
+      // chatbeurt vast te houden tot de platform-kill (20-09).
+      let wekker: ReturnType<typeof setTimeout> | undefined;
+      const res = await Promise.race([
+        doe(),
+        new Promise<never>((_, faal) => {
+          wekker = setTimeout(() => faal(new Error(`${omschrijving}: geen antwoord binnen 30 s`)), 30_000);
+        }),
+      ]).finally(() => clearTimeout(wekker));
       if (res.status < 500 && res.status !== 429) return res;
       laatste = new Error(`${omschrijving}: HTTP ${res.status}`);
       if (res.status === 429) {

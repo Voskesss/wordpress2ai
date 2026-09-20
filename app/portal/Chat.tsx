@@ -466,6 +466,10 @@ export default function Chat({
   // Grote herlaad-overlay na een oplevering: springt naar de gewijzigde pagina
   const [oplevering, setOplevering] = useState<{ paden: string[] } | null>(null);
   const stopRef = useRef<AbortController | null>(null);
+  // Waarom er gestopt is: "hang" = de noodrem hieronder trok zelf aan de bel
+  // omdat de beurt ver over zijn beloofde tijd heen was. De melding is dan
+  // eerlijk ("bij ons bleef iets hangen") in plaats van neutraal "gestopt".
+  const stopReden = useRef<"hang" | null>(null);
   // Hulpvraag die óók naar Jos is gemaild: na het chat-antwoord vragen we of
   // de klant zo geholpen is, of dat Jos alsnog contact moet opnemen.
   const [hulpvraagOpen, setHulpvraagOpen] = useState<string | null>(null);
@@ -514,6 +518,17 @@ export default function Chat({
     const t = setInterval(() => setWachtSec(Math.round((Date.now() - beurtStart.current) / 1000)), 1000);
     return () => clearInterval(t);
   }, [bezig, siteId]);
+  // NOODREM: de chat belooft "uiterlijk over X minuten rond ik af". Komt er
+  // ruim daarna nog steeds niets (iets bleef hangen aan onze kant), dan houden
+  // we de eigenaar niet in het ongewisse tot de platform-kill: we stoppen zelf,
+  // geven het slot vrij en zeggen eerlijk dat opnieuw proberen kan (20-09:
+  // een gestrande beurt hing 13 minuten zonder één melding).
+  useEffect(() => {
+    if (!bezig || wachtSec < PORTAAL_BEURT_S + 120 || stopReden.current) return;
+    stopReden.current = "hang";
+    stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bezig, wachtSec]);
   function bewaarBeurtDuur() {
     if (!beurtStart.current) return;
     const duur = Math.round((Date.now() - beurtStart.current) / 1000);
@@ -1246,6 +1261,7 @@ export default function Chat({
     let gelukt = false;
     const stopper = new AbortController();
     stopRef.current = stopper;
+    stopReden.current = null;
     try {
       // Een verzoek aan de server mag hooguit ~4,5 MB zijn. Passen de foto's
       // daar (ook na het verkleinen in de browser) niet in — een telefoonfoto
@@ -1412,7 +1428,9 @@ export default function Chat({
     } catch (error) {
       mislukteOpdracht.current = opdracht;
       const melding = stopper.signal.aborted
-        ? "De opdracht is gestopt. Je kunt hem hieronder terugzetten, of gewoon een nieuwe opdracht sturen — als er op de achtergrond nog iets afrondt, wacht ik daar vanzelf op."
+        ? stopReden.current === "hang"
+          ? "Dit duurde veel langer dan hoort en dat lag aan ons, niet aan jou. Ik heb de opdracht gestopt en er is niets aan je site veranderd. Probeer het gewoon nog een keer — meestal lukt het dan meteen."
+          : "De opdracht is gestopt. Je kunt hem hieronder terugzetten, of gewoon een nieuwe opdracht sturen — als er op de achtergrond nog iets afrondt, wacht ik daar vanzelf op."
         : error instanceof Error && !(error instanceof TypeError) ? error.message : "De verbinding viel weg.";
       setHerstelFout({
         soort: "bericht",
