@@ -878,7 +878,7 @@ export default function Chat({
           ...b,
           {
             rol: "assistent",
-            tekst: `Je video "${naam}" is klaar (gecomprimeerd tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
+            tekst: `Je video "${naam}" is klaar (verkleind tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}; het geluid blijft bewaard, en van een lange video gebruik ik de eerste 3 minuten). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
           },
         ]);
         setChatOpen(true);
@@ -3213,7 +3213,7 @@ export default function Chat({
                       {(
                         [
                           { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
-                          { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt automatisch verkleind" },
+                          { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt verkleind, mét geluid, max 3 min" },
                           { soort: "audio", icoon: "🎧", titel: "Audio / podcast", uitleg: "mp3 of m4a, tot 150 MB" },
                           { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
                         ] as const

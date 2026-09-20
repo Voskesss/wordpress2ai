@@ -40,8 +40,18 @@ export async function rendiCompleteUpload(
   return (await res.json()) as { file_id: string; status: string; storage_url: string };
 }
 
-/** Comprimeert tot een web-video (H.264, 720p, geen geluid, max 40 s) plus
- * een poster-frame — precies het achtergrondvideo-recept uit de huisregels. */
+/** Hoe lang een video hoogstens mag worden; langer wordt afgekapt. */
+export const VIDEO_MAX_SECONDEN = 180;
+
+/** Comprimeert tot een web-video (H.264, 720p, mét geluid, max 3 minuten)
+ * plus een poster-frame.
+ *
+ * Het geluid blijft bewust staan: dit recept kwam uit de huisregels voor
+ * achtergrondvideo's (die spelen toch muted) en gooide met `-an` het geluid
+ * weg — maar klanten sturen ook gewone video's met gesproken tekst mee, en
+ * die kwamen zonder geluid op de site terecht (gezien 20-09). Een hero-video
+ * krijgt van de AI altijd het muted-attribuut, dus de bezoeker hoort daar
+ * nog steeds niets; alleen het bestand is een paar honderd kB groter. */
 export async function rendiComprimeer(bronUrl: string, basisnaam: string) {
   const res = await fetch(`${BASIS}/run-ffmpeg-command`, {
     method: "POST",
@@ -50,7 +60,7 @@ export async function rendiComprimeer(bronUrl: string, basisnaam: string) {
       input_files: { in_1: bronUrl },
       output_files: { out_1: `${basisnaam}.mp4`, out_2: `${basisnaam}-poster.jpg` },
       ffmpeg_command:
-        "-i {{in_1}} -t 40 -an -vf scale=-2:720 -c:v libx264 -crf 28 -preset medium -pix_fmt yuv420p -movflags +faststart {{out_1}} -ss 1 -frames:v 1 -vf scale=-2:720 -q:v 4 {{out_2}}",
+        `-i {{in_1}} -t ${VIDEO_MAX_SECONDEN} -vf scale=-2:720 -c:v libx264 -crf 28 -preset medium -pix_fmt yuv420p -c:a aac -b:a 96k -ac 2 -movflags +faststart {{out_1}} -ss 1 -frames:v 1 -vf scale=-2:720 -q:v 4 {{out_2}}`,
     }),
   });
   if (!res.ok) throw new Error(`Rendi run: ${res.status} ${await res.text()}`);
