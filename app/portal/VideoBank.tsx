@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean };
+type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media" };
 
 /** Videobank: alle video's die op de site staan, met hun voorbeeldplaatje.
  * Opruimen kan alleen bij video's die nergens meer gebruikt worden — anders
@@ -72,7 +72,15 @@ export default function VideoBank({
     }
   }
 
-  const bron = (pad: string) => (previewAccess ? `/site-weergave/${previewAccess}/${pad}` : "");
+  // Video's uit de media-opslag komen via onze eigen route binnen; oudere
+  // video's staan nog in de site en gaan via het voorbeeldvenster.
+  const bron = (v: Video) =>
+    v.bron === "media"
+      ? `/api/videobank?siteId=${siteId}&bestand=${encodeURIComponent(v.pad.split("/").pop() ?? v.pad)}`
+      : previewAccess
+        ? `/site-weergave/${previewAccess}/${v.pad}`
+        : "";
+  const posterBron = (v: Video) => (v.poster && previewAccess ? `/site-weergave/${previewAccess}/${v.poster}` : undefined);
 
   return (
     <div className="absolute inset-0 z-[55] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Videobank">
@@ -106,11 +114,11 @@ export default function VideoBank({
           <div className="grid gap-3 sm:grid-cols-2">
             {videos?.map((v) => (
               <div key={v.pad} className={`overflow-hidden rounded-2xl border ${v.inGebruik ? "border-emerald-300" : "border-stone-200"}`}>
-                {previewAccess ? (
+                {bron(v) ? (
                   // eslint-disable-next-line jsx-a11y/media-has-caption
                   <video
-                    src={bron(v.pad)}
-                    poster={v.poster ? bron(v.poster) : undefined}
+                    src={bron(v)}
+                    poster={posterBron(v)}
                     controls
                     preload="none"
                     className="h-40 w-full bg-stone-900 object-cover"

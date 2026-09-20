@@ -269,6 +269,7 @@ export default function Chat({
   /** Opent de bestandskiezer, met alleen het gekozen soort bestand erin. */
   function kiesBijlage(soort: "foto" | "video" | "pdf" | "audio") {
     setBijlageMenu(false);
+    gekozenSoort.current = soort;
     const invoerveld = fileInputRef.current;
     if (!invoerveld) return;
     invoerveld.accept =
@@ -337,6 +338,10 @@ export default function Chat({
   const [videoBankOpen, setVideoBankOpen] = useState(false);
   const [docBankOpen, setDocBankOpen] = useState(false);
   const [audioBezig, setAudioBezig] = useState(false);
+  // Welk soort de eigenaar in het 📎-menu koos: kiest hij daarna tóch een
+  // ander soort bestand (in de kiezer kun je op "alle bestanden" zetten),
+  // dan zeggen we wat we ermee doen in plaats van stil om te schakelen.
+  const gekozenSoort = useRef<"foto" | "video" | "pdf" | "audio" | null>(null);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
   // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
   // server precies de aangewezen plek raken als de foto vaker op de pagina staat
@@ -3235,10 +3240,34 @@ export default function Chat({
                   const isAudio = (f: File) =>
                     f.type.startsWith("audio/") || /\.(mp3|m4a|aac|ogg|wav)$/i.test(f.name);
                   const audioBestand = alles.find(isAudio);
-                  if (audioBestand) audioUploaden(audioBestand);
+                  if (audioBestand) {
+                    if (gekozenSoort.current === "video") {
+                      setChatOpen(true);
+                      setBerichten((b) => [
+                        ...b,
+                        {
+                          rol: "assistent",
+                          tekst: `"${audioBestand.name}" is een geluidsbestand, geen video. Ik zet hem in je audiobank — je vindt hem terug via 📎 → Audiobank.`,
+                        },
+                      ]);
+                    }
+                    audioUploaden(audioBestand);
+                  }
                   // Video: apart uploaden en comprimeren (via Rendi), daarna meesturen
                   const video = alles.find((f) => f.type.startsWith("video/"));
-                  if (video) videoUploaden(video);
+                  if (video) {
+                    if (gekozenSoort.current === "audio") {
+                      setChatOpen(true);
+                      setBerichten((b) => [
+                        ...b,
+                        {
+                          rol: "assistent",
+                          tekst: `"${video.name}" is een video, geen audiobestand. Ik verklein hem voor het web en zet hem in je videobank — je vindt hem terug via 📎 → Videobank. Wilde je alleen het geluid? Stuur dan een mp3 of m4a mee.`,
+                        },
+                      ]);
+                    }
+                    videoUploaden(video);
+                  }
                   // Pdf's gaan als document mee: ze worden een downloadlink op de
                   // site, dus ze horen niet in de fotoverwerking
                   const isPdf = (f: File) =>

@@ -52,3 +52,16 @@ assert.ok(/export async function bewaarMediaVideo/.test(media), "video kan niet 
 assert.ok(/pad\.startsWith\("\/video\/"\)/.test(worker), "de worker kent geen terugval naar de media-map voor video");
 assert.ok(Number(worker.match(/R2_SCRIPT_VERSIE = "(\d+)"/)?.[1]) >= 6, "scriptversie niet opgehoogd: bestaande sites krijgen de terugval nooit");
 assert.ok(/lijstMediaVideo/.test(route), "de bank toont de video's uit de media-opslag niet");
+
+// 7. Video's uit de media-opslag spelen af via onze eigen route: het
+//    voorbeeldvenster leest uit de siterepo, en daar staan ze niet meer in
+//    (zelfde valkuil als bij audio, 20-09).
+assert.ok(/streamObject/.test(route), "de videobank streamt media-video's niet zelf");
+assert.ok(/content-range/.test(route), "spoelen (Range) wordt niet doorgegeven");
+assert.ok(/bron === "media"/.test(ui), "de bank kiest niet per video de juiste bron");
+assert.ok(/bron: "media"/.test(route) && /bron: "site"/.test(route), "de lijst zegt niet waar elke video staat");
+
+// 8. Kiest de eigenaar audio maar stuurt hij een video (of andersom), dan
+//    zeggen we wat we ermee doen in plaats van stil om te schakelen.
+assert.ok(/is een video, geen audiobestand/.test(chat), "geen melding als er een video komt waar audio werd gekozen");
+assert.ok(/is een geluidsbestand, geen video/.test(chat), "geen melding als er audio komt waar video werd gekozen");

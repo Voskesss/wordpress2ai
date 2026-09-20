@@ -45,9 +45,33 @@ function posterVoor(videoPad: string, alle: string[]): string | null {
 export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  const siteId = Number(new URL(req.url).searchParams.get("siteId"));
+  const url = new URL(req.url);
+  const siteId = Number(url.searchParams.get("siteId"));
   const site = await magErbij(siteId, userId);
   if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+
+  // Eén video afspelen? Rechtstreeks uit de media-opslag doorsluizen, net als
+  // bij audio: het voorbeeldvenster leest uit de siterepo, en daar staan
+  // nieuwe video's bewust niet meer in (20-09).
+  const bestand = url.searchParams.get("bestand");
+  if (bestand && site.siteSlug) {
+    const { VIDEO_EXTENSIES, schoneAudioNaam } = await import("@/lib/media");
+    if (!VIDEO_EXTENSIES.test(bestand)) return new Response("Niet gevonden", { status: 404 });
+    const { streamObject } = await import("@/lib/r2");
+    const res = await streamObject(
+      `media/${site.siteSlug}/video/${schoneAudioNaam(bestand)}`,
+      req.headers.get("range"),
+    );
+    if (!res) return new Response("Niet gevonden", { status: 404 });
+    const koppen = new Headers();
+    for (const naam of ["content-type", "content-length", "content-range", "accept-ranges", "etag"]) {
+      const w = res.headers.get(naam);
+      if (w) koppen.set(naam, w);
+    }
+    if (!koppen.has("accept-ranges")) koppen.set("accept-ranges", "bytes");
+    koppen.set("cache-control", "private, max-age=300");
+    return new Response(res.body, { status: res.status, headers: koppen });
+  }
 
   let werkmap: string | null = null;
   try {
@@ -65,6 +89,7 @@ export async function GET(req: Request) {
           poster: posterVoor(pad, alle),
           mb: Math.round(((await stat(path.join(werkmap!, pad))).size / 1024 / 1024) * 10) / 10,
           inGebruik: inhoud.includes(pad),
+          bron: "site" as "site" | "media",
         })),
     );
     // Video's uit de media-opslag erbij: die staan niet in de site zelf, maar
@@ -76,9 +101,10 @@ export async function GET(req: Request) {
         if (videos.some((v) => v.pad === pad)) continue;
         videos.push({
           pad,
-          poster: null,
+          poster: posterVoor(pad, alle),
           mb: Math.round((m.bytes / 1024 / 1024) * 10) / 10,
           inGebruik: inhoud.includes(pad),
+          bron: "media" as "site" | "media",
         });
       }
     }
