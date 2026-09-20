@@ -3215,13 +3215,28 @@ export default function Chat({
                           </span>
                         </button>
                       ))}
+                      <button
+                        onClick={() => {
+                          setBijlageMenu(false);
+                          setFotobankDoel(null);
+                          setFotobankElement(null);
+                          setFotobankOpen(true);
+                        }}
+                        className="flex w-full items-start gap-3 border-t border-stone-100 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                      >
+                        <span aria-hidden className="mt-0.5 text-base">🗂️</span>
+                        <span>
+                          <span className="block text-sm font-semibold text-stone-800">Fotobank</span>
+                          <span className="block text-xs text-stone-500">alles wat ooit op je site stond — kies een foto voor je volgende opdracht</span>
+                        </span>
+                      </button>
                       {!isDemo && (
                         <button
                           onClick={() => {
                             setBijlageMenu(false);
                             setAudioBankOpen(true);
                           }}
-                          className="flex w-full items-start gap-3 border-t border-stone-100 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                          className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
                         >
                           <span aria-hidden className="mt-0.5 text-base">📻</span>
                           <span>
