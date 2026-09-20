@@ -56,15 +56,15 @@ export default async function Leads() {
   }
 
   const concepten = (alle ?? [])
-    .filter((l) => l.conceptTekst && l.conceptOnderwerp && l.conceptSoort)
+    .filter((l) => l.conceptSoort && l.conceptKlaarOp)
     .map((l) => ({
       id: l.id,
       naam: l.naam,
       email: l.email,
       website: l.website,
       soort: l.conceptSoort as MailStap,
-      onderwerp: l.conceptOnderwerp!,
-      tekst: l.conceptTekst!,
+      onderwerp: l.conceptOnderwerp,
+      tekst: l.conceptTekst,
     }));
 
   return (
@@ -88,7 +88,8 @@ export default async function Leads() {
         <section className="mt-8">
           <h2 className="font-display text-2xl font-semibold tracking-tight">📤 Klaarstaande mails</h2>
           <p className="mt-1 text-sm text-stone-600">
-            Eerste mails en opvolgers, klaargezet door de AI — er gaat niets weg zonder jouw klik.
+            Het systeem zet de stap klaar; de tekst maak jij (samen met de chat) en plak je in het kaartje.
+            Er gaat niets weg zonder jouw klik.
           </p>
           <div className="mt-3 grid gap-3">
             {concepten.map((c) => (
@@ -118,7 +119,7 @@ export default async function Leads() {
             notities: l.notities,
             oordeel: l.oordeel,
             conceptSoort: l.conceptSoort,
-            heeftConcept: Boolean(l.conceptTekst),
+            heeftConcept: Boolean(l.conceptSoort && l.conceptKlaarOp),
             bijgewerkt: l.bijgewerkt.toISOString(),
           }))}
           post={Object.fromEntries(tijdlijn)}

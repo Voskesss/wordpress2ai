@@ -158,6 +158,21 @@ export async function conceptMetAi(
   return { gelukt: true, melding: "Klaar — de nieuwe tekst staat in het kaartje bovenaan de pagina." };
 }
 
+/** De mailtekst van een klaarstaande stap opslaan: Jos maakt de inhoud (samen
+ * met de chat), plakt hem in het kaartje en bewaart hem hier. */
+export async function bewaarConcept(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const onderwerp = veld(formData, "onderwerp");
+  const tekst = veld(formData, "tekst");
+  if (!Number.isInteger(id) || !onderwerp || !tekst) return;
+  await db
+    .update(leads)
+    .set({ conceptOnderwerp: onderwerp, conceptTekst: tekst, conceptKlaarOp: new Date(), bijgewerkt: new Date() })
+    .where(eq(leads.id, id));
+  revalidatePath("/admin/leads");
+}
+
 /** Klaarstaande opvolgstap overslaan: de tekst verdwijnt, de soort blijft staan
  * zodat de cron precies deze stap niet opnieuw klaarzet. */
 export async function conceptOverslaan(formData: FormData) {

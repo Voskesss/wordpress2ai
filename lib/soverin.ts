@@ -80,23 +80,31 @@ async function zoekInMap(
   return items;
 }
 
-/** De map Verzonden opzoeken (via de special-use-vlag, met nette terugval). */
-async function verzondenMap(client: ImapFlow): Promise<string | null> {
+/**
+ * Mappen indelen: reacties kunnen overal staan (Jos ruimt zijn inbox op naar
+ * submappen en het archief), dus we doorzoeken alles behalve Verzonden,
+ * Concepten, Spam en Prullenbak. Verzonden is apart de bron voor eigen mails.
+ */
+async function mappenIndeling(client: ImapFlow): Promise<{ inMappen: string[]; uitMap: string | null }> {
   try {
     const mappen = await client.list();
-    const special = mappen.find((m) => m.specialUse === "\\Sent");
-    if (special) return special.path;
-    const kandidaten = ["Sent", "Sent Messages", "INBOX.Sent", "Verzonden", "INBOX.Verzonden"];
-    const opNaam = mappen.find((m) => kandidaten.includes(m.path));
-    return opNaam?.path ?? null;
+    const uitMap =
+      mappen.find((m) => m.specialUse === "\\Sent")?.path ??
+      mappen.find((m) => ["Sent", "Sent Messages", "INBOX.Sent", "Verzonden", "INBOX.Verzonden"].includes(m.path))?.path ??
+      null;
+    const overslaan = new Set(["\\Sent", "\\Drafts", "\\Junk", "\\Trash"]);
+    const inMappen = mappen
+      .filter((m) => !overslaan.has(m.specialUse ?? "") && m.path !== uitMap && m.path !== "Notes")
+      .map((m) => m.path);
+    return { inMappen, uitMap };
   } catch {
-    return null;
+    return { inMappen: ["INBOX"], uitMap: null };
   }
 }
 
 /**
- * Haalt voor de opgegeven leadadressen de post op: reacties (inbox) en eigen
- * verzonden mails. sinds = null doorzoekt de hele geschiedenis (backfill).
+ * Haalt voor de opgegeven leadadressen de post op: reacties (alle mappen) en
+ * eigen verzonden mails. sinds = null doorzoekt de hele geschiedenis (backfill).
  */
 export async function haalLeadPost(adressen: string[], sinds: Date | null): Promise<PostItem[]> {
   if (!soverinIngesteld() || adressen.length === 0) return [];
@@ -113,9 +121,16 @@ export async function haalLeadPost(adressen: string[], sinds: Date | null): Prom
 
   await client.connect();
   try {
-    const items = await zoekInMap(client, "INBOX", "in", schoon, sinds);
-    const verzonden = await verzondenMap(client);
-    if (verzonden) items.push(...(await zoekInMap(client, verzonden, "uit", schoon, sinds)));
+    const { inMappen, uitMap } = await mappenIndeling(client);
+    const items: PostItem[] = [];
+    for (const map of inMappen) {
+      try {
+        items.push(...(await zoekInMap(client, map, "in", schoon, sinds)));
+      } catch {
+        // Een map die niet te openen is (bijv. alleen een houder) slaan we over
+      }
+    }
+    if (uitMap) items.push(...(await zoekInMap(client, uitMap, "uit", schoon, sinds)));
     return items;
   } finally {
     await client.logout().catch(() => client.close());
