@@ -54,6 +54,9 @@ export default function Fotobank({
   // Het filter op oude versies is er voor wie iets wil terugzetten.
   const [alleenOud, setAlleenOud] = useState(false);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
+  // Echte afmetingen per foto: zo zie je vóór het plaatsen of iets staand of
+  // liggend is (de vakjes zelf snijden niet meer af sinds object-contain).
+  const [maten, setMaten] = useState<Record<string, { w: number; h: number }>>({});
 
   useEffect(() => {
     let weg = false;
@@ -184,7 +187,12 @@ export default function Fotobank({
                 }
                 alt={b.pad}
                 loading="lazy"
-                className="h-24 w-full bg-stone-100 object-cover"
+                onLoad={(e) => {
+                  const el = e.currentTarget;
+                  if (el.naturalWidth && el.naturalHeight)
+                    setMaten((m) => ({ ...m, [b.pad]: { w: el.naturalWidth, h: el.naturalHeight } }));
+                }}
+                className="h-24 w-full bg-stone-100 object-contain"
               />
             ) : (
               <div className="flex h-24 items-center justify-center bg-stone-100 text-xs text-stone-400">
@@ -195,6 +203,12 @@ export default function Fotobank({
               <p className="truncate text-[11px] text-stone-500" title={b.pad}>
                 {b.pad.split("/").pop()}
               </p>
+              {maten[b.pad] && (
+                <p className="text-[10px] text-stone-400">
+                  {maten[b.pad].w} × {maten[b.pad].h} (
+                  {maten[b.pad].w > maten[b.pad].h ? "liggend" : maten[b.pad].w < maten[b.pad].h ? "staand" : "vierkant"})
+                </p>
+              )}
               {b.inGebruik && (
                 <span className="mt-1 mr-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                   op de site

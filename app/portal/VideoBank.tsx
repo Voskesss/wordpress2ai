@@ -21,6 +21,10 @@ export default function VideoBank({
   onSluit: () => void;
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
+  // Echte afmetingen per video (uit de metadata van de speler): zo zie je
+  // vóór het plaatsen of iets staand, liggend of vierkant is — met
+  // object-cover werd elke video in een liggend vakje gesneden (20-09).
+  const [maten, setMaten] = useState<Record<string, { w: number; h: number }>>({});
   const [tegoed, setTegoed] = useState<{ gebruikt: number; limiet: number } | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezigMet, setBezigMet] = useState<string | null>(null);
@@ -120,8 +124,13 @@ export default function VideoBank({
                     src={bron(v)}
                     poster={posterBron(v)}
                     controls
-                    preload="none"
-                    className="h-40 w-full bg-stone-900 object-cover"
+                    preload="metadata"
+                    onLoadedMetadata={(e) => {
+                      const el = e.currentTarget;
+                      if (el.videoWidth && el.videoHeight)
+                        setMaten((m) => ({ ...m, [v.pad]: { w: el.videoWidth, h: el.videoHeight } }));
+                    }}
+                    className="h-40 w-full bg-stone-900 object-contain"
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center bg-stone-100 text-xs text-stone-400">geen voorbeeld</div>
@@ -130,7 +139,13 @@ export default function VideoBank({
                   <p className="truncate text-sm font-medium text-stone-800" title={v.pad}>
                     {v.pad.split("/").pop()}
                   </p>
-                  <p className="text-[11px] text-stone-500">{v.mb} MB</p>
+                  <p className="text-[11px] text-stone-500">
+                    {v.mb} MB
+                    {maten[v.pad] &&
+                      ` · ${maten[v.pad].w} × ${maten[v.pad].h} (${
+                        maten[v.pad].w > maten[v.pad].h ? "liggend" : maten[v.pad].w < maten[v.pad].h ? "staand" : "vierkant"
+                      })`}
+                  </p>
                   {v.inGebruik && (
                     <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       op de site

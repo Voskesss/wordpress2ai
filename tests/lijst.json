@@ -54,7 +54,8 @@
   "pdf-lezen-of-opslaan.mts",
   "uploads-parallel.mts",
   "keuzes-knoppen.mts",
-  "videobank-eerlijk.mts"
+  "videobank-eerlijk.mts",
+  "banken-weergave.mts"
  ],
  "chat-ui": [
   "chat-recovery.cjs",

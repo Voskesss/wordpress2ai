@@ -2769,7 +2769,10 @@ export default function Chat({
               siteId={siteId}
               previewAccess={previewAccess}
               onGebruik={(pad) => {
-                setInvoer(`Zet een downloadlink naar ${pad} op `);
+                // Al iets getypt ("wil je dit document op ... zetten")? Dan
+                // blijft dat staan en komt het pad erachter — voorheen werd
+                // de getypte tekst stilletjes overschreven (20-09).
+                setInvoer((v) => (v.trim() ? `${v.trimEnd()} (${pad})` : `Zet een downloadlink naar ${pad} op `));
                 setChatOpen(true);
                 invoerRef.current?.focus();
               }}
@@ -2781,7 +2784,7 @@ export default function Chat({
               siteId={siteId}
               previewAccess={previewAccess}
               onGebruik={(pad) => {
-                setInvoer(`Zet de video ${pad} op `);
+                setInvoer((v) => (v.trim() ? `${v.trimEnd()} (${pad})` : `Zet de video ${pad} op `));
                 setChatOpen(true);
                 invoerRef.current?.focus();
               }}
@@ -2792,7 +2795,7 @@ export default function Chat({
             <AudioBank
               siteId={siteId}
               onGebruik={(pad) => {
-                setInvoer(`Zet de audio ${pad} op `);
+                setInvoer((v) => (v.trim() ? `${v.trimEnd()} (${pad})` : `Zet de audio ${pad} op `));
                 setChatOpen(true);
                 invoerRef.current?.focus();
               }}
