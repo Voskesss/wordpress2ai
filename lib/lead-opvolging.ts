@@ -37,35 +37,36 @@ function aanhef(naam?: string | null): string {
   return voornaam ? `Hallo ${voornaam},` : "Hallo,";
 }
 
-/** Eerste mail (terugvaltekst als de AI niet beschikbaar is): bedanken, aanbod, voorproefje. */
+/** Eerste mail (terugvaltekst als de AI niet beschikbaar is): servicegericht,
+ * met direct een concreet voorstel — geen demo, geen gratis voorproefje. */
 export function maakEerste(naam?: string | null, website?: string | null): { onderwerp: string; tekst: string } {
   const site = website?.trim();
   return {
-    onderwerp: site ? `Je aanvraag over ${site}` : "Je websitecheck-aanvraag",
+    onderwerp: site ? `Voorstel voor ${site}` : "Voorstel voor je website",
     tekst: `${aanhef(naam)}
 
 Bedankt voor je aanvraag via onze advertentie${site ? ` — ik heb naar ${site} gekeken` : ""}.
 
-Kort wat wij doen: we zetten je site over naar ons platform. Hij wordt sneller en veiliger, je vindbaarheid blijft behouden, en er is daarna niets meer te onderhouden — geen updates, geen plugins. Iets aanpassen doe je door in een chat te typen wat er anders moet.
+Wat wij doen: wij zetten de hele site voor je over — jij hoeft niets te doen. Alles blijft precies zoals het is (tenzij je meteen een mooier ontwerp wilt), je vindbaarheid in Google blijft gelijk of wordt beter, en de site wordt sneller. Daarna is er niets meer te onderhouden: geen updates, geen plugins. Iets wijzigen? Je typt het gewoon in een chat en wij zorgen dat het goed komt.
 
-Vanaf €19 per maand, alles inbegrepen. Zal ik als proef alvast je homepage overzetten? Dan zie je op een echte link hoe jouw site er bij ons uitziet — kost je niets en je zit nergens aan vast.
+Mijn voorstel: het overzetten kost eenmalig vanaf €150 (afhankelijk van de omvang van je site), daarna €19 per maand — hosting, beheer en aanpassingen inbegrepen.
 
-Eén reply met "laat maar zien" is genoeg. Liever even bellen? Laat weten wat een goed moment is.`,
+Vragen? Reply gerust, of laat weten wanneer ik je kan bellen.`,
   };
 }
 
-/** Stap 2: korte opvolger, verwijst naar de eerste mail en herhaalt het voorproefje-aanbod. */
+/** Stap 2: korte opvolger, verwijst naar het voorstel uit de eerste mail. */
 export function maakOpvolger(naam?: string | null, website?: string | null): { onderwerp: string; tekst: string } {
   const site = website?.trim();
   return {
     onderwerp: site ? `Nog even over ${site}` : "Nog even over je website",
     tekst: `${aanhef(naam)}
 
-Ik mailde je vorige week over je website — misschien is het bericht ondergesneeuwd, dat snap ik.
+Ik mailde je vorige week een voorstel voor je website — misschien is het bericht ondergesneeuwd, dat snap ik.
 
-Daarom nog één keer kort: ik zet als proef gratis je homepage over, zodat je op een echte link ziet hoe jouw site er zonder WordPress uitziet. Sneller, geen updates meer, en aanpassen door gewoon te typen wat er anders moet.
+Daarom nog één keer kort: wij zetten je hele site voor je over, alles blijft zoals het is, hij wordt sneller, en daarna heb je er geen onderhoud meer aan. Het voorstel uit mijn vorige mail staat gewoon nog.
 
-Eén reply met "laat maar zien" is genoeg. En is het niets voor je, ook prima — dan hoor ik het graag, dan houd ik erover op.`,
+Heb je vragen, reply gerust — bellen kan ook. En is het niets voor je, ook prima: dan hoor ik het graag en houd ik erover op.`,
   };
 }
 
@@ -77,7 +78,7 @@ export function maakLaatste(naam?: string | null): { onderwerp: string; tekst: s
 
 Ik heb je een paar keer gemaild over je website en wil je niet blijven storen — dit is mijn laatste berichtje.
 
-Mocht het later alsnog spelen (site traag, updates die blijven zeuren, of gewoon geen zin meer in het onderhoud): op wordswap.nl staat een demo waarin je ziet hoe het bij ons werkt. Je bent altijd welkom.
+Mocht het later alsnog spelen (site traag, updates die blijven zeuren, of gewoon geen zin meer in het onderhoud): je vindt ons op wordswap.nl. Je bent altijd welkom.
 
 Veel succes met je site!`,
   };

@@ -34,12 +34,12 @@ assert.equal(volgendeStap({ aantalUit: 3, laatsteUit: dagenTerug(FORMULIER_NA_DA
 // Na de formulier-stap houdt het op: niemand krijgt een vijfde bericht
 assert.equal(volgendeStap({ aantalUit: 4, laatsteUit: dagenTerug(60), heeftReactie: false, nu }), null);
 
-// Teksten: voornaam in de aanhef, website in het opvolg-onderwerp
+// Teksten: voornaam in de aanhef, website in het opvolg-onderwerp, verwijzing naar het voorstel
 {
   const m = maakOpvolger("Gerard Groenen", "gerardgroenen.nl");
   assert.ok(m.tekst.startsWith("Hallo Gerard,"));
   assert.ok(m.onderwerp.includes("gerardgroenen.nl"));
-  assert.ok(m.tekst.includes("laat maar zien"));
+  assert.ok(m.tekst.includes("voorstel"));
 }
 {
   const m = maakLaatste("Gerard Groenen");
@@ -57,14 +57,23 @@ assert.equal(volgendeStap({ aantalUit: 4, laatsteUit: dagenTerug(60), heeftReact
 assert.ok(maakOpvolger(null, null).tekst.startsWith("Hallo,"));
 assert.equal(maakStap("laatste", "Aad").onderwerp, maakLaatste("Aad").onderwerp);
 
-// Eerste mail (terugvaltekst): aanhef, aanbod en voorproefje aanwezig; elke stap heeft een label
+// Eerste mail (terugvaltekst): direct een voorstel met eenmalig bedrag én maandbedrag,
+// en de vaste regels van Jos: geen demo, geen gratis voorproefje
 {
   const m = maakEerste("Bob van Dijk", "christenreconstructie.nl");
   assert.ok(m.tekst.startsWith("Hallo Bob,"));
   assert.ok(m.onderwerp.includes("christenreconstructie.nl"));
   assert.ok(m.tekst.includes("€19"));
-  assert.ok(m.tekst.includes("laat maar zien"));
+  assert.ok(m.tekst.includes("eenmalig"));
+  assert.ok(!m.tekst.toLowerCase().includes("demo"));
+  assert.ok(!m.tekst.toLowerCase().includes("proef"));
+  assert.ok(!m.tekst.toLowerCase().includes("gratis"));
   assert.equal(STAP_LABELS.eerste, "Eerste mail");
+}
+// Ook de opvolger en laatste mail blijven demo- en voorproefje-vrij
+for (const m of [maakOpvolger("X", null), maakLaatste("X")]) {
+  assert.ok(!m.tekst.toLowerCase().includes("demo"));
+  assert.ok(!m.tekst.toLowerCase().includes("gratis"));
 }
 
 // De JSON-lezer van de AI-schrijver: pakt het JSON-blok, weigert lege of kapotte antwoorden

@@ -51,11 +51,11 @@ export function maakOpvolgmail(
     : `Goed nieuws: technisch ziet je site er netjes uit — geen kapotte dingen gevonden en de snelheid is prima. De winst zit voor jou vooral in het gemak: geen updates, geen hosting-gedoe, en aanpassen door gewoon te typen wat er anders moet.`;
 
   const prijsRegel = prijs
-    ? `Mocht je daarna willen overstappen: voor een site van jouw omvang is dat eenmalig ${prijs}, daarna vanaf €19 per maand voor hosting, beheer en de AI-chat.`
-    : `Mocht je daarna willen overstappen: dat is eenmalig vanaf €150, daarna vanaf €19 per maand voor hosting, beheer en de AI-chat.`;
+    ? `Mijn voorstel: voor een site van jouw omvang kost het overzetten eenmalig ${prijs}, daarna €19 per maand — hosting, beheer en aanpassingen via de chat inbegrepen.`
+    : `Mijn voorstel: het overzetten kost eenmalig vanaf €150 (afhankelijk van de omvang van je site), daarna €19 per maand — hosting, beheer en aanpassingen via de chat inbegrepen.`;
 
   return {
-    onderwerp: `Je websitecheck van ${r.domein}`,
+    onderwerp: `Voorstel voor ${r.domein}`,
     tekst: `${aanhef}
 
 Bedankt voor je aanvraag — ik heb naar ${r.domein} gekeken.${
@@ -66,10 +66,10 @@ Bedankt voor je aanvraag — ik heb naar ${r.domein} gekeken.${
 
 ${bevindingenBlok}
 
-Zal ik als proef alvast je homepage overzetten? Dan zie je op een echte link hoe jouw site er zonder WordPress uitziet — sneller, zonder updates, en aan te passen door te typen. Kost je niets en je zit nergens aan vast.
+Wat wij doen: wij zetten de hele site voor je over — jij hoeft niets te doen. Alles blijft zoals het is (tenzij je meteen een mooier ontwerp wilt), je vindbaarheid in Google blijft gelijk of wordt beter, en de site wordt sneller. Daarna heb je er geen onderhoud meer aan; iets wijzigen typ je gewoon in een chat.
 
 ${prijsRegel}
 
-Eén reply met "laat maar zien" is genoeg. Liever even bellen? Laat weten wat een goed moment is — dan bel ik je.`,
+Vragen? Reply gerust. Liever even bellen? Laat weten wat een goed moment is — dan bel ik je.`,
   };
 }

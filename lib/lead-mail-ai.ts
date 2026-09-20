@@ -44,11 +44,11 @@ export async function haalSiteTekst(website: string | null | undefined): Promise
 }
 
 const WAT_WORDSWAP_IS = `Over WordSwap (het aanbod, alleen dit beloven):
-- We zetten bestaande websites één-op-één over naar ons platform: sneller, veilig, en daarna niets meer te onderhouden (geen updates, plugins of hosting-gedoe). Vindbaarheid in Google blijft behouden.
-- Aanpassen doet de klant door in een chat te typen wat er anders moet; de wijziging staat er direct op.
-- Prijs: vanaf €19 per maand, alles inbegrepen; overzetten eenmalig vanaf €150 (richtprijs naar omvang).
-- Gratis voorproefje: we zetten vrijblijvend de homepage over, zodat iemand op een echte link het verschil ziet. "Eén reply met 'laat maar zien' is genoeg."
-- Demo staat op wordswap.nl. Webshops met een betaalsysteem doen we NIET.`;
+- WIJ zetten de hele site over — de klant hoeft niets te doen. Daarna is alles precies hetzelfde (tenzij de klant meteen een mooier ontwerp wil), blijft de vindbaarheid in Google gelijk of wordt die beter, en wordt de site sneller.
+- Daarna niets meer te onderhouden: geen updates, plugins of hosting-gedoe. Aanpassen doet de klant door in een chat te typen wat er anders moet — persoonlijke service, geen ticketsysteem.
+- Prijs ALTIJD in twee delen noemen: het overzetten kost eenmalig een bedrag (staat het bedrag in de context, noem dat; anders "eenmalig vanaf €150, afhankelijk van de omvang"), daarna €19 per maand, alles inbegrepen. Nooit alleen het maandbedrag noemen — dat wekt de indruk dat overzetten gratis is.
+- Webshops met een betaalsysteem doen we NIET.
+- VERBODEN in de eerste mail: verwijzen naar de demo, en een gratis voorproefje of gratis proef-overzetting aanbieden. Niets gratis beloven.`;
 
 const STIJL = `Stijl van Jos:
 - Nederlands, je/jij-vorm, korte gewone zinnen, warm en eerlijk, nul verkooppraat of superlatieven.
@@ -74,11 +74,11 @@ export async function schrijfLeadMail(o: {
     const client = new Anthropic();
     const doel =
       o.soort === "eerste"
-        ? "Schrijf de EERSTE mail aan deze lead: bedank voor de aanvraag via de advertentie, laat merken dat je echt naar hun site hebt gekeken (alleen met wat uit de context blijkt), leg kort uit wat WordSwap voor hén betekent, en sluit af met het voorproefje-aanbod."
+        ? "Schrijf de EERSTE mail aan deze lead: bedank voor de aanvraag via de advertentie, laat merken dat je echt naar hun site hebt gekeken (alleen met wat uit de context blijkt), verwoord servicegericht wat wij voor hén regelen (wij zetten alles over, alles blijft hetzelfde, vindbaarheid gelijk of beter, sneller), en doe ALTIJD direct een concreet voorstel: eenmalig overzet-bedrag + €19 per maand. Sluit af met een open uitnodiging om te reageren of te bellen — geen demo, geen gratis proef."
         : o.soort === "opvolger"
-          ? "Schrijf een korte OPVOLGMAIL: verwijs vriendelijk naar de eerdere mail, herhaal het voorproefje-aanbod in één of twee zinnen, en maak duidelijk dat 'nee' ook een prima antwoord is."
+          ? "Schrijf een korte OPVOLGMAIL: verwijs vriendelijk naar de eerdere mail en het voorstel daarin, en maak duidelijk dat 'nee' ook een prima antwoord is. Geen demo, geen gratis proef."
           : o.soort === "laatste"
-            ? "Schrijf een korte LAATSTE mail: netjes afronden zonder te duwen, verwijs naar de demo op wordswap.nl voor later."
+            ? "Schrijf een korte LAATSTE mail: netjes afronden zonder te duwen; hooguit noemen dat we op wordswap.nl te vinden zijn als het later alsnog speelt."
             : "Schrijf een kort bericht voor het CONTACTFORMULIER op hun eigen website: leg uit dat eerdere mails mogelijk in de spam belandden, noem jos@wordswap.nl, en sluit vriendelijk af (dit bericht mag wél eindigen met 'Groet, Jos Klijnhout — WordSwap (wordswap.nl)').";
     const resp = await client.messages.create({
       // Mails aan leads: taalkwaliteit en toon gaan voor
