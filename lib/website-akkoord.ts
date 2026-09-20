@@ -79,7 +79,7 @@ function inlogTip(domein?: string | null): string {
   const schoon = (domein ?? "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
   if (!schoon) return "";
   return p(
-    `<strong>Makkelijk te onthouden:</strong> ${ontsnap(schoon)}/wordswap brengt je altijd naar dit inlogscherm — gewoon je eigen websiteadres met /wordswap erachter.`,
+    `<strong>Makkelijk te onthouden:</strong> ${ontsnap(schoon)}/wordswap brengt je altijd naar dit inlogscherm: gewoon je eigen websiteadres met /wordswap erachter.`,
   );
 }
 

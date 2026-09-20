@@ -57,7 +57,8 @@
   "videobank-eerlijk.mts",
   "banken-weergave.mts",
   "noodrem.mts",
-  "aanwijzen-overleg.mts"
+  "aanwijzen-overleg.mts",
+  "geen-streepjes.mts"
  ],
  "chat-ui": [
   "chat-recovery.cjs",

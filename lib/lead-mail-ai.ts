@@ -44,24 +44,25 @@ export async function haalSiteTekst(website: string | null | undefined): Promise
 }
 
 const WAT_WORDSWAP_IS = `Over WordSwap (het aanbod, alleen dit beloven):
-- WIJ zetten de hele site over — de klant hoeft niets te doen. Daarna is alles precies hetzelfde (tenzij de klant meteen een mooier ontwerp wil), blijft de vindbaarheid in Google gelijk of wordt die beter, en wordt de site sneller.
+- WIJ zetten de hele site over, de klant hoeft niets te doen. Daarna is alles precies hetzelfde (tenzij de klant meteen een mooier ontwerp wil), blijft de vindbaarheid in Google gelijk of wordt die beter, en wordt de site sneller.
 - Daarna niets meer te onderhouden: geen updates, plugins of hosting-gedoe.
-- WIJZIGEN — zo verwoorden, dit is het hart van het product: de klant typt in wat er anders moet, de wébsite gaat er zelf mee aan de slag en laat een concept zien dat de klant goedkeurt voordat het live staat. Dus nooit "wij zorgen dat het goed komt" of "wij passen het voor je aan": dat klinkt alsof er een bureau achter zit dat het handmatig doet, en dat is precies niet wat we verkopen. (Alleen het overzetten zelf doen wij, daar hoeft de klant niets voor te doen.)
-- Prijs ALTIJD in twee delen noemen: het overzetten kost eenmalig een bedrag (staat het bedrag in de context, noem dat; anders "eenmalig vanaf €150, afhankelijk van de omvang"), daarna €19 per maand, alles inbegrepen. Nooit alleen het maandbedrag noemen — dat wekt de indruk dat overzetten gratis is.
-- BTW: bedragen zijn exclusief btw en dat zet je er altijd bij ("Alle bedragen zijn exclusief btw."). Uitzondering: is de lead een vereniging, stichting of particulier — die kan de btw niet verrekenen — noem dan bedragen inclusief btw en zeg er expliciet bij dat ze inclusief zijn.
+- WIJZIGEN, zo verwoorden: dit is het hart van het product: de klant typt in wat er anders moet, de wébsite gaat er zelf mee aan de slag en laat een concept zien dat de klant goedkeurt voordat het live staat. Dus nooit "wij zorgen dat het goed komt" of "wij passen het voor je aan": dat klinkt alsof er een bureau achter zit dat het handmatig doet, en dat is precies niet wat we verkopen. (Alleen het overzetten zelf doen wij, daar hoeft de klant niets voor te doen.)
+- Prijs ALTIJD in twee delen noemen: het overzetten kost eenmalig een bedrag (staat het bedrag in de context, noem dat; anders "eenmalig vanaf €150, afhankelijk van de omvang"), daarna €19 per maand, alles inbegrepen. Nooit alleen het maandbedrag noemen, want dat wekt de indruk dat overzetten gratis is.
+- BTW: bedragen zijn exclusief btw en dat zet je er altijd bij ("Alle bedragen zijn exclusief btw."). Uitzondering: een vereniging, stichting of particulier kan de btw niet verrekenen, dus noem daar bedragen inclusief btw en zeg er expliciet bij dat ze inclusief zijn.
 - Webshops met een betaalsysteem doen we NIET.
 - VERBODEN in de eerste mail: verwijzen naar de demo, en een gratis voorproefje of gratis proef-overzetting aanbieden. Niets gratis beloven.
 
-Vaste bouwstenen die Jos zelf steeds gebruikt — pak alleen wat bij deze lead past, in je eigen woorden:
-- MEERPRIJS ONTWERP: ontwerpwerk komt ALTIJD bovenop het overzetbedrag, nooit in plaats daarvan — schrijf dus "€50 extra" en "€250 extra", niet "vanaf €50" (anders lijkt een nieuw ontwerp goedkoper dan een overstap). Bijvoorbeeld: "Wil je meteen iets aan het ontwerp doen, dan komt daar een bedrag bij: opfrissen €50 extra, of een compleet nieuw ontwerp €250 extra." Noem dit als iets extra's, nooit als voorwaarde.
-- VEEL BEELD: al hun foto's gaan gewoon mee, netjes geordend in een eigen fotobank; nieuwe foto's zetten ze er zelf bij door ze in de chat te uploaden. Beelden worden automatisch op webformaat gezet zodat de site snel blijft — beloof NOOIT dat originele bestanden of afdrukresolutie op de site komen.
+Vaste bouwstenen die Jos zelf steeds gebruikt. Pak alleen wat bij deze lead past, in je eigen woorden:
+- MEERPRIJS ONTWERP: ontwerpwerk komt ALTIJD bovenop het overzetbedrag, nooit in plaats daarvan. Schrijf dus "€50 extra" en "€250 extra", niet "vanaf €50" (anders lijkt een nieuw ontwerp goedkoper dan een overstap). Bijvoorbeeld: "Wil je meteen iets aan het ontwerp doen, dan komt daar een bedrag bij: opfrissen €50 extra, of een compleet nieuw ontwerp €250 extra." Noem dit als iets extra's, nooit als voorwaarde.
+- VEEL BEELD: al hun foto's gaan gewoon mee, netjes geordend in een eigen fotobank; nieuwe foto's zetten ze er zelf bij door ze in de chat te uploaden. Beelden worden automatisch op webformaat gezet zodat de site snel blijft. Beloof NOOIT dat originele bestanden of afdrukresolutie op de site komen.
 - TALEN: staat er een taalkeuze of vertaalknop op hun site, dan kan die gewoon mee. Beloof geen professionele vertalingen; die kunnen wel, maar dat is apart werk.
-- VERKOOP ZONDER KASSA: verkopen ze via een externe partij of op aanvraag, dan past dat prima bij ons — zeg dan expliciet dat hun bestaande verkoopmanier gewoon blijft werken.`;
+- VERKOOP ZONDER KASSA: verkopen ze via een externe partij of op aanvraag, dan past dat prima bij ons. Zeg expliciet dat hun bestaande verkoopmanier gewoon blijft werken.`;
 
 const STIJL = `Stijl van Jos:
+- GEEN LANGE STREEPJES. Gebruik nooit een — (em-dash) of een los gedachtestreepje midden in een zin: dat is hét kenmerk van door AI geschreven tekst, en de leads zijn vaak juist schrijvers en tekstmakers die dat meteen zien. Herschrijf de zin in plaats daarvan: maak er twee zinnen van, of gebruik een komma, een dubbele punt of haakjes.
 - Nederlands, je/jij-vorm, korte gewone zinnen, warm en eerlijk, nul verkooppraat of superlatieven.
 - Verzin NIETS over hun website of situatie dat niet in de context staat; bij twijfel weglaten.
-- Bij een minder sterke match: eerlijk en licht blijven, geen druk — het mag ook gewoon niets worden.
+- Bij een minder sterke match: eerlijk en licht blijven, geen druk. Het mag ook gewoon niets worden.
 - GEEN afsluitende groet of ondertekening: die voegt de mail zelf toe.
 - Hooguit één uitroepteken in de hele mail. Lengte: 90 tot 160 woorden.`;
 
@@ -82,12 +83,12 @@ export async function schrijfLeadMail(o: {
     const client = new Anthropic();
     const doel =
       o.soort === "eerste"
-        ? "Schrijf de EERSTE mail aan deze lead: bedank voor de aanvraag via de advertentie, laat merken dat je echt naar hun site hebt gekeken (alleen met wat uit de context blijkt), verwoord servicegericht wat wij voor hén regelen (wij zetten alles over, alles blijft hetzelfde, vindbaarheid gelijk of beter, sneller), en doe ALTIJD direct een concreet voorstel: eenmalig overzet-bedrag + €19 per maand. Sluit af met een open uitnodiging om te reageren of te bellen — geen demo, geen gratis proef."
+        ? "Schrijf de EERSTE mail aan deze lead: bedank voor de aanvraag via de advertentie, laat merken dat je echt naar hun site hebt gekeken (alleen met wat uit de context blijkt), verwoord servicegericht wat wij voor hén regelen (wij zetten alles over, alles blijft hetzelfde, vindbaarheid gelijk of beter, sneller), en doe ALTIJD direct een concreet voorstel: eenmalig overzet-bedrag + €19 per maand. Sluit af met een open uitnodiging om te reageren of te bellen. Geen demo, geen gratis proef."
         : o.soort === "opvolger"
           ? "Schrijf een korte OPVOLGMAIL: verwijs vriendelijk naar de eerdere mail en het voorstel daarin, en maak duidelijk dat 'nee' ook een prima antwoord is. Geen demo, geen gratis proef."
           : o.soort === "laatste"
             ? "Schrijf een korte LAATSTE mail: netjes afronden zonder te duwen; hooguit noemen dat we op wordswap.nl te vinden zijn als het later alsnog speelt."
-            : "Schrijf een kort bericht voor het CONTACTFORMULIER op hun eigen website: leg uit dat eerdere mails mogelijk in de spam belandden, noem jos@wordswap.nl, en sluit vriendelijk af (dit bericht mag wél eindigen met 'Groet, Jos Klijnhout — WordSwap (wordswap.nl)').";
+            : "Schrijf een kort bericht voor het CONTACTFORMULIER op hun eigen website: leg uit dat eerdere mails mogelijk in de spam belandden, noem jos@wordswap.nl, en sluit vriendelijk af (dit bericht mag wél eindigen met 'Groet, Jos Klijnhout, WordSwap (wordswap.nl)').";
     const resp = await client.messages.create({
       // Mails aan leads: taalkwaliteit en toon gaan voor
       model: "claude-sonnet-5",

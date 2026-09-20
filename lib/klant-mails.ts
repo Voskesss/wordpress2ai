@@ -1,6 +1,6 @@
 /**
  * De mails die vanaf de admin-klantpagina naar de klant gaan, als losse
- * bouwfuncties. De acties versturen ze en de ⓘ-voorbeelden tonen ze — zelfde
+ * bouwfuncties. De acties versturen ze en de ⓘ-voorbeelden tonen ze, zelfde
  * functie, dus het voorbeeld is gegarandeerd exact de echte mail.
  */
 import { duurInWoorden, momentInWoorden } from "@/lib/afspraken";
@@ -66,7 +66,7 @@ ${knop(o.link, "Kies een moment")}
 /** Bevestiging van een gekozen moment (het agendabestand gaat als bijlage mee). */
 /** De zin over hoe Jos contact opneemt: een los nummer wordt "Ik bel je op …",
  * en alles anders (bv. "Ik stuur je een Teams-uitnodiging.") wordt letterlijk
- * gebruikt — zo kan Jos bij het bevestigen afwijken van bellen. */
+ * gebruikt, zodat Jos bij het bevestigen kan afwijken van bellen. */
 export function contactZin(contact?: string | null): string {
   const schoon = (contact ?? "").trim();
   if (!schoon) return "Ik bel je op het nummer dat ik van je heb.";
@@ -127,9 +127,9 @@ export function bouwReviewVerzoek(o: {
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
 ${alineas(o.eigenTekst)}
 <p>Fijn dat je website van <strong>${ontsnap(o.siteNaam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn kleine bedrijf enorm.</p>
-<p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren — daar hebben andere ondernemers echt iets aan.</p>
+<p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren. Daar hebben andere ondernemers echt iets aan.</p>
 ${knop(REVIEW_LINK, "Laat een review achter")}
-<p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg — en zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>
+<p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg. En zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>
 <p>Dank je wel alvast! Vragen of wensen? Antwoord op deze mail of bel me op ${TELEFOON}.</p>
 <p>Groet,<br>Jos</p>`),
   };

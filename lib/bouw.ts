@@ -16,10 +16,27 @@ const MAX_MEDIA = 30;
 // Bovengrens voor het aantal foto's per migratie: een fotosite met honderden
 // albums moet gewoon mee kunnen; dit is een noodrem, geen budget.
 const MAX_FOTOS_MIGRATIE = 2000;
-/** Documenten die ongewijzigd meegaan naar documenten/ (nooit door sharp). */
-const DOCUMENT_PATROON = /\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp|rtf|csv|txt)([?#]|$)/i;
-const MAX_DOCUMENTEN = 500;
-const MAX_DOCUMENT_BYTES = 40 * 1024 * 1024;
+/**
+ * Bestanden die ongewijzigd meegaan (nooit door sharp): documenten naar
+ * bestanden/, audio naar audio/, video naar video/ — dezelfde mappen die de
+ * chat gebruikt, zodat een klant na de migratie niets opnieuw hoeft te uploaden.
+ */
+const MEESTUUR_SOORTEN = [
+  { map: "bestanden", patroon: /\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp|rtf|csv|txt)([?#]|$)/i },
+  { map: "audio", patroon: /\.(mp3|m4a|aac|wav|ogg|opus|flac)([?#]|$)/i },
+  { map: "video", patroon: /\.(mp4|webm|mov|m4v)([?#]|$)/i },
+] as const;
+const MEESTUUR_PATROON = new RegExp(MEESTUUR_SOORTEN.map((s) => s.patroon.source).join("|"), "i");
+const MAX_MEESTUUR = 500;
+/** Per bestand: een luisterboekfragment of interview mag flink zijn. */
+const MAX_MEESTUUR_BYTES = 120 * 1024 * 1024;
+/** Samen: hierboven wordt de repo zo zwaar dat elke chatbeurt merkbaar trager wordt. */
+const MEESTUUR_WAARSCHUWING_BYTES = 400 * 1024 * 1024;
+
+/** In welke map hoort dit bestand? null = geen mee te sturen bestand. */
+export function meestuurMap(url: string): string | null {
+  return MEESTUUR_SOORTEN.find((s) => s.patroon.test(url))?.map ?? null;
+}
 // Om de zoveel nieuwe foto's een checkpoint, zodat een afgebroken run verder gaat
 const CHECKPOINT_PER_FOTOS = 200;
 
@@ -153,7 +170,7 @@ export async function haalLiveOntwerp(
       for (const m of html.matchAll(/href=["']([^"']+)["']/gi)) {
         try {
           const u = new URL(m[1], bronUrl).href;
-          if (DOCUMENT_PATROON.test(u)) documentUrls.add(u);
+          if (MEESTUUR_PATROON.test(u)) documentUrls.add(u);
         } catch {}
       }
       afbeeldingenPerPagina[pad] = paginaImgs;
@@ -631,9 +648,8 @@ export async function voerBouwUit(
   // Documenten (pdf, Word, Excel) gaan er ongewijzigd in: ze door sharp halen
   // mislukt, waardoor ze vroeger stilletjes verdwenen en hun links naar de oude
   // host bleven wijzen. Voor een vereniging of stichting ís het archief de site.
-  const isDocument = (u: string) => DOCUMENT_PATROON.test(u);
-  const documentUrls = alleMedia.filter(isDocument);
-  const alleUrls = alleMedia.filter((u) => !isDocument(u));
+  const documentUrls = alleMedia.filter((u) => meestuurMap(u) !== null);
+  const alleUrls = alleMedia.filter((u) => meestuurMap(u) === null);
   const groepen = new Map<string, { beste: string; besteOpp: number; varianten: string[] }>();
   for (const u of alleUrls) {
     const b = basisVan(u);
@@ -714,54 +730,71 @@ export async function voerBouwUit(
       );
     }
   }
-  // Documenten ongewijzigd overzetten naar site/documenten/
-  let documenten = 0;
+  // Documenten, audio en video ongewijzigd overzetten, elk naar zijn eigen map —
+  // dezelfde mappen die de chat gebruikt, zodat de klant na de migratie niets
+  // opnieuw hoeft te uploaden.
+  const perMap: Record<string, number> = {};
+  let meestuurBytes = 0;
   if (documentUrls.length > 0) {
-    await mkdir(path.join(siteDir, "documenten"), { recursive: true });
-    const teHalen = documentUrls.slice(0, MAX_DOCUMENTEN);
-    if (documentUrls.length > MAX_DOCUMENTEN)
-      await stuurStatus(`Let op: ${documentUrls.length} documenten gevonden, de eerste ${MAX_DOCUMENTEN} worden opgehaald.`);
-    await stuurStatus(`Documenten ophalen (${teHalen.length})...`);
+    const teHalen = documentUrls.slice(0, MAX_MEESTUUR);
+    if (documentUrls.length > MAX_MEESTUUR)
+      await stuurStatus(`Let op: ${documentUrls.length} bestanden gevonden, de eerste ${MAX_MEESTUUR} worden opgehaald.`);
+    for (const soort of MEESTUUR_SOORTEN) await mkdir(path.join(siteDir, soort.map), { recursive: true });
+    await stuurStatus(`Documenten, audio en video ophalen (${teHalen.length})...`);
     for (let i = 0; i < teHalen.length; i += 5) {
       await Promise.all(
         teHalen.slice(i, i + 5).map(async (url) => {
           try {
+            const map = meestuurMap(url);
+            if (!map) return;
             const schoon = path
               .basename(new URL(url).pathname)
               .toLowerCase()
               .replace(/[^a-z0-9._-]+/g, "-")
               .slice(-80);
-            const doel = `documenten/${schoon}`;
+            const doel = `${map}/${schoon}`;
             if (await access(path.join(siteDir, doel)).then(() => true).catch(() => false)) {
               mediaMap[url] = `/${doel}`;
               return;
             }
-            const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+            const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
             if (!res.ok) return;
             const buf = Buffer.from(await res.arrayBuffer());
-            if (buf.length > MAX_DOCUMENT_BYTES) return;
+            if (buf.length > MAX_MEESTUUR_BYTES) {
+              await stuurStatus(`Overgeslagen (te groot, ${Math.round(buf.length / 1024 / 1024)} MB): ${schoon}`);
+              return;
+            }
             await writeFile(path.join(siteDir, doel), buf);
             mediaMap[url] = `/${doel}`;
-            documenten++;
+            perMap[map] = (perMap[map] ?? 0) + 1;
+            meestuurBytes += buf.length;
           } catch {
             // overslaan; de link blijft dan naar de oude locatie wijzen
           }
         })
       );
-      await stuurStatus(`Documenten ophalen (${Math.min(i + 5, teHalen.length)}/${teHalen.length})...`);
+      await stuurStatus(`Bestanden ophalen (${Math.min(i + 5, teHalen.length)}/${teHalen.length})...`);
     }
+    if (meestuurBytes > MEESTUUR_WAARSCHUWING_BYTES)
+      await stuurStatus(
+        `LET OP: ${Math.round(meestuurBytes / 1024 / 1024)} MB aan documenten, audio en video meegenomen. Zo veel media maakt de site zwaar om te beheren — overleg met Jos of alles mee moet.`
+      );
   }
 
   await writeFile(
     path.join(werkmap, "media-map.json"),
     JSON.stringify(mediaMap, null, 2)
   );
+  const meestuurTekst = Object.entries(perMap)
+    .map(([map, n]) => `${n} ${map === "bestanden" ? "documenten" : map}`)
+    .join(", ");
   await stuurStatus(
-    `${gedownload} unieke afbeeldingen gedownload${alAanwezig ? ` (${alAanwezig} stonden er al)` : ""}${documenten ? ` en ${documenten} documenten` : ""} en gekoppeld aan pagina's`
+    `${gedownload} unieke afbeeldingen gedownload${alAanwezig ? ` (${alAanwezig} stonden er al)` : ""}${meestuurTekst ? ` en ${meestuurTekst}` : ""} en gekoppeld aan pagina's`
   );
 
+  const documenten = Object.values(perMap).reduce((n, x) => n + x, 0);
   const documentBlok = documenten
-    ? `\n- DOCUMENTEN STAAN KLAAR: ${documenten} documenten (notulen, statuten, nieuwsbrieven en dergelijke) zijn gedownload naar site/documenten/; media-map.json koppelt hun oude URL's aan het nieuwe pad. Laat elke downloadlink naar het lokale bestand wijzen, NOOIT naar de oude website of een externe opslag-URL — die vervalt zodra de klant zijn oude hosting opzegt. Behoud per link de zichtbare naam en zet erbij dat het een PDF is als dat uit de oude site bleek.`
+    ? `\n- DOCUMENTEN, AUDIO EN VIDEO STAAN KLAAR: ${meestuurTekst} zijn gedownload naar site/bestanden/, site/audio/ en site/video/; media-map.json koppelt hun oude URL's aan het nieuwe pad. Laat elke verwijzing naar het lokale bestand wijzen, NOOIT naar de oude website of een externe opslag-URL — die vervalt zodra de klant zijn oude hosting opzegt. Bij een document: behoud de zichtbare linktekst en zet erbij dat het een PDF is als dat uit de oude site bleek. Bij audio: gebruik <audio controls preload="none"> met de titel erboven, zoals op de oude site. Bij video: <video controls preload="metadata" playsinline> met max-width:100%, en een poster als die er was.`
     : "";
 
   // Fotogalerijen mechanisch bouwen: pagina's met veel foto's krijgen hun grid
