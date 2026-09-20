@@ -45,7 +45,8 @@ export async function haalSiteTekst(website: string | null | undefined): Promise
 
 const WAT_WORDSWAP_IS = `Over WordSwap (het aanbod, alleen dit beloven):
 - WIJ zetten de hele site over — de klant hoeft niets te doen. Daarna is alles precies hetzelfde (tenzij de klant meteen een mooier ontwerp wil), blijft de vindbaarheid in Google gelijk of wordt die beter, en wordt de site sneller.
-- Daarna niets meer te onderhouden: geen updates, plugins of hosting-gedoe. Aanpassen doet de klant door in een chat te typen wat er anders moet — persoonlijke service, geen ticketsysteem.
+- Daarna niets meer te onderhouden: geen updates, plugins of hosting-gedoe.
+- WIJZIGEN — zo verwoorden, dit is het hart van het product: de klant typt in wat er anders moet, de wébsite gaat er zelf mee aan de slag en laat een concept zien dat de klant goedkeurt voordat het live staat. Dus nooit "wij zorgen dat het goed komt" of "wij passen het voor je aan": dat klinkt alsof er een bureau achter zit dat het handmatig doet, en dat is precies niet wat we verkopen. (Alleen het overzetten zelf doen wij, daar hoeft de klant niets voor te doen.)
 - Prijs ALTIJD in twee delen noemen: het overzetten kost eenmalig een bedrag (staat het bedrag in de context, noem dat; anders "eenmalig vanaf €150, afhankelijk van de omvang"), daarna €19 per maand, alles inbegrepen. Nooit alleen het maandbedrag noemen — dat wekt de indruk dat overzetten gratis is.
 - BTW: bedragen zijn exclusief btw en dat zet je er altijd bij ("Alle bedragen zijn exclusief btw."). Uitzondering: is de lead een vereniging, stichting of particulier — die kan de btw niet verrekenen — noem dan bedragen inclusief btw en zeg er expliciet bij dat ze inclusief zijn.
 - Webshops met een betaalsysteem doen we NIET.
