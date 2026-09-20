@@ -855,6 +855,18 @@ export async function bewaarVideoLimiet(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+/** Audiobank-tegoed van een site aanpassen (standaard 10 bestanden). Audio
+ * staat in de media-map in R2, dus dit gaat over opslagruimte, niet over
+ * het aantal wijzigingen. */
+export async function bewaarAudioLimiet(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const limiet = Number(formData.get("limiet"));
+  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 0 || limiet > 10000) return;
+  await db.update(sites).set({ audioLimiet: limiet }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+}
+
 
 export async function bewaarAiBudget(formData: FormData) {
   await requireAdmin();

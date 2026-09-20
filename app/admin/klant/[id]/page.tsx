@@ -30,6 +30,7 @@ import {
   bewaarRichtlijnen,
   bewaarSite,
   bewaarSmtp,
+  bewaarAudioLimiet,
   bewaarVideoLimiet,
   bewaarAiBudget,
   bewaarWhatsapp,
@@ -936,6 +937,24 @@ export default async function KlantDetail({
           <label className="block text-sm font-semibold">
             Limiet
             <input name="limiet" type="number" min={0} defaultValue={site.videoLimiet} className={`${invoerStijl} w-28`} />
+          </label>
+          <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
+        </form>
+      </div>
+
+      {/* Audiobank-tegoed */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 id="audio" className="scroll-mt-24 font-display text-xl font-semibold">🎧 Audiobank</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Podcasts en audio staan in de media-opslag (niet in de siterepo), tot 150 MB per bestand.
+          Deze klant mag er <strong>{site.audioLimiet}</strong> bewaren; zet de limiet hoger voor wie
+          echt een podcast draait.
+        </p>
+        <form action={bewaarAudioLimiet} className="mt-3 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          <label className="block text-sm font-semibold">
+            Aantal bestanden
+            <input name="limiet" type="number" min={0} defaultValue={site.audioLimiet} className={`${invoerStijl} w-28`} />
           </label>
           <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
         </form>

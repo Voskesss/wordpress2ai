@@ -20,6 +20,7 @@ export default function SnelMenu({ heeft }: { heeft: Record<string, boolean> }) 
     { anker: "chatgeschiedenis", label: "💬 Chats" },
     { anker: "wordpress-kopie", label: "🛟 WP-kopie" },
     { anker: "video", label: "🎬 Video" },
+    { anker: "audio", label: "🎧 Audio" },
     { anker: "ai-budget", label: "🤖 AI-budget" },
     { anker: "whatsapp", label: "💬 WhatsApp" },
     { anker: "eigen-mail", label: "E-mail eigen naam" },
