@@ -619,12 +619,11 @@ export async function POST(req: Request) {
           tijden[fase] = Math.round((Date.now() - klok) / 100) / 10;
         };
         try {
-          stuur({
-            type: "status",
-            tekst: openConcept
-              ? "Ik werk verder op het openstaande concept..."
-              : "Momentje...",
-          });
+          // Neutraal openen: de oude conceptmededeling ("ik werk verder op
+          // het concept") las als een antwoord dat niets met de vraag te
+          // maken had ("mag ik een verhaaltje?"). Dat er een concept
+          // openstaat ziet de eigenaar al aan de gele kaart (20-09).
+          stuur({ type: "status", tekst: "Momentje..." });
           // Alleen bij een koude start (site nog niet in het geheugen) uitleggen
           // waarom het even duurt — bij vervolgvragen is dit binnen een seconde klaar
           const koudeStart = setTimeout(() => {

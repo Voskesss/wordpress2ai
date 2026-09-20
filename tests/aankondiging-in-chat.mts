@@ -22,3 +22,12 @@ const comp = await readFile("app/portal/Aankondigingen.tsx", "utf8");
 assert.ok(/wordswap-aankondigingen-weg/.test(comp), "het wegklik-geheugen van aankondigingen is verdwenen");
 
 console.log("aankondiging-in-chat: aankondigingen staan ook bovenaan het gesprek");
+
+// De eerste status is neutraal: "Ik werk verder op het openstaande concept..."
+// las als een niet-passend antwoord op elke willekeurige vraag (20-09).
+{
+  const route = await readFile("app/api/chat/route.ts", "utf8");
+  assert.ok(!route.includes("Ik werk verder op het openstaande concept"), "de concept-openingsstatus staat er nog en overrulet elke vraag");
+  assert.ok(/stuur\(\{ type: "status", tekst: "Momentje\.\.\." \}\);/.test(route), "de neutrale openingsstatus ontbreekt");
+}
+console.log("openingsstatus: neutraal, ongeacht de vraag");
