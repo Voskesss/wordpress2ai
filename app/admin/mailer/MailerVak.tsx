@@ -117,6 +117,14 @@ export default function MailerVak({
       {melding && (
         <p className={`text-sm font-medium ${melding.goed ? "text-emerald-700" : "text-red-600"}`}>
           {melding.tekst}
+          {melding.goed && (
+            <>
+              {" · "}
+              <a href="/admin/leads" className="font-semibold text-violet-700 hover:underline">
+                terug naar leads
+              </a>
+            </>
+          )}
         </p>
       )}
       <div className="flex flex-wrap items-center gap-2">
