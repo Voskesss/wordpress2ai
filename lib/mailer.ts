@@ -30,12 +30,22 @@ ${metDemo ? DEMO_KNOP : ""}
 export const HANDTEKENING = handtekening(true);
 
 /** Platte tekst → nette HTML-mail met handtekening; links worden klikbaar. */
+/** Breedte waarop mailafbeeldingen worden opgeslagen (2× de toonbreedte, scherp op retina). */
+export const MAIL_BEELD_BREEDTE = 1120;
+/** Markering die de Mailer in de tekst zet op de plek van een afbeelding. */
+const BEELD_PATROON = /^\[afbeelding:\s*(https?:\/\/[^\s\]]+)\s*\]$/i;
+
 export function losseMailNaarHtml(tekst: string, metDemo = true): string {
   const alineas = tekst
     .split(/\n\s*\n/)
     .map((a) => a.trim())
     .filter(Boolean)
     .map((a) => {
+      // Een alinea die alleen uit een afbeeldingsmarkering bestaat wordt het beeld zelf
+      const beeld = BEELD_PATROON.exec(a);
+      if (beeld) {
+        return `<img src="${ontsnap(beeld[1])}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:8px;margin:20px 0">`;
+      }
       const met = ontsnap(a)
         .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#245747">$1</a>')
         .replace(
