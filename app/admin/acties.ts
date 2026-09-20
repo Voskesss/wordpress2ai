@@ -1205,11 +1205,16 @@ export async function aankondigingPlaatsen(formData: FormData) {
 /** Aankondiging aan/uit zetten of verwijderen. */
 export async function aankondigingBijwerken(formData: FormData) {
   await requireAdmin();
-  const { aankondigingen } = await import("@/db/schema");
+  const { aankondigingen, aankondigingenGezien } = await import("@/db/schema");
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return;
   const actie = String(formData.get("actie") ?? "");
-  if (actie === "verwijder") await db.delete(aankondigingen).where(eq(aankondigingen.id, id));
+  if (actie === "verwijder") {
+    // Eerst de wegklik-administratie opruimen: die verwijst naar de
+    // aankondiging en blokkeerde anders het verwijderen (gezien 20-09)
+    await db.delete(aankondigingenGezien).where(eq(aankondigingenGezien.aankondigingId, id));
+    await db.delete(aankondigingen).where(eq(aankondigingen.id, id));
+  }
   else if (actie === "uit") await db.update(aankondigingen).set({ actief: false }).where(eq(aankondigingen.id, id));
   else if (actie === "aan") await db.update(aankondigingen).set({ actief: true }).where(eq(aankondigingen.id, id));
   revalidatePath("/admin/aankondigingen");

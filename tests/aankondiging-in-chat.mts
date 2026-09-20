@@ -47,3 +47,16 @@ console.log("openingsstatus: neutraal, ongeacht de vraag");
   assert.ok(/aankondigingen_gezien/.test(schema), "de gezien-tabel ontbreekt in het schema");
 }
 console.log("aankondiging-gezien: wegklikken telt per account, op elk apparaat");
+
+// Verwijderen van een aankondiging ruimt eerst de wegklik-administratie op,
+// anders blokkeert de verwijzing in aankondigingen_gezien de verwijdering.
+{
+  const acties = await readFile("app/admin/acties.ts", "utf8");
+  const blok = acties.slice(acties.indexOf("aankondigingBijwerken"), acties.indexOf("aankondigingBijwerken") + 1200);
+  assert.ok(/delete\(aankondigingenGezien\)/.test(blok), "verwijderen ruimt de gezien-regels niet eerst op");
+  assert.ok(
+    blok.indexOf("delete(aankondigingenGezien)") < blok.indexOf("delete(aankondigingen)"),
+    "de gezien-regels worden pas ná de aankondiging verwijderd",
+  );
+}
+console.log("aankondiging-verwijderen: gezien-administratie gaat netjes eerst weg");
