@@ -33,7 +33,8 @@
     "doorvoeren.mts",
     "wijzigingen-telling.mts",
     "fotobank-bewaren.mts",
-    "audiobank.mts"
+    "audiobank.mts",
+    "banken-opruimen.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

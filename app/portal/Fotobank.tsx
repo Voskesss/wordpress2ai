@@ -43,7 +43,10 @@ export default function Fotobank({
   const [beelden, setBeelden] = useState<Beeld[] | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezigMet, setBezigMet] = useState<string | null>(null);
-  const [alleenOud, setAlleenOud] = useState(!vervangDoel);
+  // Standaard álles tonen: wie de bank opent zoekt meestal gewoon een foto.
+  // Het filter op oude versies is er voor wie iets wil terugzetten.
+  const [alleenOud, setAlleenOud] = useState(false);
+  const [wisVraag, setWisVraag] = useState<string | null>(null);
 
   useEffect(() => {
     let weg = false;
@@ -90,6 +93,28 @@ export default function Fotobank({
         setFout(null);
         onKlaar(data);
       } else setFout(data.error ?? data.melding ?? "Vervangen lukte niet.");
+    } finally {
+      setBezigMet(null);
+    }
+  }
+
+  async function wis(pad: string) {
+    if (bezigMet) return;
+    setBezigMet(pad);
+    setFout(null);
+    try {
+      const res = await fetch("/api/fotobank", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, pad }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; melding?: string };
+      if (data.ok) {
+        setBeelden((b) => (b ?? []).filter((x) => x.pad !== pad));
+        setWisVraag(null);
+      } else setFout(data.melding ?? data.error ?? "Opruimen lukte niet.");
+    } catch {
+      setFout("Opruimen lukte niet.");
     } finally {
       setBezigMet(null);
     }
@@ -180,6 +205,37 @@ export default function Fotobank({
                 >
                   Gebruik in opdracht
                 </button>
+              )}
+              {/* Opruimen kan alleen bij foto's die nergens meer op de site
+                  staan — anders zou een pagina een kapot plaatje krijgen. */}
+              {!vervangDoel && !b.inGebruik && (
+                wisVraag === b.pad ? (
+                  <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px]">
+                    <button
+                      onClick={() => wis(b.pad)}
+                      disabled={bezigMet !== null}
+                      className="cursor-pointer rounded-full bg-red-600 px-2 py-0.5 font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                    >
+                      {bezigMet === b.pad ? "Bezig..." : "Ja, weg"}
+                    </button>
+                    <button
+                      onClick={() => setWisVraag(null)}
+                      className="cursor-pointer rounded-full border border-stone-200 px-2 py-0.5 text-stone-600"
+                    >
+                      Nee
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setFout(null);
+                      setWisVraag(b.pad);
+                    }}
+                    className="mt-1 ml-1 cursor-pointer rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-medium text-stone-500 hover:border-red-300 hover:text-red-600"
+                  >
+                    Opruimen
+                  </button>
+                )
               )}
             </div>
           </div>

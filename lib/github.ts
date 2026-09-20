@@ -289,6 +289,39 @@ export async function pushBestanden(
   });
 }
 
+/** Verwijdert bestanden uit een branch (één commit). Een tree-regel zonder
+ * sha haalt het pad uit de boom; de inhoud blijft in de git-historie staan,
+ * dus dit is terug te halen via "Vorige versies". */
+export async function verwijderBestanden(
+  repo: string,
+  paden: string[],
+  bericht: string,
+  branch = "main"
+) {
+  if (paden.length === 0) return;
+  const ref = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/ref/heads/${branch}`
+  )) as { object: { sha: string } };
+  const basisCommit = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/commits/${ref.object.sha}`
+  )) as { tree: { sha: string } };
+  const tree = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/trees`, {
+    method: "POST",
+    body: JSON.stringify({
+      base_tree: basisCommit.tree.sha,
+      tree: paden.map((pad) => ({ path: pad, mode: "100644", type: "blob", sha: null })),
+    }),
+  })) as { sha: string };
+  const commit = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits`, {
+    method: "POST",
+    body: JSON.stringify({ message: bericht, tree: tree.sha, parents: [ref.object.sha] }),
+  })) as { sha: string };
+  return gh(`/repos/${GITHUB_ORG}/${repo}/git/refs/heads/${branch}`, {
+    method: "PATCH",
+    body: JSON.stringify({ sha: commit.sha }),
+  });
+}
+
 /** Bestaat de repo al in de organisatie? */
 export async function repoBestaat(repo: string): Promise<boolean> {
   try {

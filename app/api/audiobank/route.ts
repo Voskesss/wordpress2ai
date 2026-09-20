@@ -97,6 +97,45 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site?.siteSlug) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+
+  // Staat er nog een speler op de site? Dan niet weggooien: die pagina zou
+  // een stille, kapotte speler overhouden. Zowel het openstaande concept als
+  // de gepubliceerde versie nakijken.
+  const { changes } = await import("@/db/schema");
+  const { and, desc } = await import("drizzle-orm");
+  const { alleBestandenVan, laadWerkmap, ruimWerkmapOp } = await import("@/lib/werkmap");
+  const { alsPagina } = await import("@/lib/consistentie");
+  const { readFile } = await import("node:fs/promises");
+  const path = (await import("node:path")).default;
+  const [openConcept] = await db
+    .select()
+    .from(changes)
+    .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
+    .orderBy(desc(changes.id))
+    .limit(1);
+  const zoek = `/audio/${body.naam}`;
+  const mappen: string[] = [];
+  try {
+    for (const tak of openConcept?.branch ? [openConcept.branch, undefined] : [undefined]) {
+      const map = await laadWerkmap(site.githubRepo, tak);
+      mappen.push(map);
+      for (const b of (await alleBestandenVan(map)).filter((x) => /\.html?$/i.test(x))) {
+        const inhoud = await readFile(path.join(map, b), "utf8").catch(() => "");
+        if (inhoud.includes(zoek))
+          return NextResponse.json(
+            {
+              error: `Deze audio staat nog op je website (${alsPagina(b)})${
+                tak ? " in je openstaande concept" : ""
+              }. Vraag in de chat eerst om de speler daar weg te halen; daarna kun je het bestand hier opruimen.`,
+            },
+            { status: 409 },
+          );
+      }
+    }
+  } finally {
+    for (const m of mappen) await ruimWerkmapOp(m).catch(() => {});
+  }
+
   const { verwijderAudio } = await import("@/lib/media");
   await verwijderAudio(site.siteSlug, body.naam);
   return NextResponse.json({ ok: true });

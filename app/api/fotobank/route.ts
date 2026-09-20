@@ -315,3 +315,74 @@ export async function POST(req: Request) {
     await release();
   }
 }
+
+/** Een foto definitief uit de fotobank halen. Alleen als hij NERGENS meer
+ * gebruikt wordt: niet in het openstaande concept én niet in de gepubliceerde
+ * versie. Anders zou een bestaande pagina een kapotte afbeelding krijgen.
+ * De git-historie houdt het bestand, dus "Vorige versies" kan het terughalen. */
+export async function DELETE(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+  const { siteId, pad } = (await req.json().catch(() => ({}))) as { siteId?: number; pad?: string };
+  if (!Number.isInteger(siteId) || !pad || pad.includes("..") || !IS_BEELD.test(pad))
+    return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
+  const site = await magErbij(Number(siteId), userId);
+  if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  if (site.isDemo) return NextResponse.json({ error: "In de demo kun je niets verwijderen." }, { status: 403 });
+
+  const release = await claimOperation(operationScope(site, userId));
+  if (!release)
+    return NextResponse.json({ slot: true, melding: "Er wordt al aan je website gewerkt." }, { status: 409 });
+
+  const mappen: string[] = [];
+  try {
+    const [openConcept] = await db
+      .select()
+      .from(changes)
+      .where(and(eq(changes.siteId, site.id), eq(changes.status, "concept")))
+      .orderBy(desc(changes.id))
+      .limit(1);
+    // In gebruik? Zowel in het concept als in de gepubliceerde versie kijken:
+    // een foto die alleen live nog gebruikt wordt mag net zo min verdwijnen.
+    const teControleren = openConcept?.branch ? [openConcept.branch, undefined] : [undefined];
+    for (const tak of teControleren) {
+      const map = await laadWerkmap(site.githubRepo, tak);
+      mappen.push(map);
+      const bronnen = (await alleBestandenVan(map)).filter((b) => /\.(html?|css|js|xml|txt|json)$/i.test(b));
+      for (const b of bronnen) {
+        const inhoud = await readFile(path.join(map, b), "utf8").catch(() => "");
+        if (inhoud.includes(pad)) {
+          return NextResponse.json(
+            {
+              melding: `Deze foto staat nog op je website (${alsPagina(b)})${
+                tak ? " in je openstaande concept" : ""
+              }. Haal hem daar eerst weg of vervang hem — dan kun je hem hier opruimen.`,
+            },
+            { status: 409 },
+          );
+        }
+      }
+    }
+
+    const { verwijderBestanden } = await import("@/lib/github");
+    // Uit beide takken halen, anders komt hij bij de volgende publicatie terug
+    for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+      await verwijderBestanden(site.githubRepo, [pad], `Foto uit de fotobank verwijderd: ${pad}`, tak);
+    await db.insert(messages).values([
+      { siteId: site.id, rol: "klant" as const, tekst: `[Zelf aangepast] Foto uit de fotobank verwijderd: ${pad}`, clerkUserId: userId },
+      {
+        siteId: site.id,
+        rol: "assistent" as const,
+        tekst: `De foto ${pad.split("/").pop()} is uit je fotobank gehaald. Hij stond nergens meer op je site; via "Vorige versies" is hij zo nodig nog terug te halen.`,
+        clerkUserId: userId,
+      },
+    ]);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("Foto verwijderen uit de fotobank:", e);
+    return NextResponse.json({ melding: "Verwijderen lukte niet. Probeer het zo nog eens." }, { status: 503 });
+  } finally {
+    for (const m of mappen) await ruimWerkmapOp(m).catch(() => {});
+    await release();
+  }
+}
