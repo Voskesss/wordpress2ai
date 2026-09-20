@@ -35,5 +35,12 @@ assert.ok(
   route.indexOf("Meegestuurde foto's bewaard in de fotobank") < route.indexOf("const uitkomst = await draaiChatAgent({"),
   "foto's worden pas ná de AI-beurt bewaard — een afgebroken beurt kost dan de upload",
 );
+// ...maar de eigenaar wacht er niet op: het veiligstellen loopt naast de
+// AI-beurt en is klaar voordat het concept wordt opgeslagen.
+assert.ok(/const fotosVeilig =/.test(route), "het veiligstellen blokkeert de beurt nog");
+assert.ok(
+  route.indexOf("await fotosVeilig") > route.indexOf("const uitkomst = await draaiChatAgent({"),
+  "er wordt te vroeg op het veiligstellen gewacht",
+);
 
 console.log("banken-direct: video en foto's staan meteen veilig, ook als de beurt afbreekt");

@@ -663,6 +663,11 @@ export async function POST(req: Request) {
               return;
             }
           }
+          // De basis-sha voor het vangnet hoeft niet te wachten op de werkmap:
+          // beide zijn losse aanvragen aan GitHub, dus ze lopen naast elkaar.
+          const basisShaBelofte = import("@/lib/cloudflare")
+            .then((m) => m.commitShaVan(site.githubRepo, openConcept?.branch ?? undefined))
+            .catch(() => null);
           if (openConcept?.branch) {
             werkmap = await laadWerkmap(site.githubRepo, openConcept.branch);
           } else if (eigenBranch) {
@@ -678,9 +683,7 @@ export async function POST(req: Request) {
           // Basis voor het dubbeling-vangnet: de stand van de site aan het
           // BEGIN van deze beurt. Zonder sha zou een vervolgbeurt binnen een
           // concept met zichzelf vergelijken en nooit iets melden.
-          const vangnetBasisSha: string | null = await import("@/lib/cloudflare")
-            .then((m) => m.commitShaVan(site.githubRepo, openConcept?.branch ?? undefined))
-            .catch(() => null);
+          const vangnetBasisSha: string | null = await basisShaBelofte;
 
           // SNELPAD: pure tekstwissel op precies één plek → direct vervangen,
           // geen agent. In seconden klaar in plaats van minuten.
@@ -845,17 +848,23 @@ export async function POST(req: Request) {
           // de upload niet voor niets geweest: de foto staat er nog en de
           // eigenaar hoeft hem niet opnieuw te sturen. Zelfde principe als bij
           // audio en video: eerst bewaren, dan pas verwerken.
-          if (afbeeldingen.length > 0 && !site.isDemo) {
-            const { pushBestanden } = await import("@/lib/github");
-            const teBewaren = afbeeldingen.map((f) => ({ pad: f.naam, inhoud: f.data }));
-            for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
-              await pushBestanden(
-                site.githubRepo,
-                teBewaren,
-                "Meegestuurde foto's bewaard in de fotobank",
-                tak,
-              ).catch((e) => console.error("Foto's vooraf bewaren:", e));
-          }
+          // Naast de AI-beurt, niet ervoor: de eigenaar hoeft niet te wachten
+          // op het veiligstellen, en bij een afgebroken beurt is het allang
+          // gebeurd (een push duurt seconden, een beurt minuten).
+          const fotosVeilig =
+            afbeeldingen.length > 0 && !site.isDemo
+              ? (async () => {
+                  const { pushBestanden } = await import("@/lib/github");
+                  const teBewaren = afbeeldingen.map((f) => ({ pad: f.naam, inhoud: f.data }));
+                  for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+                    await pushBestanden(
+                      site.githubRepo,
+                      teBewaren,
+                      "Meegestuurde foto's bewaard in de fotobank",
+                      tak,
+                    );
+                })().catch((e) => console.error("Foto's vooraf bewaren:", e))
+              : Promise.resolve();
 
           // Meegestuurde documenten wegschrijven, maar niet als de documentmap
           // daarmee over de grens gaat: een site moet klein en snel blijven.
@@ -1301,6 +1310,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             }
           }
 
+          await fotosVeilig; // eerst klaar, anders botsen twee pushes op dezelfde tak
           let gewijzigd = await gewijzigdeBestanden(werkmap, snapshot);
 
           // Afspraken-poort: wat vroeger alleen prompttekst was, wordt hier
