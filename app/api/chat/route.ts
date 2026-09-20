@@ -814,6 +814,26 @@ export async function POST(req: Request) {
             audioBank = await lijstAudio(site.siteSlug).catch(() => null);
           }
 
+          // Videobank, zelfde recept: sinds video's in de media-opslag staan
+          // (en niet meer als chip aan het bericht hangen zodra de bank ze
+          // heeft) moet de AI bij "zet deze video op ..." de paden kennen.
+          let videoBank: string[] | null = null;
+          const recentOverVideo = historie
+            .slice(-4)
+            .some((m) => /\/video\/|videobank/i.test(m.tekst));
+          if (
+            !site.isDemo &&
+            site.siteSlug &&
+            !snelpad &&
+            !videoCommandId &&
+            (recentOverVideo || /video|film|\.(mp4|webm|mov)\b/i.test(bericht))
+          ) {
+            const { lijstMediaVideo } = await import("@/lib/media");
+            videoBank = await lijstMediaVideo(site.siteSlug)
+              .then((r) => r.map((v) => v.naam))
+              .catch(() => null);
+          }
+
           // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
           let fotobankKwaliteit: string | null = null;
           if (fotobankPad) {
@@ -1014,6 +1034,9 @@ export async function POST(req: Request) {
               : audioBank !== null && audioBank.length === 0
                 ? `Het bericht gaat mogelijk over audio, maar de audiobank van deze site is leeg. Vraag de eigenaar het bestand via 📎 → Audio/podcast mee te sturen (mp3 of m4a, tot 150 MB); verzin nooit zelf een audio-adres.`
                 : null,
+            videoBank && videoBank.length > 0
+              ? `VIDEOBANK van deze site (media-opslag): ${videoBank.map((n) => `/video/${n}`).join(", ")}. Deze videobestanden staan NIET in de werkmap — ze worden apart geserveerd op precies deze /video/-adressen; kopieer of verplaats ze nooit, open ze niet met lees_bestand en "repareer" een verwijzing ernaar nooit omdat het bestand in de werkmap lijkt te ontbreken. Hoort er een poster bij, dan staat die wél in de werkmap als video/<naam>-poster.jpg — gebruik hem. Plaatsen doe je zoals in de video-huisregel: als achtergrond <video autoplay muted loop playsinline preload="metadata" poster=...> met <source src="/video/<naam>" type="video/mp4">, als gewone video <video controls preload="metadata" poster=...>. Zegt de eigenaar "deze video" zonder naam, kijk dan in het recente gesprek welke zojuist in de videobank is gezet. Verwijderen van de bestanden zelf kan alleen via de videobank in het portaal.`
+              : null,
             afbeeldingen.length > 1
               ? `De eigenaar heeft ${afbeeldingen.length} foto's meegestuurd; ze staan al klaar in de werkmap (geoptimaliseerd, max 1600px breed) en zijn voor je bekeken — hieronder staat per foto wat erop te zien is:\n${afbeeldingen
                   .map((a) => {

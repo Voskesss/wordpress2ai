@@ -53,6 +53,14 @@ export async function GET(
     pad,
     openConcept?.branch,
   );
+  // Videobank: nieuwe video's staan in de media-map in R2, niet in de repo.
+  // Zelfde weg als audio, maar pas ná de repo-check: oudere sites hebben hun
+  // video's nog wél in de repo en die blijven gewoon van hier komen.
+  if (!gevonden && pad.startsWith("video/") && site.siteSlug)
+    return Response.redirect(
+      `https://wv-${site.siteSlug}.wordswap.workers.dev/${pad.split("/").map(encodeURIComponent).join("/")}`,
+      302,
+    );
   if (!gevonden) return new Response("Pagina niet gevonden", { status: 404 });
 
   const ext = gevonden.pad.split(".").pop() ?? "";

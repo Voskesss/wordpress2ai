@@ -155,12 +155,19 @@ export async function POST(req: Request) {
     const { bewaarMediaVideo } = await import("@/lib/media");
     await bewaarMediaVideo(site.siteSlug, naam, await haal(videoUrl));
 
-    const openConcept = await openConceptVan(site.id);
-    if (posterPad && posterUrl) {
-      const { pushBestanden } = await import("@/lib/github");
-      const posterBestand = [{ pad: posterPad, inhoud: await haal(posterUrl) }];
-      for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
-        await pushBestanden(site.githubRepo, posterBestand, "Voorbeeldplaatje bij de video bewaard", tak);
+    // Poster is mooi meegenomen maar nooit reden om de hele bankactie te
+    // laten mislukken: de video staat al veilig, en zonder deze vangrail
+    // verdween ook het "staat in je videobank"-bericht stilletjes (20-09).
+    try {
+      const openConcept = await openConceptVan(site.id);
+      if (posterPad && posterUrl) {
+        const { pushBestanden } = await import("@/lib/github");
+        const posterBestand = [{ pad: posterPad, inhoud: await haal(posterUrl) }];
+        for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+          await pushBestanden(site.githubRepo, posterBestand, "Voorbeeldplaatje bij de video bewaard", tak);
+      }
+    } catch (e) {
+      console.error("Poster bij de video bewaren:", e);
     }
 
     await db

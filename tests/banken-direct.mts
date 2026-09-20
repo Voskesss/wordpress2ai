@@ -25,7 +25,7 @@ assert.ok(/videoUploads/.test(videobank), "de videoteller wordt niet bijgewerkt"
 
 // 2. Het portaal roept dat aan zodra het comprimeren klaar is
 assert.ok(/Ik zet hem in je videobank/.test(chat), "de chat zet een klaar gecomprimeerde video niet in de bank");
-const klaarBlok = chat.slice(chat.indexOf("if (st.klaar) {"), chat.indexOf("if (st.klaar) {") + 900);
+const klaarBlok = chat.slice(chat.indexOf("if (st.klaar) {"), chat.indexOf("if (vervang) {", chat.indexOf("if (st.klaar) {")));
 assert.ok(/fetch\("\/api\/videobank"/.test(klaarBlok), "de bank-aanroep staat niet in de klaar-afhandeling");
 
 // 3. Foto's worden veiliggesteld vóór de AI begint

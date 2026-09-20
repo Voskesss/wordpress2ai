@@ -39,16 +39,20 @@ function isZelfTypKeuze(k: string) {
   );
 }
 
-/** Haalt de KEUZES-regel (snelkeuze-knoppen) uit een assistent-bericht. */
+/** Haalt de KEUZES-regel (snelkeuze-knoppen) uit een assistent-bericht.
+ * De regel mag overal in het bericht staan: de AI hoort hem onderaan te
+ * zetten, maar plakt er soms nog een naschrift achter — dan moeten de
+ * knoppen alsnog verschijnen in plaats van als platte tekst (20-09). */
 function parseKeuzes(tekst: string): { schoon: string; keuzes: string[] } {
-  const m = tekst.match(/\n?\s*KEUZES:\s*(.+)\s*$/);
-  if (!m) return { schoon: tekst, keuzes: [] };
+  const m = tekst.match(/^[ \t]*KEUZES:[ \t]*(.+)[ \t]*$/m);
+  if (!m || m.index === undefined) return { schoon: tekst, keuzes: [] };
   const keuzes = m[1]
     .split("|")
     .map((k) => k.trim())
     .filter(Boolean)
     .slice(0, 4);
-  return { schoon: tekst.slice(0, m.index).trimEnd(), keuzes };
+  const schoon = (tekst.slice(0, m.index).trimEnd() + "\n\n" + tekst.slice(m.index + m[0].length).trimStart()).trim();
+  return { schoon, keuzes };
 }
 
 /** Alleen échte pagina's zijn klikbaar: deelbestanden (delen/menu.html e.d.)
@@ -934,15 +938,24 @@ export default function Chat({
         // Meteen in de videobank zetten: dan overleeft de video het herladen
         // van de pagina en staat hij in de bank, ook als hij pas later ergens
         // geplaatst wordt (zelfde principe als de audiobank).
+        let inBank = false;
         if (!vervang) {
           setStatusTekst("Ik zet hem in je videobank...");
-          await fetch("/api/videobank", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ siteId, commandId }),
-          })
-            .then((x) => x.json())
-            .catch(() => null);
+          // Met herkansing: vlak na "klaar" kan de downloadlink bij de
+          // videoverwerker nog even ontbreken (409). Voorheen werd het
+          // antwoord genegeerd en zei de chat óók bij een mislukking dat de
+          // video in de bank stond (20-09).
+          for (let poging = 0; poging < 4 && !inBank; poging++) {
+            if (poging > 0) await new Promise((ok) => setTimeout(ok, 4000));
+            const r = await fetch("/api/videobank", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ siteId, commandId }),
+            })
+              .then((x) => x.json() as Promise<{ ok?: boolean }>)
+              .catch(() => null);
+            inBank = Boolean(r?.ok);
+          }
           setStatusTekst(null);
         }
         if (vervang) {
@@ -954,14 +967,30 @@ export default function Chat({
           );
           return;
         }
-        setVideoKlaar({ commandId, naam });
-        setBerichten((b) => [
-          ...b,
-          {
-            rol: "assistent",
-            tekst: `Je video "${naam}" is klaar en staat in je videobank (verkleind tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}; het geluid blijft bewaard, en van een lange video gebruik ik de eerste 3 minuten). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage". Je vindt hem altijd terug via 📎 → Videobank.`,
-          },
-        ]);
+        // Staat hij in de bank, dan is de bank de bron: geen chip aan het
+        // volgende bericht hangen. Anders liftte de video mee met een
+        // opdracht die nergens over video ging (bv. een pdf-vraag) en
+        // raakte het gesprek in de war (20-09). Alleen als de bank het
+        // écht niet lukte blijft de chip als vangnet: de eerstvolgende
+        // beurt bewaart hem dan alsnog.
+        if (inBank) {
+          setBerichten((b) => [
+            ...b,
+            {
+              rol: "assistent",
+              tekst: `Je video "${naam}" is klaar en staat in je videobank (verkleind tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}; het geluid blijft bewaard, en van een lange video gebruik ik de eerste 3 minuten). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage". Je vindt hem altijd terug via 📎 → Videobank.`,
+            },
+          ]);
+        } else {
+          setVideoKlaar({ commandId, naam });
+          setBerichten((b) => [
+            ...b,
+            {
+              rol: "assistent",
+              tekst: `Je video "${naam}" is verkleind, maar in de videobank zetten lukte nog niet. Hij gaat automatisch mee met je volgende opdracht en wordt dan alsnog bewaard — typ gewoon waar hij moet komen.`,
+            },
+          ]);
+        }
         setChatOpen(true);
         return;
       }
