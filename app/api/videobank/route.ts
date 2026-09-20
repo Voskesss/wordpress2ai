@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
@@ -74,6 +74,68 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Kon de videobank niet laden." }, { status: 503 });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
+  }
+}
+
+
+/** Een zojuist gecomprimeerde video (Rendi) meteen in de videobank zetten.
+ * Zo overleeft hij het herladen van de pagina en staat hij in de bank, ook
+ * als de eigenaar hem pas later ergens plaatst — zelfde principe als de
+ * audiobank. Voorheen leefde zo'n video alleen in het browservenster tot de
+ * chatbeurt hem ophaalde, en was hij na een herlaadbeurt spoorloos (20-09). */
+export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+  const body = (await req.json().catch(() => null)) as { siteId?: number; commandId?: string } | null;
+  if (!body?.siteId || !body.commandId)
+    return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
+  const site = await magErbij(Number(body.siteId), userId);
+  if (!site || site.isDemo) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+
+  try {
+    const { rendiStatus } = await import("@/lib/rendi");
+    const st = await rendiStatus(body.commandId).catch(() => null);
+    const videoUrl = st?.output_files?.out_1?.storage_url;
+    if (!videoUrl) return NextResponse.json({ error: "De video is nog niet klaar." }, { status: 409 });
+    const posterUrl = st?.output_files?.out_2?.storage_url ?? null;
+
+    const ruw = videoUrl.split("/").pop()?.split("?")[0] ?? "";
+    const naam = /^[a-z0-9-]+\.mp4$/i.test(ruw) ? ruw : `video-${Date.now().toString(36)}.mp4`;
+    const videoPad = `video/${naam}`;
+    const posterPad = posterUrl ? `video/${naam.replace(/\.mp4$/i, "")}-poster.jpg` : null;
+
+    const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
+    const bestanden = [{ pad: videoPad, inhoud: await haal(videoUrl) }];
+    if (posterPad && posterUrl) bestanden.push({ pad: posterPad, inhoud: await haal(posterUrl) });
+
+    const openConcept = await openConceptVan(site.id);
+    const { pushBestanden } = await import("@/lib/github");
+    // Op main én op het openstaande concept, anders is hij in het voorbeeld
+    // en in de bank onvindbaar zolang dat concept openstaat
+    for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+      await pushBestanden(site.githubRepo, bestanden, "Video bewaard in de videobank", tak);
+
+    await db
+      .update(sites)
+      .set({ videoUploads: sql`${sites.videoUploads} + 1` })
+      .where(eq(sites.id, site.id))
+      .catch((e) => console.error("Videoteller bijwerken:", e));
+    await db
+      .insert(messages)
+      .values([
+        { siteId: site.id, rol: "klant" as const, tekst: `🎬 Video meegestuurd: ${naam}`, clerkUserId: userId },
+        {
+          siteId: site.id,
+          rol: "assistent" as const,
+          tekst: `Je video staat in de videobank (/${videoPad}). Typ waar hij moet komen, dan zet ik hem op je site.`,
+          clerkUserId: userId,
+        },
+      ])
+      .catch((e) => console.error("Videobank-berichten bewaren:", e));
+    return NextResponse.json({ ok: true, pad: `/${videoPad}`, naam });
+  } catch (e) {
+    console.error("Video in de videobank zetten:", e);
+    return NextResponse.json({ error: "Opslaan in de videobank lukte niet." }, { status: 503 });
   }
 }
 

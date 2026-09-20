@@ -39,7 +39,8 @@
     "video-geluid.mts",
     "chat-tips.mts",
     "klaar-pas-als-klaar.mts",
-    "budgetbalk.mts"
+    "budgetbalk.mts",
+    "banken-direct.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

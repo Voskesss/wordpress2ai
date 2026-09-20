@@ -842,6 +842,22 @@ export async function POST(req: Request) {
             await mkdir(path.dirname(doel), { recursive: true });
             await writeFile(doel, foto.data);
           }
+          // Meegestuurde foto's meteen veiligstellen in de fotobank, vóórdat
+          // de AI begint. Breekt de beurt af (platformgrens, storing), dan is
+          // de upload niet voor niets geweest: de foto staat er nog en de
+          // eigenaar hoeft hem niet opnieuw te sturen. Zelfde principe als bij
+          // audio en video: eerst bewaren, dan pas verwerken.
+          if (afbeeldingen.length > 0 && !site.isDemo) {
+            const { pushBestanden } = await import("@/lib/github");
+            const teBewaren = afbeeldingen.map((f) => ({ pad: f.naam, inhoud: f.data }));
+            for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+              await pushBestanden(
+                site.githubRepo,
+                teBewaren,
+                "Meegestuurde foto's bewaard in de fotobank",
+                tak,
+              ).catch((e) => console.error("Foto's vooraf bewaren:", e));
+          }
 
           // Meegestuurde documenten wegschrijven, maar niet als de documentmap
           // daarmee over de grens gaat: een site moet klein en snel blijven.

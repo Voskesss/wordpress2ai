@@ -893,6 +893,20 @@ export default function Chat({
         try { localStorage.removeItem(`ws-video-${siteId}`); } catch {}
         setStatusTekst(null);
         setVideoBezig(false);
+        // Meteen in de videobank zetten: dan overleeft de video het herladen
+        // van de pagina en staat hij in de bank, ook als hij pas later ergens
+        // geplaatst wordt (zelfde principe als de audiobank).
+        if (!vervang) {
+          setStatusTekst("Ik zet hem in je videobank...");
+          await fetch("/api/videobank", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteId, commandId }),
+          })
+            .then((x) => x.json())
+            .catch(() => null);
+          setStatusTekst(null);
+        }
         if (vervang) {
           // Wachten tot de chat vrij is, dan pas de vervang-opdracht sturen
           while (bezigRef.current) await new Promise((ok) => setTimeout(ok, 1500));
@@ -907,7 +921,7 @@ export default function Chat({
           ...b,
           {
             rol: "assistent",
-            tekst: `Je video "${naam}" is klaar (verkleind tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}; het geluid blijft bewaard, en van een lange video gebruik ik de eerste 3 minuten). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage".`,
+            tekst: `Je video "${naam}" is klaar en staat in je videobank (verkleind tot ${st.groottemb ? st.groottemb.toFixed(1) + " MB" : "webformaat"}; het geluid blijft bewaard, en van een lange video gebruik ik de eerste 3 minuten). Typ nu waar hij moet komen — bijvoorbeeld "zet deze video als achtergrond van de homepage". Je vindt hem altijd terug via 📎 → Videobank.`,
           },
         ]);
         setChatOpen(true);
