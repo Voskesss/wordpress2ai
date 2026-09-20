@@ -17,7 +17,7 @@ import { changes, messages, sites, usage } from "@/db/schema";
 import { maakBranch, schrijfBestand } from "@/lib/github";
 import { isBeheerder } from "@/lib/auth";
 import { HUISREGELS } from "@/lib/huisregels";
-import { grensVan } from "@/lib/chat-tijd";
+import { grensVan, PORTAAL_BEURT_S } from "@/lib/chat-tijd";
 import { classificeerTekstwissel, pasTekstwisselToe } from "@/lib/snelpad";
 import { deployMapNaarCloudflare, CF_SUBDOMEIN } from "@/lib/cloudflare";
 import {
@@ -271,7 +271,9 @@ export async function POST(req: Request) {
    * roept deze route aan bínnen zijn eigen functie en heeft daarvoor al tijd
    * gebruikt; zonder die kortere grens wordt de hele functie afgekapt en gaat
    * ook het antwoord verloren. */
-  let maxDuurS = maxDuration;
+  // Het portaal krijgt de portaalgrens (niet de volle platformtijd): sneller
+  // een eerlijk resultaat is meer waard dan eindeloos doorwerken.
+  let maxDuurS = PORTAAL_BEURT_S;
   const apparaatVan = (v: unknown): "telefoon" | "tablet" | "desktop" =>
     v === "telefoon" || v === "tablet" ? v : "desktop";
 
@@ -297,7 +299,7 @@ export async function POST(req: Request) {
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
-    maxDuurS = grensVan(form.get("maxDuurS"), maxDuration);
+    maxDuurS = grensVan(form.get("maxDuurS"), PORTAAL_BEURT_S);
     const files = form
       .getAll("afbeelding")
       .filter((f): f is File => f instanceof File && f.size > 0);
@@ -353,7 +355,7 @@ export async function POST(req: Request) {
     controle = body.controle === true;
     apparaat = apparaatVan(body.apparaat);
     if ((body as { kanaal?: string }).kanaal === "whatsapp") kanaal = "whatsapp";
-    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS, maxDuration);
+    maxDuurS = grensVan((body as { maxDuurS?: unknown }).maxDuurS, PORTAAL_BEURT_S);
     huidigePagina = body.huidigePagina;
     videoCommandId = body.videoCommandId || undefined;
     selectie = body.selectie ?? null;

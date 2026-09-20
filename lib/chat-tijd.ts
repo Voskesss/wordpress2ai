@@ -8,6 +8,15 @@
 /** Ondergrens: korter dan dit heeft geen zin, dan komt er nooit iets af. */
 export const KORTSTE_BEURT_S = 120;
 
+/** Hoe lang een portaalbeurt hoogstens duurt vóór de agent zichzelf netjes
+ * afrondt. Bewust ruim onder de harde grens van het platform (800 s): wie
+ * langer bezig is, is aan het doorploeteren, en dan is een eerlijk "dit was
+ * een grote klus, dit heb ik af" meer waard dan nog eens zes minuten wachten
+ * (gezien 20-09: een beurt van negen minuten die nog niet klaar was). Grote
+ * klussen leveren zo nog steeds op wat er staat; de eigenaar vraagt de rest
+ * in een volgend bericht. */
+export const PORTAAL_BEURT_S = 360;
+
 /** Een meegegeven maximum binnen veilige grenzen houden; niets meegegeven is
  * de volle tijd. Let op de nulwaarden: een ontbrekend formulierveld komt
  * binnen als null en Number(null) is 0, niet NaN. Dat werd stilletjes de

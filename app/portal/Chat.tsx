@@ -9,6 +9,7 @@ import MeelezenMelding from "./MeelezenMelding";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
+import { PORTAAL_BEURT_S } from "@/lib/chat-tijd";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -2569,6 +2570,17 @@ export default function Chat({
                   <p className="mt-1 max-w-[90%] text-xs text-stone-400">
                     Je kunt gerust even iets anders doen in een ander tabblad — ik
                     werk gewoon door en het resultaat verschijnt hier vanzelf.
+                  </p>
+                )}
+                {/* Duurt het echt lang, zeg dat dan eerlijk mét een einde eraan:
+                    onzeker wachten voelt veel langer dan wachten met zicht op
+                    een afronding (grote klus van 20-09 duurde negen minuten). */}
+                {bezig && wachtSec >= 120 && (
+                  <p className="mt-1 max-w-[90%] text-xs text-amber-700">
+                    Dit is een grote klus — ik ben nog bezig. Uiterlijk over{" "}
+                    {Math.max(1, Math.ceil((PORTAAL_BEURT_S - wachtSec) / 60))} minuten rond ik af en laat ik zien wat
+                    er af is; wat er dan nog mist, vraag je daarna gewoon in een nieuw berichtje. Stoppen kan ook met de
+                    rode knop.
                   </p>
                 )}
               </div>
