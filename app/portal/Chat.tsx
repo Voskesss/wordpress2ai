@@ -1246,9 +1246,15 @@ export default function Chat({
     const gekozenBankFoto = uitWachtrij ? (uitWachtrij.bankFoto ?? null) : fotobankKeuze;
     setFotobankKeuze(null);
     if (!uitWachtrij) {
+      // Wat er is AANGEWEZEN hoort zichtbaar bij het bericht: anders lijkt
+      // het (voor de eigenaar, en bij teruglezen) alsof niemand weet waar
+      // het over ging (20-09). De server zet dezelfde regel in de historie.
+      const aanwijs = gekozen
+        ? `\n📍 Aangewezen: "${((gekozen.tekst ?? "").replace(/\s+/g, " ").trim() || gekozen.tag || "onderdeel").slice(0, 60)}"`
+        : "";
       setBerichten((b) => [
         ...b,
-        { rol: "klant", tekst: teVersturen.length > 0 || teVersturenDocs.length > 0 ? `\u{1F4CE} ${tekst}` : tekst },
+        { rol: "klant", tekst: (teVersturen.length > 0 || teVersturenDocs.length > 0 ? `\u{1F4CE} ${tekst}` : tekst) + aanwijs },
       ]);
     }
     setBezig(true);
