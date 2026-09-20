@@ -198,8 +198,9 @@ export default function Chat({
   werkversieUrl?: string | null;
   openConcept?: Concept;
   suggesties?: string[];
-  /** Wijzigingen deze maand (tellertje bij het gesprek); null = niet tonen (demo) */
-  verbruik?: { gebruikt: number; limiet: number } | null;
+  /** Aandeel van de maandruimte dat op is (balkje bij het gesprek); null =
+   * niet tonen (demo, of geen budget ingesteld) */
+  verbruik?: { procent: number } | null;
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   // Tellertje "X van Y wijzigingen deze maand": beginstand van de server,
@@ -1246,8 +1247,8 @@ export default function Chat({
       });
       gelukt = true;
       mislukteOpdracht.current = null;
-      const versVerbruik = (data as { verbruik?: { gebruikt: number; limiet: number } | null }).verbruik;
-      if (versVerbruik && typeof versVerbruik.gebruikt === "number") setVerbruikStand(versVerbruik);
+      const versVerbruik = (data as { verbruik?: { procent: number } | null }).verbruik;
+      if (versVerbruik && typeof versVerbruik.procent === "number") setVerbruikStand(versVerbruik);
       const eindTekst = data.reply ?? "Er ging iets mis, probeer het opnieuw.";
       setBerichten((b) => {
         // Kwam het eindantwoord al binnen als "tussenstap" (omdat er daarna nog
@@ -2231,21 +2232,28 @@ export default function Chat({
                   Gesprek
                   {verbruikStand && (
                     <Tip
-                      tekst={`Bij je pakket horen ${verbruikStand.limiet} wijzigingen per maand; de teller begint elke maand opnieuw. Meer nodig? Stuur ons even een berichtje.`}
+                      tekst={`Je pakket bevat elke maand een vaste hoeveelheid AI-werk. Grote klussen (een nieuwe pagina, een galerij) gebruiken meer dan een tekstje aanpassen; op de 1e van de maand begin je weer opnieuw. Bijna op en nog van alles te doen? Stuur ons even een berichtje.`}
                       plaats="onder"
                     >
-                      <span
-                        className={`truncate rounded-full border px-2 py-0.5 text-[11px] font-medium normal-case tracking-normal ${
-                          verbruikStand.gebruikt >= verbruikStand.limiet
-                            ? "border-red-200 bg-red-50 text-red-700"
-                            : verbruikStand.gebruikt >= verbruikStand.limiet * 0.8
-                              ? "border-amber-200 bg-amber-50 text-amber-800"
-                              : "border-stone-200 bg-stone-50 text-stone-500"
-                        }`}
-                      >
-                        {verbruikStand.gebruikt} van {verbruikStand.limiet}
-                        <span className="hidden sm:inline"> wijzigingen</span>
-                        <span className="hidden md:inline"> deze maand</span>
+                      <span className="flex items-center gap-1.5 normal-case tracking-normal">
+                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-stone-200 sm:w-24">
+                          <span
+                            className={`block h-full rounded-full ${
+                              verbruikStand.procent >= 100
+                                ? "bg-red-500"
+                                : verbruikStand.procent >= 80
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${Math.max(3, verbruikStand.procent)}%` }}
+                          />
+                        </span>
+                        <span className="text-[11px] font-medium text-stone-500">
+                          {verbruikStand.procent >= 100
+                            ? "ruimte op"
+                            : `${verbruikStand.procent}%`}
+                          <span className="hidden sm:inline"> van je maandruimte</span>
+                        </span>
                       </span>
                     </Tip>
                   )}

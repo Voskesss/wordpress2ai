@@ -135,23 +135,15 @@ export default async function Portal({
       .map((m) => ({ rol: m.rol, tekst: m.tekst }));
   }
 
-  // Verbruikstand voor het tellertje bij de chat: alleen het aantal
-  // wijzigingen deze maand, nooit bedragen. Zelfde maandsleutel als de
-  // handhaving in de chatroute (UTC), zodat teller en rem altijd gelijklopen.
+  // Verbruiksbalk bij de chat: het aandeel van de maandruimte dat op is.
+  // Zelfde maandsleutel als de handhaving in de chatroute, zodat balk en rem
+  // altijd gelijklopen.
   const maandNu = new Date().toISOString().slice(0, 7);
-  const { wijzigingenLimietVoor } = await import("@/lib/ai-budget");
-  const verbruikMap: Record<number, { gebruikt: number; limiet: number }> = {};
+  const { verbruikVan } = await import("@/lib/verbruik");
+  const verbruikMap: Record<number, { procent: number }> = {};
   for (const site of mijnSites) {
-    if (site.isDemo) continue;
-    const { usage } = await import("@/db/schema");
-    const [rijVerbruik] = await db
-      .select()
-      .from(usage)
-      .where(and(eq(usage.siteId, site.id), eq(usage.maand, maandNu)));
-    verbruikMap[site.id] = {
-      gebruikt: rijVerbruik?.wijzigingen ?? 0,
-      limiet: wijzigingenLimietVoor(site, maandNu),
-    };
+    const v = await verbruikVan(site, maandNu);
+    if (v) verbruikMap[site.id] = { procent: v.procent };
   }
 
   const demoHeeftWijzigingen: Record<number, boolean> = {};

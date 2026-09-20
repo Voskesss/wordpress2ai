@@ -59,6 +59,36 @@ export async function leaseRestMinuten(scope: string): Promise<number> {
   return Number.isFinite(m) && m > 0 ? m : 1;
 }
 
+/** Zet de reservering gelijk aan wat er écht is uitgegeven deze maand.
+ *
+ * Elke beurt reserveert vooraf het maximum en verrekent dat na afloop. Wordt
+ * een beurt hard afgekapt (platformgrens, crash), dan komt die verrekening er
+ * nooit en blijft het verschil als "gebruikt" staan. Zo raakte een testsite
+ * op 20-09 zijn ruimte kwijt bij $3,59 werkelijk verbruik van $5: bijna een
+ * dollar aan spoken van afgebroken beurten.
+ *
+ * Omdat er per site maar één beurt tegelijk kan lopen (het slot), is het
+ * veilig om bij de start van een nieuwe beurt schoon te beginnen: de
+ * reservering wordt het werkelijke verbruik uit het kostenlog. Alleen voor
+ * echte sites — bij de demo delen meerdere mensen dezelfde site, daar zegt
+ * het kostenlog niets over de ruimte van één bezoeker. */
+export async function herijkReservering(
+  scope: string,
+  siteId: number,
+  month = new Date().toISOString().slice(0, 7),
+) {
+  if (scope !== `site:${siteId}`) return; // demo: eigen scope per bezoeker
+  await db
+    .execute(
+      sql`UPDATE ai_budget_reservations r
+          SET reserved_micro_usd = COALESCE(
+            (SELECT SUM(k.kosten_micro_usd) FROM ai_kosten k
+             WHERE k.site_id = ${siteId} AND k.maand = ${month}), 0)
+          WHERE r.scope = ${scope} AND r.month = ${month}`,
+    )
+    .catch((e) => console.error("Reservering herijken:", e));
+}
+
 /** Reserve the full per-request ceiling, including follow-ups, before starting AI.
  * Conservative by design: errors also consume a reservation. Actual spend is recorded separately.
  */

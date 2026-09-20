@@ -371,14 +371,11 @@ export default async function KlantDetail({
           siteId={site.id}
           previewAccess={createPreviewAccess(site.id, admin.id)}
           historie={chatHistorie}
-          verbruik={
-            site.isDemo
-              ? null
-              : {
-                  gebruikt: verbruik?.wijzigingen ?? 0,
-                  limiet: (await import("@/lib/ai-budget")).wijzigingenLimietVoor(site, maand),
-                }
-          }
+          verbruik={await (async () => {
+            const { verbruikVan } = await import("@/lib/verbruik");
+            const v = await verbruikVan(site, maand);
+            return v ? { procent: v.procent } : null;
+          })()}
           liveUrl={site.domein}
           werkversieUrl={
             site.isDemo

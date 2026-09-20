@@ -1,6 +1,7 @@
 import {
   claimOperation,
   operationScope,
+  herijkReservering,
   reserveAiBudget,
   settleAiBudget,
 } from "@/lib/operation-guards";
@@ -87,6 +88,7 @@ Werkwijze:
 - ZOEK IN ÉÉN KEER: gebruik eerst de plattegrond (titels en koppen per pagina staan er al in) om direct het juiste bestand te kiezen. Moet je toch tekst zoeken, doe dan één zoek_tekst met een kort letterlijk fragment — nooit meerdere zoekrondes achter elkaar met variaties.
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
 - KLEINE INGREPEN: wijzig bestanden met gerichte bewerk_bestand-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met schrijf_bestand — dat is traag en foutgevoelig. schrijf_bestand gebruik je alleen voor gloednieuwe bestanden.
+- GROTE KLUS? KIES ZELF DE SLIMSTE VOLGORDE EN LEVER IN DELEN. Je hebt ongeveer vijf minuten per beurt; daarna word je afgerond en krijgt de eigenaar wat er af is. Schat dus VOORAF in of alles in één beurt past. Vraagt de eigenaar meerdere dingen tegelijk (bijvoorbeeld: iets op twee plekken zetten, een nieuwe pagina plus menu plus vormgeving, of een galerij met veel foto's), doe dan eerst het deel dat op zichzelf al waarde heeft en zichtbaar klopt — en zeg in je slotzin kort wat je nog niet gedaan hebt en dat de eigenaar het met één berichtje kan laten afmaken ("Wil je dat ik hem ook nog in de header zet? Zeg het maar."). Nooit half werk achterlaten binnen een deel: liever één plek helemaal goed dan twee plekken half. Dit is jouw inschatting — vraag niet eerst of je mag splitsen, kies gewoon de volgorde die het snelst iets bruikbaars oplevert.
 - "KLAAR" ZEG JE PAS ALS JE KLAAR BENT: de eigenaar ziet jouw tekst meteen verschijnen, ook als je daarna nog doorwerkt. Schrijf je afrondende antwoord (wat je hebt gedaan, "klaar", "gedaan", een opsomming van het resultaat) dus ALLEEN in je laatste beurt, als er geen bewerking meer volgt. Moet je tussendoor iets zeggen, houd het dan bij één korte werkmelding in de tegenwoordige tijd ("ik zet nu de stijl goed") — nooit een samenvatting van het eindresultaat.
 - KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
 - VAAG BERICHT ZONDER OPENSTAANDE VRAAG: is het bericht te vaag om er een opdracht uit af te leiden ("ok en nu", "en nu?", "verder", "?") en staat er geen vraag of voorstel van jou open waar dit het antwoord op kan zijn? Dan wijzig je NIETS. Ga vooral niet zelf een eerder onderwerp of oude klacht opnieuw oppakken. Vraag kort wat de eigenaar wil, het liefst met een KEUZES-regel met logische vervolgstappen uit het gesprek.
@@ -485,6 +487,9 @@ export async function POST(req: Request) {
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
     // Eenmalige extra ruimte telt alleen mee in de maand waarvoor hij is gegeven
     const monthlyBudgetUsd = site.isDemo ? 1 : maandbudgetVoor(site, maand);
+    // Eerst opruimen wat afgebroken beurten hebben laten staan, anders raakt
+    // de ruimte op door spoken in plaats van door echt verbruik
+    await herijkReservering(scope, site.id, maand);
     if (
       !(await reserveAiBudget(scope, requestBudgetUsd, monthlyBudgetUsd, maand))
     ) {
@@ -1727,22 +1732,15 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               }).catch((e) => console.error("Video-seintje mislukt:", e));
             }
           }
-          // Verbruikstand voor het tellertje in het portaal: alleen het
-          // begrijpelijke aantal wijzigingen, nooit bedragen (geen taximeter)
-          let verbruikNa: { gebruikt: number; limiet: number } | null = null;
-          if (!site.isDemo) {
-            try {
-              const [rijVerbruik] = await db
-                .select()
-                .from(usage)
-                .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
-              const { wijzigingenLimietVoor } = await import("@/lib/ai-budget");
-              verbruikNa = {
-                gebruikt: rijVerbruik?.wijzigingen ?? 0,
-                limiet: wijzigingenLimietVoor(site, maand),
-              };
-            } catch {}
-          }
+          // Verbruikstand voor de balk in het portaal: het aandeel van de
+          // maandruimte dat op is. Dat is wat de chat echt begrenst — het
+          // aantal wijzigingen zei niets over wanneer je wordt geblokkeerd.
+          let verbruikNa: { procent: number } | null = null;
+          try {
+            const { verbruikVan } = await import("@/lib/verbruik");
+            const v = await verbruikVan(site, maand);
+            verbruikNa = v ? { procent: v.procent } : null;
+          } catch {}
           stuur({
             type: "klaar",
             reply,
