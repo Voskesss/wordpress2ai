@@ -40,8 +40,8 @@ export async function rendiCompleteUpload(
   return (await res.json()) as { file_id: string; status: string; storage_url: string };
 }
 
-/** Hoe lang een video hoogstens mag worden; langer wordt afgekapt. */
-export const VIDEO_MAX_SECONDEN = 180;
+import { VIDEO_MAX_SECONDEN } from "./video-grens";
+export { VIDEO_MAX_SECONDEN };
 
 /** Comprimeert tot een web-video (H.264, 720p, mét geluid, max 3 minuten)
  * plus een poster-frame.

@@ -8,6 +8,7 @@ import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
+import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
 import Vindbaarheid from "./Vindbaarheid";
 
 type Bericht = {
@@ -946,8 +947,41 @@ export default function Chat({
     }
   }
 
+  /** Duur van een gekozen videobestand, voordat hij de deur uit gaat. Zo kan
+   * de chat eerlijk zeggen dat een lange film wordt ingekort — en dat een
+   * YouTube- of Vimeo-link dan de betere weg is. */
+  function videoDuur(bestand: File): Promise<number> {
+    return new Promise((klaar, faal) => {
+      const url = URL.createObjectURL(bestand);
+      const v = document.createElement("video");
+      v.preload = "metadata";
+      v.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        klaar(v.duration);
+      };
+      v.onerror = () => {
+        URL.revokeObjectURL(url);
+        faal(new Error("duur onbekend"));
+      };
+      v.src = url;
+    });
+  }
+
   async function videoUploaden(bestand: File) {
     if (videoBezig) return;
+    const duur = await videoDuur(bestand).catch(() => null);
+    if (duur && duur > VIDEO_MAX_SECONDEN) {
+      const minuten = Math.floor(duur / 60);
+      const seconden = Math.round(duur % 60);
+      setChatOpen(true);
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: `Je video duurt ${minuten}:${String(seconden).padStart(2, "0")} — ik gebruik de eerste ${VIDEO_MAX_SECONDEN / 60} minuten. Wil je hem helemaal laten zien? Zet hem dan op YouTube of Vimeo en stuur me de link; die zet ik cookie-vrij op je site, en dan blijft je website licht en snel. Ik ga ondertussen gewoon door met dit stuk.`,
+        },
+      ]);
+    }
     setVideoBezig(true);
     setVideoKlaar(null);
     setChatOpen(true);
