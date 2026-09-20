@@ -306,6 +306,13 @@ export async function verwijderKlant(formData: FormData) {
     const { verwijderCloudflareSite } = await import("@/lib/cloudflare");
     await verwijderCloudflareSite(site.siteSlug);
     await verwijderCloudflareSite(`wv-${site.siteSlug}`);
+    // Ook de media-map van deze site (audiobank): die staat bewust buiten het
+    // site-voorvoegsel, dus het opruimen van de workers laat hem anders staan
+    // — en dan betalen we jaren later nog opslag voor een opgezegde klant.
+    const { verwijderPrefix } = await import("@/lib/r2");
+    await verwijderPrefix(`media/${site.siteSlug}`).catch((e) =>
+      console.error("Media-map opruimen:", e),
+    );
   }
 
   revalidatePath("/admin");

@@ -67,3 +67,9 @@ assert.ok(!/afspeelBasis/.test(bankUi), "de oude worker-afhankelijkheid staat er
 const r2 = await readFile("lib/r2.ts", "utf8");
 assert.ok(/export async function streamObject/.test(r2), "streamObject ontbreekt");
 assert.ok(!/arrayBuffer\(\)/.test(r2.slice(r2.indexOf("streamObject"), r2.indexOf("streamObject") + 700)), "grote bestanden worden nog in het geheugen geladen");
+
+// 8. Zegt een klant op, dan gaat zijn media-map ook weg. Die staat bewust
+//    buiten het site-voorvoegsel, dus het opruimen van de workers laat hem
+//    anders staan — en dan betalen we jaren later nog opslag.
+const acties = await readFile("app/admin/acties.ts", "utf8");
+assert.ok(/verwijderPrefix\(`media\/\$\{site\.siteSlug\}`\)/.test(acties), "de media-map blijft achter bij het verwijderen van een site");
