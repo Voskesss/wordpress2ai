@@ -32,6 +32,15 @@ export function volgendeStap(o: {
   return null; // na de formulier-stap houdt de opvolging op
 }
 
+/**
+ * Is een klaarstaande mail achterhaald? Dat is zo zodra er ná het klaarzetten
+ * een mail naar deze lead is gegaan — ook een die Jos zelf vanuit zijn eigen
+ * postvak stuurde. Anders blijft er een kaartje staan voor iets dat al weg is.
+ */
+export function conceptAchterhaald(conceptKlaarOp: Date | null, laatsteUit: Date | null): boolean {
+  return Boolean(conceptKlaarOp && laatsteUit && laatsteUit.getTime() > conceptKlaarOp.getTime());
+}
+
 function aanhef(naam?: string | null): string {
   const voornaam = naam?.trim().split(/\s+/)[0];
   return voornaam ? `Hallo ${voornaam},` : "Hallo,";

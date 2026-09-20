@@ -115,7 +115,12 @@ export default function OpvolgKaart({ concept }: { concept: ConceptRij }) {
         )}
         <form action={conceptOverslaan}>
           <input type="hidden" name="id" value={concept.id} />
-          <ActieKnop label="Overslaan" bezigLabel="..." className="text-xs text-stone-500 hover:text-red-600 cursor-pointer" />
+          <ActieKnop
+            label="✕ Van de lijst halen"
+            bezigLabel="..."
+            title="Deze stap is niet (meer) nodig — het kaartje verdwijnt, de lead blijft gewoon staan"
+            className="rounded-full border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-medium text-stone-600 hover:border-red-400 hover:text-red-600 cursor-pointer"
+          />
         </form>
       </div>
       <AiMailVak leadId={concept.id} heeftConcept={heeftTekst} />

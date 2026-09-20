@@ -9,7 +9,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { afspraken, leadPost, leads, verzondenMails } from "@/db/schema";
 import { LEAD_STATUSSEN } from "@/lib/leads";
-import { maakStap, volgendeStap } from "@/lib/lead-opvolging";
+import { conceptAchterhaald, maakStap, volgendeStap } from "@/lib/lead-opvolging";
 import { haalMetaLeads, metaIngesteld } from "@/lib/meta-leads";
 import { haalLeadPost, soverinIngesteld, type PostItem } from "@/lib/soverin";
 
@@ -190,6 +190,20 @@ export async function werkLeadsBij(): Promise<string[]> {
       await db.update(leads).set({ status: "wacht_op_reactie", bijgewerkt: nu }).where(eq(leads.id, lead.id));
       lead.status = "wacht_op_reactie";
       verslag.push(`${lead.naam}: mail verstuurd → wacht op reactie`);
+    }
+
+    // Klaarstaande mail achterhaald? Er is ná het klaarzetten een mail de deur
+    // uit gegaan — ook als Jos die zelf vanuit zijn eigen postvak stuurde.
+    // De soort blijft staan, zodat de cadans deze stap niet opnieuw klaarzet.
+    const laatsteUit = uitMomenten.at(-1) ?? null;
+    if (conceptAchterhaald(lead.conceptKlaarOp, laatsteUit)) {
+      await db
+        .update(leads)
+        .set({ conceptOnderwerp: null, conceptTekst: null, conceptKlaarOp: null, bijgewerkt: nu })
+        .where(eq(leads.id, lead.id));
+      lead.conceptKlaarOp = null;
+      lead.conceptTekst = null;
+      verslag.push(`${lead.naam}: klaarstaande mail opgeruimd (was al verstuurd)`);
     }
 
     // 3. Cadans: volgende stap klaarzetten (nooit versturen)
