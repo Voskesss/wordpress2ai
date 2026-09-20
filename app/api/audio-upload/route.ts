@@ -7,7 +7,7 @@ import { sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
 import { MAX_AUDIO_BYTES } from "@/lib/media";
 
-/** Audio-upload (podcasts e.d.) buiten de server om, zelfde weg als foto's en
+/** Upload van grote bestanden (audio en pdf) buiten de server om, zelfde weg als foto's en
  * video: een aflevering is zo 30–100 MB en een verzoek aan onze eigen functies
  * mag hooguit ~4,5 MB zijn. De browser zet het bestand rechtstreeks in de
  * Europese Blob-opslag; daarna verhuist /api/audiobank hem naar de media-map
@@ -41,6 +41,7 @@ export async function POST(req: Request) {
         if (site.isDemo) throw new Error("In de demo kun je geen audio meesturen.");
         return {
           allowedContentTypes: [
+            "application/pdf",
             "audio/mpeg",
             "audio/mp3",
             "audio/mp4",

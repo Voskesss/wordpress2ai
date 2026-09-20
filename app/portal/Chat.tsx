@@ -338,6 +338,7 @@ export default function Chat({
   const [videoBankOpen, setVideoBankOpen] = useState(false);
   const [docBankOpen, setDocBankOpen] = useState(false);
   const [audioBezig, setAudioBezig] = useState(false);
+  const [docBezig, setDocBezig] = useState(false);
   // Welk soort de eigenaar in het 📎-menu koos: kiest hij daarna tóch een
   // ander soort bestand (in de kiezer kun je op "alle bestanden" zetten),
   // dan zeggen we wat we ermee doen in plaats van stil om te schakelen.
@@ -1014,6 +1015,48 @@ export default function Chat({
       };
       v.src = url;
     });
+  }
+
+  /** Pdf: meteen veiligstellen in de documentenbank, net als audio en video.
+   * Voorheen bleef hij als chip aan de invoerbalk hangen tot je óók nog een
+   * opdracht typte — deed je dat niet, dan gebeurde er niets. */
+  async function documentUploaden(bestand: File) {
+    if (docBezig) return;
+    setDocBezig(true);
+    setChatOpen(true);
+    setBerichten((b) => [...b, { rol: "klant", tekst: `📄 Document meegestuurd: ${bestand.name}` }]);
+    try {
+      setStatusTekst("Document opslaan...");
+      const { upload } = await import("@vercel/blob/client");
+      const blob = await upload(bestand.name, bestand, {
+        access: "public",
+        handleUploadUrl: "/api/audio-upload",
+        clientPayload: JSON.stringify({ siteId }),
+        onUploadProgress: (p) => setStatusTekst(`Document opslaan... ${Math.round(p.percentage)}%`),
+      });
+      const r = await fetch("/api/documentbank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
+      }).then((x) => x.json() as Promise<{ pad?: string; kb?: number; error?: string }>);
+      if (!r.pad) throw new Error(r.error ?? "Opslaan in de documentenbank mislukte");
+      setStatusTekst(null);
+      setBerichten((b) => [
+        ...b,
+        {
+          rol: "assistent",
+          tekst: `Je document staat in de documentenbank (${r.pad}${r.kb ? `, ${r.kb} kB` : ""}). Typ waar de link naartoe moet komen — bijvoorbeeld "zet de vacature op de vacaturepagina". Je vindt hem altijd terug via 📎 → Documentenbank.`,
+        },
+      ]);
+    } catch (e) {
+      setStatusTekst(null);
+      setBerichten((b) => [
+        ...b,
+        { rol: "assistent", tekst: `Het opslaan van je document lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.` },
+      ]);
+    } finally {
+      setDocBezig(false);
+    }
   }
 
   async function videoUploaden(bestand: File) {
@@ -3295,7 +3338,7 @@ export default function Chat({
                         },
                       ]);
                     } else {
-                      setDocumenten((vorige) => [...vorige, ...pdfs].slice(0, 4));
+                      for (const p of pdfs.slice(0, 4)) void documentUploaden(p);
                     }
                   }
                   const bestanden = alles.filter((f) => !f.type.startsWith("video/") && !isPdf(f) && !isAudio(f));

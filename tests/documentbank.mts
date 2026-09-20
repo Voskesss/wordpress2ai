@@ -35,3 +35,12 @@ assert.ok(/site-weergave\/\$\{previewAccess\}/.test(ui), "je kunt het document n
 assert.ok(chat.includes("Documentenbank") && /setDocBankOpen\(true\)/.test(chat), "de bank zit niet in het bijlagemenu");
 
 console.log("documentbank: alleen pdf's, dode downloadknoppen uitgesloten, bereikbaar via het menu");
+
+// 5. Een meegestuurde pdf wordt meteen bewaard, met een bericht in het
+//    gesprek. Voorheen bleef hij als chip aan de invoerbalk hangen tot je óók
+//    nog een opdracht typte — deed je dat niet, dan gebeurde er niets (20-09).
+assert.ok(/export async function POST/.test(route), "de documentenbank kan geen document opslaan");
+assert.ok(/Document bewaard in de documentenbank/.test(route), "het document wordt niet naar de site gepusht");
+assert.ok(/Document meegestuurd/.test(route), "er komt geen bericht in het gesprek");
+assert.ok(/documentUploaden/.test(chat), "de chat slaat een gekozen pdf niet meteen op");
+assert.ok(!/setDocumenten\(\(vorige\) => \[\.\.\.vorige, \.\.\.pdfs\]/.test(chat), "pdf's worden nog steeds alleen geparkeerd");

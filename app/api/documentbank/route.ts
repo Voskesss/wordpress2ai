@@ -71,6 +71,69 @@ export async function GET(req: Request) {
 }
 
 
+
+/** Een zojuist geüpload document meteen in de site bewaren, met een bericht
+ * in het gesprek. Voorheen bleef een pdf als chip aan de invoerbalk hangen
+ * tot de eigenaar óók nog een opdracht typte — deed hij dat niet, dan
+ * gebeurde er niets en was het bestand weg (20-09). Audio en video werken al
+ * zo: eerst bewaren, dan pas plaatsen. */
+export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+  const body = (await req.json().catch(() => null)) as { siteId?: number; blobUrl?: string; naam?: string } | null;
+  if (!body?.siteId || !body.blobUrl || !body.naam)
+    return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
+  const site = await magErbij(Number(body.siteId), userId);
+  if (!site || site.isDemo) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  if (!IS_DOCUMENT.test(body.naam)) return NextResponse.json({ error: "Alleen pdf-bestanden." }, { status: 400 });
+  const blobHost = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//;
+  if (!blobHost.test(body.blobUrl)) return NextResponse.json({ error: "Ongeldig bestandsadres" }, { status: 400 });
+
+  try {
+    const antwoord = await fetch(body.blobUrl);
+    if (!antwoord.ok) return NextResponse.json({ error: "Bestand niet gevonden in de upload-opslag." }, { status: 400 });
+    const data = Buffer.from((await antwoord.arrayBuffer()) as ArrayBuffer);
+    const kb = Math.round(data.length / 1024);
+    const schoon = (body.naam.split("/").pop() ?? "document.pdf")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const pad = `bestanden/${schoon}`;
+
+    const openConcept = await openConceptVan(site.id);
+    const { pushBestanden } = await import("@/lib/github");
+    for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+      await pushBestanden(site.githubRepo, [{ pad, inhoud: data }], "Document bewaard in de documentenbank", tak);
+
+    try {
+      const { del } = await import("@vercel/blob");
+      const token = process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
+      if (token) await del(body.blobUrl, { token });
+    } catch (e) {
+      console.error("Blob opruimen na documentbank:", e);
+    }
+
+    await db
+      .insert(messages)
+      .values([
+        { siteId: site.id, rol: "klant" as const, tekst: `📄 Document meegestuurd: ${body.naam}`, clerkUserId: userId },
+        {
+          siteId: site.id,
+          rol: "assistent" as const,
+          tekst: `Je document staat in de documentenbank (/${pad}, ${kb} kB). Typ waar de link naartoe moet komen — bijvoorbeeld "zet de vacature op de vacaturepagina" — dan zet ik hem er netjes neer. Je vindt hem altijd terug via 📎 → Documentenbank.`,
+          clerkUserId: userId,
+        },
+      ])
+      .catch((e) => console.error("Documentbank-berichten bewaren:", e));
+    return NextResponse.json({ ok: true, pad: `/${pad}`, kb });
+  } catch (e) {
+    console.error("Document in de documentenbank zetten:", e);
+    return NextResponse.json({ error: "Opslaan in de documentenbank lukte niet." }, { status: 503 });
+  }
+}
+
 export async function DELETE(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
