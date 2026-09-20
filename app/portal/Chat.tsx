@@ -2525,8 +2525,15 @@ export default function Chat({
                   </div>
                   );
                 })}
+                {/* Tekst die binnenkomt terwijl er nog gewerkt wordt is géén
+                    eindantwoord: de AI schrijft soms al "klaar" en gaat daarna
+                    nog minuten door met de opmaak. Rustige stijl plus een
+                    kopregel, zodat niemand denkt dat het af is. */}
                 {bezig && liveTekst && (
-                  <div className="w-fit max-w-[90%] rounded-2xl rounded-bl-sm bg-stone-100 px-4 py-2.5 text-sm whitespace-pre-wrap break-words text-stone-800">
+                  <div className="w-fit max-w-[90%] rounded-2xl rounded-bl-sm bg-stone-50 px-4 py-2.5 text-[13px] whitespace-pre-wrap break-words text-stone-500">
+                    <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                      Terwijl ik werk
+                    </span>
                     {liveTekst.split(/(\*\*[^*]+\*\*)/g).map((deel, j) =>
                       deel.startsWith("**") && deel.endsWith("**") ? (
                         <strong key={j}>{deel.slice(2, -2)}</strong>
