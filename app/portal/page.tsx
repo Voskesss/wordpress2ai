@@ -351,7 +351,6 @@ export default async function Portal({
                   terugLink={mijnSites.length > 1 ? "/portal" : null}
                   isDemo={site.isDemo}
                   meelezenUit={site.meelezenUit}
-                  aankondigingen={aankondigingenLijst}
                   siteId={site.id}
                   previewAccess={createPreviewAccess(site.id, userId)}
                   historie={historieMap[site.id] ?? []}

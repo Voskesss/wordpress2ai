@@ -7,7 +7,6 @@ import VideoBank from "./VideoBank";
 import DocumentBank from "./DocumentBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
-import Aankondigingen from "./Aankondigingen";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
@@ -190,13 +189,8 @@ export default function Chat({
   isDemo = false,
   meelezenUit = false,
   verbruik = null,
-  aankondigingen = [],
 }: {
   siteId: number;
-  /** WordSwap-aankondigingen: het portaal opent met de chat schermvullend,
-   * dus de balk bovenaan de pagina ziet bijna niemand — daarom staan ze óók
-   * bovenaan het gesprek (zelfde wegklik-geheugen, 20-09). */
-  aankondigingen?: { id: number; titel: string; tekst: string; link: string | null }[];
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
   isDemo?: boolean;
   /** Link naar het websiteoverzicht (alleen bij meerdere websites) */
@@ -2750,10 +2744,6 @@ export default function Chat({
             </div>
           )}
 
-          {/* Aankondiging van WordSwap: één keer over de pagina heen (zoals
-              de publiceer-overlay) — in de berichtenlijst scrolde hij mee het
-              beeld uit zodra het gesprek vol stond. */}
-          {aankondigingen.length > 0 && <Aankondigingen lijst={aankondigingen} overlay />}
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
