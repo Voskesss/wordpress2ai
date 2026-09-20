@@ -59,7 +59,8 @@
   "noodrem.mts",
   "aanwijzen-overleg.mts",
   "geen-streepjes.mts",
-  "aankondiging-in-chat.mts"
+  "aankondiging-in-chat.mts",
+  "versie.mts"
  ],
  "chat-ui": [
   "chat-recovery.cjs",
