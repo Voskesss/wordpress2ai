@@ -788,11 +788,18 @@ export async function POST(req: Request) {
           // (situationeel — de vaste prompt blijft licht). De bestanden staan
           // in de media-map in R2, niet in de werkmap.
           let audioBank: string[] | null = null;
+          // Ook triggeren als het RECENTE gesprek over audio ging: na een
+          // upload zegt de eigenaar vaak alleen wáár hij moet komen ("naast
+          // de kop X"), zonder het woord audio te herhalen.
+          const recentOverAudio = historie
+            .slice(-4)
+            .some((m) => /\/audio\/|audiobank/i.test(m.tekst));
           if (
             !site.isDemo &&
             site.siteSlug &&
             !snelpad &&
-            /audio|podcast|aflever|spreek|opname|\.(mp3|m4a|aac|ogg|wav)\b/i.test(bericht)
+            (recentOverAudio ||
+              /audio|podcast|aflever|spreek|opname|\.(mp3|m4a|aac|ogg|wav)\b/i.test(bericht))
           ) {
             const { lijstAudio } = await import("@/lib/media");
             audioBank = await lijstAudio(site.siteSlug).catch(() => null);

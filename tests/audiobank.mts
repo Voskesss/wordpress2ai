@@ -37,4 +37,15 @@ assert.ok(/audio\|podcast\|aflever/.test(route), "situationele audio-herkenning 
 assert.ok(route.includes("AUDIOBANK van deze site"), "audiobank-context voor de agent ontbreekt");
 assert.ok(route.includes("verzin nooit zelf een audio-adres"), "lege-bank-instructie ontbreekt");
 
+// 5. Na een upload zegt de eigenaar vaak alleen wáár de speler moet komen,
+//    zonder het woord audio: de banklijst moet dus ook meegaan als het
+//    RECENTE gesprek over audio ging, en de upload-berichten moeten echt in
+//    de gespreksgeschiedenis staan (het portaal-scherm alleen is niet genoeg).
+assert.ok(
+  route.includes("recentOverAudio") && route.includes("audiobank/i.test(m.tekst)"),
+  "geschiedenis-trigger voor het audioblok ontbreekt",
+);
+const bank = await readFile("app/api/audiobank/route.ts", "utf8");
+assert.ok(/insert\(messages\)/.test(bank) && bank.includes("Audio meegestuurd"), "upload-berichten worden niet in de gespreksgeschiedenis bewaard");
+
 console.log("audiobank: naamschoonmaak, workerroute, media-voorvoegsel en route-bedrading kloppen");

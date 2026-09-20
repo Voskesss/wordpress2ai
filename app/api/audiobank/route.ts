@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { sites } from "@/db/schema";
+import { messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
 
 /** De audiobank van een site: afleveringen in de media-map in R2, los van de
@@ -71,6 +71,21 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("Blob opruimen na audiobank:", e);
   }
+  // In de gespreksgeschiedenis vastleggen: de volgende chatbeurt ("zet hem
+  // naast de kop X") moet kunnen weten om welke aflevering het gaat — het
+  // portaal toont deze berichten al, maar de AI leest alleen de database.
+  await db
+    .insert(messages)
+    .values([
+      { siteId: site.id, rol: "klant", tekst: `🎧 Audio meegestuurd: ${body.naam}`, clerkUserId: userId },
+      {
+        siteId: site.id,
+        rol: "assistent",
+        tekst: `Je audio staat klaar in de audiobank (/audio/${naam}). Typ waar hij moet komen, dan zet ik er een nette speler neer.`,
+        clerkUserId: userId,
+      },
+    ])
+    .catch((e) => console.error("Audiobank-berichten bewaren:", e));
   return NextResponse.json({ ok: true, naam, pad: `/audio/${naam}` });
 }
 
