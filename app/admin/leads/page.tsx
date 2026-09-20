@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
-import { leadActies, leads } from "@/db/schema";
+import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { vandaag } from "@/lib/leads";
-import LeadLijst from "./LeadLijst";
+import type { MailStap } from "@/lib/lead-opvolging";
+import BijwerkKnop from "./BijwerkKnop";
+import LeadLijst, { type PostRegel } from "./LeadLijst";
 import LeadVak from "./LeadVak";
+import OpvolgKaart from "./OpvolgKaart";
 
 export const metadata: Metadata = {
   title: "Leads",
@@ -14,12 +17,55 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+// De bijwerkronde (Meta + Soverin, inclusief terugblik) mag even duren
+export const maxDuration = 120;
 
 export default async function Leads() {
   await requireAdmin();
   const nu = vandaag();
   const alle = await db.select().from(leads).orderBy(desc(leads.id)).catch(() => null);
   const alleActies = await db.select().from(leadActies).catch(() => null);
+  const allePost = await db.select().from(leadPost).catch(() => []);
+  const alleVerzonden = await db.select().from(verzondenMails).catch(() => []);
+
+  // Tijdlijn per lead: systeem-mails (Mailer) en Soverin-post, op e-mailadres bij elkaar
+  const tijdlijn = new Map<number, PostRegel[]>();
+  for (const l of alle ?? []) {
+    const adres = l.email?.trim().toLowerCase();
+    const regels: PostRegel[] = [
+      ...alleVerzonden
+        .filter((m) => adres && m.aan.trim().toLowerCase() === adres)
+        .map((m) => ({
+          richting: "uit" as const,
+          via: "Mailer",
+          onderwerp: m.onderwerp,
+          fragment: m.tekst.slice(0, 300),
+          datum: m.verzonden.toISOString(),
+        })),
+      ...allePost
+        .filter((p) => p.leadId === l.id)
+        .map((p) => ({
+          richting: p.richting as "uit" | "in",
+          via: p.bron === "soverin-inbox" ? "reactie" : p.bron === "contactformulier" ? "contactformulier" : "eigen mail",
+          onderwerp: p.onderwerp,
+          fragment: p.fragment,
+          datum: p.datum.toISOString(),
+        })),
+    ].sort((a, b) => b.datum.localeCompare(a.datum));
+    if (regels.length > 0) tijdlijn.set(l.id, regels);
+  }
+
+  const concepten = (alle ?? [])
+    .filter((l) => l.conceptSoort && l.conceptKlaarOp)
+    .map((l) => ({
+      id: l.id,
+      naam: l.naam,
+      email: l.email,
+      website: l.website,
+      soort: l.conceptSoort as MailStap,
+      onderwerp: l.conceptOnderwerp,
+      tekst: l.conceptTekst,
+    }));
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -35,6 +81,23 @@ export default async function Leads() {
         </a>{" "}
         en bij de formulieren van wordswap.nl.
       </p>
+
+      <BijwerkKnop />
+
+      {concepten.length > 0 && (
+        <section className="mt-8">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">📤 Klaarstaande mails</h2>
+          <p className="mt-1 text-sm text-stone-600">
+            Het systeem zet de stap klaar; de tekst maak jij (samen met de chat) en plak je in het kaartje.
+            Er gaat niets weg zonder jouw klik.
+          </p>
+          <div className="mt-3 grid gap-3">
+            {concepten.map((c) => (
+              <OpvolgKaart key={c.id} concept={c} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {alle === null || alleActies === null ? (
         <p className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -54,8 +117,12 @@ export default async function Leads() {
             soort: l.soort,
             status: l.status,
             notities: l.notities,
+            oordeel: l.oordeel,
+            conceptSoort: l.conceptSoort,
+            heeftConcept: Boolean(l.conceptSoort && l.conceptKlaarOp),
             bijgewerkt: l.bijgewerkt.toISOString(),
           }))}
+          post={Object.fromEntries(tijdlijn)}
           acties={alleActies.map((a) => ({
             id: a.id,
             leadId: a.leadId,

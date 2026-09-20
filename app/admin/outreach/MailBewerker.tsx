@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 /** Bewerkvak voor één mail (onderwerp + tekst) met AI-hulp: typ een
  * aanwijzing ("korter", "noem het rieten dak") en de AI herschrijft —
@@ -29,6 +29,36 @@ export default function MailBewerker({
   const [aanwijzing, setAanwijzing] = useState("");
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
+  const [uploadt, setUploadt] = useState(false);
+  const tekstRef = useRef<HTMLTextAreaElement>(null);
+  const bestandRef = useRef<HTMLInputElement>(null);
+
+  /** Afbeelding uploaden en als markering invoegen waar de cursor staat. */
+  async function voegAfbeeldingToe(bestand: File) {
+    setUploadt(true);
+    setFout(null);
+    try {
+      const formulier = new FormData();
+      formulier.append("afbeelding", bestand);
+      const res = await fetch("/api/admin/mail-afbeelding", { method: "POST", body: formulier });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!data.url) {
+        setFout(data.error ?? "Uploaden lukte niet — probeer het nog eens.");
+        return;
+      }
+      const markering = `[afbeelding: ${data.url}]`;
+      const veld = tekstRef.current;
+      const positie = veld?.selectionStart ?? tekst.length;
+      const voor = tekst.slice(0, positie).replace(/\s*$/, "");
+      const na = tekst.slice(positie).replace(/^\s*/, "");
+      setTekst(`${voor}${voor ? "\n\n" : ""}${markering}${na ? `\n\n${na}` : "\n"}`);
+    } catch {
+      setFout("Uploaden lukte niet — probeer het nog eens.");
+    } finally {
+      setUploadt(false);
+      if (bestandRef.current) bestandRef.current.value = "";
+    }
+  }
 
   async function verbeter() {
     if (!aanwijzing.trim() || bezig) return;
@@ -64,12 +94,36 @@ export default function MailBewerker({
         className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm focus:border-violet-600 focus:outline-none"
       />
       <textarea
+        ref={tekstRef}
         name="tekst"
         rows={12}
         value={tekst}
         onChange={(e) => setTekst(e.target.value)}
         className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 font-mono text-[13px] leading-relaxed focus:border-violet-600 focus:outline-none"
       />
+      <div>
+        <input
+          ref={bestandRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const bestand = e.target.files?.[0];
+            if (bestand) voegAfbeeldingToe(bestand);
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => bestandRef.current?.click()}
+          disabled={uploadt}
+          className="rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-600 disabled:opacity-60 cursor-pointer"
+        >
+          {uploadt ? "Bezig met uploaden..." : "🖼 Afbeelding toevoegen"}
+        </button>
+        <span className="ml-2 text-[11px] text-stone-400">
+          komt op de plek van je cursor — met 👁 zie je hoe hij aankomt
+        </span>
+      </div>
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50/50 p-2.5">
         <input
           value={aanwijzing}

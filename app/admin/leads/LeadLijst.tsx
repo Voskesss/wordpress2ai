@@ -11,6 +11,7 @@ import {
   leadVerwijderen,
 } from "../acties-leads";
 import ActieKnop from "../klant/[id]/ActieKnop";
+import AiMailVak from "./AiMailVak";
 
 export type LeadRij = {
   id: number;
@@ -22,7 +23,19 @@ export type LeadRij = {
   soort: string;
   status: string;
   notities: string | null;
+  oordeel: string | null;
+  conceptSoort: string | null;
+  heeftConcept: boolean;
   bijgewerkt: string;
+};
+
+/** Eén regel in de mail-tijdlijn van een lead (Mailer, eigen Soverin-mail of reactie). */
+export type PostRegel = {
+  richting: "uit" | "in";
+  via: string;
+  onderwerp: string | null;
+  fragment: string | null;
+  datum: string;
 };
 
 export type ActieRij = {
@@ -99,9 +112,40 @@ function LeadVelden({ lead }: { lead?: LeadRij }) {
         </label>
       </div>
       <label className="block text-sm font-semibold sm:col-span-2">
+        Oordeel (past dit bij ons?)
+        <textarea name="oordeel" rows={2} defaultValue={lead?.oordeel ?? ""} placeholder="Bijv. sterk — echt bedrijf op WordPress" className={invoer} />
+      </label>
+      <label className="block text-sm font-semibold sm:col-span-2">
         Notities
         <textarea name="notities" rows={3} defaultValue={lead?.notities ?? ""} className={invoer} />
       </label>
+    </div>
+  );
+}
+
+function PostTijdlijn({ regels }: { regels: PostRegel[] }) {
+  return (
+    <div className="mt-3 rounded-xl border border-stone-200 bg-white px-3 py-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Mailcontact</p>
+      <ul className="mt-1 space-y-1.5">
+        {regels.map((r, i) => (
+          <li key={i} className="text-sm">
+            <span className={r.richting === "in" ? "font-semibold text-emerald-700" : "text-stone-700"}>
+              {r.richting === "in" ? "📥 Reactie" : r.via === "contactformulier" ? "📮 Via hun contactformulier" : `📤 Gemaild (${r.via})`}
+            </span>{" "}
+            <span className="text-xs text-stone-400">
+              {new Date(r.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" })}
+            </span>
+            {r.onderwerp && <span className="text-stone-500"> · {r.onderwerp}</span>}
+            {r.fragment && (
+              <details className="mt-0.5">
+                <summary className="cursor-pointer text-xs text-violet-700">tekst</summary>
+                <p className="mt-1 whitespace-pre-line rounded-lg bg-stone-50 p-2 text-xs text-stone-600">{r.fragment}</p>
+              </details>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -144,7 +188,7 @@ function ActieRegel({ actie, nu }: { actie: ActieRij; nu: string }) {
   );
 }
 
-function LeadKaart({ lead, acties, nu }: { lead: LeadRij; acties: ActieRij[]; nu: string }) {
+function LeadKaart({ lead, acties, post, nu }: { lead: LeadRij; acties: ActieRij[]; post: PostRegel[]; nu: string }) {
   const openActies = acties.filter((a) => !a.gedaan).sort((a, b) => (a.datum ?? "9999").localeCompare(b.datum ?? "9999"));
   const gedaan = acties.filter((a) => a.gedaan).sort((a, b) => (b.gedaanOp ?? "").localeCompare(a.gedaanOp ?? ""));
   return (
@@ -154,6 +198,18 @@ function LeadKaart({ lead, acties, nu }: { lead: LeadRij; acties: ActieRij[]; nu
         {lead.bron && <> · via {lead.bron}</>}
         {lead.soort === "partner" && <> · partner</>}
       </p>
+
+      {lead.oordeel && (
+        <p className="mt-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-900">
+          🤖 {lead.oordeel}
+        </p>
+      )}
+      {lead.heeftConcept && (
+        <p className="mt-2 text-sm font-medium text-amber-800">⏳ Er staat een mail klaar — zie bovenaan de pagina.</p>
+      )}
+      {!lead.heeftConcept && statusInfo(lead.status).open && lead.email && <AiMailVak leadId={lead.id} heeftConcept={false} />}
+
+      {post.length > 0 && <PostTijdlijn regels={post} />}
 
       <div className="mt-3 rounded-xl border border-stone-200 bg-white px-3 py-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Acties</p>
@@ -212,7 +268,17 @@ function LeadKaart({ lead, acties, nu }: { lead: LeadRij; acties: ActieRij[]; nu
   );
 }
 
-export default function LeadLijst({ leads, acties, nu }: { leads: LeadRij[]; acties: ActieRij[]; nu: string }) {
+export default function LeadLijst({
+  leads,
+  acties,
+  post,
+  nu,
+}: {
+  leads: LeadRij[];
+  acties: ActieRij[];
+  post: Record<number, PostRegel[]>;
+  nu: string;
+}) {
   const [filter, setFilter] = useState("open");
   const [zoek, setZoek] = useState("");
   const [openId, setOpenId] = useState<number | null>(null);
@@ -246,6 +312,7 @@ export default function LeadLijst({ leads, acties, nu }: { leads: LeadRij[]; act
           l.website,
           l.bron,
           l.notities,
+          l.oordeel,
           l.soort,
           statusInfo(l.status).label,
           ...(actiesPerLead.get(l.id) ?? []).map((a) => a.tekst),
@@ -359,7 +426,7 @@ export default function LeadLijst({ leads, acties, nu }: { leads: LeadRij[]; act
                   )}
                 </span>
               </button>
-              {isOpen && <LeadKaart lead={l} acties={actiesPerLead.get(l.id) ?? []} nu={nu} />}
+              {isOpen && <LeadKaart lead={l} acties={actiesPerLead.get(l.id) ?? []} post={post[l.id] ?? []} nu={nu} />}
             </div>
           );
         })}

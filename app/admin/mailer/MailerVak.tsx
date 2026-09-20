@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { losseMailNaarHtml } from "@/lib/mailer";
 import MailBewerker from "../outreach/MailBewerker";
 
 /** Losse mails versturen vanuit jos@wordswap.nl, met AI-hulp en vaste
@@ -23,6 +24,18 @@ export default function MailerVak({
   // Voorvulling (bv. opvolgmail vanuit de scanner) geldt tot de eerste verzending
   const [begin, setBegin] = useState({ aan: beginAan, onderwerp: beginOnderwerp, tekst: beginTekst });
   const [metDemo, setMetDemo] = useState(beginDemo);
+  const [voorbeeld, setVoorbeeld] = useState<{ aan: string; onderwerp: string; html: string } | null>(null);
+
+  /** Precies dezelfde opmaak als het versturen gebruikt — wat je hier ziet, gaat er ook uit. */
+  function toonVoorbeeld() {
+    if (!formRef.current) return;
+    const data = new FormData(formRef.current);
+    setVoorbeeld({
+      aan: String(data.get("aan") ?? ""),
+      onderwerp: String(data.get("onderwerp") ?? ""),
+      html: losseMailNaarHtml(String(data.get("tekst") ?? ""), metDemo),
+    });
+  }
 
   async function verstuur(e: React.FormEvent) {
     e.preventDefault();
@@ -104,9 +117,24 @@ export default function MailerVak({
       {melding && (
         <p className={`text-sm font-medium ${melding.goed ? "text-emerald-700" : "text-red-600"}`}>
           {melding.tekst}
+          {melding.goed && (
+            <>
+              {" · "}
+              <a href="/admin/leads" className="font-semibold text-violet-700 hover:underline">
+                terug naar leads
+              </a>
+            </>
+          )}
         </p>
       )}
-      <div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={toonVoorbeeld}
+          className="rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-600 cursor-pointer"
+        >
+          👁 Zo ziet de ontvanger hem
+        </button>
         <button
           type="submit"
           disabled={bezig}
@@ -115,6 +143,21 @@ export default function MailerVak({
           {bezig ? "Versturen..." : "📤 Verstuur vanuit jos@wordswap.nl"}
         </button>
       </div>
+      {voorbeeld && (
+        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+          <div className="border-b border-stone-200 bg-stone-50 px-4 py-2.5 text-sm">
+            <p><span className="font-semibold text-stone-500">Van:</span> Jos Klijnhout | WordSwap &lt;jos@wordswap.nl&gt;</p>
+            <p><span className="font-semibold text-stone-500">Aan:</span> {voorbeeld.aan || <span className="text-red-600">nog geen adres ingevuld</span>}</p>
+            <p><span className="font-semibold text-stone-500">Onderwerp:</span> {voorbeeld.onderwerp || <span className="text-red-600">nog geen onderwerp</span>}</p>
+          </div>
+          <iframe
+            title="Mailvoorbeeld"
+            srcDoc={`<body style="margin:16px">${voorbeeld.html}</body>`}
+            sandbox=""
+            className="h-[560px] w-full"
+          />
+        </div>
+      )}
     </form>
   );
 }

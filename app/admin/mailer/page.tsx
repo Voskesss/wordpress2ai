@@ -57,9 +57,15 @@ export default async function Mailer({
   }
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
-        ← Alle klanten
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <Link href="/admin" className="text-sm text-stone-500 hover:text-violet-700">
+          ← Alle klanten
+        </Link>
+        {/* Je komt hier meestal vanuit een lead, dus ook een weg terug daarheen */}
+        <Link href="/admin/leads" className="text-sm font-semibold text-violet-700 hover:underline">
+          🎯 Terug naar leads
+        </Link>
+      </div>
       <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight">✉️ Mailer</h1>
       <p className="mt-3 text-stone-600 leading-relaxed max-w-2xl">
         Verstuur een losse mail vanuit <strong>jos@wordswap.nl</strong> — voor

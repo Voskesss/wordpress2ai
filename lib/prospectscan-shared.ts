@@ -22,7 +22,14 @@ export type ScanResultaat = {
   email?: string;
 };
 
-/** Richtprijs voor de overstap op basis van de sitegrootte. */
+/**
+ * Richtprijs voor de overstap op basis van de sitegrootte.
+ *
+ * Tel SOORTEN pagina's, niet losse pagina's: twintig fotogalerijen of
+ * blogberichten met hetzelfde sjabloon zijn één keer werk, geen twintig keer.
+ * Het aantal foto's telt niet mee in de prijs — die gaan geautomatiseerd mee.
+ * Een site met veel herhaling hoort dus een trede lager dan zijn paginateller.
+ */
 export function richtprijs(paginas: number): string | null {
   if (!paginas) return null;
   if (paginas <= 8) return "€150";
