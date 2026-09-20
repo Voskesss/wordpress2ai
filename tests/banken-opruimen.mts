@@ -44,4 +44,10 @@ assert.ok(!bankUi.includes("useState(!vervangDoel)"), "oud gedrag (filter standa
 // 6. Opruimen wordt alleen aangeboden bij foto's die niet in gebruik zijn
 assert.ok(/!vervangDoel && !b\.inGebruik/.test(bankUi), "opruimknop wordt ook bij foto's op de site getoond");
 
+// 7. Miniaturen komen uit dezelfde bron als de bank zelf (de bestanden van
+//    de site), niet van de gepubliceerde worker: een net geüploade foto die
+//    nog nergens geplaatst is staat wél in de bestanden maar nog niet op de
+//    worker, en gaf dan een kapot plaatje (20-09).
+assert.ok(/site-weergave\/\$\{previewAccess\}/.test(bankUi), "fotobank laadt miniaturen niet via /site-weergave");
+
 console.log("banken-opruimen: verwijderen met in-gebruik-slot in foto- en audiobank, filter standaard uit");

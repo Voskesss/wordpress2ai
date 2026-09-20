@@ -64,7 +64,11 @@ export default function AudioBank({
           <div>
             <h3 className="font-semibold text-stone-900">🎧 Audiobank</h3>
             <p className="text-xs text-stone-500">
-              Podcasts en audio van je site{limiet !== null && audio !== null ? ` — ${audio.length} van ${limiet} plekken` : ""}. Ze blijven bewaard, ook als je een concept weggooit.
+              Podcasts en audio van je site
+              {limiet !== null && audio !== null
+                ? `: je hebt er ${audio.length} staan, er passen er ${limiet}`
+                : ""}
+              . Ze blijven bewaard, ook als je een concept weggooit.
             </p>
           </div>
           <button

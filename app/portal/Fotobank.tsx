@@ -9,6 +9,7 @@ type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean };
  * vervangen weggegooid. Oude versies kun je met één klik terugzetten. */
 export default function Fotobank({
   siteId,
+  previewAccess,
   beeldBasis,
   vervangDoel,
   pagina,
@@ -18,6 +19,12 @@ export default function Fotobank({
   onGebruik,
 }: {
   siteId: number;
+  /** Sleutel voor /site-weergave: de miniaturen komen daarmee uit dezelfde
+   * bron als de bank zelf (de bestanden van de site), niet van de
+   * gepubliceerde worker. Een net geüploade foto die nog nergens geplaatst
+   * is, staat namelijk wél in de bestanden maar nog niet op de worker — dan
+   * gaf de miniatuur een kapot plaatje (20-09). */
+  previewAccess?: string | null;
   /** Gezet vanuit de aanwijs-flow: de foto die vervangen wordt — de bank
    * werkt dan als keuzemenu ("gebruik deze"). */
   vervangDoel?: string | null;
@@ -167,10 +174,14 @@ export default function Fotobank({
               b.inGebruik ? "border-emerald-300" : "border-stone-200"
             }`}
           >
-            {beeldBasis ? (
+            {previewAccess || beeldBasis ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={`https://${beeldBasis}/${b.pad}`}
+                src={
+                  previewAccess
+                    ? `/site-weergave/${previewAccess}/${b.pad}`
+                    : `https://${beeldBasis}/${b.pad}`
+                }
                 alt={b.pad}
                 loading="lazy"
                 className="h-24 w-full bg-stone-100 object-cover"

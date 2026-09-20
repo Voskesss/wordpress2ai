@@ -2517,6 +2517,7 @@ export default function Chat({
               }}
               // Zonder open concept van het live-adres laden: de werkversie kan dan
               // nog niet bestaan (demo: persoonlijke sandbox ontstaat pas bij de eerste wijziging)
+              previewAccess={previewAccess}
               beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
               vervangDoel={fotobankDoel}
               pagina={huidigePagina}
