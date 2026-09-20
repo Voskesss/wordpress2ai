@@ -50,7 +50,8 @@
     "banken-direct.mts",
     "fair-use.mts",
     "opruimen-takken.mts",
-    "documentbank.mts"
+    "documentbank.mts",
+    "pdf-lezen-of-opslaan.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",
