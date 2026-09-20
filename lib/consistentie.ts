@@ -258,6 +258,17 @@ export async function dubbelingsRapport(opties: {
       }
       if (paar && paarP + paarS < blok.length / 2) paar = null; // te weinig overlap: geen tegenhanger
 
+      // Kwam er alleen een kort stukje VÓÓR de ongewijzigde tekst te staan?
+      // Dan is dit een artefact van de blokindeling, geen inhoudelijke
+      // wijziging: de splitser knipt op sluittags, dus een nieuw element
+      // zonder eigen blok (zoals de tijdweergave "0:00" van een audiospeler)
+      // plakt aan de tekst erna vast. Dat leverde 20-09 vier meldingen op
+      // over een kop die helemaal niet was aangepast. Tekst die ERACHTER
+      // bijkomt ("... 2026") of eraan vastgroeit ("Kerststol-acties") is wél
+      // een echte hernoeming en blijft gewoon gemeld worden.
+      if (paar && paar.endsWith(blok) && telGrens(paar, blok) > 0 && paar.length - blok.length < 12)
+        continue;
+
       // Waar zoeken we op: het hele oude blok, en (als die specifiek genoeg
       // is) de veranderde kern — teruggeknipt tot spatiegrenzen, zodat een
       // hernoemde naam heel blijft ("Kerststol-actie", niet "actie").
@@ -269,12 +280,26 @@ export async function dubbelingsRapport(opties: {
         while (s > 0 && !/\s/.test(blok[blok.length - s])) s--;
         const oudKern = blok.slice(p, blok.length - s).trim();
         const nieuwKern = paar.slice(p, paar.length - s).trim();
-        // Lagere drempel dan bij losse fragmenten: dit is een GEPAARDE
+        // Iets lagere drempel dan bij losse fragmenten: dit is een GEPAARDE
         // hernoeming (oud→nieuw uit dezelfde alinea), dus het signaal is
         // sterk. "Spoedcursus" (11 tekens) glipte anders onder de 12 door,
-        // terwijl hij nog in vijf alt-teksten stond. Wel echte letters
-        // eisen, zodat prijzen en getallen ("64"→"70") geen ruis geven.
-        if (oudKern !== blok && oudKern.length >= 5 && oudKern.length <= 220 && /\p{L}.*\p{L}.*\p{L}/u.test(oudKern))
+        // terwijl hij nog in vijf alt-teksten stond. Niet lager dan 8: een
+        // kort, doodgewoon woord als "Vaste" staat op elke site tien keer en
+        // levert alleen ruis op (20-09). Wel echte letters eisen, zodat
+        // prijzen en getallen ("64"→"70") geen meldingen geven.
+        // ...en alleen als die kern hier ECHT is verdwenen. Staat hij nog
+        // gewoon op deze pagina, dan is er niets hernoemd en komt de paring
+        // uit een verschoven blokindeling — dat gebeurt bij een OPMAAK-
+        // wijziging (20-09: het opmaken van een audiospeler leverde vier
+        // meldingen op over "Vaste instructeur", die voor én na de wijziging
+        // twee keer op de pagina stond).
+        if (
+          oudKern !== blok &&
+          oudKern.length >= 8 &&
+          oudKern.length <= 220 &&
+          /\p{L}.*\p{L}.*\p{L}/u.test(oudKern) &&
+          telGrens(naTekst, oudKern) === 0
+        )
           zoekParen.push([oudKern, nieuwKern || null]);
       }
 

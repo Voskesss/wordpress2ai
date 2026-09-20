@@ -205,6 +205,28 @@ assert.equal(
   "contact/index.html",
 );
 
+// 12) OPMAAKWIJZIGING mag geen meldingen geven (Groene Golf 20-09): de chat
+// gaf een audiospeler eigen knoppen, waardoor de tijdweergave "0:00" vlak
+// vóór een bestaande kop kwam te staan. De kop zelf veranderde niet, maar het
+// vangnet meldde vier keer dat hij "elders nog stond" — precies het soort
+// vals alarm waardoor een klant meldingen gaat wegklikken.
+const metSpeler = (voor: string) =>
+  `<html><body><h2>${voor}Vaste instructeur</h2><p>Bij ons rijd je elke les met dezelfde vertrouwde instructeur.</p>${VOET}</body></html>`;
+m = await meldingenVoor(
+  { "a.html": metSpeler("0:00 "), "b.html": metSpeler("") },
+  ["a.html"],
+  { "a.html": metSpeler("") },
+);
+assert.equal(m.length, 0, `opmaakwijziging mag geen meldingen geven, kreeg: ${m.join(" | ")}`);
+
+// 13) Maar een echte toevoeging áchter de titel blijft wél gemeld worden
+m = await meldingenVoor(
+  { "a.html": metSpeler("").replace("Vaste instructeur", "Vaste instructeur sinds 1998"), "b.html": metSpeler("") },
+  ["a.html"],
+  { "a.html": metSpeler("") },
+);
+assert.ok(m.length > 0, "een echte titelwijziging hoort nog steeds gemeld te worden");
+
 // ── Echte klantpagina als proef op de som ─────────────────────────────────
 // Een echte projectenpagina heeft tegels die ook elders terugkomen; een
 // hernoemde projecttitel hoort dus gemeld te worden.
