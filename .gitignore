@@ -49,3 +49,6 @@ playwright-report/
 
 envpreview
 output/
+
+# Tijdelijke uploads vanuit de admin/mailer: horen nooit in de repo
+.tmp-upload/
