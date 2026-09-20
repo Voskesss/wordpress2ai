@@ -11,6 +11,7 @@ import {
   leadVerwijderen,
 } from "../acties-leads";
 import ActieKnop from "../klant/[id]/ActieKnop";
+import AiMailVak from "./AiMailVak";
 
 export type LeadRij = {
   id: number;
@@ -204,8 +205,9 @@ function LeadKaart({ lead, acties, post, nu }: { lead: LeadRij; acties: ActieRij
         </p>
       )}
       {lead.heeftConcept && (
-        <p className="mt-2 text-sm font-medium text-amber-800">⏳ Er staat een opvolgstap klaar — zie bovenaan de pagina.</p>
+        <p className="mt-2 text-sm font-medium text-amber-800">⏳ Er staat een mail klaar — zie bovenaan de pagina.</p>
       )}
+      {!lead.heeftConcept && statusInfo(lead.status).open && lead.email && <AiMailVak leadId={lead.id} heeftConcept={false} />}
 
       {post.length > 0 && <PostTijdlijn regels={post} />}
 

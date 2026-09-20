@@ -10,6 +10,8 @@ export const LAATSTE_NA_DAGEN = 7; // na de opvolger zonder reactie
 export const FORMULIER_NA_DAGEN = 7; // na de laatste mail: via hun eigen contactformulier
 
 export type OpvolgStap = "opvolger" | "laatste" | "formulier";
+/** Alle mailstappen, inclusief de eerste mail die voor elke nieuwe lead wordt klaargezet. */
+export type MailStap = "eerste" | OpvolgStap;
 
 /**
  * Welke stap staat er nu klaar te zetten? null = niets doen.
@@ -33,6 +35,23 @@ export function volgendeStap(o: {
 function aanhef(naam?: string | null): string {
   const voornaam = naam?.trim().split(/\s+/)[0];
   return voornaam ? `Hallo ${voornaam},` : "Hallo,";
+}
+
+/** Eerste mail (terugvaltekst als de AI niet beschikbaar is): bedanken, aanbod, voorproefje. */
+export function maakEerste(naam?: string | null, website?: string | null): { onderwerp: string; tekst: string } {
+  const site = website?.trim();
+  return {
+    onderwerp: site ? `Je aanvraag over ${site}` : "Je websitecheck-aanvraag",
+    tekst: `${aanhef(naam)}
+
+Bedankt voor je aanvraag via onze advertentie${site ? ` — ik heb naar ${site} gekeken` : ""}.
+
+Kort wat wij doen: we zetten je site over naar ons platform. Hij wordt sneller en veiliger, je vindbaarheid blijft behouden, en er is daarna niets meer te onderhouden — geen updates, geen plugins. Iets aanpassen doe je door in een chat te typen wat er anders moet.
+
+Vanaf €19 per maand, alles inbegrepen. Zal ik als proef alvast je homepage overzetten? Dan zie je op een echte link hoe jouw site er bij ons uitziet — kost je niets en je zit nergens aan vast.
+
+Eén reply met "laat maar zien" is genoeg. Liever even bellen? Laat weten wat een goed moment is.`,
+  };
 }
 
 /** Stap 2: korte opvolger, verwijst naar de eerste mail en herhaalt het voorproefje-aanbod. */
@@ -91,7 +110,8 @@ export function maakStap(
   return maakFormulierBericht(naam);
 }
 
-export const STAP_LABELS: Record<OpvolgStap, string> = {
+export const STAP_LABELS: Record<MailStap, string> = {
+  eerste: "Eerste mail",
   opvolger: "Opvolgmail",
   laatste: "Laatste mail",
   formulier: "Bericht via hun contactformulier",

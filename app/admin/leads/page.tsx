@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { vandaag } from "@/lib/leads";
-import type { OpvolgStap } from "@/lib/lead-opvolging";
+import type { MailStap } from "@/lib/lead-opvolging";
 import BijwerkKnop from "./BijwerkKnop";
 import LeadLijst, { type PostRegel } from "./LeadLijst";
 import LeadVak from "./LeadVak";
@@ -62,7 +62,7 @@ export default async function Leads() {
       naam: l.naam,
       email: l.email,
       website: l.website,
-      soort: l.conceptSoort as OpvolgStap,
+      soort: l.conceptSoort as MailStap,
       onderwerp: l.conceptOnderwerp!,
       tekst: l.conceptTekst!,
     }));
@@ -86,9 +86,9 @@ export default async function Leads() {
 
       {concepten.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">📤 Klaarstaande opvolgers</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">📤 Klaarstaande mails</h2>
           <p className="mt-1 text-sm text-stone-600">
-            Door de opvolg-cadans klaargezet — er gaat niets weg zonder jouw klik.
+            Eerste mails en opvolgers, klaargezet door de AI — er gaat niets weg zonder jouw klik.
           </p>
           <div className="mt-3 grid gap-3">
             {concepten.map((c) => (

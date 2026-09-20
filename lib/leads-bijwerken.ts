@@ -9,13 +9,15 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { leadPost, leads, verzondenMails } from "@/db/schema";
 import { LEAD_STATUSSEN } from "@/lib/leads";
-import { maakStap, volgendeStap } from "@/lib/lead-opvolging";
+import { haalSiteTekst, schrijfLeadMail } from "@/lib/lead-mail-ai";
+import { maakEerste, maakStap, volgendeStap } from "@/lib/lead-opvolging";
 import { haalMetaLeads, metaIngesteld } from "@/lib/meta-leads";
 import { haalLeadPost, soverinIngesteld, type PostItem } from "@/lib/soverin";
 
 const OPEN_STATUSSEN = LEAD_STATUSSEN.filter((s) => s.open).map((s) => s.waarde);
 const BACKFILL_PER_KEER = 10;
 const SYNC_DAGEN_TERUG = 5;
+const EERSTE_MAILS_PER_RONDE = 5; // AI-concepten per bijwerkronde, zodat de ronde vlot blijft
 
 function berichtSleutel(item: PostItem): string {
   return item.messageId ?? `${item.bron}-${item.datum.toISOString()}-${(item.onderwerp ?? "").slice(0, 60)}`;
@@ -128,6 +130,7 @@ export async function werkLeadsBij(): Promise<string[]> {
   const alleVerzonden = await db.select({ aan: verzondenMails.aan, verzonden: verzondenMails.verzonden }).from(verzondenMails);
   const post = metMail.length > 0 ? await db.select().from(leadPost).where(inArray(leadPost.leadId, metMail.map((l) => l.id))) : [];
   const nu = new Date();
+  let eersteMails = 0;
 
   for (const lead of metMail) {
     const adres = lead.email!.trim().toLowerCase();
@@ -137,6 +140,28 @@ export async function werkLeadsBij(): Promise<string[]> {
       ...eigen.filter((p) => p.richting === "uit").map((p) => p.datum),
     ].sort((a, b) => a.getTime() - b.getTime());
     const heeftReactie = eigen.some((p) => p.richting === "in");
+
+    // Nieuwe lead zonder enige mail én zonder concept → eerste mail klaarzetten
+    // (iedereen krijgt er één, ook een minder sterke match; versturen blijft aan Jos)
+    if (lead.status === "nieuw" && !heeftReactie && uitMomenten.length === 0 && !lead.conceptSoort && !lead.conceptTekst && eersteMails < EERSTE_MAILS_PER_RONDE) {
+      eersteMails++;
+      const concept =
+        (await schrijfLeadMail({
+          soort: "eerste",
+          naam: lead.naam,
+          website: lead.website,
+          oordeel: lead.oordeel,
+          notities: lead.notities,
+          siteTekst: await haalSiteTekst(lead.website),
+          tijdlijn: [],
+        })) ?? maakEerste(lead.naam, lead.website);
+      await db
+        .update(leads)
+        .set({ conceptSoort: "eerste", conceptOnderwerp: concept.onderwerp, conceptTekst: concept.tekst, conceptKlaarOp: nu, bijgewerkt: nu })
+        .where(eq(leads.id, lead.id));
+      verslag.push(`${lead.naam}: eerste mail klaargezet`);
+      continue;
+    }
 
     // Reactie binnen → in gesprek, klaarstaand concept vervalt
     if (heeftReactie && (lead.status === "nieuw" || lead.status === "wacht_op_reactie")) {

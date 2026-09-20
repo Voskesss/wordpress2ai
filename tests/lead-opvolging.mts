@@ -3,12 +3,15 @@ import {
   FORMULIER_NA_DAGEN,
   LAATSTE_NA_DAGEN,
   OPVOLGER_NA_DAGEN,
+  STAP_LABELS,
+  maakEerste,
   maakFormulierBericht,
   maakLaatste,
   maakOpvolger,
   maakStap,
   volgendeStap,
 } from "../lib/lead-opvolging";
+import { parseMailJson } from "../lib/lead-mail-ai";
 
 const nu = new Date("2026-09-20T10:00:00Z");
 const dagenTerug = (n: number) => new Date(nu.getTime() - n * 86_400_000);
@@ -53,5 +56,23 @@ assert.equal(volgendeStap({ aantalUit: 4, laatsteUit: dagenTerug(60), heeftReact
 // Zonder naam blijft de aanhef netjes algemeen
 assert.ok(maakOpvolger(null, null).tekst.startsWith("Hallo,"));
 assert.equal(maakStap("laatste", "Aad").onderwerp, maakLaatste("Aad").onderwerp);
+
+// Eerste mail (terugvaltekst): aanhef, aanbod en voorproefje aanwezig; elke stap heeft een label
+{
+  const m = maakEerste("Bob van Dijk", "christenreconstructie.nl");
+  assert.ok(m.tekst.startsWith("Hallo Bob,"));
+  assert.ok(m.onderwerp.includes("christenreconstructie.nl"));
+  assert.ok(m.tekst.includes("€19"));
+  assert.ok(m.tekst.includes("laat maar zien"));
+  assert.equal(STAP_LABELS.eerste, "Eerste mail");
+}
+
+// De JSON-lezer van de AI-schrijver: pakt het JSON-blok, weigert lege of kapotte antwoorden
+assert.deepEqual(parseMailJson('Hier is de mail: {"onderwerp": "Test", "tekst": "Hallo"} — succes!'), {
+  onderwerp: "Test",
+  tekst: "Hallo",
+});
+assert.equal(parseMailJson('{"onderwerp": "", "tekst": "x"}'), null);
+assert.equal(parseMailJson("geen json"), null);
 
 console.log("lead-opvolging: alle checks geslaagd");

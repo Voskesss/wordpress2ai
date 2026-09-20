@@ -3,9 +3,11 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { leadActies, leadPost, leads } from "@/db/schema";
+import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { LEAD_STATUSSEN } from "@/lib/leads";
+import { haalSiteTekst, schrijfLeadMail } from "@/lib/lead-mail-ai";
+import type { MailStap } from "@/lib/lead-opvolging";
 import { werkLeadsBij } from "@/lib/leads-bijwerken";
 
 function veld(formData: FormData, naam: string): string | null {
@@ -104,6 +106,56 @@ export async function leadsNuBijwerken(): Promise<{ verslag: string[]; op: strin
     verslag,
     op: new Date().toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }),
   };
+}
+
+/** De leadmail (opnieuw) laten schrijven door de AI, met de volledige context:
+ * gegevens, oordeel, website-inhoud, mail-tijdlijn, huidige tekst en Jos' aanwijzing. */
+export async function conceptMetAi(
+  _vorige: unknown,
+  formData: FormData,
+): Promise<{ gelukt: boolean; melding: string }> {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return { gelukt: false, melding: "Lead niet gevonden." };
+  const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+  if (!lead) return { gelukt: false, melding: "Lead niet gevonden." };
+
+  const adres = lead.email?.trim().toLowerCase();
+  const postRijen = await db.select().from(leadPost).where(eq(leadPost.leadId, id));
+  const verzonden = adres
+    ? (await db.select().from(verzondenMails)).filter((m) => m.aan.trim().toLowerCase() === adres)
+    : [];
+  const dag = (d: Date) => d.toLocaleDateString("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" });
+  const tijdlijn = [
+    ...verzonden.map((m) => ({ d: m.verzonden, regel: `${dag(m.verzonden)}: gemaild — "${m.onderwerp}"` })),
+    ...postRijen.map((p) => ({
+      d: p.datum,
+      regel: `${dag(p.datum)}: ${p.richting === "in" ? "reactie van de lead" : "gemaild"}${p.onderwerp ? ` — "${p.onderwerp}"` : ""}${p.fragment ? ` · ${p.fragment.slice(0, 150)}` : ""}`,
+    })),
+  ]
+    .sort((a, b) => a.d.getTime() - b.d.getTime())
+    .map((x) => x.regel);
+
+  const soort: MailStap = (lead.conceptSoort as MailStap | null) ?? "eerste";
+  const concept = await schrijfLeadMail({
+    soort,
+    naam: lead.naam,
+    website: lead.website,
+    oordeel: lead.oordeel,
+    notities: lead.notities,
+    siteTekst: await haalSiteTekst(lead.website),
+    tijdlijn,
+    huidig: lead.conceptOnderwerp && lead.conceptTekst ? { onderwerp: lead.conceptOnderwerp, tekst: lead.conceptTekst } : null,
+    instructie: veld(formData, "instructie"),
+  });
+  if (!concept) return { gelukt: false, melding: "De AI kon geen tekst maken — probeer het zo nog eens." };
+
+  await db
+    .update(leads)
+    .set({ conceptSoort: soort, conceptOnderwerp: concept.onderwerp, conceptTekst: concept.tekst, conceptKlaarOp: new Date(), bijgewerkt: new Date() })
+    .where(eq(leads.id, id));
+  revalidatePath("/admin/leads");
+  return { gelukt: true, melding: "Klaar — de nieuwe tekst staat in het kaartje bovenaan de pagina." };
 }
 
 /** Klaarstaande opvolgstap overslaan: de tekst verdwijnt, de soort blijft staan

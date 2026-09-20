@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { conceptOverslaan, formulierGedaan } from "../acties-leads";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { STAP_LABELS, type OpvolgStap } from "@/lib/lead-opvolging";
+import AiMailVak from "./AiMailVak";
+import { STAP_LABELS, type MailStap } from "@/lib/lead-opvolging";
 
 export type ConceptRij = {
   id: number;
   naam: string;
   email: string | null;
   website: string | null;
-  soort: OpvolgStap;
+  soort: MailStap;
   onderwerp: string;
   tekst: string;
 };
@@ -85,6 +86,7 @@ export default function OpvolgKaart({ concept }: { concept: ConceptRij }) {
           <ActieKnop label="Overslaan" bezigLabel="..." className="text-xs text-stone-500 hover:text-red-600 cursor-pointer" />
         </form>
       </div>
+      <AiMailVak leadId={concept.id} heeftConcept />
     </div>
   );
 }
