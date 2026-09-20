@@ -15,6 +15,17 @@ export const SITE_MIME: Record<string, string> = {
   txt: "text/plain; charset=utf-8",
   xml: "application/xml",
   woff2: "font/woff2",
+  // Zelfde typen als de live worker (lib/worker-r2.ts): zonder pdf hier
+  // opende een pdf wél op de live site maar werd hij in het voorbeeldvenster
+  // gedownload als onbekend bestand (gevonden 20-09, vóór de klanttest).
+  pdf: "application/pdf",
+  mp3: "audio/mpeg",
+  ogg: "audio/ogg",
+  wav: "audio/wav",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+  woff: "font/woff",
 };
 
 export async function haalSiteBestand(

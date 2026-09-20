@@ -44,3 +44,13 @@ assert.ok(/Document bewaard in de documentenbank/.test(route), "het document wor
 assert.ok(/Document meegestuurd/.test(route), "er komt geen bericht in het gesprek");
 assert.ok(/documentUploaden/.test(chat), "de chat slaat een gekozen pdf niet meteen op");
 assert.ok(!/setDocumenten\(\(vorige\) => \[\.\.\.vorige, \.\.\.pdfs\]/.test(chat), "pdf's worden nog steeds alleen geparkeerd");
+
+// Het voorbeeldvenster moet een pdf TONEN, niet als onbekend bestand laten
+// downloaden: SITE_MIME moet pdf (en de gangbare media-typen) kennen, net
+// als de live worker (gevonden 20-09, vóór de klanttest).
+{
+  const { SITE_MIME } = await import("../lib/serveer");
+  assert.equal(SITE_MIME.pdf, "application/pdf", "het voorbeeldvenster kent geen pdf-type — pdf wordt gedownload i.p.v. getoond");
+  for (const ext of ["mp3", "mp4", "webm"]) assert.ok(SITE_MIME[ext], `het voorbeeldvenster kent geen ${ext}-type`);
+}
+console.log("documentbank: het voorbeeldvenster toont pdf's met het juiste type");
