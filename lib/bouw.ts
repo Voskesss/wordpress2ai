@@ -16,6 +16,10 @@ const MAX_MEDIA = 30;
 // Bovengrens voor het aantal foto's per migratie: een fotosite met honderden
 // albums moet gewoon mee kunnen; dit is een noodrem, geen budget.
 const MAX_FOTOS_MIGRATIE = 2000;
+/** Documenten die ongewijzigd meegaan naar documenten/ (nooit door sharp). */
+const DOCUMENT_PATROON = /\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp|rtf|csv|txt)([?#]|$)/i;
+const MAX_DOCUMENTEN = 500;
+const MAX_DOCUMENT_BYTES = 40 * 1024 * 1024;
 // Om de zoveel nieuwe foto's een checkpoint, zodat een afgebroken run verder gaat
 const CHECKPOINT_PER_FOTOS = 200;
 
@@ -66,10 +70,13 @@ export async function haalLiveOntwerp(
   stuur: (tekst: string) => void | Promise<void>
 ) {
   const afbeeldingUrls = new Set<string>();
+  // Documenten waarnaar de pagina's linken (notulen, statuten, nieuwsbrieven):
+  // voor een vereniging of stichting is dat archief de kern van de site.
+  const documentUrls = new Set<string>();
   const afbeeldingenPerPagina: Record<string, { src: string; alt: string }[]> = {};
   const embedsPerPagina: Record<string, { html: string }[]> = {};
   if (!bronUrl.startsWith("http"))
-    return { paginas: 0, screenshots: 0, afbeeldingUrls: [] as string[] };
+    return { paginas: 0, screenshots: 0, afbeeldingUrls: [] as string[], documentUrls: [] as string[] };
   await mkdir(doelDir, { recursive: true });
   let paginasOpgehaald = 0;
   const cssUrls = new Set<string>();
@@ -139,6 +146,14 @@ export async function haalLiveOntwerp(
             afbeeldingUrls.add(u);
             paginaImgs.push({ src: u, alt: "(achtergrond)" });
           }
+        } catch {}
+      }
+      // Documenten waar deze pagina naar linkt (ook op een andere host, zoals
+      // de CDN van de oude hosting) — die horen bij de site en moeten mee
+      for (const m of html.matchAll(/href=["']([^"']+)["']/gi)) {
+        try {
+          const u = new URL(m[1], bronUrl).href;
+          if (DOCUMENT_PATROON.test(u)) documentUrls.add(u);
         } catch {}
       }
       afbeeldingenPerPagina[pad] = paginaImgs;
@@ -341,6 +356,7 @@ export async function haalLiveOntwerp(
     paginas: paginasOpgehaald,
     screenshots,
     afbeeldingUrls: [...afbeeldingUrls],
+    documentUrls: [...documentUrls],
   };
 }
 
@@ -609,9 +625,15 @@ export async function voerBouwUit(
   const basisVan = (u: string) => u.replace(/-\d+x\d+(?=\.\w+(?:[?#]|$))/, "");
   // Bij een eerder afbeeldingen-checkpoint (mediaHervat) lopen we de lijst
   // gewoon opnieuw langs: wat er al staat wordt overgeslagen, de rest komt alsnog.
-  const alleUrls = hervatten
+  const alleMedia = hervatten
     ? []
-    : [...new Set([...ontwerp.afbeeldingUrls, ...manifest.mediaUrls])];
+    : [...new Set([...ontwerp.afbeeldingUrls, ...ontwerp.documentUrls, ...manifest.mediaUrls])];
+  // Documenten (pdf, Word, Excel) gaan er ongewijzigd in: ze door sharp halen
+  // mislukt, waardoor ze vroeger stilletjes verdwenen en hun links naar de oude
+  // host bleven wijzen. Voor een vereniging of stichting ís het archief de site.
+  const isDocument = (u: string) => DOCUMENT_PATROON.test(u);
+  const documentUrls = alleMedia.filter(isDocument);
+  const alleUrls = alleMedia.filter((u) => !isDocument(u));
   const groepen = new Map<string, { beste: string; besteOpp: number; varianten: string[] }>();
   for (const u of alleUrls) {
     const b = basisVan(u);
@@ -692,13 +714,55 @@ export async function voerBouwUit(
       );
     }
   }
+  // Documenten ongewijzigd overzetten naar site/documenten/
+  let documenten = 0;
+  if (documentUrls.length > 0) {
+    await mkdir(path.join(siteDir, "documenten"), { recursive: true });
+    const teHalen = documentUrls.slice(0, MAX_DOCUMENTEN);
+    if (documentUrls.length > MAX_DOCUMENTEN)
+      await stuurStatus(`Let op: ${documentUrls.length} documenten gevonden, de eerste ${MAX_DOCUMENTEN} worden opgehaald.`);
+    await stuurStatus(`Documenten ophalen (${teHalen.length})...`);
+    for (let i = 0; i < teHalen.length; i += 5) {
+      await Promise.all(
+        teHalen.slice(i, i + 5).map(async (url) => {
+          try {
+            const schoon = path
+              .basename(new URL(url).pathname)
+              .toLowerCase()
+              .replace(/[^a-z0-9._-]+/g, "-")
+              .slice(-80);
+            const doel = `documenten/${schoon}`;
+            if (await access(path.join(siteDir, doel)).then(() => true).catch(() => false)) {
+              mediaMap[url] = `/${doel}`;
+              return;
+            }
+            const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+            if (!res.ok) return;
+            const buf = Buffer.from(await res.arrayBuffer());
+            if (buf.length > MAX_DOCUMENT_BYTES) return;
+            await writeFile(path.join(siteDir, doel), buf);
+            mediaMap[url] = `/${doel}`;
+            documenten++;
+          } catch {
+            // overslaan; de link blijft dan naar de oude locatie wijzen
+          }
+        })
+      );
+      await stuurStatus(`Documenten ophalen (${Math.min(i + 5, teHalen.length)}/${teHalen.length})...`);
+    }
+  }
+
   await writeFile(
     path.join(werkmap, "media-map.json"),
     JSON.stringify(mediaMap, null, 2)
   );
   await stuurStatus(
-    `${gedownload} unieke afbeeldingen gedownload${alAanwezig ? ` (${alAanwezig} stonden er al)` : ""} en gekoppeld aan pagina's`
+    `${gedownload} unieke afbeeldingen gedownload${alAanwezig ? ` (${alAanwezig} stonden er al)` : ""}${documenten ? ` en ${documenten} documenten` : ""} en gekoppeld aan pagina's`
   );
+
+  const documentBlok = documenten
+    ? `\n- DOCUMENTEN STAAN KLAAR: ${documenten} documenten (notulen, statuten, nieuwsbrieven en dergelijke) zijn gedownload naar site/documenten/; media-map.json koppelt hun oude URL's aan het nieuwe pad. Laat elke downloadlink naar het lokale bestand wijzen, NOOIT naar de oude website of een externe opslag-URL — die vervalt zodra de klant zijn oude hosting opzegt. Behoud per link de zichtbare naam en zet erbij dat het een PDF is als dat uit de oude site bleek.`
+    : "";
 
   // Fotogalerijen mechanisch bouwen: pagina's met veel foto's krijgen hun grid
   // kant-en-klaar als centraal onderdeel; de AI plaatst alleen de marker.
@@ -765,7 +829,7 @@ Instructies:
   - Logo-carrousel (partners, keurmerken, klanten): een statische rij of grid met ALLE logo's naast elkaar (grijs/klein zoals origineel), eventueel een subtiele CSS-marquee; nooit logo's weglaten.
   - Testimonial-/quoteslider: alle quotes statisch onder elkaar of in een grid; tekst mag nooit verloren gaan.
   - Fotogalerij-slider: een fotogrid met alle beelden.
-- AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.${galerijBlok}
+- AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.${documentBlok}${galerijBlok}
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.
 - Berichten (type post): maak ook een blogoverzichtspagina op site/blog/index.html met links, als er berichten zijn.

@@ -214,6 +214,20 @@ export async function controleerSiteMap(
       fout("dode-links", rel, `Verwijzing naar ${m[1]} maar dat pad bestaat niet.`);
     }
 
+    // 5b. Documenten die nog op een andere server staan. Een notule of statuut
+    // dat naar de oude hosting wijst werkt tot de klant daar opzegt — dan is
+    // het archief weg. Waarschuwing, want een verwijzing naar een document van
+    // een derde partij (gemeente, Woonbond) mag natuurlijk wel.
+    for (const m of inhoud.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi)) {
+      if (!/\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp)([?#]|$)/i.test(m[1])) continue;
+      const host = m[1].replace(/^https?:\/\//, "").split("/")[0];
+      waarschuw(
+        "extern-document",
+        rel,
+        `Document staat op ${host} — zet het in documenten/ als het van de klant zelf is, anders breekt de link zodra de oude hosting stopt.`,
+      );
+    }
+
     // 6. Titel, omschrijving en favicon per pagina
     const titel = inhoud.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim();
     if (!titel) fout("seo", rel, "Geen <title>.");
