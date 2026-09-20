@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import Fotobank from "./Fotobank";
 import AudioBank from "./AudioBank";
+import VideoBank from "./VideoBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import { readChatResponse } from "@/lib/chat-response";
@@ -303,6 +304,7 @@ export default function Chat({
   const [fotobankOpen, setFotobankOpen] = useState(false);
   // Audiobank (podcasts e.d. in de media-map in R2)
   const [audioBankOpen, setAudioBankOpen] = useState(false);
+  const [videoBankOpen, setVideoBankOpen] = useState(false);
   const [audioBezig, setAudioBezig] = useState(false);
   const [fotobankDoel, setFotobankDoel] = useState<string | null>(null);
   // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
@@ -2552,6 +2554,18 @@ export default function Chat({
               }}
             />
           )}
+          {videoBankOpen && (
+            <VideoBank
+              siteId={siteId}
+              previewAccess={previewAccess}
+              onGebruik={(pad) => {
+                setInvoer(`Zet de video ${pad} op `);
+                setChatOpen(true);
+                invoerRef.current?.focus();
+              }}
+              onSluit={() => setVideoBankOpen(false)}
+            />
+          )}
           {audioBankOpen && (
             <AudioBank
               siteId={siteId}
@@ -3232,19 +3246,34 @@ export default function Chat({
                         </span>
                       </button>
                       {!isDemo && (
-                        <button
-                          onClick={() => {
-                            setBijlageMenu(false);
-                            setAudioBankOpen(true);
-                          }}
-                          className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
-                        >
-                          <span aria-hidden className="mt-0.5 text-base">📻</span>
-                          <span>
-                            <span className="block text-sm font-semibold text-stone-800">Audiobank</span>
-                            <span className="block text-xs text-stone-500">eerder geüploade audio beluisteren, plaatsen of verwijderen</span>
-                          </span>
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              setBijlageMenu(false);
+                              setVideoBankOpen(true);
+                            }}
+                            className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                          >
+                            <span aria-hidden className="mt-0.5 text-base">📼</span>
+                            <span>
+                              <span className="block text-sm font-semibold text-stone-800">Videobank</span>
+                              <span className="block text-xs text-stone-500">video&apos;s van je site bekijken, opnieuw plaatsen of opruimen</span>
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setBijlageMenu(false);
+                              setAudioBankOpen(true);
+                            }}
+                            className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-stone-50 cursor-pointer"
+                          >
+                            <span aria-hidden className="mt-0.5 text-base">📻</span>
+                            <span>
+                              <span className="block text-sm font-semibold text-stone-800">Audiobank</span>
+                              <span className="block text-xs text-stone-500">eerder geüploade audio beluisteren, plaatsen of verwijderen</span>
+                            </span>
+                          </button>
+                        </>
                       )}
                     </div>
                   </>

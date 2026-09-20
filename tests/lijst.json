@@ -34,7 +34,8 @@
     "wijzigingen-telling.mts",
     "fotobank-bewaren.mts",
     "audiobank.mts",
-    "banken-opruimen.mts"
+    "banken-opruimen.mts",
+    "videobank.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",
