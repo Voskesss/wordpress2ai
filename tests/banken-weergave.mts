@@ -23,14 +23,21 @@ assert.ok(!/className="[^"]*object-cover/.test(fb), "de fotobank snijdt foto's n
 assert.ok(/naturalWidth/.test(fb), "de fotobank leest de echte afmetingen niet uit");
 assert.ok(/staand/.test(fb) && /liggend/.test(fb), "het staand/liggend-label ontbreekt in de fotobank");
 
-// 1c. De AI kijkt naar de verhouding vóór het plaatsen (bank én meegestuurd)
+// 1c. De AI kent de verhouding vóór het plaatsen, houdt het stramien van de
+// site aan (consistentie gaat voor, tenzij de eigenaar anders vraagt) en
+// zegt het eerlijk als er wordt bijgesneden — bank én meegestuurd.
 const route = await readFile("app/api/chat/route.ts", "utf8");
+assert.ok(/LET OP DE VERHOUDING/.test(route), "de verhoudingsregel in de VIDEOBANK-context ontbreekt");
 assert.equal(
-  (route.match(/staande? \(?9:16\)? video|staande video nooit stilzwijgend|Zet een staande video nooit stilzwijgend/gi) ?? []).length >= 2,
-  true,
-  "de verhoudingsregel (staande video niet stilzwijgend afsnijden) ontbreekt bij de videobank- of meegestuurd-context",
+  (route.match(/consistentie gaat voor/gi) ?? []).length,
+  2,
+  "de consistentie-regel (kaders aanhouden tenzij anders gevraagd) ontbreekt bij de videobank- of meegestuurd-context",
 );
-assert.ok(/LET OP DE VERHOUDING/.test(route), "de verhoudingswaarschuwing in de VIDEOBANK-context ontbreekt");
+assert.equal(
+  (route.match(/niet doen alsof alles past/gi) ?? []).length,
+  2,
+  "de eerlijkheidsregel (zeggen dát er wordt bijgesneden) ontbreekt bij de videobank- of meegestuurd-context",
+);
 
 // 2. Banken bewaren getypte tekst: setInvoer met functievorm die v hergebruikt
 const chat = await readFile("app/portal/Chat.tsx", "utf8");
