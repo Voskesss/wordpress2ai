@@ -197,6 +197,30 @@ export async function controleerSiteMap(
       if (!/\balt=/.test(img[0]))
         fout("alt-teksten", rel, `img zonder alt (regel ${eersteRegelNummer(inhoud, img.index ?? 0)}).`);
 
+    // 4b. Dezelfde foto niet twee keer groot op één pagina (bv. een
+    // dienst-tegel en een projectkaart met hetzelfde beeld onder elkaar).
+    // Zoals de bezoeker hem ziet: mét ingevoegde blokken. Formaatvarianten
+    // (-800, -klein, -v…) zijn dezelfde foto; duimnagels (≤ 120px) tellen niet.
+    {
+      const perFoto = new Map<string, number>();
+      for (const img of inhoud.matchAll(/<img\b[^>]*>/gi)) {
+        const breedte = Number(img[0].match(/\bwidth=["']?(\d+)/i)?.[1] ?? 0);
+        if (breedte && breedte <= 120) continue;
+        const src = img[0].match(/\bsrc=["']([^"']+)["']/i)?.[1];
+        // Logo's (kop én voet) en svg-iconen horen juist vaker terug te komen
+        if (!src || /\.svg(?:[?#]|$)/i.test(src) || /logo/i.test(path.basename(src))) continue;
+        const sleutel = path
+          .basename(src.split(/[?#]/)[0])
+          .replace(/\.[a-z0-9]+$/i, "")
+          .replace(/-v[0-9a-z]{6,}$/i, "")
+          .replace(/-(?:\d{3,4}|klein|groot)$/i, "");
+        perFoto.set(sleutel, (perFoto.get(sleutel) ?? 0) + 1);
+      }
+      for (const [foto, aantal] of perFoto)
+        if (aantal > 1)
+          waarschuw("foto-dubbel", rel, `Foto "${foto}" staat ${aantal} keer op deze pagina — kies voor de ene plek een ander beeld.`);
+    }
+
     // 5. Interne links en verwijzingen bestaan
     for (const m of inhoud.matchAll(/(?:href|src)=["'](\/[^"']*)["']/g)) {
       const doel = m[1].split(/[?#]/)[0];
@@ -206,6 +230,20 @@ export async function controleerSiteMap(
       if (redirects.has(doel) || redirects.has(doel.replace(/\/$/, "") + "/")) continue;
       if (await bestandBestaat(doel.replace(/^\//, ""))) continue;
       fout("dode-links", rel, `Verwijzing naar ${m[1]} maar dat pad bestaat niet.`);
+    }
+
+    // 5b. Documenten die nog op een andere server staan. Een notule of statuut
+    // dat naar de oude hosting wijst werkt tot de klant daar opzegt — dan is
+    // het archief weg. Waarschuwing, want een verwijzing naar een document van
+    // een derde partij (gemeente, Woonbond) mag natuurlijk wel.
+    for (const m of inhoud.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi)) {
+      if (!/\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp)([?#]|$)/i.test(m[1])) continue;
+      const host = m[1].replace(/^https?:\/\//, "").split("/")[0];
+      waarschuw(
+        "extern-document",
+        rel,
+        `Document staat op ${host} — zet het in documenten/ als het van de klant zelf is, anders breekt de link zodra de oude hosting stopt.`,
+      );
     }
 
     // 6. Titel, omschrijving en favicon per pagina
