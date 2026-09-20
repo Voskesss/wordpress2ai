@@ -48,7 +48,13 @@ const WAT_WORDSWAP_IS = `Over WordSwap (het aanbod, alleen dit beloven):
 - Daarna niets meer te onderhouden: geen updates, plugins of hosting-gedoe. Aanpassen doet de klant door in een chat te typen wat er anders moet — persoonlijke service, geen ticketsysteem.
 - Prijs ALTIJD in twee delen noemen: het overzetten kost eenmalig een bedrag (staat het bedrag in de context, noem dat; anders "eenmalig vanaf €150, afhankelijk van de omvang"), daarna €19 per maand, alles inbegrepen. Nooit alleen het maandbedrag noemen — dat wekt de indruk dat overzetten gratis is.
 - Webshops met een betaalsysteem doen we NIET.
-- VERBODEN in de eerste mail: verwijzen naar de demo, en een gratis voorproefje of gratis proef-overzetting aanbieden. Niets gratis beloven.`;
+- VERBODEN in de eerste mail: verwijzen naar de demo, en een gratis voorproefje of gratis proef-overzetting aanbieden. Niets gratis beloven.
+
+Vaste bouwstenen die Jos zelf steeds gebruikt — pak alleen wat bij deze lead past, in je eigen woorden:
+- MEERPRIJS ONTWERP: "Bij het overzetten kunnen we het ontwerp meteen wat opfrissen (vanaf €50), of een heel nieuw ontwerp maken (vanaf €250) — je zit nergens aan vast." Noem dit als iets extra's, nooit als voorwaarde.
+- VEEL BEELD: al hun foto's gaan gewoon mee, netjes geordend in een eigen fotobank; nieuwe foto's zetten ze er zelf bij door ze in de chat te uploaden. Beelden worden automatisch op webformaat gezet zodat de site snel blijft — beloof NOOIT dat originele bestanden of afdrukresolutie op de site komen.
+- TALEN: staat er een taalkeuze of vertaalknop op hun site, dan kan die gewoon mee. Beloof geen professionele vertalingen; die kunnen wel, maar dat is apart werk.
+- VERKOOP ZONDER KASSA: verkopen ze via een externe partij of op aanvraag, dan past dat prima bij ons — zeg dan expliciet dat hun bestaande verkoopmanier gewoon blijft werken.`;
 
 const STIJL = `Stijl van Jos:
 - Nederlands, je/jij-vorm, korte gewone zinnen, warm en eerlijk, nul verkooppraat of superlatieven.
