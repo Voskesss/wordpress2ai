@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { controleerSiteMap } from "../lib/bouw-controle";
+import { meestuurMap } from "../lib/bouw";
 
 /**
  * Een documentarchief (vereniging: notulen, statuten, nieuwsbrieven) moet ná de
@@ -11,8 +12,8 @@ import { controleerSiteMap } from "../lib/bouw-controle";
  */
 
 const werkmap = await mkdtemp(path.join(tmpdir(), "doc-test-"));
-await mkdir(path.join(werkmap, "documenten"), { recursive: true });
-await writeFile(path.join(werkmap, "documenten", "statuten.pdf"), "%PDF-1.4 nep");
+await mkdir(path.join(werkmap, "bestanden"), { recursive: true });
+await writeFile(path.join(werkmap, "bestanden", "statuten.pdf"), "%PDF-1.4 nep");
 await writeFile(path.join(werkmap, "favicon.ico"), "x");
 await mkdir(path.join(werkmap, "delen"), { recursive: true });
 
@@ -23,7 +24,7 @@ const kop = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>D
 await writeFile(
   path.join(werkmap, "index.html"),
   `${kop}
-<a href="/documenten/statuten.pdf">Statuten (PDF)</a>
+<a href="/bestanden/statuten.pdf">Statuten (PDF)</a>
 <a href="https://usercontent.one/wp/www.vereniging.nl/wp-content/uploads/2026/03/Nieuwsbrief.pdf">Nieuwsbrief maart</a>
 <a href="https://www.woonbond.nl/rapport.pdf">Rapport van de Woonbond</a>
 </body></html>`,
@@ -44,3 +45,13 @@ assert.ok(extern.every((r) => r.ernst === "waarschuwing"));
 assert.ok(!uitslag.some((r) => r.regel === "dode-links" && r.detail.includes("statuten")));
 
 console.log("documenten: alle checks geslaagd");
+
+// Elk soort bestand gaat naar zijn eigen map — dezelfde die de chat gebruikt,
+// zodat een klant na de migratie niets opnieuw hoeft te uploaden.
+assert.equal(meestuurMap("https://oud.nl/wp-content/uploads/notulen.pdf"), "bestanden");
+assert.equal(meestuurMap("https://oud.nl/cms/luisterboeken/Chantage.mp3"), "audio");
+assert.equal(meestuurMap("https://oud.nl/media/trailer.mp4"), "video");
+assert.equal(meestuurMap("https://oud.nl/wp-content/uploads/foto.jpg"), null); // beelden gaan door sharp
+assert.equal(meestuurMap("https://oud.nl/pagina/"), null);
+// Ook met een query erachter blijft het herkenbaar
+assert.equal(meestuurMap("https://oud.nl/stuk.pdf?v=2"), "bestanden");
