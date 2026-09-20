@@ -28,6 +28,14 @@ export default function Aankondigingen({ lijst, overlay = false }: { lijst: Aank
     try {
       localStorage.setItem("wordswap-aankondigingen-weg", JSON.stringify([...nieuw]));
     } catch {}
+    // Ook per account bewaren: dan hoef je hem op je telefoon niet nóg eens
+    // weg te klikken. Mislukt dit stilletjes, dan vangt de browser-opslag het
+    // op dit apparaat op en komt hij elders hooguit één keer terug.
+    void fetch("/api/aankondiging-gezien", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    }).catch(() => {});
   };
   if (overlay) {
     // Eén tegelijk, netjes in het midden; op een telefoon vult de kaart de

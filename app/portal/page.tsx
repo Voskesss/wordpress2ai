@@ -194,12 +194,21 @@ export default async function Portal({
   }
 
   const aankondigingenLijst = await (async () => {
-    const { aankondigingen } = await import("@/db/schema");
-    const { desc } = await import("drizzle-orm");
+    const { aankondigingen, aankondigingenGezien } = await import("@/db/schema");
+    const { desc, and, isNull } = await import("drizzle-orm");
+    // Per account al weggeklikt? Dan niet meer tonen — anders kreeg je op
+    // elk nieuw apparaat de hele stapel opnieuw (20-09).
     return db
       .select({ id: aankondigingen.id, titel: aankondigingen.titel, tekst: aankondigingen.tekst, link: aankondigingen.link })
       .from(aankondigingen)
-      .where(eq(aankondigingen.actief, true))
+      .leftJoin(
+        aankondigingenGezien,
+        and(
+          eq(aankondigingenGezien.aankondigingId, aankondigingen.id),
+          eq(aankondigingenGezien.clerkUserId, userId),
+        ),
+      )
+      .where(and(eq(aankondigingen.actief, true), isNull(aankondigingenGezien.aankondigingId)))
       .orderBy(desc(aankondigingen.id))
       .limit(5)
       .catch(() => []);

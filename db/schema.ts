@@ -411,6 +411,20 @@ export const aankondigingen = pgTable("aankondigingen", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 
+// Wegklikken per ACCOUNT: alleen in de browser onthouden betekende dat je op
+// elk nieuw apparaat de hele stapel oude aankondigingen opnieuw kreeg (20-09)
+export const aankondigingenGezien = pgTable(
+  "aankondigingen_gezien",
+  {
+    aankondigingId: integer("aankondiging_id")
+      .notNull()
+      .references(() => aankondigingen.id),
+    clerkUserId: text("clerk_user_id").notNull(),
+    gezien: timestamp("gezien").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.aankondigingId, t.clerkUserId] })],
+);
+
 // Maandabonnementen via Mollie (eerste betaling iDEAL → machtiging → maandelijkse SEPA-incasso)
 export const abonnementen = pgTable("abonnementen", {
   id: serial("id").primaryKey(),

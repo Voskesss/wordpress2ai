@@ -33,3 +33,17 @@ console.log("aankondiging-in-chat: aankondigingen staan ook bovenaan het gesprek
   assert.ok(/stuur\(\{ type: "status", tekst: "Momentje\.\.\." \}\);/.test(route), "de neutrale openingsstatus ontbreekt");
 }
 console.log("openingsstatus: neutraal, ongeacht de vraag");
+
+// Wegklikken telt per ACCOUNT, niet alleen per browser: anders krijg je op
+// je telefoon de hele stapel oude aankondigingen opnieuw (20-09).
+{
+  const comp = await readFile("app/portal/Aankondigingen.tsx", "utf8");
+  assert.ok(/fetch\("\/api\/aankondiging-gezien"/.test(comp), "wegklikken wordt niet per account bewaard");
+  const api = await readFile("app/api/aankondiging-gezien/route.ts", "utf8");
+  assert.ok(/onConflictDoNothing/.test(api) && /auth\(\)/.test(api), "de gezien-route is niet veilig of niet idempotent");
+  const page = await readFile("app/portal/page.tsx", "utf8");
+  assert.ok(/aankondigingenGezien/.test(page) && /isNull\(aankondigingenGezien\.aankondigingId\)/.test(page), "het portaal filtert al-geziene aankondigingen niet weg");
+  const schema = await readFile("db/schema.ts", "utf8");
+  assert.ok(/aankondigingen_gezien/.test(schema), "de gezien-tabel ontbreekt in het schema");
+}
+console.log("aankondiging-gezien: wegklikken telt per account, op elk apparaat");
