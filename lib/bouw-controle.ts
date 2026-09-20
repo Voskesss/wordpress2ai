@@ -11,6 +11,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { laadDelen, vouwUit } from "./delen";
+import { ZOEKINDEX_PAD, ZOEK_DEEL, vulIngebouwdeDelenAan } from "./zoeken";
 
 export type Bevinding = {
   ernst: "fout" | "waarschuwing";
@@ -133,7 +134,7 @@ export async function controleerSiteMap(
   // delen/ vooraf inlezen: voor de markercontrole én om elke pagina te
   // beoordelen zoals de bezoeker hem krijgt (favicon, gedeelde formulieren,
   // menu- en footerlinks zitten in delen/, niet in de pagina zelf).
-  const delen = await laadDelen(map);
+  const delen = vulIngebouwdeDelenAan(await laadDelen(map));
   const delenNamen = new Set(delen.keys());
 
   const indexeerbaar: string[] = [];
@@ -163,6 +164,26 @@ export async function controleerSiteMap(
     for (const m of bron.matchAll(/<!--invoeg:([\w-]+)-->/g))
       if (!delenNamen.has(m[1]))
         fout("markers", rel, `Marker invoeg:${m[1]} heeft geen delen/${m[1]}.html.`);
+
+    // 2b. Zoeken loopt via de bouwsteen, niet via eigen maakwerk. De index is
+    // een afgeleid bestand dat de deploy maakt uit de gepubliceerde pagina's;
+    // schrijft een site zijn eigen zoekvak met een eigen index, dan loopt die
+    // stilletjes achter zodra de klant via de chat iets wijzigt.
+    const gebruiktZoekBouwsteen = bron.includes(`<!--invoeg:${ZOEK_DEEL}-->`);
+    if (!gebruiktZoekBouwsteen) {
+      if (bron.includes(ZOEKINDEX_PAD))
+        fout(
+          "zoeken",
+          rel,
+          `Eigen zoekcode verwijst naar ${ZOEKINDEX_PAD}. Gebruik <!--invoeg:${ZOEK_DEEL}--> zodat knop, gedrag en index bij elkaar blijven.`,
+        );
+      else if (/<form[^>]+role=["']search["']/i.test(bron))
+        fout(
+          "zoeken",
+          rel,
+          `Zoekformulier zonder werking: een statische site heeft geen WordPress-zoekpagina. Gebruik <!--invoeg:${ZOEK_DEEL}--> of haal het zoekvak weg.`,
+        );
+    }
 
     // 3. Geen WordPress-/buildersporen in de eigen code
     const spoor = inhoud.match(
@@ -207,6 +228,12 @@ export async function controleerSiteMap(
   }
 
   // 7. Standaardpagina's en -bestanden
+  if (await bestandBestaat(ZOEKINDEX_PAD))
+    waarschuw(
+      "zoeken",
+      ZOEKINDEX_PAD,
+      "Staat in de repo maar wordt bij elke publicatie opnieuw gemaakt. Weghalen, anders lijkt het alsof je hem met de hand moet bijwerken.",
+    );
   if (!(await bestandBestaat("404.html")))
     fout("standaard", "404.html", "Ontbreekt.");
   else {

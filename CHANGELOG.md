@@ -20,6 +20,26 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.1.0 (20 september 2026)
+
+**Zoeken op je eigen website.** Had je oude site een vergrootglas in het menu,
+dan werkt dat nu ook op je nieuwe site. Je bezoeker typt een woord en krijgt
+meteen de pagina's waar dat woord op staat.
+
+Het belangrijkste zit vanbinnen: de zoeklijst wordt opnieuw gemaakt op het
+moment dat je publiceert. Pas je via de chat een tekst aan, voeg je een pagina
+toe of haal je er een weg, dan klopt het zoekresultaat meteen. Je hoeft er
+niets voor te doen en er kan niets achterlopen.
+
+Verder:
+
+* Pagina's die je bewust buiten Google houdt, zoals de bedanktpagina na een
+  formulier, blijven ook uit de zoekresultaten.
+* De zoeklijst wordt pas opgehaald als een bezoeker echt op het vergrootglas
+  klikt, en blijft klein genoeg voor een telefoon, ook bij een groot archief.
+* Lukt het maken van de zoeklijst een keer niet, dan gaat publiceren gewoon
+  door en blijft de vorige lijst staan. Je raakt je wijziging dus nooit kwijt.
+
 ## 1.0.1 (20 september 2026)
 
 Kleine verbeteringen in het portaal, uit de testdag met de banken:

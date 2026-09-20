@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { laadDelen, vouwUit } from "./delen";
+import { ZOEKINDEX_PAD, bouwZoekindex, vulIngebouwdeDelenAan } from "./zoeken";
 import { deployTotActueel, metSlot } from "./deploy-slot";
 import { laadWerkmap, ruimWerkmapOp } from "./werkmap";
 
@@ -193,7 +194,7 @@ async function bereidBestandenVoor(
   naam: string
 ): Promise<{ pad: string; data: Buffer }[]> {
   const bestanden = await alleBestanden(werkmap);
-  const delen = await laadDelen(werkmap);
+  const delen = vulIngebouwdeDelenAan(await laadDelen(werkmap));
   const echtDomein = await echtDomeinVoor(naam);
   const uit: { pad: string; data: Buffer }[] = [];
   for (const pad of bestanden) {
@@ -222,6 +223,29 @@ async function bereidBestandenVoor(
   for (const extra of inlogPaginas(bestanden)) {
     if (!bestanden.includes(extra.pad)) uit.push(extra);
   }
+  // Zoekindex: hier gemaakt, niet bij de bouw. Dit is het enige moment waarop
+  // de pagina's compleet zijn (delen uitgevouwen, echt domein ingevuld), en het
+  // enige moment dat ná elke portaalwijziging opnieuw langskomt. Elke site
+  // krijgt er een, zodat zoeken aanzetten alleen nog een marker is.
+  //
+  // Mislukt het op een rare pagina, dan publiceren we gewoon door: een klant
+  // mag zijn wijziging hier nooit door kwijtraken. De vorige index blijft dan
+  // staan (de deploy ruimt dit pad bewust niet op), dus hoogstens loopt de
+  // zoeklijst even achter. Dat mag alleen niet stil gebeuren, vandaar de regel
+  // in de log.
+  try {
+    const zoek = bouwZoekindex(uit);
+    const bestaat = uit.findIndex((b) => b.pad === ZOEKINDEX_PAD);
+    const zoekBestand = { pad: ZOEKINDEX_PAD, data: Buffer.from(zoek.json, "utf8") };
+    if (bestaat >= 0) uit[bestaat] = zoekBestand;
+    else uit.push(zoekBestand);
+  } catch (e) {
+    console.error(
+      `[zoekindex] ${naam}: index maken mislukt, publicatie gaat door met de vorige index —`,
+      e instanceof Error ? e.message : e
+    );
+  }
+
   // _redirects is bewust geen publiek bestand, maar het R2-script heeft hem nodig
   try {
     uit.push({ pad: "_redirects", data: await readFile(path.join(werkmap, "_redirects")) });
@@ -269,7 +293,13 @@ async function deployMapZonderSlot(
     nieuwManifest[b.pad] = hash;
     if (oudManifest[b.pad] !== hash) teSchrijven.push(b);
   }
-  const teVerwijderen = Object.keys(oudManifest).filter((pad) => !(pad in nieuwManifest));
+  // De zoekindex staat hier bewust niet tussen: is het maken ervan zojuist
+  // misgegaan, dan zit hij niet in het nieuwe manifest en zou hij hier weg
+  // gegooid worden. Dan was de site ineens zonder zoekfunctie. Liever een
+  // index die een publicatie achterloopt.
+  const teVerwijderen = Object.keys(oudManifest).filter(
+    (pad) => !(pad in nieuwManifest) && pad !== ZOEKINDEX_PAD
+  );
 
   // Eerst de niet-HTML-bestanden (css, beelden), dan de pagina's: zo verwijst
   // een nieuwe pagina nooit naar iets dat nog onderweg is

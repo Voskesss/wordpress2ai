@@ -10,13 +10,28 @@ import path from "node:path";
  */
 const INVOEG_PATROON = /<!--\s*invoeg:([a-z0-9-]+)\s*-->/gi;
 
+/**
+ * Hoe diep een deel in een deel mag zitten. Een zoekvak hoort in het menu, en
+ * het menu is zelf een deel: zonder meerdere rondes bleef die marker gewoon als
+ * commentaar in de pagina staan. De grens vangt een deel dat zichzelf invoegt.
+ */
+const MAX_RONDES = 5;
+
 export function vouwUit(html: string, delen: Map<string, string>): string {
   if (delen.size === 0) return html;
-  return html.replace(INVOEG_PATROON, (marker, naam: string) => {
-    const inhoud = delen.get(naam.toLowerCase());
-    // Onbekende marker laten staan: dan valt hij op in plaats van stil te verdwijnen
-    return inhoud !== undefined ? inhoud : marker;
-  });
+  let uit = html;
+  for (let ronde = 0; ronde < MAX_RONDES; ronde++) {
+    let verandering = false;
+    uit = uit.replace(INVOEG_PATROON, (marker, naam: string) => {
+      const inhoud = delen.get(naam.toLowerCase());
+      // Onbekende marker laten staan: dan valt hij op in plaats van stil te verdwijnen
+      if (inhoud === undefined) return marker;
+      verandering = true;
+      return inhoud;
+    });
+    if (!verandering) break;
+  }
+  return uit;
 }
 
 /** Leest alle delen/*.html uit een werkmap; lege map als er geen delen zijn. */
