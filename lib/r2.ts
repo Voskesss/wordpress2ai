@@ -160,6 +160,30 @@ export async function lijstSleutels(prefix: string): Promise<string[]> {
 }
 
 /** Voert taken parallel uit met een maximum aantal tegelijk. */
+
+/** Sleutels mét grootte onder een voorvoegsel (voor bankweergaves). */
+export async function lijstObjecten(prefix: string): Promise<{ key: string; size: number }[]> {
+  const uit: { key: string; size: number }[] = [];
+  let cursor: string | undefined;
+  for (let i = 0; i < 100; i++) {
+    const params = new URLSearchParams({ prefix, per_page: "1000" });
+    if (cursor) params.set("cursor", cursor);
+    const res = await metHerkansing(
+      () => fetch(`${basis()}/objects?${params}`, { headers: auth() }),
+      `R2 lijsten ${prefix}`
+    );
+    if (!res.ok) throw new Error(`R2 lijsten mislukt (${prefix}, HTTP ${res.status})`);
+    const data = (await res.json()) as {
+      result?: { key: string; size?: number }[];
+      result_info?: { cursor?: string; is_truncated?: boolean };
+    };
+    for (const o of data.result ?? []) uit.push({ key: o.key, size: o.size ?? 0 });
+    if (!data.result_info?.is_truncated || !data.result_info.cursor) break;
+    cursor = data.result_info.cursor;
+  }
+  return uit;
+}
+
 export async function parallel<T>(items: T[], tegelijk: number, doe: (item: T) => Promise<void>): Promise<void> {
   let index = 0;
   const werker = async () => {

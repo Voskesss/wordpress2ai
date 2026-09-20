@@ -16,7 +16,7 @@
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "5";
+export const R2_SCRIPT_VERSIE = "6";
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -118,6 +118,13 @@ export const R2_WORKER_SCRIPT = [
   "    }",
   "    let status = 200;",
   "    let obj = await haal(env, key, request, true);",
+  "    // Video's van nieuwe uploads staan in de gedeelde media-map, niet in de",
+  "    // site zelf (anders zou elke chatbeurt ze opnieuw ophalen). Oudere",
+  "    // video's staan nog wél in de site: daarom eerst daar kijken, dan hier.",
+  '    if (!obj && pad.startsWith("/video/")) {',
+  '      obj = await haal(env, "media/" + env.PREFIX.replace(/^wv-/, "") + "/" + rel, request, true);',
+  '      if (obj) key = "media/" + env.PREFIX.replace(/^wv-/, "") + "/" + rel;',
+  "    }",
   "    if (!obj) {",
   "      status = 404;",
   '      key = prefix + "404.html";',

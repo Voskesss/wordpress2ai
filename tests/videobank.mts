@@ -41,3 +41,14 @@ assert.ok(/site-weergave\/\$\{previewAccess\}/.test(ui), "videobank laadt voorbe
 assert.ok(chat.includes("Videobank") && /setVideoBankOpen\(true\)/.test(chat), "videobank zit niet in het bijlagemenu");
 
 console.log("videobank: in-gebruik-slot, poster mee, voorbeeld via site-weergave en bereikbaar via het menu");
+
+// 6. Nieuwe video's staan in de media-opslag, niet in de siterepo: anders
+//    haalt élke chatbeurt ze opnieuw op met de rest van de site (20-09).
+//    Oudere video's staan er nog wél in, dus de worker kijkt eerst in de site
+//    en valt daarna terug op de media-map.
+const media = await readFile("lib/media.ts", "utf8");
+const worker = await readFile("lib/worker-r2.ts", "utf8");
+assert.ok(/export async function bewaarMediaVideo/.test(media), "video kan niet in de media-opslag");
+assert.ok(/pad\.startsWith\("\/video\/"\)/.test(worker), "de worker kent geen terugval naar de media-map voor video");
+assert.ok(Number(worker.match(/R2_SCRIPT_VERSIE = "(\d+)"/)?.[1]) >= 6, "scriptversie niet opgehoogd: bestaande sites krijgen de terugval nooit");
+assert.ok(/lijstMediaVideo/.test(route), "de bank toont de video's uit de media-opslag niet");

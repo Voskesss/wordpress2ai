@@ -14,11 +14,13 @@ const route = await readFile("app/api/chat/route.ts", "utf8");
 
 // 1. Een gecomprimeerde video gaat meteen de bank in
 assert.ok(/export async function POST/.test(videobank), "videobank kan geen video opslaan");
-assert.ok(/Video bewaard in de videobank/.test(videobank), "video wordt niet naar de repo gepusht");
+assert.ok(/bewaarMediaVideo\(site\.siteSlug, naam/.test(videobank), "video gaat niet naar de media-opslag");
 assert.ok(
-  /for \(const tak of openConcept\?\.branch \? \["main", openConcept\.branch\] : \["main"\]\)/.test(videobank),
-  "video belandt niet op main én het openstaande concept",
+  !/pushBestanden\([^)]*bestanden[^)]*"Video bewaard/.test(videobank),
+  "de video zelf wordt nog naar de siterepo gepusht — dan haalt elke chatbeurt hem weer op",
 );
+// Het voorbeeldplaatje hoort wél bij de site: dat staat in de HTML
+assert.ok(/Voorbeeldplaatje bij de video bewaard/.test(videobank), "de poster wordt niet bij de site bewaard");
 assert.ok(/videoUploads/.test(videobank), "de videoteller wordt niet bijgewerkt");
 
 // 2. Het portaal roept dat aan zodra het comprimeren klaar is

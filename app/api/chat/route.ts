@@ -934,11 +934,18 @@ export async function POST(req: Request) {
                 ? ruweNaam
                 : `video-${Date.now().toString(36)}.mp4`;
               const videoPad = `video/${naam}`;
-              await mkdir(path.join(werkmap!, "video"), { recursive: true });
-              await writeFile(
-                path.join(werkmap!, videoPad),
-                await haalBinair(v),
-              );
+              // De video zelf gaat naar de media-opslag, niet in de site: hij
+              // wordt op /video/<naam> geserveerd en hoeft dus niet bij elke
+              // chatbeurt mee opgehaald te worden. (Is hij daar al — de
+              // gewone weg sinds de videobank — dan schrijven we hem
+              // eenvoudig nog eens; dat kost niets en houdt deze weg werkend
+              // voor beurten waarin de eigenaar de video direct meestuurt.)
+              if (site.siteSlug) {
+                const { bewaarMediaVideo } = await import("@/lib/media");
+                await bewaarMediaVideo(site.siteSlug, naam, await haalBinair(v)).catch((e) =>
+                  console.error("Video in media-opslag bewaren:", e),
+                );
+              }
               let posterPad: string | null = null;
               const p = st?.output_files?.out_2?.storage_url;
               if (p) {

@@ -15,6 +15,7 @@ import { lijstSleutels, schrijfObject, verwijderObject, zorgBucket } from "./r2"
 
 export const MAX_AUDIO_BYTES = 150 * 1024 * 1024;
 export const AUDIO_EXTENSIES = /\.(mp3|m4a|aac|ogg|wav)$/i;
+export const VIDEO_EXTENSIES = /\.(mp4|webm|mov)$/i;
 
 /** Bestandsnaam veilig en voorspelbaar: kleine letters, streepjes, extensie behouden. */
 export function schoneAudioNaam(naam: string): string {
@@ -32,6 +33,7 @@ export function schoneAudioNaam(naam: string): string {
 }
 
 const audioPrefix = (slug: string) => `media/${slug}/audio/`;
+const videoPrefix = (slug: string) => `media/${slug}/video/`;
 
 /** Alle afleveringen van een site, nieuwste bovenaan (op naam is niet te
  * sorteren, dus de aanroeper toont ze zoals R2 ze geeft — alfabetisch). */
@@ -61,4 +63,34 @@ export async function bewaarAudio(slug: string, naam: string, data: Buffer): Pro
 export async function verwijderAudio(slug: string, naam: string): Promise<void> {
   const schoon = schoneAudioNaam(naam);
   await verwijderObject(`${audioPrefix(slug)}${schoon}`);
+}
+
+/** Video's in de media-opslag. Nieuwe video's komen hier terecht in plaats
+ * van in de siterepo: een gecomprimeerde video is al gauw een paar MB, en
+ * die haalden we bij ELKE chatbeurt opnieuw op met de rest van de site.
+ * Bestaande video's in repo's blijven gewoon werken — de worker kijkt eerst
+ * in de site zelf en daarna hier. */
+export async function lijstMediaVideo(slug: string): Promise<{ naam: string; bytes: number }[]> {
+  const { lijstObjecten } = await import("./r2");
+  const prefix = videoPrefix(slug);
+  const rijen = await lijstObjecten(prefix).catch(() => []);
+  return rijen
+    .map((r) => ({ naam: r.key.slice(prefix.length), bytes: r.size }))
+    .filter((r) => r.naam && VIDEO_EXTENSIES.test(r.naam));
+}
+
+export async function bewaarMediaVideo(
+  slug: string,
+  naam: string,
+  data: Buffer,
+  contentType = "video/mp4",
+): Promise<string> {
+  await zorgBucket();
+  const schoon = schoneAudioNaam(naam);
+  await schrijfObject(`${videoPrefix(slug)}${schoon}`, data, contentType);
+  return schoon;
+}
+
+export async function verwijderMediaVideo(slug: string, naam: string): Promise<void> {
+  await verwijderObject(`${videoPrefix(slug)}${schoneAudioNaam(naam)}`);
 }

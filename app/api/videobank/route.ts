@@ -67,6 +67,21 @@ export async function GET(req: Request) {
           inGebruik: inhoud.includes(pad),
         })),
     );
+    // Video's uit de media-opslag erbij: die staan niet in de site zelf, maar
+    // worden op /video/<naam> geserveerd — voor de eigenaar één lijst.
+    if (site.siteSlug) {
+      const { lijstMediaVideo } = await import("@/lib/media");
+      for (const m of await lijstMediaVideo(site.siteSlug).catch(() => [])) {
+        const pad = `video/${m.naam}`;
+        if (videos.some((v) => v.pad === pad)) continue;
+        videos.push({
+          pad,
+          poster: null,
+          mb: Math.round((m.bytes / 1024 / 1024) * 10) / 10,
+          inGebruik: inhoud.includes(pad),
+        });
+      }
+    }
     videos.sort((a, b) => Number(b.inGebruik) - Number(a.inGebruik) || a.pad.localeCompare(b.pad));
     return NextResponse.json({ videos, gebruikt: site.videoUploads, limiet: site.videoLimiet });
   } catch (e) {
@@ -105,15 +120,22 @@ export async function POST(req: Request) {
     const posterPad = posterUrl ? `video/${naam.replace(/\.mp4$/i, "")}-poster.jpg` : null;
 
     const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
-    const bestanden = [{ pad: videoPad, inhoud: await haal(videoUrl) }];
-    if (posterPad && posterUrl) bestanden.push({ pad: posterPad, inhoud: await haal(posterUrl) });
+
+    // De video zelf gaat naar de media-opslag, niet in de siterepo: anders
+    // wordt hij bij ELKE chatbeurt opnieuw met de site opgehaald. De worker
+    // serveert /video/<naam> daar vandaan. De poster is een klein plaatje en
+    // hoort wél bij de site (hij wordt in de HTML gebruikt als voorbeeld).
+    if (!site.siteSlug) return NextResponse.json({ error: "Deze site staat nog niet online." }, { status: 409 });
+    const { bewaarMediaVideo } = await import("@/lib/media");
+    await bewaarMediaVideo(site.siteSlug, naam, await haal(videoUrl));
 
     const openConcept = await openConceptVan(site.id);
-    const { pushBestanden } = await import("@/lib/github");
-    // Op main én op het openstaande concept, anders is hij in het voorbeeld
-    // en in de bank onvindbaar zolang dat concept openstaat
-    for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
-      await pushBestanden(site.githubRepo, bestanden, "Video bewaard in de videobank", tak);
+    if (posterPad && posterUrl) {
+      const { pushBestanden } = await import("@/lib/github");
+      const posterBestand = [{ pad: posterPad, inhoud: await haal(posterUrl) }];
+      for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+        await pushBestanden(site.githubRepo, posterBestand, "Voorbeeldplaatje bij de video bewaard", tak);
+    }
 
     await db
       .update(sites)
@@ -180,6 +202,12 @@ export async function DELETE(req: Request) {
 
     // De poster hoort bij de video en gaat mee; hij is verder nergens in gebruik
     const teWissen = poster ? [pad, poster] : [pad];
+    // Staat de video in de media-opslag, dan hoort hij daar weg; oudere
+    // video's staan nog in de site zelf en gaan via git.
+    if (site.siteSlug) {
+      const { verwijderMediaVideo } = await import("@/lib/media");
+      await verwijderMediaVideo(site.siteSlug, pad.split("/").pop() ?? pad).catch(() => {});
+    }
     const { verwijderBestanden } = await import("@/lib/github");
     for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
       await verwijderBestanden(site.githubRepo, teWissen, `Video uit de videobank verwijderd: ${pad}`, tak);
