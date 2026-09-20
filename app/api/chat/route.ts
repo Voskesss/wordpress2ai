@@ -476,13 +476,11 @@ export async function POST(req: Request) {
       .select()
       .from(usage)
       .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
-    const { maandbudgetVoor, wijzigingenLimietVoor } = await import("@/lib/ai-budget");
-    if (!site.isDemo && (verbruik?.wijzigingen ?? 0) >= wijzigingenLimietVoor(site, maand)) {
-      return NextResponse.json({
-        reply:
-          "Je hebt deze maand het maximale aantal wijzigingen bereikt. Neem contact met ons op als je meer nodig hebt.",
-      }, { status: 429 });
-    }
+    const { maandbudgetVoor } = await import("@/lib/ai-budget");
+    // Geen harde grens meer op het aantal wijzigingen: het pakket belooft
+    // fair use, geen streepjeslijst (20-09). Wat er werkelijk toe doet is de
+    // AI-ruimte hieronder; het aantal wijzigingen houden we alleen bij om te
+    // zien hoe een site gebruikt wordt.
 
     const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
     // Eenmalige extra ruimte telt alleen mee in de maand waarvoor hij is gegeven
@@ -496,7 +494,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           reply:
-            "Je AI-gebruiksruimte voor deze maand is bereikt. Neem contact op met Jos om je gebruik en pakket te bespreken.",
+            "Je hebt deze maand flink wat aan je website gewerkt — meer dan er in het pakket past. Stuur ons even een berichtje (info@wordswap.nl), dan kijken we samen wat passend is; vaak is het zo geregeld. Je website blijft gewoon online, en zelf tekst of een foto aanpassen blijft ook werken.",
         },
         { status: 429 },
       );

@@ -386,8 +386,9 @@ export default async function Home({
           </Link>
           <p className="fine-print">
             Grotere of complexe sites: tot circa €650. Alle bedragen excl. btw.
-            Fair use: maximaal 30 nieuwe concepten per maand, binnen je
-            AI-gebruiksruimte. Liever alles laten regelen? Optimaal ontzorgd
+            Fair use: ruim voldoende voor het normale onderhoud van je
+            website. Gebruik je er maand na maand veel meer dan gemiddeld, dan
+            bellen we even en spreken we samen iets passends af. Liever alles laten regelen? Optimaal ontzorgd
             kost €39 per maand. Domeinregistratie, e-mail en extra maatwerk
             staan los van het pakket.
           </p>

@@ -130,7 +130,7 @@ const secties: { kop: string; blokken: { titel: string; tekst: string }[] }[] = 
       {
         titel: "AI-kosten per klant",
         tekst:
-          "Van elke chat-opdracht en elke bouw worden de echte tokens en dollarkosten geregistreerd, per site per maand (chat en bouw apart). Je ziet ze als chip in de klantenlijst en als tegel op de klantpagina. Dit is de basis om het prijsmodel te kiezen: vast bedrag, strippenkaart of betalen per wijziging. De fair-use-teller (30 wijzigingen/maand) staat er los naast.",
+          "Van elke chat-opdracht en elke bouw worden de echte tokens en dollarkosten geregistreerd, per site per maand (chat en bouw apart). Je ziet ze als chip in de klantenlijst en als tegel op de klantpagina. Dit is de basis om het prijsmodel te kiezen: vast bedrag, strippenkaart of betalen per wijziging. De wijzigingenteller staat er los naast en begrenst niets: het pakket belooft fair use, en bij structureel veel gebruik volgt een gesprek in plaats van een blokkade.",
       },
       {
         titel: "Vaste lasten",

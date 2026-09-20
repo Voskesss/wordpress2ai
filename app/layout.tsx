@@ -142,7 +142,7 @@ const jsonLd = {
           price: "19",
           priceCurrency: "EUR",
           description:
-            "vanaf €19 per maand excl. btw: hosting, beveiliging, AI-chat (fair use 30 concepten) en hulp per e-mail; maandelijks opzegbaar",
+            "vanaf €19 per maand excl. btw: hosting, beveiliging, AI-chat (fair use) en hulp per e-mail; maandelijks opzegbaar",
         },
         {
           "@type": "Offer",

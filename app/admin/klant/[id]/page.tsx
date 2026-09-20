@@ -1028,8 +1028,9 @@ export default async function KlantDetail({
             {wijzigingenExtraActief && (
               <> ({site.wijzigingenLimiet} vast + {site.wijzigingenExtra} eenmalig deze maand)</>
             )}
-            . Dit is de fair-use-belofte uit het pakket; bij de grens stopt alleen de chat — zelf tekst, kleur of een
-            foto aanpassen blijft werken. Het dollarbudget hierboven is een aparte rem: wat het eerst op is, geldt.
+            . Dit getal begrenst niets meer — het pakket belooft fair use, geen streepjeslijst. Het telt alleen mee
+            hoe intensief deze klant zijn site gebruikt, zodat je ziet wanneer een gesprek over een passender pakket
+            logisch is. De échte rem is het AI-budget hierboven; die bepaalt wanneer de chat stopt.
           </p>
           {(verbruik?.wijzigingen ?? 0) > 0 && (
             <form action={resetWijzigingenTeller} className="mt-2">
