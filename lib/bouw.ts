@@ -6,6 +6,7 @@ import path from "node:path";
 import { db } from "@/db";
 import { migrations, sites } from "@/db/schema";
 import { maakKlantRepo, pushBestanden, repoBestaat, lijstBestanden } from "@/lib/github";
+import { siteStempel } from "@/lib/versie";
 import { laadWerkmap } from "@/lib/werkmap";
 import { HUISREGELS } from "@/lib/huisregels";
 import { ruimWerkmapOp } from "@/lib/werkmap";
@@ -1051,6 +1052,15 @@ ${markersZonderDeel.size > 0 ? `\nLEGE CENTRALE ONDERDELEN — pagina's gebruike
   tePushen.push({
     pad: "seo-manifest.json",
     inhoud: await readFile(path.join(werkmap, "seo-manifest.json")),
+  });
+  // Stempel: met welke stand van WordSwap is deze site gebouwd? Handig bij
+  // onderhoud, want de bouwmotor verandert sneller dan de sites zelf.
+  tePushen.push({
+    pad: "wordswap.json",
+    inhoud: Buffer.from(
+      siteStempel({ siteNaam, bron: wxr.siteUrl || null, gebouwdOp: new Date() }),
+      "utf8"
+    ),
   });
   await pushBestanden(repoNaam, tePushen, `Migratie van ${siteNaam} via WordSwap`);
 

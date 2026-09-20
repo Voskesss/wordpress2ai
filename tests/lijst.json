@@ -58,7 +58,8 @@
   "banken-weergave.mts",
   "noodrem.mts",
   "aanwijzen-overleg.mts",
-  "geen-streepjes.mts"
+  "geen-streepjes.mts",
+  "versie.mts"
  ],
  "chat-ui": [
   "chat-recovery.cjs",
