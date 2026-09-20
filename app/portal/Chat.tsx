@@ -3569,27 +3569,31 @@ export default function Chat({
               tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
               keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
           {!tipWeg && !bezig && (
-            <div className="mt-2 flex items-center justify-center gap-1.5 px-2">
-              <button
-                onClick={() => setTipNr((n) => (n + 1) % TIPS.length)}
-                title="Volgende tip"
-                className="max-w-[46rem] text-left text-xs leading-relaxed text-stone-500 hover:text-stone-700 cursor-pointer"
-              >
-                <span aria-hidden>💡</span> {TIPS[tipNr % TIPS.length]}
-              </button>
-              <button
-                onClick={() => {
-                  setTipWeg(true);
-                  try {
-                    localStorage.setItem("ws-tips-weg", "1");
-                  } catch {}
-                }}
-                aria-label="Tips niet meer tonen"
-                title="Tips niet meer tonen"
-                className="shrink-0 text-xs text-stone-300 hover:text-stone-600 cursor-pointer"
-              >
-                ✕
-              </button>
+            <div className="mt-2.5 flex justify-center px-2">
+              <div className="flex w-full max-w-[46rem] items-start gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/90 px-4 py-2.5 shadow-sm backdrop-blur">
+                <span aria-hidden className="mt-0.5 text-base leading-none">💡</span>
+                <button
+                  onClick={() => setTipNr((n) => (n + 1) % TIPS.length)}
+                  title="Volgende tip"
+                  className="flex-1 text-left text-sm leading-relaxed text-violet-950 hover:text-violet-800 cursor-pointer"
+                >
+                  {TIPS[tipNr % TIPS.length]}
+                  <span className="ml-1.5 whitespace-nowrap text-xs font-medium text-violet-500">volgende tip →</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setTipWeg(true);
+                    try {
+                      localStorage.setItem("ws-tips-weg", "1");
+                    } catch {}
+                  }}
+                  aria-label="Tips niet meer tonen"
+                  title="Tips niet meer tonen"
+                  className="-mr-1 shrink-0 rounded-full px-1.5 text-sm text-violet-400 hover:bg-violet-100 hover:text-violet-700 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
 
