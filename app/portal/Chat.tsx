@@ -2449,7 +2449,6 @@ export default function Chat({
                     : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
                 }
               >
-                {aankondigingen.length > 0 && <Aankondigingen lijst={aankondigingen} />}
                 {!isDemo && berichten.length <= 2 && (
                   <MeelezenMelding siteId={siteId} meelezenUit={meelezenUit} />
                 )}
@@ -2751,6 +2750,10 @@ export default function Chat({
             </div>
           )}
 
+          {/* Aankondiging van WordSwap: één keer over de pagina heen (zoals
+              de publiceer-overlay) — in de berichtenlijst scrolde hij mee het
+              beeld uit zodra het gesprek vol stond. */}
+          {aankondigingen.length > 0 && <Aankondigingen lijst={aankondigingen} overlay />}
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}

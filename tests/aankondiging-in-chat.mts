@@ -8,11 +8,13 @@ import assert from "node:assert/strict";
 
 const chat = await readFile("app/portal/Chat.tsx", "utf8");
 assert.ok(/import Aankondigingen from "\.\/Aankondigingen"/.test(chat), "de chat kent het aankondigingen-blok niet");
-assert.ok(/<Aankondigingen lijst=\{aankondigingen\} \/>/.test(chat), "de chat toont de aankondigingen niet");
-assert.ok(
-  chat.indexOf("<Aankondigingen lijst={aankondigingen} />") < chat.indexOf("berichten.map((m, i)"),
-  "de aankondiging staat niet bóven het gesprek",
-);
+assert.ok(/<Aankondigingen lijst=\{aankondigingen\} overlay \/>/.test(chat), "de chat toont de aankondiging niet als overlay");
+
+// En als overlay over de hele pagina, niet als meescrollend blokje in de lijst
+const comp0 = await readFile("app/portal/Aankondigingen.tsx", "utf8");
+assert.ok(/fixed inset-0/.test(comp0), "de aankondiging-overlay dekt de pagina niet af");
+assert.ok(/Oké, ik heb het gezien/.test(comp0), "de wegklik-knop ontbreekt in de overlay");
+assert.ok(/max-h-\[85dvh\] overflow-y-auto/.test(comp0), "lange aankondigingen passen niet op een telefoonscherm");
 
 const page = await readFile("app/portal/page.tsx", "utf8");
 assert.ok(/aankondigingen=\{aankondigingenLijst\}/.test(page), "het portaal geeft de aankondigingen niet aan de chat door");
