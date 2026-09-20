@@ -41,7 +41,8 @@
     "klaar-pas-als-klaar.mts",
     "budgetbalk.mts",
     "banken-direct.mts",
-    "fair-use.mts"
+    "fair-use.mts",
+    "opruimen-takken.mts"
   ],
   "chat-ui": [
     "chat-recovery.cjs",

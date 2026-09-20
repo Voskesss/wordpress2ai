@@ -56,8 +56,10 @@ export const sites = pgTable("sites", {
   videoLimiet: integer("video_limiet").notNull().default(10),
   // Audiobank (podcasts e.d. in de media-map in R2): maximum aantal bestanden
   audioLimiet: integer("audio_limiet").notNull().default(10),
-  // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de admin.
-  aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(5),
+  // Maandbudget voor AI-gebruik in hele dollars; instelbaar per klant in de
+  // admin. Vanaf 20-09 standaard 10: met 5 liep een normaal gebruikte site al
+  // halverwege de maand tegen de rem, terwijl het pakket fair use belooft.
+  aiMaandbudgetUsd: integer("ai_maandbudget_usd").notNull().default(10),
   // Eenmalige extra ruimte bovenop het maandbudget, alleen voor de maand
   // hieronder (YYYY-MM). Vervalt daarna vanzelf: zie lib/ai-budget.
   aiExtraUsd: integer("ai_extra_usd").notNull().default(0),

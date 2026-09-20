@@ -305,11 +305,23 @@ export async function verwijderBestanden(
   const basisCommit = (await gh(
     `/repos/${GITHUB_ORG}/${repo}/git/commits/${ref.object.sha}`
   )) as { tree: { sha: string } };
+  // Alleen weghalen wat in DEZE tak staat. Een bestand kan best op het
+  // openstaande concept staan en nog niet op de hoofdversie (of andersom);
+  // GitHub weigert dan de hele commit, waardoor opruimen leek te mislukken
+  // terwijl er niets aan de hand was (20-09, videobank).
+  const boom = (await gh(
+    `/repos/${GITHUB_ORG}/${repo}/git/trees/${basisCommit.tree.sha}?recursive=1`
+  )) as { tree?: { path: string; type: string }[] };
+  const aanwezig = new Set(
+    (boom.tree ?? []).filter((t) => t.type === "blob").map((t) => t.path)
+  );
+  const teWissen = paden.filter((p) => aanwezig.has(p));
+  if (teWissen.length === 0) return; // hier stond hij al niet meer
   const tree = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/trees`, {
     method: "POST",
     body: JSON.stringify({
       base_tree: basisCommit.tree.sha,
-      tree: paden.map((pad) => ({ path: pad, mode: "100644", type: "blob", sha: null })),
+      tree: teWissen.map((pad) => ({ path: pad, mode: "100644", type: "blob", sha: null })),
     }),
   })) as { sha: string };
   const commit = (await gh(`/repos/${GITHUB_ORG}/${repo}/git/commits`, {
