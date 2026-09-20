@@ -475,6 +475,8 @@ export const leads = pgTable("leads", {
   conceptKlaarOp: timestamp("concept_klaar_op"),
   // Eenmalige terugblik in het Soverin-postvak (oude mails aan deze lead ophalen)
   soverinDoorzocht: boolean("soverin_doorzocht").notNull().default(false),
+  // Lead-id bij Meta, zodat de Graph API-import dezelfde lead nooit twee keer aanmaakt
+  metaLeadId: text("meta_lead_id").unique(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   bijgewerkt: timestamp("bijgewerkt").notNull().defaultNow(),
 });

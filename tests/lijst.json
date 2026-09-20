@@ -29,6 +29,7 @@
     "chat-tijdgrens.mts",
     "inlogroute.mts",
     "lead-opvolging.mts",
+    "meta-leads.mts",
     "herstel-rem.mts",
     "bijhalen-hoofdversie.mts",
     "doorvoeren.mts",

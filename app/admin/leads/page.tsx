@@ -6,6 +6,7 @@ import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { vandaag } from "@/lib/leads";
 import type { OpvolgStap } from "@/lib/lead-opvolging";
+import BijwerkKnop from "./BijwerkKnop";
 import LeadLijst, { type PostRegel } from "./LeadLijst";
 import LeadVak from "./LeadVak";
 import OpvolgKaart from "./OpvolgKaart";
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+// De bijwerkronde (Meta + Soverin, inclusief terugblik) mag even duren
+export const maxDuration = 120;
 
 export default async function Leads() {
   await requireAdmin();
@@ -78,6 +81,8 @@ export default async function Leads() {
         </a>{" "}
         en bij de formulieren van wordswap.nl.
       </p>
+
+      <BijwerkKnop />
 
       {concepten.length > 0 && (
         <section className="mt-8">

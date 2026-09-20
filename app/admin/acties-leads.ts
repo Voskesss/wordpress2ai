@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { leadActies, leadPost, leads } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { LEAD_STATUSSEN } from "@/lib/leads";
+import { werkLeadsBij } from "@/lib/leads-bijwerken";
 
 function veld(formData: FormData, naam: string): string | null {
   const w = String(formData.get(naam) ?? "").trim();
@@ -91,6 +92,18 @@ export async function leadVerwijderen(formData: FormData) {
   await db.delete(leadPost).where(eq(leadPost.leadId, id));
   await db.delete(leads).where(eq(leads.id, id));
   revalidatePath("/admin/leads");
+}
+
+/** Dezelfde ronde als de cron, maar op de knop in /admin/leads — zodat Jos
+ * direct kan zien wat er binnenkomt in plaats van op het halfuur te wachten. */
+export async function leadsNuBijwerken(): Promise<{ verslag: string[]; op: string }> {
+  await requireAdmin();
+  const verslag = await werkLeadsBij();
+  revalidatePath("/admin/leads");
+  return {
+    verslag,
+    op: new Date().toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }),
+  };
 }
 
 /** Klaarstaande opvolgstap overslaan: de tekst verdwijnt, de soort blijft staan
