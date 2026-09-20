@@ -518,13 +518,15 @@ export default function Chat({
     const t = setInterval(() => setWachtSec(Math.round((Date.now() - beurtStart.current) / 1000)), 1000);
     return () => clearInterval(t);
   }, [bezig, siteId]);
-  // NOODREM: de chat belooft "uiterlijk over X minuten rond ik af". Komt er
-  // ruim daarna nog steeds niets (iets bleef hangen aan onze kant), dan houden
-  // we de eigenaar niet in het ongewisse tot de platform-kill: we stoppen zelf,
-  // geven het slot vrij en zeggen eerlijk dat opnieuw proberen kan (20-09:
-  // een gestrande beurt hing 13 minuten zonder één melding).
+  // NOODREM: houdt de eigenaar niet in het ongewisse tot de platform-kill
+  // (800 s): vlak daarvóór stoppen we zelf, geven het slot vrij en zeggen
+  // eerlijk dat opnieuw proberen kan (20-09: een gestrande beurt hing 13
+  // minuten zonder één melding). Bewust pas op 720 s: een eerdere versie
+  // stond op de beloofde beurtgrens + 2 minuten en maaide daarmee twee
+  // beurten om die gewoon nog aan het werk waren — de afronding (controles,
+  // concept klaarzetten) kan na de AI-tijd nog minuten duren.
   useEffect(() => {
-    if (!bezig || wachtSec < PORTAAL_BEURT_S + 120 || stopReden.current) return;
+    if (!bezig || wachtSec < 720 || stopReden.current) return;
     stopReden.current = "hang";
     stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps

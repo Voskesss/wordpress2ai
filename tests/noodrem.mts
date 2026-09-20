@@ -48,8 +48,8 @@ assert.ok(
 const chat = await readFile("app/portal/Chat.tsx", "utf8");
 assert.ok(/stopReden/.test(chat), "de noodrem-administratie (stopReden) ontbreekt");
 assert.ok(
-  /wachtSec < PORTAAL_BEURT_S \+ 120/.test(chat),
-  "de noodrem hangt niet aan de beloofde beurtgrens (PORTAAL_BEURT_S + marge)",
+  /wachtSec < 720/.test(chat),
+  "de noodrem staat niet vlak voor de platform-kill (720 s)",
 );
 const noodrem = chat.slice(chat.indexOf("NOODREM"), chat.indexOf("NOODREM") + 900);
 assert.ok(/stopReden\.current = "hang";\s*\n\s*stop\(\);/.test(noodrem), "de noodrem stopt de beurt niet echt");
