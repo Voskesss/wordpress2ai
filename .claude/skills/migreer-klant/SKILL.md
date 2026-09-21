@@ -64,6 +64,7 @@ Meld aan Jos wat het overzicht toont (aantal pagina's/berichten/media + welke po
 Bekijk EERST de screenshots en het bestek in `oud-ontwerp/`. Bouw platte HTML + één `stijl.css`. De volledige regels (zelfde eisen als de API-pijplijn in lib/bouw.ts):
 
 **Structuur & SEO**
+- **DE NORM: EXACT OVERZETTEN.** De nieuwe site is dezelfde site: zelfde indeling, beelden, teksten, kleuren, beweging en gedrag. Geen eigen ontwerpkeuzes, niets vereenvoudigen. Werkt iets alleen dankzij een plugin, bouw het dan na zodat het er hetzelfde uitziet en zich hetzelfde gedraagt. Kan iets écht niet zonder server: noteren in ontbrekende-media.txt, niet stilletjes vervangen door iets kleiners. Alles wat de bezoeker zag en wat er niet meer is, is verlies, ook zonder foutmelding.
 - Elke bronpagina op EXACT haar URL-pad: "/over-ons/" → `over-ons/index.html`, "/" → `index.html`. Titel als `<title>`, samenvatting (of eerste zinnen) als meta description; zie ook `seo-manifest.json`. Canonical/og-tags met placeholder-domein `https://VERVANG.nl`.
 - Ontdo de content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \25BE) en wrapper-divs; behoud teksten, koppen (h1/h2-structuur) en opbouw.
 - Berichten (type post): ook een blogoverzicht op `blog/index.html` met links, als er berichten zijn.
