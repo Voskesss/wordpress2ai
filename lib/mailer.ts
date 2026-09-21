@@ -5,7 +5,7 @@ const ontsnap = (s: string) =>
 
 const DEMO_KNOP = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px"><tr>
 <td style="border-radius:999px;background:#244b3d">
-<a href="https://wordswap.nl/demo" style="display:inline-block;padding:9px 22px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px">Probeer de demo — pas een site aan door te typen</a>
+<a href="https://wordswap.nl/demo" style="display:inline-block;padding:9px 22px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px">Probeer de demo: pas een site aan door te typen</a>
 </td></tr></table>`;
 
 /** De vaste handtekening onder losse mails vanuit jos@wordswap.nl. De

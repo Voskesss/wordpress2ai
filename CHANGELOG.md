@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.18.0 (21 september 2026)
+
+De ingebouwde outreachmails zijn herschreven. Die zijn het vangnet: er staan
+geen eigen sjablonen in het systeem en de scan schrijft alleen de eerste mail,
+dus mail 2 en 3 kwamen hier altijd vandaan.
+
+Eruit: de belofte dat iemand de kopie van zijn site eerst gratis te zien
+krijgt. Ook eruit: de prijzen in mail 2 en 3, want die botsten met de prijs die
+per site in mail 1 staat. Mail 1 noemt het bedrag nog wel.
+
+De mails zijn korter, eindigen met een vraag in plaats van een oproep, en de
+onderwerpen zijn drie verschillende vragen in kleine letters. En alle lange
+streepjes zijn eruit, ook die in de demo-knop onder elke mail.
+
 ## 1.17.0 (21 september 2026)
 
 De scan kan een verbeterde mail nu gewoon opnieuw insturen. Staat dat bedrijf

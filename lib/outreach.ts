@@ -23,7 +23,7 @@ function afmeldRegel(p: Prospect): string {
   const link = `https://wordswap.nl/api/afmelden?p=${p.id}&t=${afmeldToken(p.id)}`;
   return `<div style="margin-top:32px;padding-top:20px;border-top:1px solid #e7e5e4;text-align:center">
 <a href="${link}" style="display:inline-block;background:#f5f5f4;color:#57534e !important;padding:10px 20px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid #e7e5e4"><span style="color:#57534e !important;text-decoration:none">Val mij niet meer lastig</span></a>
-<p style="margin-top:10px;font-size:12px;color:#a8a29e">Eén klik en je hoort nooit meer iets van ons — geen bevestiging nodig.</p>
+<p style="margin-top:10px;font-size:12px;color:#a8a29e">Eén klik en je hoort nooit meer iets van ons, geen bevestiging nodig.</p>
 </div>`;
 }
 
@@ -45,13 +45,13 @@ function menselijkeObservatie(p: Prospect): { zin: string; onderwerp?: string } 
     const pad = (dode[1] ?? dode[2] ?? "").trim();
     return {
       onderwerp: `Er is iets kapot op je website`,
-      zin: `<p>Wat me opviel: er zitten links op je site die nergens meer heen gaan${pad ? ` (bijvoorbeeld ${ontsnap(pad)})` : ""}. Bezoekers die daarop klikken krijgen een foutmelding — en die komen zelden terug om het nog eens te proberen.</p>`,
+      zin: `<p>Wat me opviel: er zitten links op je site die nergens meer heen gaan${pad ? ` (bijvoorbeeld ${ontsnap(pad)})` : ""}. Bezoekers die daarop klikken krijgen een foutmelding, en die komen zelden terug om het nog eens te proberen.</p>`,
     };
   }
   if (/kapotte afbeelding/i.test(o))
     return {
       onderwerp: `Er is iets kapot op je website`,
-      zin: `<p>Wat me opviel: een paar afbeeldingen op je site laden niet meer. Dat oogt klein, maar het is het eerste wat een bezoeker ziet — en het wekt de indruk dat er niet meer naar de site wordt omgekeken.</p>`,
+      zin: `<p>Wat me opviel: een paar afbeeldingen op je site laden niet meer. Dat oogt klein, maar het is het eerste wat een bezoeker ziet, en het wekt de indruk dat er niet meer naar de site wordt omgekeken.</p>`,
     };
   const sec = o.match(/\((\d+[.,]\d)s laadtijd\)/)?.[1]?.replace(".", ",");
   const wpOud = /stokoude|verouderde WordPress/i.test(o);
@@ -61,21 +61,21 @@ function menselijkeObservatie(p: Prospect): { zin: string; onderwerp?: string } 
   if (sec)
     return {
       onderwerp: `Je website doet er ${sec} seconden over`,
-      zin: `<p>Wat me opviel: je site heeft er bij mij ${sec} seconden over gedaan om te laden. Dat klinkt als niks, maar het is precies de tijd waarin een bezoeker beslist om weg te klikken — vaak nog vóór hij je aanbod heeft gezien.</p>`,
+      zin: `<p>Wat me opviel: je site heeft er bij mij ${sec} seconden over gedaan om te laden. Dat klinkt als niks, maar het is precies de tijd waarin een bezoeker beslist om weg te klikken, vaak nog vóór hij je aanbod heeft gezien.</p>`,
     };
   if (geenMobiel)
     return {
-      zin: `<p>Wat me opviel: op een telefoon toont je site de desktop-versie in het klein. Meer dan de helft van je bezoekers kijkt juist op zijn telefoon — die knijpen en schuiven nu om te lezen wat je doet.</p>`,
+      zin: `<p>Wat me opviel: op een telefoon toont je site de desktop-versie in het klein. Meer dan de helft van je bezoekers kijkt juist op zijn telefoon. Die knijpen en schuiven nu om te lezen wat je doet.</p>`,
     };
   if (wpOud)
     return {
-      zin: `<p>Wat me opviel: je site draait op een WordPress-versie die al een tijd geen updates meer heeft gehad. Dat is het soort ding waar niemand naar omkijkt — tot een plugin of een hack het ineens wél belangrijk maakt.</p>`,
+      zin: `<p>Wat me opviel: je site draait op een WordPress-versie die al een tijd geen updates meer heeft gehad. Dat is het soort ding waar niemand naar omkijkt, tot een plugin of een hack het ineens wél belangrijk maakt.</p>`,
     };
   if (jaar)
     return {
-      zin: `<p>Wat me opviel: onderaan je site staat nog ${jaar}. Klein detail, maar bezoekers lezen daar onbewust "hier wordt niet meer naar omgekeken" — terwijl je bedrijf gewoon draait.</p>`,
+      zin: `<p>Wat me opviel: onderaan je site staat nog ${jaar}. Klein detail, maar bezoekers lezen daar onbewust "hier wordt niet meer naar omgekeken", terwijl je bedrijf gewoon draait.</p>`,
     };
-  if (o) return { zin: `<p>Ik heb even naar je site gekeken en zag een paar dingen die aandacht verdienen (techniek, snelheid) — niets dramatisch, wel dingen die je bezoekers merken.</p>` };
+  if (o) return { zin: `<p>Ik heb even naar je site gekeken en zag een paar dingen die aandacht verdienen (techniek, snelheid). Niets dramatisch, wel dingen die je bezoekers merken.</p>` };
   return { zin: "" };
 }
 
@@ -89,40 +89,40 @@ export function maakOutreachMail(
 
   if (nummer === 1) {
     return {
-      onderwerp: obs.onderwerp ?? `Even over de website van ${p.bedrijf}`,
+      onderwerp: obs.onderwerp ?? `vraagje over je website`,
       html: `<div style="${stijl}">
 <p>Hallo,</p>
 <p>Ik kwam de website van ${ontsnap(p.bedrijf)} tegen en heb er even naar gekeken.</p>
 ${obs.zin}
-<p>Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.</p>
-<p>Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je${p.prijs ? ` — voor jouw site eenmalig ${ontsnap(p.prijs)}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is` : " (eenmalig, vanaf €150)"}. Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.</p>
-<p>Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.</p>
-<p>En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.</p>
+<p>Bij veel ondernemers met een WordPress-site gaat het zo: je betaalt elke maand hosting, je stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer.</p>
+<p>Wij zetten je site precies zo over als hij nu is, en daarna hoef je alleen nog te typen wat er anders moet. Ook vanaf je telefoon, met een WhatsApp-bericht.</p>
+<p>Het overzetten kost eenmalig ${p.prijs ? `${ontsnap(p.prijs)} voor jouw site` : "vanaf 150 euro"}, daarna vanaf 19 euro per maand.</p>
+<p>Zal ik laten zien hoe dat voor jouw site zou werken?</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
 
   if (nummer === 2) {
     return {
-      onderwerp: `Wat kost de site van ${p.bedrijf} per maand?`,
+      onderwerp: `hoeveel werk is je website nog?`,
       html: `<div style="${stijl}">
 <p>Hallo,</p>
-<p>Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.</p>
-<p>Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.</p>
-<p>De kopie die wij maken kost vanaf €19 per maand voor hosting, beheer en de AI-chat${p.prijs ? ` (de overstap zelf: eenmalig ${ontsnap(p.prijs)} voor jouw site)` : ""}, en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.</p>
-<p>Eén reply met "laat maar zien" is genoeg.</p>
+<p>Een tijdje terug stuurde ik je een berichtje. Ik snap dat zoiets erbij inschiet, dus heel kort.</p>
+<p>Bij bedrijven die wij overzetten was het vooraf steeds hetzelfde: updates die blijven staan, een plugin die het ineens niet meer doet, en voor elke kleine wijziging weer iemand nodig. Niet dringend, wel elke keer gedoe.</p>
+<p>Bij ons stuur je een bericht met wat er anders moet, en dan staat het erop. Verder heb je er geen omkijken naar.</p>
+<p>Zal ik laten zien hoe dat voor jouw site zou werken?</p>
 ${groet}${afmeldRegel(p)}</div>`,
     };
   }
 
   return {
-    onderwerp: `Laatste berichtje van mij`,
+    onderwerp: `laatste berichtje van mij`,
     html: `<div style="${stijl}">
 <p>Hallo,</p>
-<p>Dit is mijn laatste berichtje — ik ga je niet blijven mailen. Speelt het nu niet bij ${ontsnap(p.bedrijf)}: helemaal prima.</p>
-<p>Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: <a href="https://wordswap.nl" style="color:#245747">wordswap.nl</a>.</p>
-<p>Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: <a href="https://wordswap.nl/webinar" style="color:#245747">wordswap.nl/webinar</a>.</p>
-<p>Veel succes met de zaak!</p>
+<p>Dit is mijn laatste berichtje, ik ga je niet blijven mailen. Speelt het nu niet bij ${ontsnap(p.bedrijf)}, dan is dat helemaal prima.</p>
+<p>Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingrekening weer eens irriteert of je webbouwer niet reageert. Dan weet je waar je me vindt.</p>
+<p>Wil je eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een webinar van een half uur: <a href="https://wordswap.nl/webinar" style="color:#245747">wordswap.nl/webinar</a>.</p>
+<p>Veel succes met de zaak.</p>
 ${groet}${afmeldRegel(p)}</div>`,
   };
 }
@@ -145,10 +145,10 @@ export function vulIn(sjabloon: string, p: Prospect): string {
     .replace(
       /\{\{prijsregel\}\}/g,
       p.prijs
-        ? `voor jouw site eenmalig ${p.prijs}, dat kan ik nu al zeggen omdat ik even heb gekeken hoe groot hij is`
-        : "eenmalig, vanaf €150"
+        ? `voor jouw site eenmalig ${p.prijs}`
+        : "eenmalig vanaf 150 euro"
     )
-    .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf €150");
+    .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf 150 euro");
 }
 
 /** Haalt een ondertekening onderaan de tekst weg.
@@ -198,45 +198,45 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
 export function standaardSjabloon(nummer: 1 | 2 | 3): { onderwerp: string; tekst: string } {
   if (nummer === 1)
     return {
-      onderwerp: "Even over de website van {{bedrijf}}",
+      onderwerp: "vraagje over je website",
       tekst: `Hallo,
 
 Ik kwam de website van {{bedrijf}} tegen en heb er even naar gekeken.
 
 {{opening}}
 
-Veel ondernemers met een WordPress-site herkennen dit: je betaalt elke maand hosting, stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer. De site is er wel — maar hij kost aandacht in plaats van dat hij werk oplevert.
+Bij veel ondernemers met een WordPress-site gaat het zo: je betaalt elke maand hosting, je stelt updates uit omdat er vorige keer iets stuk ging, en voor twee zinnen tekst wacht je op je webbouwer.
 
-Wat wij doen: we maken een exacte kopie van je huidige site die dat allemaal niet meer nodig heeft. Je ziet hem eerst werkend, gratis. Alleen als je hem wilt houden betaal je ({{prijsregel}}). Aanpassen doe je daarna zelf, door gewoon te typen wat er anders moet.
+Wij zetten je site precies zo over als hij nu is, en daarna hoef je alleen nog te typen wat er anders moet. Ook vanaf je telefoon, met een WhatsApp-bericht.
 
-Eén reply met "laat maar zien" is genoeg — dan staat de kopie er binnen een paar dagen.
+Het overzetten kost {{prijsregel}}, daarna vanaf 19 euro per maand.
 
-En herken je dit juist níét, en zit je ergernis ergens anders (of nergens)? Dat hoor ik eerlijk gezegd net zo graag — daar leer ik van.`,
+Zal ik laten zien hoe dat voor jouw site zou werken?`,
     };
   if (nummer === 2)
     return {
-      onderwerp: "Wat kost de site van {{bedrijf}} per maand?",
+      onderwerp: "hoeveel werk is je website nog?",
       tekst: `Hallo,
 
-Een tijdje terug stuurde ik je een berichtje — ik snap dat zoiets erbij inschiet, dus heel kort.
+Een tijdje terug stuurde ik je een berichtje. Ik snap dat zoiets erbij inschiet, dus heel kort.
 
-Reken eens mee: hosting, een paar betaalde plugins, af en toe de webbouwer voor iets kleins. Voor de meeste bedrijven tikt dat op naar tientallen euro's per maand — voor een site die verder gewoon stilstaat.
+Bij bedrijven die wij overzetten was het vooraf steeds hetzelfde: updates die blijven staan, een plugin die het ineens niet meer doet, en voor elke kleine wijziging weer iemand nodig. Niet dringend, wel elke keer gedoe.
 
-De kopie die wij maken kost vanaf €19 per maand voor hosting, beheer en de AI-chat (de overstap zelf: {{prijs}}), en aanpassen doe je zelf door het te typen. De kopie zelf maken we eerst gratis, zodat je kunt vergelijken zonder iets te beloven.
+Bij ons stuur je een bericht met wat er anders moet, en dan staat het erop. Verder heb je er geen omkijken naar.
 
-Eén reply met "laat maar zien" is genoeg.`,
+Zal ik laten zien hoe dat voor jouw site zou werken?`,
     };
   return {
-    onderwerp: "Laatste berichtje van mij",
+    onderwerp: "laatste berichtje van mij",
     tekst: `Hallo,
 
-Dit is mijn laatste berichtje — ik ga je niet blijven mailen. Speelt het nu niet bij {{bedrijf}}: helemaal prima.
+Dit is mijn laatste berichtje, ik ga je niet blijven mailen. Speelt het nu niet bij {{bedrijf}}, dan is dat helemaal prima.
 
-Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingfactuur weer eens irriteert of je webbouwer niet reageert. De gratis site-check blijft staan: wordswap.nl.
+Bewaar dit mailtje eventueel voor het moment dat een update iets sloopt, de hostingrekening weer eens irriteert of je webbouwer niet reageert. Dan weet je waar je me vindt.
 
-Liever eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een gratis webinar van een half uur: wordswap.nl/webinar.
+Wil je eerst rustig kijken hoe het werkt, zonder gesprek? Ik geef regelmatig een webinar van een half uur: wordswap.nl/webinar.
 
-Veel succes met de zaak!`,
+Veel succes met de zaak.`,
   };
 }
 
