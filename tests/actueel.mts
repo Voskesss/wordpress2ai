@@ -122,3 +122,45 @@ assert.equal(index.length, 3, "de index bevat alle artikelen, niet alleen de get
 console.log(
   "PASS: feed-slugs, datum/samenvatting, sjabloonvulling, artikel- en overzichtspagina, sitemap-idempotentie."
 );
+
+// --- Hetzelfde bericht dat twee keer langskomt (21-09-2026)
+// Bij VGK publiceerde de feed hetzelfde artikel om 09:30 en om 09:31, met een
+// iets ander adres. De ontdubbeling keek alleen naar het bestandspad, dus er
+// kwamen twee pagina's met dezelfde titel. Google koos er zelf één.
+{
+  const { ontdubbelArtikelen, zelfdeBericht } = await import("../lib/actueel");
+
+  const a = { slug: "krijgt-u-een-levensverzekering-geschonken", titel: "Krijgt u een levensverzekering geschonken?", datumIso: "2025-07-08T09:30:00.000Z" };
+  const b = { slug: "krijgt-u-een-levensverzekering-geschonken-2", titel: "Krijgt u een levensverzekering geschonken?", datumIso: "2025-07-08T09:31:00.000Z" };
+
+  // Binnen één ronde: de eerste wint, want die heeft het nettere adres
+  const uit = ontdubbelArtikelen([a, b], []);
+  assert.equal(uit.length, 1, "dubbel bericht binnen één ronde niet herkend");
+  assert.equal(uit[0].slug, a.slug, "de eerste versie hoort te winnen");
+
+  // Tegen wat we al hebben: niets nieuws
+  assert.deepEqual(ontdubbelArtikelen([b], [a]), [], "bericht dat we al hebben komt opnieuw binnen");
+
+  // Verschillende berichten op dezelfde dag blijven allebei staan
+  assert.equal(
+    ontdubbelArtikelen([a, { ...b, titel: "Iets heel anders" }], []).length,
+    2,
+    "twee echte berichten op één dag mogen niet samengevoegd worden",
+  );
+
+  // Dezelfde kop op een andere dag mag wél opnieuw: denk aan "Nieuwsbrief december"
+  assert.equal(
+    ontdubbelArtikelen([{ ...a, datumIso: "2026-07-08T09:30:00.000Z" }], [a]).length,
+    1,
+    "een terugkerende kop hoort een jaar later gewoon te mogen",
+  );
+
+  // Hoofdletters en dubbele spaties maken niet uit
+  assert.equal(
+    zelfdeBericht("Krijgt u een  levensverzekering geschonken?", "2025-07-08T09:30:00.000Z"),
+    zelfdeBericht("KRIJGT U EEN LEVENSVERZEKERING GESCHONKEN?", "2025-07-08T23:59:00.000Z"),
+    "schrijfwijze of tijdstip hoort niet uit te maken",
+  );
+
+  console.log("actueel-ontdubbeling: ok");
+}

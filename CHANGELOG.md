@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.3 (21 september 2026)
+
+Sites met een automatische nieuwsfeed konden hetzelfde bericht twee keer op de
+site krijgen. Publiceert de bron een bericht opnieuw met een iets ander adres,
+bijvoorbeeld een correctie een minuut later, dan zag ons systeem dat als een
+nieuw artikel. Er kwamen dan twee pagina's met dezelfde titel, en Google koos
+er zelf één.
+
+Voortaan geldt: dezelfde kop op dezelfde dag is hetzelfde bericht. Een
+terugkerende kop als "Nieuwsbrief december" mag een jaar later gewoon weer.
+
 ## 1.5.2 (21 september 2026)
 
 Nog twee dingen rond diezelfde apostrof. Een omschrijving die ermee begint,

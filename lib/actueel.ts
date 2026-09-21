@@ -380,6 +380,46 @@ export type SyncUitslag = {
  *
  * Deployen doet de aanroeper (de push naar main triggert de gewone deploy).
  */
+/**
+ * Herkent hetzelfde bericht dat twee keer langskomt.
+ *
+ * Waarom dit nodig is: de ontdubbeling keek alleen of het bestand al bestond,
+ * dus op het adres. Publiceert de bron hetzelfde bericht opnieuw met een iets
+ * ander adres (een correctie, een minuut later), dan is dat voor ons een nieuw
+ * artikel en krijgt de site twee pagina's met dezelfde titel. Google kiest er
+ * dan zelf één en negeert de andere.
+ *
+ * Bij VGK gebeurde dat twee keer op 287 artikelen: om 09:30 en om 09:31.
+ *
+ * De regel: dezelfde titel op dezelfde dag is hetzelfde bericht. Datum erbij,
+ * want een terugkerende kop als "Nieuwsbrief december" mag over een jaar wél
+ * opnieuw.
+ */
+export function zelfdeBericht(titel: string, datumIso: string): string {
+  const dag = (datumIso || "").slice(0, 10);
+  const kop = titel.toLowerCase().replace(/\s+/g, " ").trim();
+  return `${dag}|${kop}`;
+}
+
+/** Feed-artikelen zonder de berichten die we al hebben, en zonder dubbelen
+ * binnen dezelfde ronde. De eerste versie wint: die heeft het nettere adres,
+ * en dat is vaak ook het adres dat al ergens gedeeld is. */
+export function ontdubbelArtikelen<T extends { titel: string; datumIso: string }>(
+  artikelen: T[],
+  alGehad: Iterable<{ titel: string; datumIso: string }>
+): T[] {
+  const gezien = new Set<string>();
+  for (const a of alGehad) gezien.add(zelfdeBericht(a.titel, a.datumIso));
+  const uit: T[] = [];
+  for (const a of artikelen) {
+    const sleutel = zelfdeBericht(a.titel, a.datumIso);
+    if (gezien.has(sleutel)) continue;
+    gezien.add(sleutel);
+    uit.push(a);
+  }
+  return uit;
+}
+
 export async function syncActueel(opties: {
   repo: string;
   feedUrl: string;
@@ -404,15 +444,19 @@ export async function syncActueel(opties: {
 
   // Wat staat er al? (bestaande artikelen nooit opnieuw bouwen)
   const bestaand = new Set(await lijstBestanden(repo));
-  const nieuwe = artikelen.filter(
-    (a) => !bestaand.has(artikelBestandspad(a.slug, inst))
+  const eerderArchief = await leesArchief(repo, inst);
+  // Twee zeven: het bestand bestaat al (zelfde adres), of we hadden dit bericht
+  // al onder een ander adres (zelfde titel, zelfde dag).
+  const nieuwe = ontdubbelArtikelen(
+    artikelen.filter((a) => !bestaand.has(artikelBestandspad(a.slug, inst))),
+    eerderArchief
   );
   uitslag.overgeslagen = artikelen.length - nieuwe.length;
   if (!nieuwe.length) return uitslag;
 
   const teSchrijven: { pad: string; inhoud: Buffer }[] = [];
   const beeldVoorSlug = new Map<string, string>();
-  const archief = await leesArchief(repo, inst);
+  const archief = eerderArchief;
 
   // Nieuwste eerst, zodat "gerelateerde berichten" de dichtstbijzijnde oudere zijn
   const nieuwOpDatum = [...nieuwe].sort((a, b) => b.datumIso.localeCompare(a.datumIso));
