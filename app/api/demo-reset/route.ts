@@ -89,6 +89,15 @@ async function reset() {
         console.error("Demo-workers opruimen mislukt:", e)
       );
 
+      // Stempel zetten vóór het wissen: een klus die op dit moment nog loopt
+      // ziet daaraan dat zijn tak en concept weg zijn en stopt zichzelf. Zonder
+      // dit bleef bij die bezoeker "De AI is bezig" eeuwig staan.
+      await db
+        .update(sites)
+        .set({ demoResetOp: new Date() })
+        .where(eq(sites.id, site.id))
+        .catch((e) => console.error("Reset-stempel zetten mislukt:", e));
+
       // 3. Chatgeschiedenis en wijzigingen wissen (leads blijven in Clerk)
       const siteChanges = await db
         .select({ id: changes.id })

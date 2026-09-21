@@ -483,9 +483,14 @@ export async function POST(req: Request) {
     // AI-ruimte hieronder; het aantal wijzigingen houden we alleen bij om te
     // zien hoe een site gebruikt wordt.
 
-    const requestBudgetUsd = site.isDemo ? 0.1 : 0.5;
+    // De demo draait sinds kort op hetzelfde model als een klantsite, en dat
+    // kost ongeveer tien keer zoveel per beurt. Met de oude tien cent per
+    // opdracht werd een klus halverwege afgekapt: de bezoeker zag dan werk dat
+    // niet af was en dacht dat het product dat niet kan. De grens is per
+    // bezoeker (zie operationScope), dus dit is 10 opdrachten van 35 cent.
+    const requestBudgetUsd = site.isDemo ? 0.35 : 0.5;
     // Eenmalige extra ruimte telt alleen mee in de maand waarvoor hij is gegeven
-    const monthlyBudgetUsd = site.isDemo ? 1 : maandbudgetVoor(site, maand);
+    const monthlyBudgetUsd = site.isDemo ? 3.5 : maandbudgetVoor(site, maand);
     // Eerst opruimen wat afgebroken beurten hebben laten staan, anders raakt
     // de ruimte op door spoken in plaats van door echt verbruik
     await herijkReservering(scope, site.id, maand);
@@ -1094,6 +1099,30 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           // meegestuurde foto's kwijt. Daarom stoppen we de agent zelf ruim
           // op tijd, leveren we op wat er al staat, en zeggen we dat eerlijk.
           let tijdOp = false;
+          // DEMOWACHTER: de demo wordt elk uur teruggezet. Zat er iemand
+          // midden in een opdracht, dan werkte die door aan een tak die niet
+          // meer bestond en bleef bij hem "De AI is bezig" eeuwig staan. Juist
+          // bij een demo is dat de bezoeker die je binnen wilde halen.
+          // De reset zet een stempel; zien we die, dan stoppen we meteen en
+          // zeggen we wat er gebeurd is.
+          let demoVerversd = false;
+          const startTijd = Date.now();
+          const demoWachter = site.isDemo
+            ? setInterval(async () => {
+                try {
+                  const [rij] = await db
+                    .select({ op: sites.demoResetOp })
+                    .from(sites)
+                    .where(eq(sites.id, site.id));
+                  if (rij?.op && new Date(rij.op).getTime() > startTijd) {
+                    demoVerversd = true;
+                    stopper.abort();
+                  }
+                } catch {
+                  // Even geen verbinding: volgende ronde weer proberen
+                }
+              }, 8000)
+            : null;
           const wekker = setTimeout(
             () => {
               tijdOp = true;
@@ -1228,6 +1257,20 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               kostenUsd: uitkomst.kostenUsd,
             }).catch((e) => console.error("Kostenregistratie mislukt:", e));
           } catch (e) {
+            if (demoVerversd) {
+              // De demo is onder deze opdracht weggehaald. Niets opslaan, maar
+              // wel zeggen wat er is: stil stoppen laat de bezoeker wachten op
+              // een antwoord dat nooit komt.
+              stuur({
+                type: "klaar",
+                reply: "De demo is zojuist ververst, dat gebeurt elk uur automatisch. Je opdracht is daardoor gestopt en de site staat weer op het begin. Stuur hem gerust opnieuw, dan pak ik hem meteen op.",
+                previewUrl: null,
+                changeId: null,
+                bestanden: [],
+                prompt: bericht,
+              });
+              return;
+            }
             if (stopper.signal.aborted && !tijdOp) {
               // (ook bij een weggehaald slot: niets opslaan, geen concept)
               // Gestopt door de eigenaar: niets opslaan, geen concept maken
@@ -1242,6 +1285,18 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               "Dit was een grote klus en ik liep tegen mijn tijdslimiet aan. Wat ik al af had, zet ik nu voor je klaar — bekijk het gerust. Stuur daarna gewoon een berichtje als er iets mist of af te maken valt, dan ga ik verder waar ik gebleven ben.";
           }
           clearTimeout(wekker);
+          if (demoWachter) clearInterval(demoWachter);
+          if (demoVerversd) {
+            stuur({
+              type: "klaar",
+              reply: "De demo is zojuist ververst, dat gebeurt elk uur automatisch. Je opdracht is daardoor gestopt en de site staat weer op het begin. Stuur hem gerust opnieuw, dan pak ik hem meteen op.",
+              previewUrl: null,
+              changeId: null,
+              bestanden: [],
+              prompt: bericht,
+            });
+            return;
+          }
           if (slotKwijt.signal.aborted) return;
           if (stopper.signal.aborted && !tijdOp) return;
           tik("ai");
@@ -1369,8 +1424,13 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
               // als er ruim tijd over is; de stille reparaties hierboven zijn
               // altijd veilig, die kosten geen AI-tijd.
               const restS = maxDuurS - 80 - Math.round((Date.now() - klok) / 1000);
+              // In de demo slaan we deze extra ronde over. Hij duurt tot 90
+              // seconden ná "concept klaar", en de bezoeker wacht dan op een
+              // correctie die hij niet ziet (een alt-tekst, een ontbrekende
+              // titel). De demosite wordt elk uur teruggezet, dus daar hangt
+              // geen vindbaarheid vanaf. Bij een klant blijft hij staan.
               const open =
-                tijdOp || restS < 90
+                tijdOp || restS < 90 || site.isDemo
                   ? []
                   : await afsprakenMeldingen(werkmap, gewijzigd);
               if (open.length > 0) {

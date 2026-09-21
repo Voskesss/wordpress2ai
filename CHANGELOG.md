@@ -20,6 +20,21 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.0 (21 september 2026)
+
+De demo wordt elk uur teruggezet. Zat er op dat moment iemand midden in een
+opdracht, dan bleef bij hem "De AI is bezig" eeuwig staan: zijn opdracht werkte
+door aan iets dat niet meer bestond en er kwam nooit een antwoord. Nu stopt zo
+een opdracht zichzelf en staat er gewoon wat er gebeurd is, met de uitnodiging
+hem opnieuw te sturen.
+
+Na "concept klaar" liep in de demo soms nog anderhalve minuut een extra
+controleronde, voor dingen die een bezoeker niet ziet zoals een ontbrekende
+alt-tekst. Die slaan we in de demo over. Bij een klantsite blijft hij staan.
+
+En de bestedingsruimte per demo-bezoeker is meegegroeid met het grotere model,
+zodat een opdracht niet halverwege wordt afgekapt.
+
 ## 1.20.0 (21 september 2026)
 
 De probeer-demo draait nu op hetzelfde AI-model als een echte klantsite.

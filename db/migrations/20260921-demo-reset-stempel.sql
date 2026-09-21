@@ -1,0 +1,11 @@
+-- Wanneer een demosite voor het laatst is teruggezet.
+--
+-- De uurlijkse reset gooit takken, concepten en chatgeschiedenis weg. Zat er
+-- op dat moment iemand midden in een opdracht, dan bleef bij hem "De AI is
+-- bezig" eeuwig staan: de klus werkte door aan een tak die niet meer bestond
+-- en er kwam nooit een antwoord. Juist bij een demo is dat de bezoeker die je
+-- binnen wilde halen.
+--
+-- Met deze stempel kan een lopende klus zien dat de grond onder hem is
+-- weggehaald, zichzelf stoppen en dat gewoon zeggen.
+alter table sites add column if not exists demo_reset_op timestamptz;

@@ -41,6 +41,9 @@ export const sites = pgTable("sites", {
   // Hoeveel wij van binnenkomende formulierberichten bewaren. Zie
   // lib/formulier-privacy.ts: normaal | geen-meelezen | niet-bewaren.
   formulierPrivacy: text("formulier_privacy").notNull().default("normaal"),
+  // Wanneer deze demosite voor het laatst is teruggezet. Een klus die al liep
+  // ziet daaraan dat zijn tak en concept weg zijn, en stopt zichzelf.
+  demoResetOp: timestamp("demo_reset_op", { withTimezone: true }),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
