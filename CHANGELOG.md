@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.17.0 (21 september 2026)
+
+De scan kan een verbeterde mail nu gewoon opnieuw insturen. Staat dat bedrijf
+nog op "nieuw", dan vervangt de nieuwe versie de klaarstaande mail. Daarvoor
+moest een bedrijf eerst verwijderd worden om er nog iets aan te kunnen
+veranderen, en dan raakte je kwijt wie al gemaild was en wanneer.
+
+Wie al post kreeg, wie gereageerd heeft, wie op de niet-mailen-lijst staat en
+wie buiten de bulk gezet is, wordt niet aangeraakt.
+
 ## 1.16.1 (21 september 2026)
 
 Het nieuwe blok voor het bewaren van formulierberichten staat nu ook in het

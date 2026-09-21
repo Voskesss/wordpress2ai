@@ -105,12 +105,34 @@ export async function POST(verzoek: Request) {
   // Register over BEIDE lijsten: outreach en leads. Iemand met wie al een
   // gesprek loopt mag nooit een koude scanmail krijgen.
   const [bestaandeProspects, bestaandeLeads] = await Promise.all([
-    db.select({ website: prospects.website, email: prospects.email, telefoon: prospects.telefoon }).from(prospects),
+    db
+      .select({
+        id: prospects.id,
+        status: prospects.status,
+        website: prospects.website,
+        email: prospects.email,
+        telefoon: prospects.telefoon,
+      })
+      .from(prospects),
     db.select({ website: leads.website, email: leads.email, telefoon: leads.telefoon }).from(leads),
   ]);
   const register = maakRegister([...bestaandeProspects, ...bestaandeLeads]);
 
+  // Om een bekend bedrijf terug te vinden als de scan hem opnieuw aanlevert.
+  // Zonder dit kon een verbeterde mailtekst er alleen in door de prospect eerst
+  // weg te gooien, en dan raak je zijn geschiedenis kwijt: wie al gemaild is,
+  // wanneer, en wie op de niet-mailen-lijst staat.
+  const perDomein = new Map<string, (typeof bestaandeProspects)[number]>();
+  const perAdres = new Map<string, (typeof bestaandeProspects)[number]>();
+  for (const p of bestaandeProspects) {
+    const d = schoonDomein(p.website);
+    const e = schoonEmail(p.email);
+    if (d && !perDomein.has(d)) perDomein.set(d, p);
+    if (e && !perAdres.has(e)) perAdres.set(e, p);
+  }
+
   let nieuw = 0;
+  let ververst = 0;
   const overgeslagen: Record<string, number> = {};
   const zonderMail: string[] = [];
   const buitenDeBulk: string[] = [];
@@ -128,6 +150,31 @@ export async function POST(verzoek: Request) {
     }
     const uitslag = isDubbel(kandidaat, register);
     if (uitslag.dubbel) {
+      // Kennen we hem al, maar is er nog nooit een mail uit gegaan? Dan is een
+      // nieuwe aanlevering een verbeterde versie van dezelfde mail. Die
+      // verversen we, in plaats van hem weg te gooien.
+      //
+      // Alleen bij status "nieuw". Wie al post van ons heeft, wie gereageerd
+      // heeft, wie op niet-mailen staat en wie buiten de bulk gezet is, blijft
+      // ongemoeid: daar zou verversen een gesprek overschrijven of iemand
+      // opnieuw in de mailstroom zetten.
+      const bekend =
+        perDomein.get(schoonDomein(kandidaat.website)) ??
+        perAdres.get(schoonEmail(kandidaat.email));
+      if (bekend?.status === "nieuw" && g.onderwerp?.trim() && g.mailtekst?.trim()) {
+        const { and, eq } = await import("drizzle-orm");
+        await db
+          .delete(prospectMails)
+          .where(and(eq(prospectMails.prospectId, bekend.id), eq(prospectMails.nummer, 1)));
+        await db.insert(prospectMails).values({
+          prospectId: bekend.id,
+          nummer: 1,
+          onderwerp: g.onderwerp.trim().slice(0, 300),
+          tekst: g.mailtekst.trim(),
+        });
+        ververst++;
+        continue;
+      }
       overgeslagen[`kenden we al (${uitslag.reden})`] = (overgeslagen[`kenden we al (${uitslag.reden})`] ?? 0) + 1;
       continue;
     }
@@ -190,6 +237,7 @@ export async function POST(verzoek: Request) {
   return NextResponse.json({
     ontvangen: gevonden.length,
     nieuw,
+    ververst,
     overgeslagen,
     nietMailbaar: zonderMail.length,
     uitgesloten: buitenDeBulk.length,
@@ -199,6 +247,9 @@ export async function POST(verzoek: Request) {
         : null,
       buitenDeBulk.length
         ? `${buitenDeBulk.length} uit een beroepsgroep die we niet koud mailen (juridisch, financieel, zorg): die staan apart en gaan niet mee in de bulk.`
+        : null,
+      ververst
+        ? `${ververst} kenden we al en stonden nog op "nieuw": daar is de klaarstaande mail vervangen door deze versie. Wie al gemaild is of op niet-mailen staat is niet aangeraakt.`
         : null,
     ]
       .filter(Boolean)

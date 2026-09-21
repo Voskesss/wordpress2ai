@@ -319,7 +319,18 @@ Stuur een lijst onder `gevonden` (of `prospects`), met per bedrijf:
 | `score` | cijfer van de scan |
 | `bron` | standaard "Websitescan" |
 
-Het antwoord vertelt hoeveel er nieuw zijn, hoeveel overgeslagen en waarom,
+**Een mail verbeteren van een bedrijf dat al ingestuurd is.** Stuur hem gewoon
+opnieuw in, met dezelfde gegevens en de nieuwe `onderwerp` en `mailtekst`.
+Staat dat bedrijf nog op "nieuw", dus is er nog geen mail uit gegaan, dan
+vervangt jouw nieuwe versie de klaarstaande mail. Je hoeft niets te laten
+verwijderen.
+
+Wie al post van ons heeft, wie gereageerd heeft, wie op de niet-mailen-lijst
+staat en wie buiten de bulk gezet is, blijft ongemoeid. Die worden overgeslagen
+en gerapporteerd als "kenden we al". Dat is met opzet: verwijderen zou de
+geschiedenis wissen en iemand een tweede eerste mail bezorgen.
+
+Het antwoord vertelt hoeveel er nieuw zijn, hoeveel er ververst zijn, hoeveel overgeslagen en waarom,
 hoeveel er zonder mailadres binnenkwamen en hoeveel er buiten de bulk gezet
 zijn. Dubbelen worden geweigerd op website, e-mailadres en telefoonnummer,
 over de prospects én de leads heen.
