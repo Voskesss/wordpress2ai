@@ -2,6 +2,15 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { WORDSWAP_FEITEN } from "@/lib/wordswap-feiten";
 
+/**
+ * Zonder deze regel draaide deze route op de standaardtijd van het platform.
+ * Een korte aanwijzing ("korter") was in 4 seconden klaar en werkte, maar een
+ * aanwijzing van een paar zinnen duurde ruim 11 seconden en werd afgekapt.
+ * Dat gaf een mislukking die op een AI-storing leek terwijl er niets mis was.
+ * Alle andere AI-routes in dit project zetten dit al.
+ */
+export const maxDuration = 60;
+
 /** Herschrijft een outreach-mail volgens een aanwijzing van Jos
  * ("maak korter", "minder verkoperig", "noem het rieten dak") —
  * telkens opnieuw aan te roepen tot de mail goed voelt. */
@@ -28,7 +37,9 @@ export async function POST(req: Request) {
 
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const client = new Anthropic();
-  const resp = await client.messages.create({
+  let resp;
+  try {
+  resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 3000,
     system: los
@@ -64,6 +75,15 @@ Aanwijzing van Jos: ${aanwijzing}`,
       },
     ],
   });
+  } catch (e) {
+    // Zeg wat er aan de hand is: "probeer het nog eens" laat Jos raden of het
+    // aan zijn tekst ligt, terwijl het een storing of een afkapping is.
+    console.error("mail-verbeter mislukt:", e);
+    return NextResponse.json(
+      { error: "De AI reageerde niet. Probeer het nog eens; blijft het misgaan, dan ligt het niet aan je tekst." },
+      { status: 502 }
+    );
+  }
   const uit = resp.content
     .filter((b) => b.type === "text")
     .map((b) => (b as { text: string }).text)

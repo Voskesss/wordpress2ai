@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.15.1 (21 september 2026)
+
+Reparatie: de Verbeter-knop bij een outreachmail leek willekeurig te haperen.
+Dat deed hij niet. Deze route was de enige met een AI erachter zonder
+tijdslimiet, en werd door het platform afgekapt zodra het herschrijven wat
+langer duurde. Een korte aanwijzing werkte daardoor wel en een uitgebreide
+niet. Hij krijgt nu de tijd, en gaat er toch iets mis, dan staat er op het
+scherm wat er mis ging in plaats van "probeer het nog eens".
+
 ## 1.15.0 (21 september 2026)
 
 Advocaten, notarissen, accountants en zorgpraktijken gaan niet meer mee in de
