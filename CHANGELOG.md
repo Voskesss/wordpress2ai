@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.5 (21 september 2026)
+
+De instellingen van je eigen mailserver liggen niet meer open en bloot in je
+portaal. Je ziet nog wel of alles werkt, maar om iets te wijzigen klik je
+eerst op "Ja, ik wijzig mijn mailserver zelf". Daar staat bij wat er kan
+misgaan en dat je ons altijd even kunt vragen.
+
+Reden: vul je hier iets verkeerds in, dan merk je dat niet. Je mail blijft
+gewoon aankomen, alleen niet meer vanaf je eigen adres.
+
 ## 1.5.4 (21 september 2026)
 
 Op de klantpagina in de admin sprong het gesprek bij elke herlading over het

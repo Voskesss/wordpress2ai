@@ -1,4 +1,5 @@
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
+import AchterWaas from "./AchterWaas";
 import { bewaarEigenMailserver, testEigenMailserver } from "./acties";
 
 /**
@@ -84,70 +85,76 @@ export default function EigenMailserver({
           </>
         )}
       </p>
-      <p className="mt-2 text-sm text-stone-500">
-        Dit is een scherm waar je iets kunt stukmaken zonder het te merken. Weet je wat
-        deze gegevens zijn, ga je gang. Twijfel je, vraag het ons dan even; wij zetten het
-        zo voor je klaar.
-      </p>
-
-      <form action={bewaarEigenMailserver} className="mt-4 grid gap-3 sm:grid-cols-2">
-        <input type="hidden" name="siteId" value={siteId} />
-        <label className="block text-sm font-semibold">
-          Server voor uitgaande mail
-          <input name="host" defaultValue={smtpHost ?? ""} placeholder="smtp.jouwprovider.nl" className={veld} />
-          <span className="mt-1 block text-xs font-normal text-stone-500">Leeg laten en opslaan: wij versturen het weer voor je.</span>
-        </label>
-        <label className="block text-sm font-semibold">
-          Poort
-          <input name="poort" type="number" defaultValue={smtpPoort ?? 465} className={veld} />
-          <span className="mt-1 block text-xs font-normal text-stone-500">Meestal 465, soms 587.</span>
-        </label>
-        <label className="block text-sm font-semibold">
-          Gebruikersnaam
-          <input name="gebruiker" defaultValue={smtpGebruiker ?? ""} placeholder="info@jouwdomein.nl" className={veld} />
-          <span className="mt-1 block text-xs font-normal text-stone-500">Meestal je volledige e-mailadres.</span>
-        </label>
-        <label className="block text-sm font-semibold">
-          Wachtwoord{" "}
-          {smtpIngesteld && (
-            <span className="font-normal text-stone-400">(staat ingevuld, alleen invullen om te wijzigen)</span>
-          )}
-          <input name="wachtwoord" type="password" autoComplete="off" placeholder={smtpIngesteld ? "ongewijzigd laten" : ""} className={veld} />
-          <span className="mt-1 block text-xs font-normal text-stone-500">
-            Wordt versleuteld opgeslagen en nooit teruggetoond, ook niet aan ons.
-          </span>
-        </label>
-        <label className="block text-sm font-semibold sm:col-span-2">
-          Afzenderadres (mag leeg)
-          <input name="afzender" defaultValue={smtpAfzender ?? ""} placeholder="noreply@jouwdomein.nl" className={veld} />
-          <span className="mt-1 block text-xs font-normal text-stone-500">Leeg laten: dan gebruiken we je gebruikersnaam.</span>
-        </label>
-        <div className="sm:col-span-2">
-          <ActieKnop
-            label="Opslaan"
-            bezigLabel="Opslaan..."
-            className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
-          />
-        </div>
-      </form>
-
-      {smtpHost && (
-        <form action={testEigenMailserver} className="mt-4 flex flex-wrap items-end gap-3 border-t border-stone-100 pt-4">
+      <AchterWaas
+        knop="Ja, ik wijzig mijn mailserver zelf"
+        waarschuwing={
+          <>
+            Hier kun je iets stukmaken zonder het te merken: vul je iets verkeerds in, dan
+            blijft je mail aankomen, alleen niet meer vanaf jouw adres. Weet je precies wat
+            deze gegevens zijn, ga gerust je gang. Weet je het niet zeker, neem dan even
+            contact met ons op; wij zetten het zo voor je klaar.
+          </>
+        }
+      >
+        <form action={bewaarEigenMailserver} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="siteId" value={siteId} />
           <label className="block text-sm font-semibold">
-            Stuur een testbericht naar
-            <input name="testAdres" type="email" defaultValue={eigenAdres ?? ""} placeholder="jij@jouwdomein.nl" className={veld} />
+            Server voor uitgaande mail
+            <input name="host" defaultValue={smtpHost ?? ""} placeholder="smtp.jouwprovider.nl" className={veld} />
+            <span className="mt-1 block text-xs font-normal text-stone-500">Leeg laten en opslaan: wij versturen het weer voor je.</span>
+          </label>
+          <label className="block text-sm font-semibold">
+            Poort
+            <input name="poort" type="number" defaultValue={smtpPoort ?? 465} className={veld} />
+            <span className="mt-1 block text-xs font-normal text-stone-500">Meestal 465, soms 587.</span>
+          </label>
+          <label className="block text-sm font-semibold">
+            Gebruikersnaam
+            <input name="gebruiker" defaultValue={smtpGebruiker ?? ""} placeholder="info@jouwdomein.nl" className={veld} />
+            <span className="mt-1 block text-xs font-normal text-stone-500">Meestal je volledige e-mailadres.</span>
+          </label>
+          <label className="block text-sm font-semibold">
+            Wachtwoord{" "}
+            {smtpIngesteld && (
+              <span className="font-normal text-stone-400">(staat ingevuld, alleen invullen om te wijzigen)</span>
+            )}
+            <input name="wachtwoord" type="password" autoComplete="off" placeholder={smtpIngesteld ? "ongewijzigd laten" : ""} className={veld} />
             <span className="mt-1 block text-xs font-normal text-stone-500">
-              Komt hij aan, dan werkt het. Doe dit altijd na een wijziging.
+              Wordt versleuteld opgeslagen en nooit teruggetoond, ook niet aan ons.
             </span>
           </label>
-          <ActieKnop
-            label="Uitproberen"
-            bezigLabel="Bezig met verbinden..."
-            className="cursor-pointer rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-          />
+          <label className="block text-sm font-semibold sm:col-span-2">
+            Afzenderadres (mag leeg)
+            <input name="afzender" defaultValue={smtpAfzender ?? ""} placeholder="noreply@jouwdomein.nl" className={veld} />
+            <span className="mt-1 block text-xs font-normal text-stone-500">Leeg laten: dan gebruiken we je gebruikersnaam.</span>
+          </label>
+          <div className="sm:col-span-2">
+            <ActieKnop
+              label="Opslaan"
+              bezigLabel="Opslaan..."
+              className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
+            />
+          </div>
         </form>
-      )}
+
+        {smtpHost && (
+          <form action={testEigenMailserver} className="mt-4 flex flex-wrap items-end gap-3 border-t border-stone-100 pt-4">
+            <input type="hidden" name="siteId" value={siteId} />
+            <label className="block text-sm font-semibold">
+              Stuur een testbericht naar
+              <input name="testAdres" type="email" defaultValue={eigenAdres ?? ""} placeholder="jij@jouwdomein.nl" className={veld} />
+              <span className="mt-1 block text-xs font-normal text-stone-500">
+                Komt hij aan, dan werkt het. Doe dit altijd na een wijziging.
+              </span>
+            </label>
+            <ActieKnop
+              label="Uitproberen"
+              bezigLabel="Bezig met verbinden..."
+              className="cursor-pointer rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            />
+          </form>
+        )}
+      </AchterWaas>
     </section>
   );
 }

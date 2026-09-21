@@ -98,4 +98,32 @@ assert.ok(/bezoekers merken hier niets van/i.test(blok), "leg uit dat een storin
 
 // 12. Geen lange streepjes in wat de klant leest
 assert.ok(!blok.includes("—"), "lang streepje in het portaalblok");
+
+
+// --- De waas over het formulier (21-09-2026)
+// Jos: een openliggend formulier nodigt uit tot invullen, en juist hier merk
+// je een fout niet: je mail blijft aankomen, alleen niet meer vanaf jezelf.
+const waas = await readFile(new URL("../app/portal/AchterWaas.tsx", import.meta.url), "utf8");
+const blok2 = await readFile(new URL("../app/portal/EigenMailserver.tsx", import.meta.url), "utf8");
+
+// 13. Het formulier zit achter een bewuste klik
+assert.ok(blok2.includes("<AchterWaas"), "het formulier ligt open en bloot");
+assert.match(blok2, /knop="Ja, ik wijzig mijn mailserver zelf"/, "de knop zegt niet wat je gaat doen");
+assert.match(blok2, /neem dan even\s+contact met ons op/, "de uitweg naar ons ontbreekt");
+
+// 14. De status blijft wél altijd zichtbaar: dat is informatie, geen bediening
+const voorWaas = blok2.slice(0, blok2.indexOf("<AchterWaas"));
+assert.ok(/smtpFoutOp && \(/.test(voorWaas), "de storingsmelding hoort boven de waas te staan");
+
+// 15. Wat achter de waas zit is echt onbereikbaar, ook met het toetsenbord
+assert.ok(waas.includes("pointer-events-none"), "met de muis nog bereikbaar");
+assert.ok(/\binert\b/.test(waas), "met de tab-toets beland je in een onzichtbaar formulier");
+assert.ok(waas.includes("aria-hidden"), "een schermlezer leest het verborgen formulier voor");
+
+// 16. Geen slot, alleen een drempel: wie het weet mag het gewoon doen. Dus
+//     één klik en je bent erdoor, geen veld om iets in te typen.
+const code = waas.slice(waas.indexOf("export default"));
+assert.ok(!/<input/.test(code), "de waas hoort geen invoerveld te hebben, het is een drempel en geen deur");
+assert.equal((code.match(/<button/g) ?? []).length, 1, "één knop, meer niet");
+assert.ok(/useState\(false\)/.test(code), "de waas hoort dicht te beginnen");
 console.log("smtp: ok");
