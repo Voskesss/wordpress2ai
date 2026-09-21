@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.4 (21 september 2026)
+
+Op de klantpagina in de admin sprong het gesprek bij elke herlading over het
+scherm heen. Dat gebeurt daar niet meer: je komt op die pagina meestal voor
+iets anders, en groot maken kan nog steeds met de knop. In het klantportaal
+blijft het wel zo, want daar kom je juist om aan je website te werken.
+
 ## 1.5.3 (21 september 2026)
 
 Sites met een automatische nieuwsfeed konden hetzelfde bericht twee keer op de

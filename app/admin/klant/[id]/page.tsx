@@ -371,6 +371,10 @@ export default async function KlantDetail({
         {herstel && <HerstelMelding changeId={herstel.id} />}
         <Chat
           siteId={site.id}
+          // In de admin niet vanzelf schermvullend: je komt hier meestal voor
+          // iets anders op de pagina, en dan springt het gesprek er bij elke
+          // herlading overheen. De knop "Maak groot" blijft natuurlijk gewoon.
+          startVolledig={false}
           previewAccess={createPreviewAccess(site.id, admin.id)}
           historie={chatHistorie}
           verbruik={await (async () => {

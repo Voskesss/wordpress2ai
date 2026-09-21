@@ -189,6 +189,7 @@ export default function Chat({
   isDemo = false,
   meelezenUit = false,
   verbruik = null,
+  startVolledig = true,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
@@ -197,6 +198,13 @@ export default function Chat({
   terugLink?: string | null;
   /** AVG: klant heeft meelezen-voor-verbetering uitgezet */
   meelezenUit?: boolean;
+  /**
+   * Op een breed scherm meteen in de gesplitste weergave openen. Dat is wat je
+   * in het klantportaal wilt: de klant komt binnen om aan zijn site te werken.
+   * In de admin niet: daar kom je meestal voor iets anders op de pagina en
+   * springt het gesprek dan bij elke herlading over je scherm heen.
+   */
+  startVolledig?: boolean;
   previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
@@ -386,11 +394,12 @@ export default function Chat({
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Grote schermen: standaard de gesplitste weergave (site links, gesprek
-  // rechts) — veel overzichtelijker. Kleinere laptops en iPads houden de
-  // ingebedde weergave, daar zou de site te smal worden.
+  // rechts), want dat is veel overzichtelijker. Kleinere laptops en iPads
+  // houden de ingebedde weergave, daar zou de site te smal worden. In de admin
+  // staat dit uit: daar kom je meestal voor iets anders op de pagina.
   useEffect(() => {
-    if (window.innerWidth >= 1280) setVolledigScherm(true);
-  }, []);
+    if (startVolledig && window.innerWidth >= 1280) setVolledigScherm(true);
+  }, [startVolledig]);
   // Foto-vervangen-flow: volgende gekozen afbeelding meteen versturen
   const fotoVervangRef = useRef(false);
   const [kleur, setKleur] = useState<string | null>(null);

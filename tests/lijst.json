@@ -18,6 +18,7 @@
   "chat-response.cjs",
   "chat-tijdgrens.mts",
   "chat-tips.mts",
+  "chat-volledig.mts",
   "concept-opruimen.mts",
   "consistentie.mts",
   "deploy-slot.mts",
