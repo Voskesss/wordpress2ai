@@ -106,7 +106,7 @@ uit de mail.
 - Geen termijnen ("binnen een week klaar").
 - Geen garanties, gratis proeven of "no cure no pay" die hier niet staan.
 - Nooit iets over hun site wat niet bij twee aparte controles hetzelfde
-  opleverde. Zie punt 7: dat is de belangrijkste regel van allemaal.
+  opleverde. Zie punt 8: dat is de belangrijkste regel van allemaal.
 
 ## 6. Hoe de mail moet klinken
 
@@ -124,12 +124,64 @@ Harde vormregels, want daar gaat het mis:
 - **Geen telefoonnummer verzinnen.** Alleen wat je meegekregen hebt.
 - Vier alinea's is lang genoeg.
 
+**De eerste regel.** Stel jezelf voor, kort en gewoon: "Hoi Harry, hier Jos van
+WordSwap." Dat is ontwapenend en het klopt. Ken je de voornaam niet, dan
+"Hallo," en verder geen naam verzinnen.
+
 De opbouw die werkt: eerst wat je aan hun site zag (feitelijk, zonder verwijt),
 dan wat dat in de praktijk betekent, dan wat wij ervoor in de plaats zetten met
 een voorbeeld uit hun eigen vak, dan de prijs en de uitnodiging om te
 antwoorden.
 
-## 7. De mailreden: alleen wat bevestigd is
+## 7. De onderwerpregel
+
+Hier valt of staat het. Op een telefoon ziet iemand ongeveer veertig tekens,
+en in die veertig tekens besluit hij of je een mens bent of een campagne.
+
+**De regel:** het onderwerp mag klein en informeel zijn, maar het mag nooit
+bekendheid suggereren die er niet is. Belooft het iets, dan moet de mail dat
+waarmaken.
+
+Schrijf in kleine letters, kort, en als vraag. Kleine letters zijn het
+goedkoopste menselijke signaal dat er is en kosten niets.
+
+| Wel | Waarom |
+|---|---|
+| `wie zet jullie projecten op de site?` | gaat over hun werk, echte vraag, ongemakkelijk antwoord |
+| `vraagje over je website` | terugval als de branche onbekend is; er staat ook echt een vraag in de mail |
+| `vraagje, Harry` | alleen als je de voornaam echt hebt |
+
+| Niet | Waarom |
+|---|---|
+| `Even gekeken naar <domein>` | de standaardzin van elke SEO-mailer, en het gaat over ons |
+| `hoi` | leent bekendheid die er niet is, en één woord zonder context is een spamsignaal |
+| `Re:` of `Fwd:` ervoor | claimt een gesprek dat er niet was |
+| `nog even over ons gesprek` | hetzelfde, maar dan uitgeschreven |
+| `hier Jos van WordSwap` | staat al in het afzenderveld; zonde van de ruimte |
+| alles met een uitroepteken, GRATIS of een bedrijfsnaam | leest als reclame |
+
+**Voorkeur per branche.** Kies deze als de branche bekend is:
+
+| Branche | Onderwerp |
+|---|---|
+| Schilder, hovenier, aannemer | `wie zet jullie projecten op de site?` |
+| Garage | `wie zet de auto's op je site?` |
+| Restaurant, café | `klopt de menukaart op je site nog?` |
+| Kapper, salon | `klopt de prijslijst op je site nog?` |
+| Makelaar | `hoe snel staat een woning op je site?` |
+| Installateur, loodgieter | `staat het goede nummer nog op je site?` |
+| Sportschool, vereniging | `klopt het rooster op je site nog?` |
+| Winkel | `kloppen je openingstijden op de site nog?` |
+| Onbekend | `vraagje over je website` |
+
+Waarom deze werken: ze noemen de klus die blijft liggen, niet het oordeel over
+hun site. Niemand gaat in de verdediging van een vraag over zijn eigen werk.
+En de laatste drie raken iets wat geld kost als het misstaat.
+
+Voor mail 2 en 3 een ander onderwerp, nooit een herhaling van mail 1.
+Voorbeeld voor mail 2: `wat kost je website je per maand?`
+
+## 8. De mailreden: alleen wat bevestigd is
 
 Een bevinding mag alleen de **reden** van een mail zijn als hij bij twee aparte
 controles hetzelfde opleverde. Stuur die mee met `status: "bevestigd"`.
@@ -149,7 +201,7 @@ Schrijf een bevinding in gevolgen, niet in techniek:
 | "LCP 4.8s" | "Op een telefoon duurt het ruim vier seconden voor er iets in beeld staat." |
 | "Geen SSL" | "Bezoekers krijgen van hun browser een waarschuwing te zien voor ze op de site zijn." |
 
-## 8. Per branche: waar het bij hen schuurt
+## 9. Per branche: waar het bij hen schuurt
 
 Dit is de kern van je vraag. Het aanbod is voor iedereen hetzelfde, maar het
 **voorbeeld** moet uit hun eigen week komen. Kies er één, en maak hem concreet.
@@ -188,7 +240,7 @@ Verandert elk seizoen en staat vaak nog op vorig jaar.
 Ken je de branche niet, gebruik dan het algemene voorbeeld: "zet dit erop met
 deze foto's", zonder te doen alsof je hun vak kent.
 
-## 9. Wie je overslaat
+## 10. Wie je overslaat
 
 Sla deze beroepsgroepen over, of stuur ze mee zonder mailtekst. WordSwap zet ze
 toch automatisch apart, maar dan heb je er geen werk aan gehad:
@@ -204,7 +256,7 @@ gesprek voer je aan de telefoon, niet per koude mail.
 Ook overslaan: bedrijven zonder e-mailadres hoeven geen mailtekst. Die zijn om
 te bellen. Stuur ze wel mee, met het telefoonnummer.
 
-## 10. De koppeling
+## 11. De koppeling
 
 `POST https://wordswap.nl/api/scan-prospects`
 met `Authorization: Bearer <SCAN_TOKEN>` en JSON.

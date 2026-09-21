@@ -73,4 +73,19 @@ assert.ok(
   "de briefing verbiedt het beloven van een voorraadkoppeling niet"
 );
 
+// 9. De onderwerpregel: de grens tussen klein-en-menselijk en geleende
+//    bekendheid is het makkelijkst te vergeten en het duurst om fout te doen.
+assert.ok(klein.includes("## 7. de onderwerpregel"), "het hoofdstuk over de onderwerpregel ontbreekt");
+for (const verbod of ["re:", "fwd:", "hoi"]) {
+  assert.ok(klein.includes(verbod), `de briefing waarschuwt niet voor "${verbod}"`);
+}
+assert.ok(
+  klein.includes("bekendheid suggereren die er niet is"),
+  "de regel achter het verbod staat er niet, dus hij is niet toe te passen op een nieuw geval"
+);
+
+// 10. Er staat een bruikbaar alternatief tegenover elk verbod
+assert.ok(klein.includes("vraagje over je website"), "de terugval-onderwerpregel ontbreekt");
+assert.ok(klein.includes("wie zet jullie projecten op de site?"), "het branchegerichte onderwerp ontbreekt");
+
 console.log("cowork-briefing: ok");
