@@ -1306,16 +1306,26 @@ export async function ontwerpPromoveren(formData: FormData) {
   const { siteVoorOntwerp, promoveerOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
+  // Tweede klik na de verlies-waarschuwing: Jos heeft gezien wat er wegvalt.
+  const verliesGeaccepteerd = formData.get("verliesGeaccepteerd") === "ja";
   let melding: string;
   try {
-    const uitkomst = await promoveerOntwerp(site);
+    const uitkomst = await promoveerOntwerp(site, verliesGeaccepteerd);
     if (uitkomst.soort === "ok")
       melding = "Het ontwerp staat als concept op de werkversie. De klant kan het bekijken en akkoord geven; Publiceren zet het live.";
     else if (uitkomst.soort === "open-concept")
       melding = "Er staat al een concept open voor deze site. Publiceer of verwerp dat eerst; daarna kan het ontwerp erheen.";
     else if (uitkomst.soort === "achter")
       melding = `Het ontwerp loopt ${uitkomst.achter} wijziging(en) achter op de live site. Klik eerst op Bijwerken vanaf live, zodat tekstwijzigingen van de klant meegaan.`;
-    else {
+    else if (uitkomst.soort === "verlies") {
+      // Geen blokkade maar een vraag: versimpelen mag, per ongeluk niet.
+      const lijst = uitkomst.verliezen.map((v) => v.naam).join(", ");
+      const advies = uitkomst.verliezen.map((v) => `${v.naam}: ${v.advies}`).join(" | ");
+      melding =
+        `LET OP — dit ontwerp laat iets vallen dat de live site wel heeft: ${lijst}. ` +
+        `Er gaat niets kapot, er is straks alleen iets minder, en dat merk je niet vanzelf. ` +
+        `${advies}. Klopt het zo? Klik dan nog een keer op Naar de werkversie; die knop zet het nu door.`;
+    } else {
       const eerste = uitkomst.fouten
         .slice(0, 3)
         .map((f) => `${f.waar}: ${f.detail}`)

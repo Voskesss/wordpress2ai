@@ -20,6 +20,19 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.6.0 (21 september 2026)
+
+**Een nieuw ontwerp kan niet meer ongemerkt iets laten vallen.** Bij een
+herontwerp wordt het menu vaak opnieuw opgebouwd, en dan kan er een onderdeel
+uit vallen: het zoekvak, een agenda, een taalknop. Dat leverde geen
+foutmelding op, want de nieuwe site is op zichzelf gewoon in orde. Er is
+alleen iets minder, en dat merk je pas veel later.
+
+Voordat een ontwerp naar de werkversie gaat, wordt het nu naast de live site
+gelegd. Valt er iets weg, dan zie je precies wat, wat je eraan kunt doen, en
+de knop vraagt eerst of het zo klopt. Het blokkeert niet: soms wil je juist
+versimpelen. Maar dan is het een keuze.
+
 ## 1.5.5 (21 september 2026)
 
 De instellingen van je eigen mailserver liggen niet meer open en bloot in je

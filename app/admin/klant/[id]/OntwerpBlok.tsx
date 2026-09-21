@@ -31,6 +31,11 @@ export default async function OntwerpBlok({
   }
   const url = site.ontwerpSlug ? `https://${site.ontwerpSlug}.wordswap.workers.dev` : null;
 
+  // Kwam de vorige klik terug met een verlies-waarschuwing? Dan mag deze klik
+  // doorzetten. Stateloos: het staat in de melding, dus verversen of een andere
+  // klant openen begint gewoon weer bij de waarschuwing.
+  const verliesGemeld = Boolean(melding?.startsWith("LET OP"));
+
   return (
     <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
       <h2 id="ontwerp" className="scroll-mt-24 font-display text-xl font-semibold">
@@ -42,6 +47,8 @@ export default async function OntwerpBlok({
         Promotie zet het als gewoon concept op de werkversie: de klant geeft
         daar akkoord en publiceert zoals altijd.
       </p>
+      {/* De vorige klik meldde dat dit ontwerp iets laat vallen. De volgende
+          klik mag dat dan doorzetten: het is een vraag, geen blokkade. */}
       {melding && (
         <p className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
           {melding}
@@ -117,11 +124,16 @@ export default async function OntwerpBlok({
             </form>
             <form action={ontwerpPromoveren}>
               <input type="hidden" name="siteId" value={site.id} />
+              {verliesGemeld && <input type="hidden" name="verliesGeaccepteerd" value="ja" />}
               <MetUitleg tekst="Draait eerst de bouw-controle (formulieren, links, mobiel, SEO). Foutloos? Dan komt het ontwerp als gewoon concept op de werkversie: de klant bekijkt het in zijn portaal, geeft akkoord en publiceert zoals altijd. Bij fouten gebeurt er niets en zie je hier wat er mis is.">
                 <BevestigKnop
-                  label="Naar de werkversie"
+                  label={verliesGemeld ? "Toch doorzetten" : "Naar de werkversie"}
                   bezigLabel="Controleren en klaarzetten..."
-                  vraag="Bouw-controle draaien en het ontwerp als concept op de werkversie zetten? De klant ziet het daarna in zijn portaal."
+                  vraag={
+                    verliesGemeld
+                      ? "Je hebt gezien wat dit ontwerp laat vallen. Toch doorzetten naar de werkversie?"
+                      : "Bouw-controle draaien en het ontwerp als concept op de werkversie zetten? De klant ziet het daarna in zijn portaal."
+                  }
                   className={`${KNOP} bg-violet-700 text-white hover:bg-violet-600`}
                 />
               </MetUitleg>

@@ -12,6 +12,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { changes, sites } from "../db/schema";
 import { controleerSiteMap, type Bevinding } from "./bouw-controle";
+import { vergelijkOnderdelen, type Verlies } from "./verlies";
 import {
   deployRepoNaarCloudflareRef,
   verwijderCloudflareSite,
@@ -111,22 +112,63 @@ export async function controleerOntwerp(repo: string): Promise<Bevinding[]> {
   }
 }
 
+/**
+ * Wat had de live site dat dit ontwerp niet meer heeft?
+ *
+ * Een herontwerp herschrijft vaak delen/menu.html, en dan valt een bouwsteen
+ * er ongemerkt uit: het zoekvak, een actueel-blok, een taalknop. De gewone
+ * bouw-controle kan dat principieel niet zien, want die krijgt alleen de nieuwe
+ * map te zien en die is op zichzelf gewoon in orde. Er gaat niets kapot, er is
+ * alleen iets minder. Zie lib/verlies.ts.
+ */
+export async function verliesInOntwerp(repo: string): Promise<Verlies[]> {
+  const [oudeMap, nieuweMap] = await Promise.all([
+    laadWerkmap(repo, "main"),
+    laadWerkmap(repo, ONTWERP_BRANCH),
+  ]);
+  try {
+    const lees = async (map: string) => {
+      const { readdir, readFile } = await import("node:fs/promises");
+      const path = (await import("node:path")).default;
+      const uit: string[] = [];
+      const loop = async (sub: string) => {
+        for (const item of await readdir(sub, { withFileTypes: true })) {
+          if (item.name === ".git") continue;
+          const vol = path.join(sub, item.name);
+          if (item.isDirectory()) await loop(vol);
+          else if (/\.html?$/i.test(item.name)) uit.push(await readFile(vol, "utf8").catch(() => ""));
+        }
+      };
+      await loop(map);
+      return uit;
+    };
+    return vergelijkOnderdelen(await lees(oudeMap), await lees(nieuweMap));
+  } finally {
+    await Promise.all([ruimWerkmapOp(oudeMap).catch(() => {}), ruimWerkmapOp(nieuweMap).catch(() => {})]);
+  }
+}
+
 export type PromotieUitkomst =
   | { soort: "open-concept" }
   | { soort: "achter"; achter: number }
   | { soort: "fouten"; fouten: Bevinding[] }
+  | { soort: "verlies"; verliezen: Verlies[] }
   | { soort: "ok"; changeId: number };
 
 /** Zet het ontwerp klaar als gewoon concept op de werkversie. Blokkeert op
  * een al openstaand concept, op een ontwerp dat achterloopt op main (eerst
  * bijwerken, anders raken tekstwijzigingen van de klant zoek) en op fouten
  * uit de bouw-controle. */
-export async function promoveerOntwerp(site: {
-  id: number;
-  githubRepo: string;
-  siteSlug: string | null;
-  clerkUserId: string;
-}): Promise<PromotieUitkomst> {
+export async function promoveerOntwerp(
+  site: {
+    id: number;
+    githubRepo: string;
+    siteSlug: string | null;
+    clerkUserId: string;
+  },
+  /** Verlies gezien en bewust geaccepteerd: soms wíl je versimpelen. */
+  verliesGeaccepteerd = false,
+): Promise<PromotieUitkomst> {
   if (!site.siteSlug) throw new Error("Site heeft geen slug.");
   const [open] = await db
     .select({ id: changes.id })
@@ -143,6 +185,13 @@ export async function promoveerOntwerp(site: {
     (b) => b.ernst === "fout",
   );
   if (fouten.length) return { soort: "fouten", fouten };
+
+  // Laat dit ontwerp iets vallen dat de live site wel had? Geen blokkade, want
+  // versimpelen mag; wel een bewuste klik, want per ongeluk mag niet.
+  if (!verliesGeaccepteerd) {
+    const verliezen = await verliesInOntwerp(site.githubRepo).catch(() => [] as Verlies[]);
+    if (verliezen.length) return { soort: "verlies", verliezen };
+  }
 
   const branch = `ontwerp-promotie-${Date.now()}`;
   await zetBranchOpInhoudVan(

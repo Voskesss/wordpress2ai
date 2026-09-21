@@ -73,14 +73,22 @@ switch (commando) {
     break;
   }
   case "promoveer": {
-    const uitkomst = await promoveerOntwerp(site);
+    // --toch-doorzetten: je hebt de verlies-waarschuwing gezien en accepteert hem
+    const uitkomst = await promoveerOntwerp(site, process.argv.includes("--toch-doorzetten"));
     if (uitkomst.soort === "ok")
       console.log(`Concept #${uitkomst.changeId} staat op de werkversie (wv-${site.siteSlug}). Klant kan akkoord geven; Publiceren zet het live.`);
     else if (uitkomst.soort === "open-concept")
       console.log("Er staat al een concept open; publiceer of verwerp dat eerst.");
     else if (uitkomst.soort === "achter")
       console.log(`Ontwerp loopt ${uitkomst.achter} wijziging(en) achter op live: draai eerst "bijwerken".`);
-    else {
+    else if (uitkomst.soort === "verlies") {
+      for (const v of uitkomst.verliezen)
+        console.log(`VERLIES  de live site heeft een ${v.naam}, dit ontwerp niet: ${v.advies}`);
+      console.log(
+        "\nEr gaat niets kapot, er is straks alleen iets minder, en dat merk je niet vanzelf.",
+      );
+      console.log("Klopt het zo? Draai dezelfde opdracht nog eens met --toch-doorzetten.");
+    } else {
       for (const f of uitkomst.fouten) console.log(`FOUT [${f.regel}] ${f.waar} — ${f.detail}`);
       console.log(`\nPromotie geblokkeerd door ${uitkomst.fouten.length} fout(en).`);
     }
