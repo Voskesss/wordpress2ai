@@ -858,13 +858,27 @@ Instructies:
 - CENTRALE ONDERDELEN (delen/): alles wat op twee of meer pagina's identiek terugkomt zet je ÉÉN keer in de map site/delen/ (dus BINNEN site/ — bv. site/delen/menu.html; delen/ buiten site/ wordt NIET gepubliceerd) als los HTML-fragment, en op de pagina's plaats je alleen de marker <!--invoeg:naam-->. Verplicht voor menu/navigatie (site/delen/menu.html), footer (site/delen/footer.html) en topbalk (site/delen/topbalk.html), maar herken óók andere herhaalde blokken: een referenties-strook, een "actueel"/laatste-blogs-blok, een call-to-action-banner, een sidebar — allemaal delen/<naam>.html + marker. Bij het serveren worden de markers automatisch vervangen door de inhoud; jij hoeft alleen de fragmenten en markers te maken. Een actieve menustand per pagina (class "actief") kan niet in een gedeeld fragment — los dat op met een klein stukje CSS of JS op basis van het huidige pad, niet door het menu per pagina te kopiëren.
 - FAVICON CENTRAAL: neem het favicon van de oude site over (het <link rel="icon">-bestand uit de bron, anders /favicon.ico; staat het in site/afbeeldingen/ of site/, gebruik dat). Zet de <link rel="icon">- en eventuele <link rel="apple-touch-icon">-regels ÉÉN keer in site/delen/favicon.html en plaats op elke pagina in de <head> alleen <!--invoeg:favicon-->, ook op 404.html en bedankt-pagina's. Nooit per pagina kopiëren. Heeft de oude site geen favicon en staat er geen bruikbaar beeldmerk in site/afbeeldingen/, zet dan in ontbrekende-media.txt "favicon ontbreekt" en plaats de marker toch, met een leeg site/delen/favicon.html (dan kan hij later op één plek worden ingevuld).
 - DECORATIE HOORT ERBIJ: sfeer-elementen uit het thema (wolken, bladeren, golven, patronen, iconen die als CSS-achtergrond staan) zijn onderdeel van het ontwerp en staan gedownload in site/afbeeldingen/. Plaats ze terug als CSS-achtergronden op de overeenkomstige secties — de screenshots tonen waar ze horen.
-- SLIDERS per soort (de echte beelden staan in de afbeeldingen-kaart; nooit leeg of nagemaakt):
-  - Hero-/fotoslider: statische hero met de eerste (of mooiste) slide, of een eenvoudige CSS-crossfade met de echte slides.
+- SLIDERS per soort (de echte beelden staan in de afbeeldingen-kaart; nooit leeg of nagemaakt).
+  BEWEGING IS HET UITGANGSPUNT, niet de uitzondering: een site met een slider vóélt levendig, en
+  een klant die er een statisch plaatje voor terugkrijgt ziet zijn site verarmen, ook als alle
+  tekst er nog staat. Bouw de beweging dus na met CSS; alleen als er echt maar één slide is, is
+  statisch goed.
+  - Hero-/fotoslider: bouw de binnenkomst na met CSS-keyframes en getrapte vertragingen, zoals
+    Revolution Slider dat doet: kop, ondertitel en knoppen verschijnen ná elkaar (bv. .7s, 1.2s,
+    1.8s), elk met een eigen richting (van boven, van links, opschalen, invloeien) en
+    "backwards" zodat ze vóór hun beurt onzichtbaar zijn. Meerdere slides: een CSS-crossfade met
+    de echte beelden. Voorbeeld om van af te kijken: evc-autotechniek (hero-omlaag, hero-links,
+    hero-open in stijl.css).
+    DE TEKST VAN ELKE SLIDE MOET BLIJVEN: maak je er één hero van, zet de boodschappen van de
+    andere slides dan als secties eronder. Ze weglaten is verlies van inhoud, geen versimpeling.
   - Logo-carrousel (partners, keurmerken, klanten): een statische rij of grid met ALLE logo's naast elkaar (grijs/klein zoals origineel), eventueel een subtiele CSS-marquee; nooit logo's weglaten.
   - Testimonial-/quoteslider: alle quotes statisch onder elkaar of in een grid; tekst mag nooit verloren gaan.
   - Fotogalerij-slider: een fotogrid met alle beelden.
 - AFBEELDINGEN ZIJN VERPLICHT: oud-ontwerp/afbeeldingen-op-paginas.json toont per pagina exact welke afbeeldingen (en achtergronden) er op de oude site stonden; media-map.json koppelt hun URL's aan de lokale bestanden in site/afbeeldingen/. Een pagina die in het origineel afbeeldingen had maar in jouw versie kaal is, is FOUT. Plaats elke gedownloade afbeelding van die pagina terug op de overeenkomstige plek (hero-achtergrond als CSS background-image, fotogrids als grid, losse foto's inline), met alt-tekst. Alleen afbeeldingen die écht niet gedownload zijn mag je weglaten.${documentBlok}${galerijBlok}
 - Maak één gedeeld stijlblad site/stijl.css: rustig, professioneel, passend bij het type bedrijf. Mobielvriendelijk (viewport-meta, geen vaste breedtes, leesbare tekst, aantikbare knoppen, hamburger-menu bij veel menu-items).
+- BEWEGING UITZETBAAR: zodra je animaties gebruikt, zet onderaan stijl.css
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }
+  Bezoekers die beweging uitgezet hebben (vaak om medische redenen) krijgen dan een stille site.
 - Navigatie op elke pagina met de hoofdpagina's; voetregel met bedrijfsnaam.
 - Berichten (type post): maak ook een blogoverzichtspagina op site/blog/index.html met links, als er berichten zijn.
 - Zet vlak voor </body> van elke pagina exact dit snippet: ${PORTAL_SNIPPET}

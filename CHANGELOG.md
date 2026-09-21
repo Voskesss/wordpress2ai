@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.8.0 (21 september 2026)
+
+**Bewegende koppen blijven voortaan bewegen.** Had je oude site een schuivende
+hero met een paar boodschappen, dan werd dat bij het overzetten een stilstaand
+plaatje. Er ging geen tekst verloren op de pagina, maar de site voelde dood,
+en de boodschappen van de tweede en derde slide verdwenen stilletjes.
+
+Nu wordt die beweging nagebouwd: kop, ondertitel en knoppen verschijnen na
+elkaar, net als eerst. Zijn er meerdere beelden, dan wisselen die rustig af.
+En de tekst van elke slide blijft staan, desnoods als blok eronder.
+
+Bezoekers die beweging liever niet hebben krijgen automatisch een stille
+versie.
+
 ## 1.7.1 (21 september 2026)
 
 Twee controles sloegen vals alarm. Een site die zijn links relatief schrijft
