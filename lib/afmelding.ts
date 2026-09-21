@@ -53,6 +53,14 @@ const VERZOEK = [
   /\bopt\s?-?out\b/,
   /remove\s+(me|us)\b/,
   /\bspam\b/,
+  // Een beleefd nee. Geen afmelding in de strikte zin, maar wie dit schrijft
+  // wil geen mail 2 en 3, en al helemaal geen plek tussen de warme leads.
+  /geen\s+interesse/,
+  /geen\s+behoefte/,
+  /niet\s+ge(ï|i)nteresseerd/,
+  /\bniet\s+nodig\b/,
+  /\bnee,?\s+(bedankt|dank)/,
+  /\bnee\s+dank\s+je/,
 ];
 
 /**

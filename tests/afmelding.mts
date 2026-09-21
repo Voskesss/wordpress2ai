@@ -73,4 +73,24 @@ assert.ok(
 const bijwerken = await readFile(new URL("../lib/leads-bijwerken.ts", import.meta.url), "utf8");
 assert.ok(bijwerken.includes("uitslag.afgemeld.length"), "afmeldingen worden niet gemeld in het verslag");
 
+// 8. Een beleefd nee telt ook: Harry schreef "geen interesse" en werd een
+//    warme lead met een feestje erbij
+for (const zin of ["Geen interesse, bedankt.", "Hier hebben wij geen behoefte aan.", "Nee bedankt", "Niet nodig, we hebben net een nieuwe site."]) {
+  assert.ok(isAfmelding(null, zin), `een nee wordt niet herkend: ${JSON.stringify(zin)}`);
+}
+// en een antwoord dat ergens "interesse" noemt zonder nee blijft een reactie
+assert.equal(isAfmelding(null, "Ja, ik heb wel interesse. Bel me maar."), false);
+
+// 9. Een mail die alleen uit HTML bestaat verliest zijn tekst niet meer
+const soverin = await readFile(new URL("../lib/soverin.ts", import.meta.url), "utf8");
+assert.ok(soverin.includes("geparsed.text ||"), "een HTML-mail zonder platte tekst geeft nog steeds een leeg fragment");
+assert.ok(soverin.includes('typeof geparsed.html === "string"'), "de HTML-terugval ontbreekt");
+
+// 10. Een lead verwijderen maakt eerst de outreach-koppeling los, anders
+//     weigert de database (prospects_lead_id_fkey)
+const acties = await readFile(new URL("../app/admin/acties-leads.ts", import.meta.url), "utf8");
+const verwijder = acties.slice(acties.indexOf("export async function leadVerwijderen"), acties.indexOf("export async function leadsNuBijwerken"));
+assert.ok(verwijder.includes("set({ leadId: null })"), "de prospect blijft naar de verwijderde lead wijzen");
+assert.ok(verwijder.indexOf("set({ leadId: null })") < verwijder.indexOf("delete(leads)"), "de koppeling wordt pas losgemaakt na het verwijderen");
+
 console.log("afmelding: ok");

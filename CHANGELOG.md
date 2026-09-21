@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.3 (21 september 2026)
+
+Drie reparaties rond een reactie op de outreach, gevonden doordat iemand
+"geen interesse" terugschreef en toch als warme lead in de lijst kwam.
+
+De tekst van een antwoord dat alleen uit HTML bestaat werd niet gelezen, dus
+viel de hele reactie weg. Een beleefd nee ("geen interesse", "geen behoefte",
+"nee bedankt") telt nu als: geen mail meer, en geen lead. En een lead
+verwijderen maakt eerst de koppeling met de outreach los, want anders
+weigerde de database met een kale foutmelding.
+
 ## 1.21.2 (21 september 2026)
 
 De beheerder valt buiten de daggrens van tien berichten in de demo, zodat hij

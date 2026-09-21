@@ -90,6 +90,12 @@ export async function leadVerwijderen(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return;
+  // Een prospect die deze lead werd wijst er nog naar; zonder dit losmaken
+  // weigert de database (prospects_lead_id_fkey) en zie je een kale fout.
+  // De prospect zelf blijft staan met zijn status, dus wie op niet-mailen
+  // staat blijft daar.
+  const { prospects } = await import("@/db/schema");
+  await db.update(prospects).set({ leadId: null }).where(eq(prospects.leadId, id));
   await db.delete(leadActies).where(eq(leadActies.leadId, id));
   await db.delete(leadPost).where(eq(leadPost.leadId, id));
   await db.delete(leads).where(eq(leads.id, id));

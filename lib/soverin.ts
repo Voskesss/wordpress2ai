@@ -59,7 +59,22 @@ async function zoekInMap(
         if (!bericht || !bericht.envelope) continue;
         let fragment: string | null = null;
         try {
-          if (bericht.source) fragment = fragmentVan((await simpleParser(bericht.source)).text);
+          if (bericht.source) {
+            // Veel mailprogramma's sturen alleen HTML. Dan is .text leeg en
+            // viel de hele reactie weg: "geen interesse" werd zo een warme lead.
+            const geparsed = await simpleParser(bericht.source);
+            const tekst =
+              geparsed.text ||
+              (typeof geparsed.html === "string"
+                ? geparsed.html
+                    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+                    .replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n")
+                    .replace(/<[^>]+>/g, " ")
+                    .replace(/&nbsp;/g, " ")
+                    .replace(/[ \t]+/g, " ")
+                : "");
+            fragment = fragmentVan(tekst);
+          }
         } catch {
           // Zonder fragment is de tijdlijnregel nog steeds bruikbaar
         }
