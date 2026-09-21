@@ -79,6 +79,7 @@
  ],
  "chat-ui": [
   "chat-recovery.cjs",
+  "cowork-briefing.mts",
   "demo-funnel.cjs",
   "product-preview.cjs"
  ],
