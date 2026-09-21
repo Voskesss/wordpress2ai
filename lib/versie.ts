@@ -9,7 +9,7 @@
  * Bijwerken: hier én in package.json, en een blok erbij in CHANGELOG.md.
  * Daarna een tag: `git tag -a v<versie> -m "..." && git push origin v<versie>`.
  */
-export const VERSIE = "1.8.0";
+export const VERSIE = "1.9.0";
 
 /** Wat er in de klantrepo terechtkomt als `wordswap.json`. */
 export function siteStempel(velden: {

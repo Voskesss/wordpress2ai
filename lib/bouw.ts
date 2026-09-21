@@ -22,6 +22,136 @@ const MAX_FOTOS_MIGRATIE = 2000;
  * bestanden/, audio naar audio/, video naar video/ — dezelfde mappen die de
  * chat gebruikt, zodat een klant na de migratie niets opnieuw hoeft te uploaden.
  */
+/**
+ * Het ontwerp-bestek dat in de browser gemeten wordt: lettertypen, kleuren,
+ * secties, embeds en beweging. Bewust een string en geen functie; zie de
+ * toelichting bij de aanroep.
+ */
+const BESTEK_SCRIPT = `(() => {
+const stijl = (el) => {
+  const c = getComputedStyle(el);
+  return {
+    font: c.fontFamily.split(",")[0].replace(/["']/g, ""),
+    size: c.fontSize,
+    weight: c.fontWeight,
+    kleur: c.color,
+    achtergrond: c.backgroundColor,
+  };
+};
+const pak = (sel) => {
+  const el = document.querySelector(sel);
+  return el ? stijl(el) : null;
+};
+// BEWEGING METEN. Een slider-plugin draait uiteindelijk ook maar op HTML
+// en CSS: elke laag draagt zijn starttijd en duur in data-frame-attributen
+// (st = start in ms, sp = duur). Zonder dat hier op te halen moet de AI ze
+// zelf zoeken in een bestand van honderdduizenden tekens, en dan gebeurt
+// het niet: de hero werd elke keer stilgezet. Zie LEERPUNTEN 21-09.
+const framegetal = (blok, sleutel) => {
+  const m = blok.match(new RegExp(sleutel + ":(-?[0-9]+)"));
+  return m ? Number(m[1]) : null;
+};
+const beweging = [];
+document.querySelectorAll("[data-frame_1]").forEach((el) => {
+  const e = el;
+  const eerste = e.getAttribute("data-frame_1") ?? "";
+  const start = framegetal(eerste, "st");
+  if (start === null) return;
+  beweging.push({
+    tekst: (e.textContent ?? "").replace(/\\s+/g, " ").trim().slice(0, 50),
+    tag: e.tagName.toLowerCase(),
+    startMs: start,
+    duurMs: framegetal(eerste, "sp"),
+    vanaf: (e.getAttribute("data-frame_0") ?? "").slice(0, 60),
+  });
+});
+beweging.sort((a, b) => a.startMs - b.startMs);
+// Ook gewone CSS-animaties in het eerste scherm, voor sites zonder plugin.
+const cssBeweging = [];
+document.querySelectorAll("*").forEach((el) => {
+  const e = el;
+  if (e.getBoundingClientRect().top > window.innerHeight) return;
+  const c = getComputedStyle(e);
+  if (c.animationName === "none") return;
+  cssBeweging.push({
+    tekst: (e.textContent ?? "").replace(/\\s+/g, " ").trim().slice(0, 40),
+    naam: c.animationName,
+    duur: c.animationDuration,
+    vertraging: c.animationDelay,
+  });
+});
+
+const kleuren = new Map();
+document.querySelectorAll("*").forEach((el) => {
+  const c = getComputedStyle(el);
+  for (const k of [c.backgroundColor, c.color]) {
+    if (k && k !== "rgba(0, 0, 0, 0)")
+      kleuren.set(k, (kleuren.get(k) ?? 0) + 1);
+  }
+});
+const knop = document.querySelector(
+  "a[class*='btn'],button,a[class*='button'],.wp-block-button a"
+);
+const secties = [];
+document
+  .querySelectorAll("body > *, main > *, #page > *, .site > *")
+  .forEach((el) => {
+    const h = (el).offsetHeight;
+    if (h < 40) return;
+    const c = getComputedStyle(el);
+    secties.push({
+      tag: el.tagName.toLowerCase(),
+      class: (el.className || "").toString().slice(0, 80),
+      hoogte: h,
+      achtergrond: c.backgroundColor,
+      achtergrondAfbeelding:
+        c.backgroundImage !== "none" ? c.backgroundImage.slice(0, 200) : null,
+      tekst: (el.textContent || "").trim().slice(0, 120),
+    });
+  });
+// Alle beelden zoals de browser ze ECHT toont (vangt sliders,
+// lazy-load en JS-injectie af, ongeacht de plugin)
+const gerenderdeBeelden = [];
+document.querySelectorAll("img").forEach((img) => {
+  const src = img.currentSrc || img.getAttribute("src") || "";
+  if (src) gerenderdeBeelden.push({ src, alt: img.getAttribute("alt") ?? "" });
+});
+document.querySelectorAll("*").forEach((el) => {
+  const bg = getComputedStyle(el).backgroundImage;
+  const m = /url\\(["']?([^"')]+)["']?\\)/.exec(bg ?? "");
+  if (m) gerenderdeBeelden.push({ src: m[1], alt: "(achtergrond)" });
+});
+const embeds = [];
+document.querySelectorAll("iframe, video, audio").forEach((el) => {
+  const src = el.getAttribute("src") ?? "";
+  embeds.push({
+    tag: el.tagName.toLowerCase(),
+    src,
+    breedte: (el).offsetWidth,
+    hoogte: (el).offsetHeight,
+    html: el.outerHTML.slice(0, 600),
+  });
+});
+return {
+  gerenderdeBeelden: gerenderdeBeelden.slice(0, 60),
+  body: pak("body"),
+  h1: pak("h1"),
+  h2: pak("h2"),
+  nav: pak("nav, header"),
+  knop: knop ? stijl(knop) : null,
+  topKleuren: [...kleuren.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([k]) => k),
+  secties: secties.slice(0, 20),
+  // Beweging: per element wanneer het binnenkomt en hoe lang dat
+  // duurt, zodat de hero niet stilgezet hoeft te worden.
+  beweging: beweging.slice(0, 40),
+  cssBeweging: cssBeweging.slice(0, 20),
+  embeds,
+};
+})()`;
+
 const MEESTUUR_SOORTEN = [
   { map: "bestanden", patroon: /\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp|rtf|csv|txt)([?#]|$)/i },
   { map: "audio", patroon: /\.(mp3|m4a|aac|wav|ogg|opus|flac)([?#]|$)/i },
@@ -258,87 +388,12 @@ export async function haalLiveOntwerp(
           await stuur(`Screenshot van de oude site: ${naam} (${label})`);
           if (label === "desktop") {
             // Ontwerp-bestek: gemeten stijlen, secties en embeds — feiten i.p.v. interpretatie
-            const bestek = await page.evaluate(() => {
-              const stijl = (el: Element) => {
-                const c = getComputedStyle(el as HTMLElement);
-                return {
-                  font: c.fontFamily.split(",")[0].replace(/["']/g, ""),
-                  size: c.fontSize,
-                  weight: c.fontWeight,
-                  kleur: c.color,
-                  achtergrond: c.backgroundColor,
-                };
-              };
-              const pak = (sel: string) => {
-                const el = document.querySelector(sel);
-                return el ? stijl(el) : null;
-              };
-              const kleuren = new Map<string, number>();
-              document.querySelectorAll("*").forEach((el) => {
-                const c = getComputedStyle(el as HTMLElement);
-                for (const k of [c.backgroundColor, c.color]) {
-                  if (k && k !== "rgba(0, 0, 0, 0)")
-                    kleuren.set(k, (kleuren.get(k) ?? 0) + 1);
-                }
-              });
-              const knop = document.querySelector(
-                "a[class*='btn'],button,a[class*='button'],.wp-block-button a"
-              );
-              const secties: object[] = [];
-              document
-                .querySelectorAll("body > *, main > *, #page > *, .site > *")
-                .forEach((el) => {
-                  const h = (el as HTMLElement).offsetHeight;
-                  if (h < 40) return;
-                  const c = getComputedStyle(el as HTMLElement);
-                  secties.push({
-                    tag: el.tagName.toLowerCase(),
-                    class: (el.className || "").toString().slice(0, 80),
-                    hoogte: h,
-                    achtergrond: c.backgroundColor,
-                    achtergrondAfbeelding:
-                      c.backgroundImage !== "none" ? c.backgroundImage.slice(0, 200) : null,
-                    tekst: (el.textContent || "").trim().slice(0, 120),
-                  });
-                });
-              // Alle beelden zoals de browser ze ECHT toont (vangt sliders,
-              // lazy-load en JS-injectie af, ongeacht de plugin)
-              const gerenderdeBeelden: { src: string; alt: string }[] = [];
-              document.querySelectorAll("img").forEach((img) => {
-                const src = (img as HTMLImageElement).currentSrc || img.getAttribute("src") || "";
-                if (src) gerenderdeBeelden.push({ src, alt: img.getAttribute("alt") ?? "" });
-              });
-              document.querySelectorAll("*").forEach((el) => {
-                const bg = getComputedStyle(el as HTMLElement).backgroundImage;
-                const m = /url\(["']?([^"')]+)["']?\)/.exec(bg ?? "");
-                if (m) gerenderdeBeelden.push({ src: m[1], alt: "(achtergrond)" });
-              });
-              const embeds: object[] = [];
-              document.querySelectorAll("iframe, video, audio").forEach((el) => {
-                const src = el.getAttribute("src") ?? "";
-                embeds.push({
-                  tag: el.tagName.toLowerCase(),
-                  src,
-                  breedte: (el as HTMLElement).offsetWidth,
-                  hoogte: (el as HTMLElement).offsetHeight,
-                  html: el.outerHTML.slice(0, 600),
-                });
-              });
-              return {
-                gerenderdeBeelden: gerenderdeBeelden.slice(0, 60),
-                body: pak("body"),
-                h1: pak("h1"),
-                h2: pak("h2"),
-                nav: pak("nav, header"),
-                knop: knop ? stijl(knop) : null,
-                topKleuren: [...kleuren.entries()]
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 12)
-                  .map(([k]) => k),
-                secties: secties.slice(0, 20),
-                embeds,
-              };
-            });
+            // Als STRING, niet als functie. tsx draait hier doorheen en esbuild
+            // wikkelt elke benoemde functie in __name(), dat in de browser niet
+            // bestaat: ReferenceError, en de catch eronder slikte dat stil in.
+            // Gevolg: er is nooit één bestek-bestand geschreven, terwijl de
+            // bouwinstructie de AI wél naar het bestek verwijst. Zie LEERPUNTEN 21-09.
+            const bestek = (await page.evaluate(BESTEK_SCRIPT)) as Record<string, unknown>;
             await writeFile(
               path.join(doelDir, `bestek-${naam}.json`),
               JSON.stringify(bestek, null, 1)
@@ -856,6 +911,12 @@ Instructies:
 - Ontdo de WordPress-content van shortcodes ([...]), inline styles, CSS-escape-artefacten (zoals \\25BE in menuteksten) en overbodige wrapper-divs; behoud de teksten, koppen en structuur.
 - EMBEDS ZIJN VERPLICHT: oud-ontwerp/embeds-op-paginas.json toont per pagina exact welke video's en kaarten (YouTube-, Vimeo-, Google Maps-iframes, <video>-tags) er op de oude site stonden; oud-ontwerp/bestek-*.json geeft ook afmetingen. Plaats élke embed letterlijk terug op de overeenkomstige pagina, responsief (max-width: 100%, behoud beeldverhouding via aspect-ratio). Een pagina die in het origineel een video of kaart had maar in jouw versie niet, is FOUT.
 - ONTWERP OVERNEMEN (belangrijk): in oud-ontwerp/ staat het echte ontwerp van de oude site — gerenderde HTML-pagina's, de CSS-bestanden en (indien aanwezig) screenshots (PNG, desktop en mobiel). BEKIJK eerst de screenshots met Read en bestudeer de CSS. Neem het ontwerp zo trouw mogelijk over: kleurenpalet, lettertypen (via Google Fonts als de originelen daar staan), de opbouw van de header (logo/topbar/menu), de hero-sectie met achtergrondafbeelding of visuals, knopstijlen en de fotogrids. Hero- en sfeerbeelden die in de gerenderde HTML of CSS staan maar niet in de media-map: voeg hun URL toe aan een lijst in ontbrekende-media.txt in de werkmapwortel. De site moet voor de eigenaar direct herkenbaar zijn als "zijn" site — geen generiek sjabloon.
+- BEWEGING NABOUWEN: het bestek bevat "beweging": per element van de oude hero wanneer hij
+  binnenkomt (startMs), hoe lang dat duurt (duurMs) en vanaf welke kant (vanaf). Neem die
+  volgorde en die tijden over met CSS-keyframes en animation-delay. Staat er "cssBeweging" in,
+  dan had de site gewone CSS-animaties: neem naam, duur en vertraging over. Zijn beide leeg,
+  dan bewoog er niets en hoef je niets te verzinnen. Kijk af bij evc-autotechniek
+  (hero-omlaag, hero-links, hero-open in stijl.css).
 - MAATVAST NABOUWEN: neem details letterlijk over uit het bestek (oud-ontwerp/bestek-*.json bevat de computed styles van de echte site) — border-radius van kaarten en knoppen, schaduwen, het exacte aantal kolommen per sectie (staan de diensten in 4 kolommen naast elkaar, dan bouw jij 4 kolommen — niet 2), de volgorde en uitlijning van blokken, hoogtes van hero's, en of een sectie een achtergrondkleur of foto heeft. "Ongeveer hetzelfde" is niet goed genoeg; bij twijfel meet je na in het bestek of de screenshots.
 - KLEINE BEELDEN HOREN ERBIJ: iconen bij USP-blokjes, logo-iconen, partnerlogo's (boekhoudpakketten e.d.) en portretfoto's van teamleden zijn net zo verplicht als grote foto's. Staat zo'n beeld in site/afbeeldingen/, gebruik het; ontbreekt het, zet de URL in ontbrekende-media.txt — maar vervang het NOOIT door een gekleurd rondje, initialen of een leeg blok zonder dit te melden.
 - GEEN PLACEHOLDER-TEKST: WordPress-thema's bevatten vaak achtergebleven vulteksten ("Lorem ipsum", "Nullam arcu felis", Engelse thema-koppen als "Principles of our work" op een verder Nederlandse site). Neem die NOOIT over. Staat er zichtbaar vultekst of een thema-restant in de bron, laat die sectie dan weg — of vul hem alleen met echte inhoud die elders op de site staat. Controleer aan het eind: nergens lorem ipsum of thema-Engels.

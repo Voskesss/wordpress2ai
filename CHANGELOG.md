@@ -20,6 +20,19 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.9.0 (21 september 2026)
+
+**Het ontwerp van een oude site wordt nu echt opgemeten.** Bij het overzetten
+werd al een lijst gemaakt met de precieze lettertypen, kleuren, maten en
+secties van de oude site, zodat de nieuwe site er hetzelfde uitziet. Alleen
+werd die lijst door een fout nooit opgeslagen, en dan moet de bouwer het doen
+op het oog.
+
+Dat is rechtgezet. Er komt nu ook bij te staan hoe de beweging op de oude site
+liep: welk onderdeel wanneer in beeld komt, hoe lang dat duurt en vanaf welke
+kant. Daarmee kan een bewegende kop precies zo worden nagebouwd in plaats van
+stilgezet.
+
 ## 1.8.0 (21 september 2026)
 
 **Bewegende koppen blijven voortaan bewegen.** Had je oude site een schuivende
