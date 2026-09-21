@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.12.0 (21 september 2026)
+
+**Geen bevestigde bevinding, geen mail.** De scan die bedrijven met een
+verwaarloosde website opspoort geeft per bevinding aan hoe zeker hij is: twee
+keer hetzelfde gezien, één keer gezien, of achtergrondinformatie.
+
+Alleen wat twee keer bevestigd is mag de reden van een mail zijn. De rest komt
+wel op het kaartje te staan, maar blijft uit de mail. Is er niets bevestigd,
+dan komt het bedrijf op "bellen" te staan in plaats van in de mailstroom, en
+wordt er ook geen mail klaargezet.
+
+Reden: je schrijft iemand aan over zijn eigen website. Zit je ernaast, dan maak
+je dat niet meer goed.
+
 ## 1.11.0 (21 september 2026)
 
 **Koude outreach gaat voortaan vanaf een eigen afzender.** Post aan mensen die

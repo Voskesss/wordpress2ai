@@ -41,8 +41,10 @@ type Binnen = {
   contactpersoon?: string;
   branche?: string;
   kans?: string;
-  bevindingen?: string[];
-  aanleiding?: string[] | string;
+  bevindingen?: string[] | Bevinding[];
+  aanleiding?: string[] | string | Bevinding[];
+  /** De scan zet dit alleen op true als er een bevestigde bevinding is. */
+  mailbaar?: boolean;
   onderwerp?: string;
   mailtekst?: string;
   prijs?: string;
@@ -50,10 +52,38 @@ type Binnen = {
   bron?: string;
 };
 
-/** "aanleiding" mag een lijst of één regel zijn. */
-function alsLijst(waarde: string[] | string | undefined): string[] {
+/**
+ * Eén bevinding van de scan. De scan levert ze met een status erbij, en dat
+ * onderscheid is het hele punt: alleen iets dat bij twee aparte controles
+ * hetzelfde opleverde mag de reden van een mail zijn. Schrijf je iemand aan
+ * over iets wat niet klopt, dan maak je dat nooit meer goed.
+ */
+type Bevinding = {
+  tekst?: string;
+  feit?: string;
+  bron?: string;
+  status?: "bevestigd" | "eenmalig" | "context";
+  sev?: string;
+};
+
+/** "aanleiding" mag een lijst of één regel zijn, met of zonder status. */
+function alsLijst(waarde: string[] | string | Bevinding[] | undefined): Bevinding[] {
   if (!waarde) return [];
-  return (Array.isArray(waarde) ? waarde : [waarde]).filter(Boolean);
+  const rij = Array.isArray(waarde) ? waarde : [waarde];
+  return rij
+    .filter(Boolean)
+    .map((b) => (typeof b === "string" ? { tekst: b } : b))
+    .filter((b) => (b.tekst ?? "").trim());
+}
+
+/** Zonder status nemen we niets aan: dan telt het niet als mailreden. */
+function bevestigd(b: Bevinding): boolean {
+  return b.status === "bevestigd";
+}
+
+function alsRegel(b: Bevinding): string {
+  const staart = [b.feit, b.bron].filter(Boolean).join(" | ");
+  return staart ? `${b.tekst} (${staart})` : (b.tekst ?? "");
 }
 
 export async function POST(verzoek: Request) {
@@ -101,27 +131,40 @@ export async function POST(verzoek: Request) {
     }
 
     const bevindingen = [...alsLijst(g.bevindingen), ...alsLijst(g.aanleiding)];
+    const hard = bevindingen.filter(bevestigd);
+    const zacht = bevindingen.filter((b) => !bevestigd(b));
+    // Mailen mag alleen op een bevestigde bevinding. De scan zet "mailbaar"
+    // zelf al, maar we rekenen het hier na: één plek die het fout heeft is
+    // genoeg om iemand aan te schrijven over iets wat niet klopt.
+    const magMailen = Boolean(kandidaat.email) && (g.mailbaar ?? hard.length > 0) && hard.length > 0;
     const [aangemaakt] = await db.insert(prospects).values({
       bedrijf: (kandidaat.bedrijf || kandidaat.website || "Onbekend").slice(0, 200),
       website: kandidaat.website,
       // De kolom is verplicht; zonder mailadres houden we hem leeg en bellen we.
       email: kandidaat.email ?? "",
       telefoon: kandidaat.telefoon,
-      observatie: bevindingen.slice(0, 8).join("\n") || null,
+      // Alleen bevestigde bevindingen in de observatie: dat is wat de mail draagt.
+      observatie: hard.slice(0, 8).map(alsRegel).join("\n") || null,
       branche: g.branche?.trim() || null,
       plaats: g.plaats?.trim() || null,
       score: Number.isFinite(g.score) ? Number(g.score) : null,
       prijs: g.prijs?.trim() || null,
       bron: g.bron?.trim() || "Websitescan",
       contactpersoon: (g.contactpersoon ?? g.contact)?.trim() || null,
+      // Wat niet bevestigd is hoort wel op het kaartje, maar nooit in de mail.
+      kenmerken: zacht.length
+        ? `Niet bevestigd, alleen ter info:\n${zacht.slice(0, 6).map(alsRegel).join("\n")}`
+        : null,
       kans: g.kans?.trim() || null,
       // Zonder mailadres heeft mailen geen zin; die zet je op bellen.
-      status: kandidaat.email ? "nieuw" : "niet_mailen",
+      // Niet mailbaar betekent niet waardeloos: het blijft een bedrijf om te
+      // bellen, alleen zonder mailreden die we kunnen waarmaken.
+      status: magMailen ? "nieuw" : "niet_mailen",
     }).returning({ id: prospects.id });
 
     // De concept-mail meteen klaarzetten als hij meekomt: dan hoeft Jos alleen
     // nog te lezen, bij te schaven en op verzenden te drukken.
-    if (aangemaakt && g.onderwerp?.trim() && g.mailtekst?.trim()) {
+    if (aangemaakt && magMailen && g.onderwerp?.trim() && g.mailtekst?.trim()) {
       await db.insert(prospectMails).values({
         prospectId: aangemaakt.id,
         nummer: 1,
@@ -130,7 +173,7 @@ export async function POST(verzoek: Request) {
       });
     }
     onthoud(kandidaat, register);
-    if (!kandidaat.email) zonderMail.push(kandidaat.bedrijf || kandidaat.website);
+    if (!magMailen) zonderMail.push(kandidaat.bedrijf || kandidaat.website);
     nieuw++;
   }
 
@@ -138,9 +181,9 @@ export async function POST(verzoek: Request) {
     ontvangen: gevonden.length,
     nieuw,
     overgeslagen,
-    zonderMailadres: zonderMail.length,
+    nietMailbaar: zonderMail.length,
     opmerking: zonderMail.length
-      ? `${zonderMail.length} zonder mailadres: die staan op "niet mailen" en zijn bedoeld om te bellen.`
+      ? `${zonderMail.length} zonder mailadres of zonder bevestigde bevinding: die staan op "niet mailen" en zijn bedoeld om te bellen.`
       : undefined,
   });
 }

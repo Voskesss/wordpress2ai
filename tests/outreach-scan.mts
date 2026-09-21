@@ -84,4 +84,30 @@ assert.match(ronde, /promoveerReagerendeProspects/, "promotie draait niet mee in
   assert.match(route, /nummer: 1/, "de concept-mail staat niet als eerste mail klaar");
 }
 
+
+// 10. Alleen een bevestigde bevinding mag een mail dragen (21-09-2026)
+// De scan kan de broncode niet letterlijk lezen; "bevestigd" betekent dat twee
+// aparte controles hetzelfde opleverden. Schrijf je iemand aan over iets wat
+// niet klopt, dan maak je dat nooit meer goed.
+{
+  const route = await readFile(new URL("../app/api/scan-prospects/route.ts", import.meta.url), "utf8");
+
+  // De status wordt gelezen, en zonder status telt het niet mee
+  assert.match(route, /status === "bevestigd"/, "de status van een bevinding wordt genegeerd");
+  assert.match(route, /const hard = bevindingen\.filter\(bevestigd\)/, "bevestigd en onbevestigd worden niet gescheiden");
+
+  // Alleen bevestigde bevindingen komen in de observatie die de mail draagt
+  assert.match(route, /observatie: hard\./, "onbevestigde bevindingen belanden in de mailreden");
+  // De rest gaat niet verloren, maar staat apart
+  assert.match(route, /Niet bevestigd, alleen ter info/, "onbevestigde bevindingen verdwijnen");
+
+  // Geen bevestigde bevinding: geen mail, ook niet als de scan mailbaar zegt
+  assert.match(route, /hard\.length > 0/, "mailbaar wordt klakkeloos overgenomen");
+  assert.match(route, /status: magMailen \? "nieuw" : "niet_mailen"/, "niet-mailbare prospects komen in de mailstroom");
+
+  // En dan wordt er ook geen concept-mail klaargezet: anders staat er een mail
+  // klaar die je met één klik verstuurt terwijl de reden niet hard is
+  assert.match(route, /aangemaakt && magMailen && g\.onderwerp/, "er staat een mail klaar zonder bevestigde reden");
+}
+
 console.log("outreach-scan: ok");
