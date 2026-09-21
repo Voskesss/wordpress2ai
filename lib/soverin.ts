@@ -32,10 +32,11 @@ const MAX_PER_ADRES = 20;
  * De eigen tekst van een binnengekomen mail, uit de ruwe bron.
  *
  * Apart en geëxporteerd, zodat een test een échte mail door precies dit pad
- * kan halen. Mijn eerdere test voerde losse zinnen aan de herkenner en was
- * groen, terwijl in het echt de tekst nooit gelezen werd: veel
- * mailprogramma's sturen alleen HTML, en dan is .text leeg. Zo werd
- * "geen interesse" een warme lead.
+ * kan halen. Mailparser haalt zelf al tekst uit een mail die alleen HTML
+ * bevat; de terugval hieronder is alleen voor het geval dat dat niet lukt.
+ * Het echte gat zat in fragmentVan: wie zijn antwoord tússen onze
+ * aangehaalde tekst typt, heeft alleen maar regels met ">" ervoor, en die
+ * werden allemaal weggegooid. Zo werd "geen interesse" een warme lead.
  */
 export async function fragmentUitBron(bron: Buffer | string): Promise<string | null> {
   const geparsed = await simpleParser(bron);
@@ -55,13 +56,22 @@ export async function fragmentUitBron(bron: Buffer | string): Promise<string | n
 /** Eigen tekst uit een reply halen: aanhalingen ("> ...") en de Op...schreef-regel eraf. */
 function fragmentVan(tekst: string | undefined): string | null {
   if (!tekst) return null;
-  const eigen = tekst
-    .split("\n")
+  const regels = tekst.split("\n");
+  const eigen = regels
     .filter((r) => !r.trimStart().startsWith(">"))
     .join("\n")
     .split(/\nOp .{5,80} schreef .{2,80}:?\s*$/m)[0]
     .trim();
-  return eigen ? eigen.slice(0, 400) : null;
+  if (eigen) return eigen.slice(0, 400);
+  // Niets ongequote over: dan typte de afzender zijn antwoord tussen onze
+  // aangehaalde tekst (oudere Outlook en veel telefoons doen dat). Dan is de
+  // aanhaling zélf zijn bericht. De ">"-tekens eraf en doorgeven; onze eigen
+  // zinnen worden bij het herkennen alsnog weggeknipt (lib/afmelding).
+  const ontquote = regels
+    .map((r) => r.replace(/^\s*(>\s?)+/, ""))
+    .join("\n")
+    .trim();
+  return ontquote ? ontquote.slice(0, 400) : null;
 }
 
 async function zoekInMap(

@@ -20,6 +20,23 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.5 (21 september 2026)
+
+Correctie op 1.21.3: de reden dat een "geen interesse" niet herkend werd, was
+niet dat een HTML-mail geen tekst opleverde. Die tekst wordt gewoon gelezen.
+Het zat in drie andere plekken, gevonden door zes echte mailvormen door het
+echte pad te halen:
+
+- Wie zijn antwoord tússen onze aangehaalde tekst typt (oudere Outlook, veel
+  telefoons) had alleen regels met ">" ervoor, en die werden allemaal
+  weggegooid. Dit was het geval van Harry.
+- Wie ónder een Outlook-"Van:"-blok antwoordt, verloor alles na dat blok. De
+  streepjeslijn erboven telde als het antwoord.
+- Het onderwerp werd vóór de tekst geplakt en telde daardoor óók als het
+  antwoord, met hetzelfde gevolg.
+
+Elke reparatie heeft een test die aantoonbaar faalt als je hem weghaalt.
+
 ## 1.21.4 (21 september 2026)
 
 Geen zichtbare verandering. De herkenning van een afwijzing wordt nu getest

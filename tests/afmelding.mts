@@ -113,4 +113,25 @@ const verwijder = acties.slice(acties.indexOf("export async function leadVerwijd
 assert.ok(verwijder.includes("set({ leadId: null })"), "de prospect blijft naar de verwijderde lead wijzen");
 assert.ok(verwijder.indexOf("set({ leadId: null })") < verwijder.indexOf("delete(leads)"), "de koppeling wordt pas losgemaakt na het verwijderen");
 
+// 11. Zes echte mailvormen door het echte pad. Alleen de vijfde maakte het
+//     fragment leeg, en dat was Harry: hij typte zijn nee tussen onze
+//     aangehaalde tekst, en alle regels met ">" werden weggegooid.
+const kop = ["From: a@b.nl", "To: c@d.nl", "Subject: Re: x", "Content-Type: text/html; charset=utf-8", ""].join("\r\n");
+const onze = 'Hoi Harry, wie zet jullie projecten op de site?<br>Val mij niet meer lastig';
+const vormen: Record<string, string> = {
+  "boven, gmail": `<div>NEE</div><div class="gmail_quote">Op ma 21 sep 2026 om 10:00 schreef Jos van WordSwap:<blockquote>${onze}</blockquote></div>`,
+  "onder, gmail": `<div class="gmail_quote">Op ma 21 sep 2026 om 10:00 schreef Jos van WordSwap:<blockquote>${onze}</blockquote></div><div>NEE</div>`,
+  "boven, outlook": `<div>NEE</div><hr><div><b>Van:</b> Jos van WordSwap<br><b>Verzonden:</b> maandag</div><div>${onze}</div>`,
+  "onder, outlook": `<hr><div><b>Van:</b> Jos van WordSwap<br><b>Verzonden:</b> maandag</div><div>${onze}</div><div>NEE</div>`,
+  "in de aanhaling (Harry)": `<blockquote>Hoi Harry, wie zet jullie projecten op de site?<br><br>NEE<br><br>Val mij niet meer lastig</blockquote>`,
+  "Op-regel bovenaan": `<div>Op 21 sep 2026 schreef Jos van WordSwap:</div><div>NEE</div>`,
+};
+for (const [naam, html] of Object.entries(vormen)) {
+  const nee = await fragmentUitBron(`${kop}\r\n<html><body>${html.replace("NEE", "Geen interesse, bedankt.")}</body></html>`);
+  assert.ok(nee && /geen interesse/i.test(nee), `vorm "${naam}": de tekst van het nee gaat verloren (${JSON.stringify(nee)})`);
+  assert.ok(isAfmelding("Re: x", nee), `vorm "${naam}": het nee wordt niet herkend`);
+  const ja = await fragmentUitBron(`${kop}\r\n<html><body>${html.replace("NEE", "Ja, klinkt goed, bel me morgen.")}</body></html>`);
+  assert.equal(isAfmelding("Re: x", ja), false, `vorm "${naam}": een ja telt als afmelding (onze eigen knoptekst lekt door)`);
+}
+
 console.log("afmelding: ok");

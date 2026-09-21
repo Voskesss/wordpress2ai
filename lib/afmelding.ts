@@ -27,11 +27,18 @@ const AANHAALKOP =
 
 /** Alleen houden wat de afzender zelf getypt heeft. */
 export function eigenDeel(tekst: string): string {
-  const zonderAanhaling = tekst
+  const zonderStreepjes = tekst
     .split("\n")
     .filter((r) => !r.trimStart().startsWith(">"))
-    .join("\n")
-    .split(AANHAALKOP)[0];
+    .join("\n");
+  // Staat er iets vóór het aanhaalkopje, dan is dat het antwoord. Staat er
+  // niets, dan antwoordde de afzender ónder onze mail (Outlook zet het
+  // "Van:"-blok dan bovenaan) en is de hele tekst zijn bericht; onze eigen
+  // zinnen gaan er hieronder alsnog uit.
+  // Outlook zet een <hr> vóór het "Van:"-blok, en dat wordt een regel
+  // streepjes. Dat is geen antwoord: pas als er een letter staat telt het.
+  const voorKop = zonderStreepjes.split(AANHAALKOP)[0];
+  const zonderAanhaling = /\p{L}/u.test(voorKop) ? voorKop : zonderStreepjes;
   let schoon = zonderAanhaling.toLowerCase();
   for (const zin of EIGEN_ZINNEN) schoon = schoon.split(zin).join(" ");
   return schoon;
@@ -69,7 +76,10 @@ const VERZOEK = [
  * blokkade kost een klant die je nooit meer benadert.
  */
 export function isAfmelding(onderwerp: string | null, fragment: string | null): boolean {
-  const tekst = eigenDeel(`${onderwerp ?? ""}\n${fragment ?? ""}`);
+  // Onderwerp en tekst apart schonen. Samen geplakt stond "Re: ..." vóór het
+  // aanhaalkopje, telde als het antwoord, en werd alles erna weggeknipt:
+  // een nee ónder een Outlook-blok verdween zo, inclusief het onderwerp erbij.
+  const tekst = `${eigenDeel(onderwerp ?? "")}\n${eigenDeel(fragment ?? "")}`;
   if (!tekst.trim()) return false;
   return VERZOEK.some((r) => r.test(tekst));
 }
