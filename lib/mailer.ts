@@ -11,12 +11,12 @@ const DEMO_KNOP = `<table role="presentation" cellpadding="0" cellspacing="0" st
 /** De vaste handtekening onder losse mails vanuit jos@wordswap.nl. De
  * demo-knop is optioneel: goed voor koude outreach, maar bij een warme lead
  * leidt hij af van het echte vervolg (bellen of "laat maar zien"). */
-export function handtekening(metDemo = true): string {
+export function handtekening(metDemo = true, naam = "Jos Klijnhout"): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%;max-width:560px;font-family:-apple-system,'Segoe UI',sans-serif">
 <tr><td style="border-top:3px solid #31956B;padding-top:18px">
 <img src="https://www.wordswap.nl/logo-mail-groen.png" height="40" alt="WordSwap" style="display:block;height:40px;width:auto">
-<p style="margin:12px 0 0;font-size:16px;font-weight:700;color:#1c1917">Jos Klijnhout</p>
-<p style="margin:2px 0 0;font-size:13px;color:#57534e">websites zonder onderhoud — aanpassen door het te typen</p>
+<p style="margin:12px 0 0;font-size:16px;font-weight:700;color:#1c1917">${naam}</p>
+<p style="margin:2px 0 0;font-size:13px;color:#57534e">websites zonder onderhoud, aanpassen door het te typen</p>
 <p style="margin:4px 0 0;font-size:13px">
 <a href="https://wordswap.nl" style="color:#245747;text-decoration:none;font-weight:600">wordswap.nl</a>
 <span style="color:#d6d3d1">&nbsp;·&nbsp;</span>
@@ -26,8 +26,11 @@ ${metDemo ? DEMO_KNOP : ""}
 </td></tr></table>`;
 }
 
-/** Bestaande naam behouden voor de outreach-mails (altijd mét demo-knop). */
-export const HANDTEKENING = handtekening(true);
+/** Handtekening onder de koude outreach-mails: altijd mét demo-knop, en
+ * alleen de voornaam. Onder een mail aan iemand die je nog niet kent leest
+ * een volledige naam als een brief van een instantie; klantpost en leadpost
+ * houden wel de volledige naam. */
+export const HANDTEKENING = handtekening(true, "Jos");
 
 /** Platte tekst → nette HTML-mail met handtekening; links worden klikbaar. */
 /** Breedte waarop mailafbeeldingen worden opgeslagen (2× de toonbreedte, scherp op retina). */

@@ -151,9 +151,31 @@ export function vulIn(sjabloon: string, p: Prospect): string {
     .replace(/\{\{prijs\}\}/g, p.prijs ?? "vanaf €150");
 }
 
+/** Haalt een ondertekening onderaan de tekst weg.
+ *
+ * Onder elke outreachmail komt automatisch "Groet," plus de handtekening met
+ * logo. Schrijft de scan (of Jos) er zelf ook nog "Jos Klijnhout / WordSwap"
+ * onder, dan staat de afzender er twee keer, en met een achternaam die er in
+ * koude post niet hoort. Dit knipt alleen die slotregels weg: alles wat
+ * inhoud is blijft staan. */
+export function zonderAfsluiting(tekst: string): string {
+  const slot = [
+    /^(met\s+vriendelijke\s+groet|hartelijke\s+groet|vriendelijke\s+groet|groeten|groet|mvg)[,.!]?$/i,
+    /^jos(\s+klijnhout)?[,.!]?$/i,
+    /^wordswap(\s*b\.?v\.?)?[,.!]?$/i,
+  ];
+  const regels = tekst.replace(/\r\n/g, "\n").split("\n");
+  while (regels.length) {
+    const laatste = regels[regels.length - 1].trim();
+    if (laatste === "" || slot.some((r) => r.test(laatste))) regels.pop();
+    else break;
+  }
+  return regels.join("\n").trimEnd();
+}
+
 /** Platte sjabloontekst → dezelfde nette HTML-mail als de standaardmails. */
 export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
-  const alineas = tekst
+  const alineas = zonderAfsluiting(tekst)
     .split(/\n\s*\n/)
     .map((a) => a.trim())
     .filter(Boolean)
@@ -230,7 +252,7 @@ export function kiesMail(
 ): { onderwerp: string; html: string; tekst: string; bron: string } {
   const basis = persoonlijk ?? sjabloon;
   if (basis) {
-    const tekst = vulIn(basis.tekst, p);
+    const tekst = zonderAfsluiting(vulIn(basis.tekst, p));
     return {
       onderwerp: vulIn(basis.onderwerp, p),
       tekst,
@@ -244,7 +266,7 @@ export function kiesMail(
   return {
     onderwerp: m.onderwerp,
     html: m.html,
-    tekst: vulIn(standaardSjabloon(nummer).tekst, p),
+    tekst: zonderAfsluiting(vulIn(standaardSjabloon(nummer).tekst, p)),
     bron: "standaard",
   };
 }

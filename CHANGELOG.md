@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.13.1 (21 september 2026)
+
+Onder een koude mail staat voortaan alleen de voornaam. Een volledige naam
+onder een bericht aan iemand die je nog niet kent leest als een brief van een
+instantie. Klantpost en leadpost houden de volledige naam.
+
+De mails die de scan aanleverde ondertekenden zichzelf ook nog een keer, dus
+stond de afzender er drie keer onder. Die dubbele afsluiting wordt nu
+weggeknipt, ook bij de mails die al klaarstonden.
+
 ## 1.13.0 (21 september 2026)
 
 De mail die naar een prospect gaat staat nu met één klik open: lezen,
