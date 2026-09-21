@@ -112,4 +112,42 @@ assert.equal(
   1,
 );
 
+
+// --- Apostrofregressie: "pagina's" kapte de omschrijving af bij het streepje,
+//     waardoor elke Nederlandse tekst met een apostrof op zijn eerste woorden
+//     werd vergeleken. Gevonden door de EVC-chat, 21-09.
+{
+  const html = `<meta name="description" content="Alle 7 pagina's van EVC over autotechnicus: meer tekst hier.">`;
+  const eruit = html.match(/<meta[^>]+name=["']description["'][^>]*content=(["'])([\s\S]*?)\1/i)?.[2];
+  assert.ok(eruit?.includes("autotechnicus"), "omschrijving kapt nog steeds af bij een apostrof");
+  assert.ok(eruit!.length > 40, `te kort: ${eruit}`);
+}
+
+// --- Verschillend, maar niet in het stuk dat Google laat zien
+const staart = (n: number) => "x".repeat(n);
+const zelfdeBegin = dubbeleTeksten([
+  p({ pad: "/a/", omschrijving: `${"A".repeat(160)}${staart(5)}links` }),
+  p({ pad: "/b/", omschrijving: `${"A".repeat(160)}${staart(5)}rechts` }),
+]);
+assert.equal(zelfdeBegin.length, 1, "teksten die pas ná het zichtbare deel verschillen worden niet gemeld");
+assert.match(zelfdeBegin[0].detail, /vanaf teken 165/, "meld waar ze uiteenlopen");
+assert.match(zelfdeBegin[0].detail, /vooraan/, "zeg wat eraan te doen is");
+
+// Wél verschillend in het zichtbare deel: geen melding. Dit was het valse
+// alarm op de tagpagina's van EVC.
+assert.deepEqual(
+  dubbeleTeksten([
+    p({ pad: "/a/", omschrijving: "Alle 7 pagina's van EVC over apk keurmeester zonder diploma: en dan nog veel meer tekst die volgt." }),
+    p({ pad: "/b/", omschrijving: "Alle 7 pagina's van EVC over autotechnicus: en dan nog veel meer tekst die hierachter volgt." }),
+  ]),
+  [],
+  "vals alarm op teksten die binnen het zichtbare deel al verschillen",
+);
+
+// Korte, verschillende teksten blijven stil: daar is niets verborgen
+assert.deepEqual(
+  dubbeleTeksten([p({ pad: "/a/", titel: "Over ons" }), p({ pad: "/b/", titel: "Contact" })]),
+  [],
+);
+
 console.log("seo-poort: ok");

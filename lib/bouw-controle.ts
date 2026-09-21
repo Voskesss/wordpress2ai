@@ -271,7 +271,13 @@ export async function controleerSiteMap(
       pad: padVanBestand(rel),
       rel,
       titel,
-      omschrijving: inhoud.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim(),
+      // Let op het aanhalingsteken: content="..." mag een apostrof bevatten, en
+      // die zit in het Nederlands overal ("pagina's", "foto's"). Vangen op het
+      // openingsteken, anders kapt de omschrijving af bij het eerste streepje
+      // en lijken pagina's ten onrechte identiek.
+      omschrijving: inhoud
+        .match(/<meta[^>]+name=["']description["'][^>]*content=(["'])([\s\S]*?)\1/i)?.[2]
+        ?.trim(),
       koppen: (inhoud.match(/<h1\b/gi) ?? []).length,
       linktNaar: [...inhoud.matchAll(/href=["'](\/[^"'#?]*)["']/gi)].map((m) => m[1]),
       noindex,

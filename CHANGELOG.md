@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.1 (21 september 2026)
+
+De controle op dubbele teksten sloeg vals alarm bij Nederlandse teksten met
+een apostrof, zoals "pagina's" of "foto's". De omschrijving werd bij dat
+streepje afgekapt, waardoor pagina's op hun eerste woorden werden vergeleken
+en ten onrechte als dubbel werden gemeld.
+
+Tegelijk is de controle scherper geworden: hij meldt nu ook teksten die pas
+verschillen ná het stuk dat Google laat zien. Die zien er in de
+zoekresultaten alsnog identiek uit.
+
 ## 1.5.0 (21 september 2026)
 
 **Je kunt nu zelf instellen dat de mail van je website vanaf je eigen adres

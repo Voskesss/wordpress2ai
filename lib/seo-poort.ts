@@ -25,14 +25,34 @@ export type PaginaGegevens = {
 
 export type SeoBevinding = { regel: string; waar: string; detail: string; hard: boolean };
 
+/**
+ * Hoeveel tekens Google er ongeveer van laat zien. Wat daarna komt telt niet
+ * mee voor iemand die de zoekresultaten bekijkt: twee pagina's die pas bij
+ * teken 200 uiteenlopen, zien er in Google identiek uit.
+ */
+const ZICHTBAAR = { titel: 60, omschrijving: 155 } as const;
+
+/** Waar beginnen twee teksten van elkaar te verschillen? */
+function eersteVerschil(a: string, b: string): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return i;
+  return n;
+}
+
 /** Dezelfde titel of omschrijving op meerdere pagina's: Google kiest er dan
- * zelf één en negeert de rest. Klassieke WordPress-erfenis. */
+ * zelf één en negeert de rest. Klassieke WordPress-erfenis.
+ *
+ * In twee stappen, want er zijn twee verschillende problemen. Letterlijk
+ * gelijk is er één. Maar ook teksten die alleen ná het zichtbare deel
+ * verschillen tellen, want in de zoekresultaten ziet niemand dat verschil.
+ * Dat tweede is een mildere melding: technisch zijn het andere teksten. */
 export function dubbeleTeksten(paginas: PaginaGegevens[]): SeoBevinding[] {
   const uit: SeoBevinding[] = [];
   for (const [veld, naam] of [
     ["titel", "titel"],
     ["omschrijving", "meta description"],
   ] as const) {
+    const zichtbaar = ZICHTBAAR[veld];
     const perWaarde = new Map<string, string[]>();
     for (const p of paginas) {
       if (p.noindex) continue;
@@ -40,12 +60,33 @@ export function dubbeleTeksten(paginas: PaginaGegevens[]): SeoBevinding[] {
       if (!waarde) continue;
       perWaarde.set(waarde, [...(perWaarde.get(waarde) ?? []), p.rel]);
     }
+
+    // 1. Letterlijk dezelfde tekst
     for (const [waarde, waar] of perWaarde) {
       if (waar.length < 2) continue;
       uit.push({
         regel: "dubbele-teksten",
         waar: waar.join(", "),
         detail: `${waar.length} pagina's delen dezelfde ${naam} ("${kort(waarde)}"). Google kiest er dan zelf één en negeert de rest.`,
+        hard: false,
+      });
+    }
+
+    // 2. Verschillend, maar niet in het stuk dat Google laat zien
+    const perBegin = new Map<string, { waarde: string; waar: string[] }[]>();
+    for (const [waarde, waar] of perWaarde) {
+      if (waar.length > 1) continue; // die zitten al in stap 1
+      const begin = waarde.slice(0, zichtbaar);
+      if (waarde.length <= zichtbaar) continue; // niets verborgen, dus echt anders
+      perBegin.set(begin, [...(perBegin.get(begin) ?? []), { waarde, waar }]);
+    }
+    for (const [, groep] of perBegin) {
+      if (groep.length < 2) continue;
+      const positie = eersteVerschil(groep[0].waarde, groep[1].waarde);
+      uit.push({
+        regel: "dubbele-teksten",
+        waar: groep.flatMap((g) => g.waar).join(", "),
+        detail: `${groep.length} pagina's hebben een ${naam} die pas vanaf teken ${positie} verschilt, en Google toont er ongeveer ${zichtbaar}. In de zoekresultaten lijken ze dus hetzelfde. Zet het onderscheidende deel vooraan.`,
         hard: false,
       });
     }
