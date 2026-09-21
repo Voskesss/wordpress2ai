@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.6.2 (21 september 2026)
+
+In het zoekvak gebeurde niets als je op enter drukte. Nu opent enter het
+bovenste resultaat, zoals je verwacht.
+
+En het zoekvak is nooit meer stil. Terwijl de resultaten worden opgehaald
+staat er "Even zoeken...", en lukt dat niet, dan zie je dat ook. Eerst kon je
+naar een leeg vak kijken zonder te weten of het aan het zoeken was of stuk.
+
 ## 1.6.1 (21 september 2026)
 
 De zoekfunctie zocht ook in het menu en de kopbalk. Op een site waar die niet

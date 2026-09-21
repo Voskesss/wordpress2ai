@@ -194,3 +194,34 @@ console.log("zoeken: ok");
 
   console.log("zoeken-omlijsting: ok");
 }
+
+// --- Enter doet iets, en het vak is nooit stil (21-09-2026)
+// Jos typte "apk" en drukte op enter: er gebeurde niets. De treffers stonden
+// wél in de zoeklijst. Het script luisterde alleen op Escape, en zolang de
+// lijst nog onderweg was toonde het een leeg vak zonder uitleg.
+{
+  const { zoekFragment } = await import("../lib/zoeken");
+  const js = zoekFragment();
+
+  // Enter opent de bovenste treffer
+  assert.match(js, /e\.key !== 'Enter'/, "enter wordt nog steeds genegeerd");
+  assert.match(js, /lijst\.querySelector\('a'\)/, "enter opent de bovenste treffer niet");
+  assert.match(js, /e\.preventDefault\(\)/, "enter hoort de pagina niet te herladen");
+
+  // Nooit een leeg vak: elke toestand zegt iets
+  assert.match(js, /Even zoeken\.\.\./, "geen melding terwijl de lijst wordt opgehaald");
+  assert.match(js, /Zoeken lukt nu even niet/, "een mislukte ophaalpoging blijft stil");
+  assert.match(js, /Niets gevonden/, "geen melding als er niets gevonden is");
+
+  // De volgorde klopt: eerst te kort, dan nog-niet-geladen, dan zoeken
+  const zoekFn = js.slice(js.indexOf("function zoek()"));
+  assert.ok(
+    zoekFn.indexOf("vraag.length < 2") < zoekFn.indexOf("if (!index)"),
+    "een te korte vraag hoort geen 'even zoeken' te tonen",
+  );
+
+  // Escape blijft werken
+  assert.match(js, /e\.key === 'Escape'/, "escape is verdwenen");
+
+  console.log("zoeken-enter: ok");
+}

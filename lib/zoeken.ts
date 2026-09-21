@@ -237,13 +237,20 @@ export function zoekFragment(): string {
   if (!knop || !vlak || !veld || !lijst) return;
   var index = null;
   var bezig = false;
+  function melding(tekst) {
+    lijst.innerHTML = '';
+    var li = document.createElement('li');
+    li.className = 'ws-zoek-niets';
+    li.textContent = tekst;
+    lijst.appendChild(li);
+  }
   function haal() {
     if (index || bezig) return;
     bezig = true;
     fetch('/${ZOEKINDEX_PAD}')
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (d) { index = Array.isArray(d) ? d : []; zoek(); })
-      .catch(function () { index = []; });
+      .catch(function () { index = []; melding('Zoeken lukt nu even niet. Probeer het zo nog eens.'); });
   }
   function sluit() {
     vlak.hidden = true;
@@ -258,7 +265,9 @@ export function zoekFragment(): string {
   function zoek() {
     var vraag = veld.value.trim().toLowerCase();
     lijst.innerHTML = '';
-    if (!index || vraag.length < 2) return;
+    if (vraag.length < 2) return;
+    // Nog aan het ophalen: niet zwijgen, anders lijkt het alsof er niets gebeurt.
+    if (!index) { melding('Even zoeken...'); return; }
     var woorden = vraag.split(/\\s+/);
     var treffers = [];
     for (var i = 0; i < index.length; i++) {
@@ -307,6 +316,15 @@ export function zoekFragment(): string {
     });
   }
   veld.addEventListener('input', zoek);
+  // Enter is wat mensen vanzelf doen in een zoekveld. Zonder dit gebeurt er
+  // niets en denk je dat het zoeken stuk is.
+  veld.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    var eerste = lijst.querySelector('a');
+    if (eerste) { window.location.href = eerste.getAttribute('href'); return; }
+    if (!index) { haal(); melding('Even zoeken...'); }
+  });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !vlak.hidden) { sluit(); knop.focus(); }
   });
