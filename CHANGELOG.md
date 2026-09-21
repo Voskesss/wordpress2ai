@@ -20,6 +20,22 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.14.0 (21 september 2026)
+
+Wie op een outreachmail antwoordt met "graag verwijderen" of "niet meer
+mailen" wordt niet langer als warme lead opgepakt, maar gaat rechtstreeks naar
+de niet-mailen-lijst. Er staat bij in het dagverslag wie dat was. De knop
+onderaan de mail werkte al; dit vangt iedereen die liever gewoon terugschrijft.
+
+De AI achter de Verbeter-knop kent nu de echte prijzen, wat het product kan en
+wat we nooit beloven. Daarvoor kende hij één zin over WordSwap en verzon hij
+de rest.
+
+Er liepen drie prijsverhalen door elkaar: 150 euro in de code, 250 euro in de
+klaarstaande mails en "no cure no pay" in de AI-instructie. Het is overal 150
+euro eenmalig en vanaf 19 euro per maand geworden, ook in de 61 mails die al
+klaarstonden.
+
 ## 1.13.2 (21 september 2026)
 
 Reparatie: op de outreachkaart stonden de gegevens en de knoppen in dezelfde

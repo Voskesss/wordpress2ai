@@ -314,7 +314,7 @@ export const prospects = pgTable("prospects", {
   score: integer("score"),
   laadMs: integer("laad_ms"),
   kenmerken: text("kenmerken"),
-  // Concreet prijsvoorstel in de mail (optioneel; leeg = "vanaf €250")
+  // Concreet prijsvoorstel in de mail (optioneel; leeg = "vanaf €150")
   prijs: text("prijs"),
   // Naam van de sjabloonversie waarmee mail 1 is verstuurd (voor de analyse)
   mailVersie: text("mail_versie"),

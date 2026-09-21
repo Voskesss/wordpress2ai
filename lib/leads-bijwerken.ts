@@ -113,6 +113,10 @@ export async function werkLeadsBij(): Promise<string[]> {
     const uitslag = await promoveerReagerendeProspects();
     if (uitslag.gepromoveerd.length)
       verslag.push(`Outreach: ${uitslag.gepromoveerd.join(", ")} reageerde(n) en staat/staan nu bij de leads`);
+    if (uitslag.afgemeld.length)
+      verslag.push(
+        `Outreach: ${uitslag.afgemeld.join(", ")} vroeg/vroegen om geen mail meer en staat/staan op de niet-mailen-lijst`
+      );
     else if (uitslag.fout) verslag.push(`Outreach-promotie overgeslagen: ${uitslag.fout}`);
   } catch (e) {
     verslag.push(`Outreach-promotie overgeslagen: ${String(e).slice(0, 160)}`);

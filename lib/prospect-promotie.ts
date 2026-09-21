@@ -4,6 +4,7 @@ import { and, eq, isNull, ne } from "drizzle-orm";
 import { haalLeadPost, soverinIngesteld, type PostItem } from "@/lib/soverin";
 // Dezelfde sleutel als de leadronde, anders komt dezelfde mail twee keer in de tijdlijn.
 import { berichtSleutel } from "@/lib/leads-bijwerken";
+import { isAfmelding } from "@/lib/afmelding";
 
 /**
  * Een prospect die terugmailt wordt een lead.
@@ -21,10 +22,16 @@ import { berichtSleutel } from "@/lib/leads-bijwerken";
 /** Hoe ver terug we kijken in de mailbox bij elke ronde. */
 const DAGEN_TERUG = 30;
 
-export type PromotieVerslag = { gevonden: number; gepromoveerd: string[]; fout?: string };
+export type PromotieVerslag = {
+  gevonden: number;
+  gepromoveerd: string[];
+  /** Wie in zijn antwoord vroeg om met rust gelaten te worden. */
+  afgemeld: string[];
+  fout?: string;
+};
 
 export async function promoveerReagerendeProspects(): Promise<PromotieVerslag> {
-  if (!soverinIngesteld()) return { gevonden: 0, gepromoveerd: [], fout: "Soverin niet ingesteld" };
+  if (!soverinIngesteld()) return { gevonden: 0, gepromoveerd: [], afgemeld: [], fout: "Soverin niet ingesteld" };
 
   // Alleen wie we gemaild hebben en nog geen lead is: daarvóór valt er niets
   // te beantwoorden.
@@ -33,7 +40,7 @@ export async function promoveerReagerendeProspects(): Promise<PromotieVerslag> {
     .from(prospects)
     .where(and(isNull(prospects.leadId), ne(prospects.status, "niet_mailen")));
   const metMail = open.filter((p) => p.email && p.email.includes("@") && p.status !== "nieuw");
-  if (!metMail.length) return { gevonden: 0, gepromoveerd: [] };
+  if (!metMail.length) return { gevonden: 0, gepromoveerd: [], afgemeld: [] };
 
   let items: PostItem[];
   try {
@@ -42,17 +49,31 @@ export async function promoveerReagerendeProspects(): Promise<PromotieVerslag> {
       new Date(Date.now() - DAGEN_TERUG * 86_400_000),
     );
   } catch (e) {
-    return { gevonden: 0, gepromoveerd: [], fout: String(e).slice(0, 200) };
+    return { gevonden: 0, gepromoveerd: [], afgemeld: [], fout: String(e).slice(0, 200) };
   }
 
   // Alleen binnenkomende post telt als reactie; onze eigen verzonden mail niet.
   const binnen = items.filter((i) => i.richting === "in");
   const perMail = new Map(metMail.map((p) => [p.email.trim().toLowerCase(), p]));
   const gepromoveerd: string[] = [];
+  const afgemeld: string[] = [];
 
   for (const item of binnen) {
     const prospect = perMail.get(item.email);
     if (!prospect || prospect.leadId) continue;
+
+    // Vraagt iemand in zijn antwoord om met rust gelaten te worden, dan is dat
+    // geen warme lead maar het tegenovergestelde. Meteen op niet-mailen en
+    // verder niets: geen lead, geen tijdlijn, geen opvolging.
+    if (isAfmelding(item.onderwerp, item.fragment)) {
+      await db
+        .update(prospects)
+        .set({ status: "niet_mailen" })
+        .where(eq(prospects.id, prospect.id));
+      prospect.status = "niet_mailen";
+      afgemeld.push(prospect.bedrijf);
+      continue;
+    }
 
     const [nieuweLead] = await db
       .insert(leads)
@@ -97,5 +118,5 @@ export async function promoveerReagerendeProspects(): Promise<PromotieVerslag> {
     gepromoveerd.push(prospect.bedrijf);
   }
 
-  return { gevonden: binnen.length, gepromoveerd };
+  return { gevonden: binnen.length, gepromoveerd, afgemeld };
 }
