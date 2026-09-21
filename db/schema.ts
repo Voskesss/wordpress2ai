@@ -327,6 +327,10 @@ export const prospects = pgTable("prospects", {
   telefoon: text("telefoon"),
   // Waar dit bedrijf vandaan komt, bv. "Websitescan".
   bron: text("bron"),
+  // Naam van de persoon die je aanspreekt, als de scan die gevonden heeft.
+  contactpersoon: text("contactpersoon"),
+  // Inschatting uit de scan: warm of koud.
+  kans: text("kans"),
   // Gezet zodra iemand reageert: dan wordt een prospect een lead.
   leadId: integer("lead_id"),
   soverinDoorzocht: boolean("soverin_doorzocht").notNull().default(false),

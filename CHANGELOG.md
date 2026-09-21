@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.10.1 (21 september 2026)
+
+De scan levert ook een contactpersoon, een inschatting warm of koud, en een
+kant-en-klare mailtekst mee. Die komen nu allemaal binnen, zodat de mail al
+klaarstaat om te lezen, bij te schaven en te versturen.
+
+De ingang accepteert de veldnamen die de scan zelf al gebruikt, zodat daar
+niets omgebouwd hoeft te worden.
+
 ## 1.10.0 (21 september 2026)
 
 **De websitescan levert nu rechtstreeks aan in de outreach.** De scan die

@@ -67,4 +67,21 @@ assert.match(promotie, /leadId: nieuweLead\.id/, "de prospect wordt niet aan zij
 const ronde = await readFile(new URL("../lib/leads-bijwerken.ts", import.meta.url), "utf8");
 assert.match(ronde, /promoveerReagerendeProspects/, "promotie draait niet mee in de leadronde");
 
+
+// 9. Hun veldnamen worden geaccepteerd zonder dat er iets omgebouwd hoeft.
+//    Dit is letterlijk het voorbeeld dat de scan-kant aanleverde.
+{
+  const route = await readFile(new URL("../app/api/scan-prospects/route.ts", import.meta.url), "utf8");
+  for (const veld of ["tel", "contact", "aanleiding", "onderwerp", "mailtekst", "kans"])
+    assert.ok(new RegExp(`\\b${veld}\\??:`).test(route), `veld "${veld}" wordt niet geaccepteerd`);
+  // en onze eigen namen blijven werken
+  for (const veld of ["telefoon", "contactpersoon", "bevindingen"])
+    assert.ok(new RegExp(`\\b${veld}\\??:`).test(route), `eigen veld "${veld}" is verdwenen`);
+  // aanleiding mag een lijst of één regel zijn
+  assert.match(route, /alsLijst/, "een losse regel als aanleiding valt om");
+  // de meegeleverde mail wordt klaargezet
+  assert.match(route, /insert\(prospectMails\)/, "de concept-mail wordt niet bewaard");
+  assert.match(route, /nummer: 1/, "de concept-mail staat niet als eerste mail klaar");
+}
+
 console.log("outreach-scan: ok");

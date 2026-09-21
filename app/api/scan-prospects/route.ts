@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { leads, prospects } from "@/db/schema";
+import { leads, prospectMails, prospects } from "@/db/schema";
 import { isDubbel, maakRegister, onthoud, schoonDomein, schoonEmail } from "@/lib/dubbel-check";
 
 /**
@@ -24,18 +24,37 @@ import { isDubbel, maakRegister, onthoud, schoonDomein, schoonEmail } from "@/li
 
 export const runtime = "nodejs";
 
+/**
+ * Ruimhartig in wat we accepteren: de scan aan de andere kant heeft zijn eigen
+ * namen ("tel", "aanleiding", "mailtekst") en die hoeven niet omgebouwd te
+ * worden om hier te kunnen aanleveren. Een veldnaam is geen reden om twee
+ * systemen op elkaar te laten wachten.
+ */
 type Binnen = {
   domein?: string;
   bedrijf?: string;
   plaats?: string;
   email?: string;
   telefoon?: string;
+  tel?: string;
+  contact?: string;
+  contactpersoon?: string;
   branche?: string;
+  kans?: string;
   bevindingen?: string[];
+  aanleiding?: string[] | string;
+  onderwerp?: string;
+  mailtekst?: string;
   prijs?: string;
   score?: number;
   bron?: string;
 };
+
+/** "aanleiding" mag een lijst of één regel zijn. */
+function alsLijst(waarde: string[] | string | undefined): string[] {
+  if (!waarde) return [];
+  return (Array.isArray(waarde) ? waarde : [waarde]).filter(Boolean);
+}
 
 export async function POST(verzoek: Request) {
   const token = process.env.SCAN_TOKEN;
@@ -68,7 +87,7 @@ export async function POST(verzoek: Request) {
     const kandidaat = {
       website: schoonDomein(g.domein),
       email: schoonEmail(g.email) || null,
-      telefoon: g.telefoon?.trim() || null,
+      telefoon: (g.telefoon ?? g.tel)?.trim() || null,
       bedrijf: g.bedrijf?.trim() || null,
     };
     if (!kandidaat.website && !kandidaat.email && !kandidaat.telefoon) {
@@ -81,21 +100,35 @@ export async function POST(verzoek: Request) {
       continue;
     }
 
-    await db.insert(prospects).values({
+    const bevindingen = [...alsLijst(g.bevindingen), ...alsLijst(g.aanleiding)];
+    const [aangemaakt] = await db.insert(prospects).values({
       bedrijf: (kandidaat.bedrijf || kandidaat.website || "Onbekend").slice(0, 200),
       website: kandidaat.website,
       // De kolom is verplicht; zonder mailadres houden we hem leeg en bellen we.
       email: kandidaat.email ?? "",
       telefoon: kandidaat.telefoon,
-      observatie: (g.bevindingen ?? []).filter(Boolean).slice(0, 8).join("\n") || null,
+      observatie: bevindingen.slice(0, 8).join("\n") || null,
       branche: g.branche?.trim() || null,
       plaats: g.plaats?.trim() || null,
       score: Number.isFinite(g.score) ? Number(g.score) : null,
       prijs: g.prijs?.trim() || null,
       bron: g.bron?.trim() || "Websitescan",
+      contactpersoon: (g.contactpersoon ?? g.contact)?.trim() || null,
+      kans: g.kans?.trim() || null,
       // Zonder mailadres heeft mailen geen zin; die zet je op bellen.
       status: kandidaat.email ? "nieuw" : "niet_mailen",
-    });
+    }).returning({ id: prospects.id });
+
+    // De concept-mail meteen klaarzetten als hij meekomt: dan hoeft Jos alleen
+    // nog te lezen, bij te schaven en op verzenden te drukken.
+    if (aangemaakt && g.onderwerp?.trim() && g.mailtekst?.trim()) {
+      await db.insert(prospectMails).values({
+        prospectId: aangemaakt.id,
+        nummer: 1,
+        onderwerp: g.onderwerp.trim().slice(0, 300),
+        tekst: g.mailtekst.trim(),
+      });
+    }
     onthoud(kandidaat, register);
     if (!kandidaat.email) zonderMail.push(kandidaat.bedrijf || kandidaat.website);
     nieuw++;
