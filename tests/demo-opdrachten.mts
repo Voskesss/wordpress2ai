@@ -72,4 +72,13 @@ assert.ok(
   "de demo draait weer op het snelle model en oogt daardoor trager dan het product is"
 );
 
+// 9. De beheerder valt buiten de daggrens van de demo: hij moet hem kunnen
+//    testen zonder na tien berichten buitengesloten te worden
+const daggrens = chatRoute.slice(chatRoute.indexOf("vandaagBerichten.length >= 10"), chatRoute.indexOf("vandaagBerichten.length >= 10") + 120);
+assert.ok(daggrens.includes("!(await isBeheerder())"), "de beheerder loopt tegen zijn eigen daggrens aan");
+
+// 10. En de melding houdt zich aan de streepjesregel
+const melding = chatRoute.slice(chatRoute.indexOf("Je hebt het maximum van de demo"), chatRoute.indexOf("Je hebt het maximum van de demo") + 200);
+assert.ok(!melding.includes("—"), "lang streepje in de daggrens-melding");
+
 console.log("demo-opdrachten: ok");

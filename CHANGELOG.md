@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.2 (21 september 2026)
+
+De beheerder valt buiten de daggrens van tien berichten in de demo, zodat hij
+hem kan testen zonder zichzelf buiten te sluiten. Voor bezoekers verandert er
+niets.
+
 ## 1.21.1 (21 september 2026)
 
 Reparatie: een opdracht die halverwege omviel kon het werkslot van een site

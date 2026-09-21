@@ -464,10 +464,13 @@ export async function POST(req: Request) {
             gte(messages.aangemaakt, vandaag),
           ),
         );
-      if (vandaagBerichten.length >= 10) {
+      // De beheerder test de demo zelf en liep daarbij tegen zijn eigen
+      // daggrens aan. Die grens is er tegen bezoekers die er de hele dag op
+      // tikken, niet tegen wie hem moet kunnen controleren.
+      if (vandaagBerichten.length >= 10 && !(await isBeheerder())) {
         return NextResponse.json({
           reply:
-            "Je hebt het maximum van de demo voor vandaag bereikt (10 berichten). Enthousiast geworden? Neem contact op — dan zetten we jouw échte site over.",
+            "Je hebt het maximum van de demo voor vandaag bereikt (10 berichten). Enthousiast geworden? Neem contact op, dan zetten we jouw échte site over.",
         }, { status: 429 });
       }
     }
