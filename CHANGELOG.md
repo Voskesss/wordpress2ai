@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.12.1 (21 september 2026)
+
+Op de outreachkaart staan nu ook het telefoonnummer, de contactpersoon, de
+plaats en de inschatting die de scan meestuurt. Het nummer is aanklikbaar, en
+bij een bedrijf zonder mailadres staat er dat het om bellen gaat.
+
+Wat de scan maar één keer gezien heeft staat er apart bij, duidelijk
+gescheiden van de bevinding waar een mail op gebaseerd mag worden.
+
 ## 1.12.0 (21 september 2026)
 
 **Geen bevestigde bevinding, geen mail.** De scan die bedrijven met een

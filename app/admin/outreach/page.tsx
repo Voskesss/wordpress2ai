@@ -246,7 +246,26 @@ export default async function Outreach({
                       {p.website} ↗
                     </a>
                   </p>
-                  <p className="text-sm text-stone-500 break-all">{p.email}</p>
+                  {/* Zonder mailadres is dit een belletje, geen mailtje. Dan moet het
+                      nummer meteen zichtbaar en aanklikbaar zijn, anders is de kaart
+                      onbruikbaar voor precies de helft van wat de scan oplevert. */}
+                  <p className="text-sm text-stone-500 break-all">
+                    {p.email || <span className="text-amber-700">geen mailadres, dit is bellen</span>}
+                    {p.telefoon && (
+                      <>
+                        {" · "}
+                        <a href={`tel:${p.telefoon.replace(/\s/g, "")}`} className="font-medium text-violet-700 hover:underline">
+                          {p.telefoon}
+                        </a>
+                      </>
+                    )}
+                    {p.contactpersoon && <> · {p.contactpersoon}</>}
+                  </p>
+                  {(p.kans || p.bron || p.plaats) && (
+                    <p className="mt-0.5 text-xs text-stone-400">
+                      {[p.plaats, p.bron, p.kans ? `kans: ${p.kans}` : null].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                 </div>
                 <span className={`rounded-full border px-3 py-1 text-xs font-medium ${kleur}`}>
                   {label}
@@ -290,6 +309,14 @@ export default async function Outreach({
               {p.observatie && (
                 <p className="mt-2 rounded-xl bg-stone-50 border border-stone-200 px-3.5 py-2 text-sm text-stone-600">
                   💬 {p.observatie}
+                </p>
+              )}
+              {/* Wat de scan maar één keer zag staat hier wel, maar het mag nooit de
+                  reden van een mail zijn: schrijf je iemand aan over iets wat niet
+                  klopt, dan maak je dat nooit meer goed. */}
+              {p.kenmerken && (
+                <p className="mt-2 whitespace-pre-line rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                  {p.kenmerken}
                 </p>
               )}
               <details className="mt-2">

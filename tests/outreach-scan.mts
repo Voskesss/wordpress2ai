@@ -110,4 +110,19 @@ assert.match(ronde, /promoveerReagerendeProspects/, "promotie draait niet mee in
   assert.match(route, /aangemaakt && magMailen && g\.onderwerp/, "er staat een mail klaar zonder bevestigde reden");
 }
 
+
+// 11. Wat binnenkomt moet ook zichtbaar zijn (21-09-2026)
+// Jos: "ik zie in de outreach niet veel veranderd". Klopte: de ingang vulde
+// velden die het scherm niet toonde. Het telefoonnummer is daarvan de
+// ergste, want juist de bedrijven zonder mailadres moet je bellen.
+{
+  const pagina = await readFile(new URL("../app/admin/outreach/page.tsx", import.meta.url), "utf8");
+  for (const veld of ["telefoon", "contactpersoon", "kans", "bron", "kenmerken"])
+    assert.ok(new RegExp(`p\\.${veld}`).test(pagina), `${veld} komt binnen maar is niet te zien`);
+  // Het nummer is aanklikbaar: anders moet je het overtypen om te bellen
+  assert.match(pagina, /href=\{`tel:/, "het telefoonnummer is niet aanklikbaar");
+  // En zonder mailadres staat er wat je dan wél moet doen
+  assert.match(pagina, /geen mailadres, dit is bellen/, "zonder mailadres staat er niets");
+}
+
 console.log("outreach-scan: ok");
