@@ -28,6 +28,30 @@ export function soverinIngesteld(): boolean {
 
 const MAX_PER_ADRES = 20;
 
+/**
+ * De eigen tekst van een binnengekomen mail, uit de ruwe bron.
+ *
+ * Apart en geëxporteerd, zodat een test een échte mail door precies dit pad
+ * kan halen. Mijn eerdere test voerde losse zinnen aan de herkenner en was
+ * groen, terwijl in het echt de tekst nooit gelezen werd: veel
+ * mailprogramma's sturen alleen HTML, en dan is .text leeg. Zo werd
+ * "geen interesse" een warme lead.
+ */
+export async function fragmentUitBron(bron: Buffer | string): Promise<string | null> {
+  const geparsed = await simpleParser(bron);
+  const tekst =
+    geparsed.text ||
+    (typeof geparsed.html === "string"
+      ? geparsed.html
+          .replace(/<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;/g, " ")
+          .replace(/[ \t]+/g, " ")
+      : "");
+  return fragmentVan(tekst);
+}
+
 /** Eigen tekst uit een reply halen: aanhalingen ("> ...") en de Op...schreef-regel eraf. */
 function fragmentVan(tekst: string | undefined): string | null {
   if (!tekst) return null;
@@ -59,22 +83,7 @@ async function zoekInMap(
         if (!bericht || !bericht.envelope) continue;
         let fragment: string | null = null;
         try {
-          if (bericht.source) {
-            // Veel mailprogramma's sturen alleen HTML. Dan is .text leeg en
-            // viel de hele reactie weg: "geen interesse" werd zo een warme lead.
-            const geparsed = await simpleParser(bericht.source);
-            const tekst =
-              geparsed.text ||
-              (typeof geparsed.html === "string"
-                ? geparsed.html
-                    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-                    .replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n")
-                    .replace(/<[^>]+>/g, " ")
-                    .replace(/&nbsp;/g, " ")
-                    .replace(/[ \t]+/g, " ")
-                : "");
-            fragment = fragmentVan(tekst);
-          }
+          if (bericht.source) fragment = await fragmentUitBron(bericht.source);
         } catch {
           // Zonder fragment is de tijdlijnregel nog steeds bruikbaar
         }

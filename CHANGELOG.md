@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.4 (21 september 2026)
+
+Geen zichtbare verandering. De herkenning van een afwijzing wordt nu getest
+met een echte mail die alleen uit HTML bestaat, door hetzelfde pad als de
+mailbox-lezer, met onze eigen mail als aanhaling eronder. De vorige test
+voerde losse zinnen aan en was groen terwijl het in het echt misging.
+
 ## 1.21.3 (21 september 2026)
 
 Drie reparaties rond een reactie op de outreach, gevonden doordat iemand

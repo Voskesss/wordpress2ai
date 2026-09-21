@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { isAfmelding, eigenDeel } from "../lib/afmelding";
+import { fragmentUitBron } from "../lib/soverin";
 
 /**
  * Wie terugmailde werd een warme lead. Ook wie terugmailde om met rust
@@ -81,10 +82,29 @@ for (const zin of ["Geen interesse, bedankt.", "Hier hebben wij geen behoefte aa
 // en een antwoord dat ergens "interesse" noemt zonder nee blijft een reactie
 assert.equal(isAfmelding(null, "Ja, ik heb wel interesse. Bel me maar."), false);
 
-// 9. Een mail die alleen uit HTML bestaat verliest zijn tekst niet meer
-const soverin = await readFile(new URL("../lib/soverin.ts", import.meta.url), "utf8");
-assert.ok(soverin.includes("geparsed.text ||"), "een HTML-mail zonder platte tekst geeft nog steeds een leeg fragment");
-assert.ok(soverin.includes('typeof geparsed.html === "string"'), "de HTML-terugval ontbreekt");
+// 9. Een ECHTE mail door het ECHTE pad. Alleen HTML, zoals Harry's
+//    mailprogramma hem stuurde, met onze eigen mail als aanhaling eronder.
+//    Dit is de test die ik in v1.14.0 had moeten schrijven.
+const harry = [
+  "From: Harry <info@vanderveenschilderwerken.nl>",
+  "To: Jos <info@wordswap.nl>",
+  "Subject: Re: Even gekeken naar vanderveenschilderwerken.nl",
+  "Content-Type: text/html; charset=utf-8",
+  "",
+  "<html><body><div>Geen interesse, bedankt.</div><br>",
+  '<div>Op 21 september 2026 schreef Jos van WordSwap:</div>',
+  '<blockquote>Hoi Harry, wie zet jullie projecten op de site? ... <a href="#">Val mij niet meer lastig</a></blockquote>',
+  "</body></html>",
+].join("\r\n");
+const fragment = await fragmentUitBron(harry);
+assert.ok(fragment && fragment.includes("Geen interesse"), `de tekst van een HTML-mail wordt niet gelezen: ${JSON.stringify(fragment)}`);
+assert.ok(isAfmelding("Re: Even gekeken naar vanderveenschilderwerken.nl", fragment), "Harry's nee wordt door het echte pad niet herkend");
+
+// 9b. En het omgekeerde, ook als echte HTML-mail: een ja blijft een reactie
+const ja = harry.replace("Geen interesse, bedankt.", "Ja, klinkt interessant. Bel me morgen even?");
+const fragmentJa = await fragmentUitBron(ja);
+assert.ok(fragmentJa && fragmentJa.includes("interessant"), "de tekst van de ja-mail wordt niet gelezen");
+assert.equal(isAfmelding(null, fragmentJa), false, "een ja met onze knop in de aanhaling telt als afmelding");
 
 // 10. Een lead verwijderen maakt eerst de outreach-koppeling los, anders
 //     weigert de database (prospects_lead_id_fkey)
