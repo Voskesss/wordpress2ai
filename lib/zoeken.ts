@@ -22,6 +22,8 @@
 
 /** Naam van het ingebouwde deel; pagina's gebruiken <!--invoeg:zoeken-->. */
 export const ZOEK_DEEL = "zoeken";
+/** Variant met een zichtbaar invoerveld, voor in een bovenbalk. */
+export const ZOEKVELD_DEEL = "zoekveld";
 
 /** Pad van de index binnen de site. */
 export const ZOEKINDEX_PAD = "zoekindex.json";
@@ -46,7 +48,8 @@ export type ZoekPagina = { pad: string; titel: string; tekst: string };
  * pagina beoordelen als de bezoeker krijgt.
  */
 export function vulIngebouwdeDelenAan(delen: Map<string, string>): Map<string, string> {
-  if (!delen.has(ZOEK_DEEL)) delen.set(ZOEK_DEEL, zoekFragment());
+  if (!delen.has(ZOEK_DEEL)) delen.set(ZOEK_DEEL, zoekFragment("knop"));
+  if (!delen.has(ZOEKVELD_DEEL)) delen.set(ZOEKVELD_DEEL, zoekFragment("veld"));
   return delen;
 }
 
@@ -199,9 +202,27 @@ export function bouwZoekindex(
   return { index, json: JSON.stringify(index) };
 }
 
-/** Het zoekvak: knop, uitklapvlak, opmaak en gedrag in één fragment. */
-export function zoekFragment(): string {
-  return `<div class="ws-zoek">
+/**
+ * Het zoekvak in twee smaken:
+ *
+ * - "knop": een vergrootglas dat een vlak uitklapt. Past in een menubalk waar
+ *   geen ruimte is.
+ * - "veld": een zichtbaar invoerveld, met de resultaten eronder. Past in een
+ *   bovenbalk naast telefoonnummer en inloglink, zoals evcprofessionals het op
+ *   zijn oude site had.
+ */
+export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
+  const veldModus = variant === "veld";
+  const kop = veldModus
+    ? `<div class="ws-zoek ws-zoek--veld">
+  <label class="ws-zoek-verborgen" for="ws-zoekveld">Zoek op deze website</label>
+  <input type="search" id="ws-zoekveld" placeholder="Doorzoek de website" autocomplete="off">
+  <svg class="ws-zoek-teken" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+  <div class="ws-zoekvlak" id="ws-zoekvlak" hidden>
+    <ul class="ws-zoekuitslag" id="ws-zoekuitslag" aria-live="polite"></ul>
+  </div>
+</div>`
+    : `<div class="ws-zoek">
   <button class="ws-zoek-knop" type="button" aria-expanded="false" aria-controls="ws-zoekvlak" aria-label="Zoeken op deze website">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
   </button>
@@ -210,7 +231,8 @@ export function zoekFragment(): string {
     <input type="search" id="ws-zoekveld" placeholder="Waar ben je naar op zoek?" autocomplete="off">
     <ul class="ws-zoekuitslag" id="ws-zoekuitslag" aria-live="polite"></ul>
   </div>
-</div>
+</div>`;
+  return `${kop}
 <style>
 /* Deze bouwsteen landt in het menu van een onbekende site. Sites verbergen
    geneste lijsten in hun menu, want dat zijn hun uitklapmenu's, en dan
@@ -233,6 +255,13 @@ export function zoekFragment(): string {
 .ws-zoekuitslag strong { display: block; font-size: 15px; line-height: 22px; }
 .ws-zoekuitslag span { display: block; font-size: 13px; line-height: 20px; opacity: .75; }
 .ws-zoekuitslag .ws-zoek-niets { padding: 10px 2px; font-size: 14px; opacity: .8; }
+/* Veld-variant: het invoerveld staat altijd in beeld, de resultaten klappen
+   eronder uit. Kleuren erven van de balk waar hij in staat. */
+.ws-zoek--veld { display: inline-flex !important; align-items: center; gap: 6px; }
+.ws-zoek--veld input[type=search] { width: min(220px, 40vw); padding: 6px 10px; font: inherit; font-size: 14px; line-height: 20px; border: 1px solid rgba(0,0,0,.18); border-radius: 4px; background: #fff; color: #333; }
+.ws-zoek--veld .ws-zoek-teken { width: 16px; height: 16px; fill: currentColor; opacity: .7; flex: none; }
+.ws-zoek--veld .ws-zoekvlak { padding: 8px 14px 14px; }
+@media (max-width: 900px) { .ws-zoek--veld input[type=search] { width: 150px; } }
 .ws-zoek-verborgen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 600px) { .ws-zoek .ws-zoekvlak { position: fixed; left: 16px; right: 16px; width: auto; top: auto; } }
 </style>
@@ -242,7 +271,9 @@ export function zoekFragment(): string {
   var vlak = document.getElementById('ws-zoekvlak');
   var veld = document.getElementById('ws-zoekveld');
   var lijst = document.getElementById('ws-zoekuitslag');
-  if (!knop || !vlak || !veld || !lijst) return;
+  if (!vlak || !veld || !lijst) return;
+  // Veld-variant heeft geen knop: het veld staat altijd in beeld.
+  var veldModus = !knop;
   var index = null;
   var bezig = false;
   function melding(tekst) {
@@ -262,9 +293,13 @@ export function zoekFragment(): string {
   }
   function sluit() {
     vlak.hidden = true;
-    knop.setAttribute('aria-expanded', 'false');
+    if (knop) knop.setAttribute('aria-expanded', 'false');
   }
-  knop.addEventListener('click', function () {
+  function toon() {
+    vlak.hidden = false;
+    if (knop) knop.setAttribute('aria-expanded', 'true');
+  }
+  if (knop) knop.addEventListener('click', function () {
     var open = vlak.hidden;
     vlak.hidden = !open;
     knop.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -323,6 +358,10 @@ export function zoekFragment(): string {
       lijst.appendChild(li);
     });
   }
+  if (veldModus) {
+    veld.addEventListener('focus', haal);
+    veld.addEventListener('input', function () { if (veld.value.trim().length >= 2) toon(); else sluit(); });
+  }
   veld.addEventListener('input', zoek);
   // Enter is wat mensen vanzelf doen in een zoekveld. Zonder dit gebeurt er
   // niets en denk je dat het zoeken stuk is.
@@ -334,10 +373,14 @@ export function zoekFragment(): string {
     if (!index) { haal(); melding('Even zoeken...'); }
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !vlak.hidden) { sluit(); knop.focus(); }
+    if (e.key === 'Escape' && !vlak.hidden) { sluit(); (knop || veld).focus(); }
   });
   document.addEventListener('click', function (e) {
-    if (!vlak.hidden && !vlak.contains(e.target) && !knop.contains(e.target)) sluit();
+    if (vlak.hidden) return;
+    if (vlak.contains(e.target)) return;
+    if (knop && knop.contains(e.target)) return;
+    if (veldModus && veld.contains(e.target)) return;
+    sluit();
   });
 })();
 </script>`;

@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.7.0 (21 september 2026)
+
+Het zoekvak kan nu ook als zichtbaar invoerveld, in plaats van als vergrootglas
+dat je eerst moet aanklikken. Handig voor een bovenbalk naast een
+telefoonnummer of inloglink, zoals veel sites het hadden staan. Beide smaken
+gebruiken dezelfde zoeklijst en werken hetzelfde.
+
 ## 1.6.3 (21 september 2026)
 
 De zoekresultaten bleven onzichtbaar op sites met uitklapmenu's. Zulke sites
