@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { formulierInzendingen, kennisDocumenten } from "@/db/schema";
+import { formulierInzendingen, kennisDocumenten, sites } from "@/db/schema";
+import { UITLEG, klantZietBerichten, magMeelezen, stand } from "@/lib/formulier-privacy";
 import InzendingKnop from "./InzendingKnop";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
@@ -74,13 +75,23 @@ export default async function SiteExtra({
     .from(formulierInzendingen)
     .where(and(eq(formulierInzendingen.formulier, "chatbot-interesse"), eq(formulierInzendingen.siteRepo, "wordswap")))
     .catch(() => [])).some((r) => (r.velden as Record<string, string>).site === siteNaam);
-  const alle = await db
-    .select()
-    .from(formulierInzendingen)
-    .where(eq(formulierInzendingen.siteRepo, siteRepo))
-    .orderBy(desc(formulierInzendingen.id));
-  const inzendingen = alle.filter((i) => !i.gearchiveerd).slice(0, 30);
-  const gearchiveerd = alle.filter((i) => i.gearchiveerd).slice(0, 50);
+  // Privacystand van deze site: bepaalt of wij mogen meelezen en of er
+  // überhaupt iets bewaard is. Zie lib/formulier-privacy.ts.
+  const [rij] = await db
+    .select({ privacy: sites.formulierPrivacy })
+    .from(sites)
+    .where(eq(sites.id, siteId));
+  const privacy = stand(rij?.privacy);
+  const afgeschermd = beheerder && !magMeelezen(privacy);
+  const alle = afgeschermd
+    ? []
+    : await db
+        .select()
+        .from(formulierInzendingen)
+        .where(eq(formulierInzendingen.siteRepo, siteRepo))
+        .orderBy(desc(formulierInzendingen.id));
+  const inzendingen = alle.filter((i) => !i.gearchiveerd && i.inhoudBewaard).slice(0, 30);
+  const gearchiveerd = alle.filter((i) => i.gearchiveerd && i.inhoudBewaard).slice(0, 50);
   const documenten = await db
     .select()
     .from(kennisDocumenten)
@@ -96,7 +107,7 @@ export default async function SiteExtra({
           <h3 className="font-display text-lg font-semibold">
             Berichten via je formulieren
           </h3>
-          {alle.length > 0 && (
+          {alle.length > 0 && klantZietBerichten(privacy) && (
             <a
               href={`/api/portal/inzendingen-export?siteId=${siteId}`}
               className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-700"
@@ -106,7 +117,20 @@ export default async function SiteExtra({
             </a>
           )}
         </div>
-        {inzendingen.length === 0 ? (
+        {afgeschermd ? (
+          <p className="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <strong>Afgeschermd.</strong> Deze klant heeft ingesteld dat WordSwap
+            niet meeleest. De berichten staan er wel en de klant ziet ze gewoon;
+            jij niet. {UITLEG[privacy].gevolg}
+          </p>
+        ) : !klantZietBerichten(privacy) ? (
+          <p className="mt-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <strong>Er wordt hier niets bewaard.</strong> Berichten van dit
+            formulier gaan rechtstreeks per mail naar je en worden bij ons
+            nergens opgeslagen, bijlagen ook niet. Daarom staat er hier geen
+            overzicht. Komt een mail niet aan, dan ziet de bezoeker dat meteen.
+          </p>
+        ) : inzendingen.length === 0 ? (
           <p className="mt-2 text-sm text-stone-500">
             Nog geen berichten ontvangen.
           </p>

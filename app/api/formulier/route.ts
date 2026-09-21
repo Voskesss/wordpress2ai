@@ -10,6 +10,7 @@ import {
   type RemOordeel,
 } from "@/lib/formulier-rem";
 import { verstuurSiteMail } from "@/lib/mail";
+import { magBewaren } from "@/lib/formulier-privacy";
 
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -189,9 +190,14 @@ export async function POST(req: Request) {
     // database en wordt nooit in een pagina getoond — downloaden loopt via een
     // route die eerst controleert of je bij deze site hoort.
     const bewaardeBijlagen: { naam: string; url: string; bytes: number }[] = [];
+    // Staat deze site op "niets bewaren", dan gaat de inhoud nergens heen
+    // behalve in de mail naar de eigenaar. We bewaren wel dát er een bericht
+    // was: zonder die regel telt de spamrem niets meer en is het formulier een
+    // open doorgeefluik. Zie lib/formulier-privacy.ts.
+    const bewaren = magBewaren(site?.formulierPrivacy);
     const blobToken =
       process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
-    if (bijlagen.length && blobToken) {
+    if (bewaren && bijlagen.length && blobToken) {
       try {
         const { put } = await import("@vercel/blob");
         for (const b of bijlagen) {
@@ -216,9 +222,10 @@ export async function POST(req: Request) {
       .values({
         siteRepo,
         formulier,
-        velden,
+        velden: bewaren ? velden : {},
         bijlagen: bewaardeBijlagen,
         ipAfdruk: afdruk,
+        inhoudBewaard: bewaren,
       })
       .catch(() => {
         opgeslagen = false;
@@ -356,14 +363,30 @@ export async function POST(req: Request) {
 
     // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de invuller
     if (site?.notificatieEmail) {
-      await verstuurSiteMail({
+      const staart = bewaren
+        ? `<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`
+        : `<p>Dit bericht wordt bij ons niet bewaard, dus deze mail is de enige plek waar het staat.</p>`;
+      const weg = await verstuurSiteMail({
         site,
         naar: site.notificatieEmail,
         onderwerp: `Nieuwe ${formulier}-inzending via ${siteNaam}`,
-        html: `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`,
+        html: `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}${staart}`,
         antwoordNaar: invullerEmail,
         bijlagen,
       });
+      // Bewaren we niets, dan is een mislukte mail geen ongemak maar verlies.
+      // Dan moet de bezoeker het weten, zodat hij kan bellen in plaats van te
+      // wachten op een antwoord dat nooit komt.
+      if (!bewaren && !weg) {
+        console.error(`Formulierbericht van ${siteRepo} kwam niet aan en is niet bewaard`);
+        return NextResponse.json(
+          {
+            error:
+              "Je bericht kon niet worden bezorgd. Probeer het nog eens of neem telefonisch contact op.",
+          },
+          { status: 502 },
+        );
+      }
     }
   }
 

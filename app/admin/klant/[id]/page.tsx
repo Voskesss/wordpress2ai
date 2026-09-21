@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { changes, chatFeedback, whatsappKoppelingen, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
+import { STANDEN, UITLEG, stand } from "@/lib/formulier-privacy";
 import IncassoBlok from "./IncassoBlok";
 import OntwerpBlok from "./OntwerpBlok";
 import MetUitleg from "./MetUitleg";
@@ -51,6 +52,7 @@ import {
   zetSiteOnline,
   verwijderKlant,
   wisChatGeschiedenis,
+  bewaarFormulierPrivacy,
 } from "../../acties";
 import { lijstVersies } from "@/lib/github";
 import { demoWorker } from "@/lib/demo";
@@ -817,6 +819,55 @@ export default async function KlantDetail({
             ))}
           </div>
         )}
+      </div>
+
+      {/* Wat bewaren wij van de formulierberichten van deze site? Voor een
+          praktijk met gegevens van haar eigen klanten is dit de vraag die het
+          gesprek maakt of breekt. Zie lib/formulier-privacy.ts. */}
+      <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
+        <h2 className="font-display text-xl font-semibold">🔒 Formulierberichten bewaren</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Wat doen wij met wat er via de formulieren van deze site binnenkomt?
+          Zet dit strenger bij een praktijk die gegevens van haar eigen klanten
+          ontvangt, zoals zorg, juridisch of een boekhouder.
+        </p>
+        <form action={bewaarFormulierPrivacy} className="mt-4 grid gap-3">
+          <input type="hidden" name="siteId" value={site.id} />
+          {STANDEN.map((s) => (
+            <label
+              key={s}
+              className={`flex gap-3 rounded-2xl border px-4 py-3 cursor-pointer ${
+                stand(site.formulierPrivacy) === s
+                  ? "border-violet-400 bg-violet-50/50"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="stand"
+                value={s}
+                defaultChecked={stand(site.formulierPrivacy) === s}
+                className="mt-1"
+              />
+              <span className="text-sm">
+                <strong className="block">{UITLEG[s].label}</strong>
+                <span className="text-stone-600">{UITLEG[s].kort}</span>
+                <span className="mt-1 block text-xs text-amber-800">{UITLEG[s].gevolg}</span>
+              </span>
+            </label>
+          ))}
+          <div>
+            <ActieKnop
+              label="Opslaan"
+              bezigLabel="Opslaan..."
+              className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+            />
+          </div>
+        </form>
+        <p className="mt-3 text-xs text-stone-500">
+          Dit geldt vanaf nu. Berichten die al bewaard zijn blijven staan; die
+          verwijder je zo nodig in het portaal van de klant.
+        </p>
       </div>
 
       {/* Chatgeschiedenis: alle gesprekken op deze site, per persoon. Klanten

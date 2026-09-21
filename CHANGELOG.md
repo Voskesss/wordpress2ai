@@ -20,6 +20,23 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.16.0 (21 september 2026)
+
+Per website is nu te kiezen hoeveel wij bewaren van de berichten die via de
+formulieren binnenkomen. Dat is er voor praktijken die gegevens van hun eigen
+klanten ontvangen, zoals een fysiopraktijk, een advocatenkantoor of een
+boekhouder: die moeten kunnen uitleggen waar die gegevens staan en wie erbij
+kan. Het staat voor iedere klant open.
+
+Drie standen. Normaal, zoals het was. WordSwap kan niet meelezen: de berichten
+worden bewaard en de klant ziet ze gewoon, maar wij niet. Of niets bewaren:
+het bericht gaat alleen per mail naar de klant en wordt nergens opgeslagen,
+bijlagen ook niet.
+
+Bij die laatste stand is er geen vangnet meer. Komt de mail niet aan, dan is
+het bericht weg, en daarom ziet de bezoeker dat dan meteen op zijn scherm in
+plaats van te wachten op een antwoord dat nooit komt.
+
 ## 1.15.2 (21 september 2026)
 
 Mediationbureaus horen niet bij de beroepsgroepen die we overslaan. Een

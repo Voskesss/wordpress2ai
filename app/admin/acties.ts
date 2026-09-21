@@ -8,6 +8,7 @@ import { outreachAfzender } from "@/lib/afzender";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { UITGESLOTEN_STATUS, uitgesloten } from "@/lib/uitsluiten";
+import { STANDEN } from "@/lib/formulier-privacy";
 
 /** Zelfde bewerkingsslot als de chat, foto's en publiceren: een admin-actie
  * die main of de branches aanpast mag niet tegelijk met een klantbewerking
@@ -1405,6 +1406,21 @@ export async function ontwerpVerwijderen(formData: FormData) {
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
   await verwijderOntwerp(site);
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+}
+
+/** Hoeveel wij bewaren van de formulierberichten van één site.
+ *
+ * Nodig voor praktijken met gegevens van hun eigen klanten: die moeten kunnen
+ * uitleggen wie erbij kan. Zie lib/formulier-privacy.ts voor wat elke stand
+ * betekent en wat je ermee opgeeft. */
+export async function bewaarFormulierPrivacy(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const stand = String(formData.get("stand") ?? "");
+  if (!Number.isInteger(siteId) || !(STANDEN as readonly string[]).includes(stand)) return;
+  await db.update(sites).set({ formulierPrivacy: stand }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
 }

@@ -38,6 +38,9 @@ export const sites = pgTable("sites", {
   reviewMailOp: timestamp("review_mail_op", { withTimezone: true }),
   // AVG: klant heeft meelezen-voor-verbetering van zijn chats uitgezet
   meelezenUit: boolean("meelezen_uit").notNull().default(false),
+  // Hoeveel wij van binnenkomende formulierberichten bewaren. Zie
+  // lib/formulier-privacy.ts: normaal | geen-meelezen | niet-bewaren.
+  formulierPrivacy: text("formulier_privacy").notNull().default("normaal"),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
@@ -267,6 +270,9 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
+  // false = deze site staat op "niet bewaren": er staat alleen dat er een
+  // bericht was, zodat de spamrem blijft tellen. De inhoud is nooit opgeslagen.
+  inhoudBewaard: boolean("inhoud_bewaard").notNull().default(true),
 });
 
 // Bevestigingsmail per formulier van een klantsite. Formulieren worden bij publicatie herkend;

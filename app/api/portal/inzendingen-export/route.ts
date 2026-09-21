@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
@@ -25,7 +25,13 @@ export async function GET(req: Request) {
   const rijen = await db
     .select()
     .from(formulierInzendingen)
-    .where(eq(formulierInzendingen.siteRepo, site.githubRepo))
+    .where(
+      and(
+        eq(formulierInzendingen.siteRepo, site.githubRepo),
+        // Regels zonder inhoud zijn tellingen voor de spamrem, geen berichten.
+        eq(formulierInzendingen.inhoudBewaard, true),
+      ),
+    )
     .orderBy(desc(formulierInzendingen.id));
 
   // Kolommen: vaste eerst, daarna alle veldnamen in volgorde van eerste voorkomen

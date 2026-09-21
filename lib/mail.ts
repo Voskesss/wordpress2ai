@@ -102,6 +102,9 @@ ${handtekening(true)}
 </div>`;
 }
 
+/** Geeft terug of de mail echt de deur uit is. Bij een site die berichten
+ * niet bewaart is dat het verschil tussen bezorgd en voorgoed weg, dus daar
+ * mag het niet stil mislukken. */
 export async function verstuurSiteMail(opties: {
   site: MailSite;
   naar: string;
@@ -109,10 +112,10 @@ export async function verstuurSiteMail(opties: {
   html: string;
   antwoordNaar?: string;
   bijlagen?: { bestandsnaam: string; inhoud: Buffer }[];
-}) {
+}): Promise<boolean> {
   const { site, naar, onderwerp, antwoordNaar, bijlagen } = opties;
   const html = isEigenSite(site) ? metWordSwapOpmaak(opties.html) : metKlantOpmaak(site, opties.html);
-  if (!naar) return;
+  if (!naar) return false;
 
   // Witlabel-route: eigen mailserver van de klant
   if (site?.smtpHost && site.smtpGebruiker && site.smtpWachtwoord) {
@@ -137,7 +140,7 @@ export async function verstuurSiteMail(opties: {
             : {}),
         });
         if (site.smtpFoutOp) await wisSmtpStoring(site).catch(() => {});
-        return;
+        return true;
       } catch (e) {
         console.error(`SMTP-mail via ${site.smtpHost} mislukt, terugval op Resend:`, e);
         // De mail komt zo dadelijk alsnog aan, maar uit naam van
@@ -151,12 +154,14 @@ export async function verstuurSiteMail(opties: {
 
   // Standaardroute: Resend, uit naam van het bedrijf
   const key = process.env.RESEND_API_KEY;
-  if (!key) return;
+  if (!key) return false;
   // Klantmails gaan uit als "Bedrijfsnaam <no-reply@wordswap.nl>"; antwoorden gaan via
   // reply-to gewoon naar het bedrijf (of naar de invuller bij de melding aan de eigenaar).
   const adres = "no-reply@wordswap.nl";
   const from = `${(site?.naam ?? "WordSwap").replace(/["<>]/g, "")} <${adres}>`;
-  await fetch("https://api.resend.com/emails", {
+  // Ook een 4xx van Resend telde hier als geslaagd: de fout werd nooit
+  // gelezen. Nu bepaalt het antwoord of we kunnen zeggen dat hij weg is.
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -169,7 +174,15 @@ export async function verstuurSiteMail(opties: {
         ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud.toString("base64") })) }
         : {}),
     }),
-  }).catch((e) => console.error("Mail versturen mislukt:", e));
+  }).catch((e) => {
+    console.error("Mail versturen mislukt:", e);
+    return null;
+  });
+  if (!res?.ok) {
+    if (res) console.error("Mail versturen mislukt:", res.status, await res.text().catch(() => ""));
+    return false;
+  }
+  return true;
 }
 
 
