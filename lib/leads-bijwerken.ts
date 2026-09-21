@@ -17,7 +17,7 @@ const OPEN_STATUSSEN = LEAD_STATUSSEN.filter((s) => s.open).map((s) => s.waarde)
 const BACKFILL_PER_KEER = 10;
 const SYNC_DAGEN_TERUG = 5;
 
-function berichtSleutel(item: PostItem): string {
+export function berichtSleutel(item: PostItem): string {
   return item.messageId ?? `${item.bron}-${item.datum.toISOString()}-${(item.onderwerp ?? "").slice(0, 60)}`;
 }
 
@@ -103,6 +103,19 @@ export async function werkLeadsBij(): Promise<string[]> {
     }
   } catch (e) {
     verslag.push(`Afspraken-controle overgeslagen: ${String(e).slice(0, 120)}`);
+  }
+
+  // 0. Prospects uit de outreach die terugmailden worden leads. Dit eerst,
+  // zodat zo iemand in dezelfde ronde meteen de rest van de behandeling
+  // krijgt in plaats van pas over een half uur.
+  try {
+    const { promoveerReagerendeProspects } = await import("@/lib/prospect-promotie");
+    const uitslag = await promoveerReagerendeProspects();
+    if (uitslag.gepromoveerd.length)
+      verslag.push(`Outreach: ${uitslag.gepromoveerd.join(", ")} reageerde(n) en staat/staan nu bij de leads`);
+    else if (uitslag.fout) verslag.push(`Outreach-promotie overgeslagen: ${uitslag.fout}`);
+  } catch (e) {
+    verslag.push(`Outreach-promotie overgeslagen: ${String(e).slice(0, 160)}`);
   }
 
   // 1. Soverin: nieuwe post ophalen (en voor nieuwe leads eenmalig de hele geschiedenis)

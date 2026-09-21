@@ -323,6 +323,14 @@ export const prospects = pgTable("prospects", {
   mail1Op: timestamp("mail1_op"),
   mail2Op: timestamp("mail2_op"),
   mail3Op: timestamp("mail3_op"),
+  // Veel gescande bedrijven hebben geen mailadres online staan; die bel je.
+  telefoon: text("telefoon"),
+  // Waar dit bedrijf vandaan komt, bv. "Websitescan".
+  bron: text("bron"),
+  // Gezet zodra iemand reageert: dan wordt een prospect een lead.
+  leadId: integer("lead_id"),
+  soverinDoorzocht: boolean("soverin_doorzocht").notNull().default(false),
+  aangemaaktDoor: text("aangemaakt_door"),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
 });
 

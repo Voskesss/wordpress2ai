@@ -20,6 +20,26 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.10.0 (21 september 2026)
+
+**De websitescan levert nu rechtstreeks aan in de outreach.** De scan die
+bedrijven met een verwaarloosde website opspoort draait buiten WordSwap. Die
+kan zijn vondsten nu zelf aanleveren, in plaats van dat er elke dag een
+bestand heen en weer moet.
+
+Ze komen binnen bij de outreach en niet bij de leads. Dat onderscheid is de
+kern: outreach is koud en massaal, een lead is iemand die gereageerd heeft.
+Mailt zo'n bedrijf terug, dan wordt het vanzelf een lead, met die eerste
+reactie meteen in de tijdlijn.
+
+Bedrijven zonder mailadres komen apart te staan met de aantekening dat ze
+gebeld moeten worden.
+
+**Dubbel benaderen kan niet meer.** Bij elk nieuw bedrijf wordt over de
+outreach én de leads heen gekeken, op website, e-mailadres en telefoonnummer
+tegelijk. Verschillende schrijfwijzen van hetzelfde nummer of domein worden
+als hetzelfde herkend.
+
 ## 1.9.0 (21 september 2026)
 
 **Het ontwerp van een oude site wordt nu echt opgemeten.** Bij het overzetten

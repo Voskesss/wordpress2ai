@@ -468,14 +468,19 @@ export async function prospectToevoegen(formData: FormData) {
     .replace(/^https?:\/\//, "")
     .replace(/^www\./, "")
     .replace(/\/+$/, "");
-  const alleProspects = await db.select().from(prospects);
-  const bestaatAl = alleProspects.some(
-    (p) =>
-      p.email.toLowerCase() === email ||
-      p.website.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "") ===
-        schoonWebsite ||
-      p.bedrijf.trim().toLowerCase() === bedrijf.toLowerCase()
-  );
+  // Dubbelcheck over BEIDE lijsten en op alle drie de sleutels: iemand met wie
+  // al een gesprek loopt mag nooit een koude outreachmail krijgen.
+  const { isDubbel, maakRegister } = await import("@/lib/dubbel-check");
+  const { leads } = await import("@/db/schema");
+  const telefoon = String(formData.get("telefoon") ?? "").trim();
+  const [alleProspects, alleLeads] = await Promise.all([
+    db.select().from(prospects),
+    db.select({ website: leads.website, email: leads.email, telefoon: leads.telefoon }).from(leads),
+  ]);
+  const register = maakRegister([...alleProspects, ...alleLeads]);
+  const bestaatAl =
+    isDubbel({ website: schoonWebsite, email, telefoon }, register).dubbel ||
+    alleProspects.some((p) => p.bedrijf.trim().toLowerCase() === bedrijf.toLowerCase());
   if (bestaatAl) {
     revalidatePath("/admin/outreach");
     return;
@@ -493,6 +498,7 @@ export async function prospectToevoegen(formData: FormData) {
       laadMs: Number.isFinite(laadMs) && laadMs > 0 ? laadMs : null,
       kenmerken: kenmerken || null,
       prijs: prijs || null,
+      telefoon: telefoon || null,
     });
   revalidatePath("/admin/outreach");
 }
