@@ -74,6 +74,10 @@ export const sites = pgTable("sites", {
   smtpGebruiker: text("smtp_gebruiker"),
   smtpWachtwoord: text("smtp_wachtwoord"),
   smtpAfzender: text("smtp_afzender"),
+  // Laatste mislukte SMTP-verzending: zo blijft een stille storing niet stil.
+  // Wordt leeggemaakt zodra er weer een mail via de eigen server uitgaat.
+  smtpFoutOp: timestamp("smtp_fout_op", { withTimezone: true }),
+  smtpFoutTekst: text("smtp_fout_tekst"),
   // Externe nieuwsfeed (bv. Accountantsportal) waarvan de actualiteiten
   // dagelijks als statische pagina's op de site worden gezet. Leeg = uit.
   nieuwsFeedUrl: text("nieuws_feed_url"),

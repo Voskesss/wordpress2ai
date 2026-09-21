@@ -366,6 +366,52 @@ export async function herstelVersie(formData: FormData) {
 }
 
 /** Witlabel-mail: SMTP-instellingen van de klant opslaan (wachtwoord versleuteld). */
+/**
+ * Probeert echt in te loggen op de mailserver van de klant en stuurt desgewenst
+ * een testbericht. Zonder dit weet je pas dat het stuk is als een klant belt,
+ * en dan is het meestal al weken zo.
+ */
+export async function testSmtpVerbinding(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  if (!Number.isInteger(siteId)) return;
+  const naarAdres = String(formData.get("testAdres") ?? "").trim();
+
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site?.smtpHost || !site.smtpGebruiker || !site.smtpWachtwoord) {
+    redirect(`/admin/klant/${siteId}?melding=${encodeURIComponent("Geen eigen mailserver ingesteld.")}`);
+  }
+
+  const { ontsleutel } = await import("@/lib/mail");
+  const { testSmtp } = await import("@/lib/smtp");
+  const wachtwoord = ontsleutel(site.smtpWachtwoord!) ?? "";
+  const uitslag = await testSmtp(
+    {
+      host: site.smtpHost!,
+      poort: site.smtpPoort ?? 465,
+      gebruiker: site.smtpGebruiker!,
+      wachtwoord,
+      afzender: site.smtpAfzender,
+    },
+    naarAdres || undefined,
+    site.naam,
+  );
+
+  // Een geslaagde test ruimt een eerdere storingsmelding op; een mislukte test
+  // legt hem juist vast, zodat het blok in de admin meteen klopt.
+  await db
+    .update(sites)
+    .set(
+      uitslag.ok
+        ? { smtpFoutOp: null, smtpFoutTekst: null }
+        : { smtpFoutOp: new Date(), smtpFoutTekst: uitslag.uitleg },
+    )
+    .where(eq(sites.id, siteId));
+
+  const tekst = uitslag.ok ? `✓ ${uitslag.melding}` : `${uitslag.melding} ${uitslag.uitleg}`;
+  redirect(`/admin/klant/${siteId}?melding=${encodeURIComponent(tekst)}`);
+}
+
 export async function bewaarSmtp(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));

@@ -27,6 +27,9 @@ export function ontsleutel(dicht: string): string | null {
 }
 
 export type MailSite = {
+  /** Nodig om een SMTP-storing op de site vast te leggen; zonder id slaan we
+   * dat stilletjes over (bv. bij losse mails zonder siterij). */
+  id?: number;
   naam: string;
   domein?: string | null;
   mailHandtekening?: string | null;
@@ -37,6 +40,7 @@ export type MailSite = {
   smtpGebruiker: string | null;
   smtpWachtwoord: string | null;
   smtpAfzender: string | null;
+  smtpFoutOp?: Date | null;
 } | null;
 
 function ontsnapHtml(t: string): string {
@@ -132,9 +136,14 @@ export async function verstuurSiteMail(opties: {
             ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud })) }
             : {}),
         });
+        if (site.smtpFoutOp) await wisSmtpStoring(site).catch(() => {});
         return;
       } catch (e) {
         console.error(`SMTP-mail via ${site.smtpHost} mislukt, terugval op Resend:`, e);
+        // De mail komt zo dadelijk alsnog aan, maar uit naam van
+        // no-reply@wordswap.nl in plaats van de klant. Dat is precies het soort
+        // storing dat anders maandenlang onopgemerkt blijft, dus vastleggen.
+        await noteerSmtpStoring(site, e).catch(() => {});
         // valt door naar Resend hieronder
       }
     }
@@ -161,4 +170,52 @@ export async function verstuurSiteMail(opties: {
         : {}),
     }),
   }).catch((e) => console.error("Mail versturen mislukt:", e));
+}
+
+
+/** Eén melding per etmaal per site: een kapotte mailserver levert anders een
+ * mail bij elke verzending. */
+const STORING_HERHAAL_MS = 24 * 60 * 60 * 1000;
+
+async function noteerSmtpStoring(site: NonNullable<MailSite>, fout: unknown) {
+  if (!site.id) return;
+  const { leesFout } = await import("./smtp");
+  const uitleg = leesFout(fout);
+  const alGemeld =
+    site.smtpFoutOp && Date.now() - new Date(site.smtpFoutOp).getTime() < STORING_HERHAAL_MS;
+
+  const { db } = await import("@/db");
+  const { sites } = await import("@/db/schema");
+  const { eq } = await import("drizzle-orm");
+  await db
+    .update(sites)
+    .set({ smtpFoutOp: new Date(), smtpFoutTekst: uitleg })
+    .where(eq(sites.id, site.id));
+  if (alGemeld) return;
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "WordSwap <no-reply@wordswap.nl>",
+      to: ["info@wordswap.nl"],
+      subject: `Mailserver van ${site.naam} doet het niet`,
+      text:
+        `De eigen mailserver van ${site.naam} (${site.smtpHost}) weigert berichten.\n\n` +
+        `${uitleg}\n\n` +
+        `Berichten komen wel aan, maar gaan nu uit als no-reply@wordswap.nl in plaats van ` +
+        `het eigen adres van de klant. Dat valt de klant zelf niet op.\n\n` +
+        `Nakijken in de admin bij deze klant, onder Mailserver.`,
+    }),
+  }).catch(() => {});
+}
+
+async function wisSmtpStoring(site: NonNullable<MailSite>) {
+  if (!site.id) return;
+  const { db } = await import("@/db");
+  const { sites } = await import("@/db/schema");
+  const { eq } = await import("drizzle-orm");
+  await db.update(sites).set({ smtpFoutOp: null, smtpFoutTekst: null }).where(eq(sites.id, site.id));
 }

@@ -20,6 +20,23 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.4.0 (21 september 2026)
+
+**Een kapotte mailserver blijft niet langer onopgemerkt.** Klanten kunnen de
+mail van hun website via hun eigen mailbox laten lopen, zodat berichten echt
+van hun eigen adres komen. Ging daar iets mis, dan kwam de mail nog steeds
+aan, maar via ons adres in plaats van dat van de klant. Er ging niets kapot,
+dus niemand merkte het.
+
+Nu wordt zo'n storing vastgelegd, komt er een melding binnen, en staat het in
+het klantoverzicht met de vermoedelijke oorzaak erbij: wachtwoord gewijzigd,
+servernaam onbekend, verkeerde poort, certificaat of een volle mailbox. Gaat
+het daarna weer goed, dan verdwijnt de melding vanzelf.
+
+**Plus een knop om het te testen.** Die logt echt in op de mailserver, en met
+een adres erbij stuurt hij ook een echt testbericht. Inloggen lukt namelijk
+soms wel terwijl versturen alsnog geweigerd wordt.
+
 ## 1.3.0 (21 september 2026)
 
 **Zes controles erbij die de vindbaarheid bewaken.** De poort keek al of elke

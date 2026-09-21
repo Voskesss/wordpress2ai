@@ -52,6 +52,7 @@
   "seo-poort.mts",
   "site-onderhoud.mts",
   "slot-wacht.mts",
+  "smtp.mts",
   "uploads-parallel.mts",
   "vangnet-basis.mts",
   "vangnet-bericht.mts",

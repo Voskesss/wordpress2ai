@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { changes, chatFeedback, whatsappKoppelingen, formulierInzendingen, migrations, sites, usage, wpBackups } from "@/db/schema";
 import IncassoBlok from "./IncassoBlok";
 import OntwerpBlok from "./OntwerpBlok";
+import MetUitleg from "./MetUitleg";
 import AfsprakenBlok from "./AfsprakenBlok";
 import SnelMenu from "./SnelMenu";
 import ReviewMailKnop from "./ReviewMailKnop";
@@ -30,6 +31,7 @@ import {
   bewaarRichtlijnen,
   bewaarSite,
   bewaarSmtp,
+  testSmtpVerbinding,
   bewaarAudioLimiet,
   bewaarVideoLimiet,
   bewaarAiBudget,
@@ -1186,6 +1188,17 @@ export default async function KlantDetail({
             </span>
           )}
         </div>
+        {site.smtpFoutOp && (
+          <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <strong>De eigen mailserver weigert berichten.</strong>{" "}
+            {site.smtpFoutTekst}
+            <div className="mt-1 text-red-700">
+              Sinds {new Date(site.smtpFoutOp).toLocaleString("nl-NL")}. Mail komt wel aan, maar
+              gaat nu uit als no-reply@wordswap.nl in plaats van het eigen adres van de klant.
+              Dat merkt de klant zelf niet.
+            </div>
+          </div>
+        )}
         <p className="mt-2 text-sm text-stone-600">
           Witlabel-optie (eenmalig €49): formulier-mails versturen via de eigen
           mailserver van de klant, écht vanaf zijn domein. Vul de
@@ -1223,6 +1236,22 @@ export default async function KlantDetail({
             />
           </div>
         </form>
+        {site.smtpHost && (
+          <form action={testSmtpVerbinding} className="mt-4 flex flex-wrap items-end gap-3 border-t border-stone-100 pt-4">
+            <input type="hidden" name="siteId" value={site.id} />
+            <label className="block text-sm font-semibold">
+              Testbericht naar (leeg = alleen inloggen proberen)
+              <input name="testAdres" type="email" placeholder="jos@wordswap.nl" className={invoerStijl} />
+            </label>
+            <MetUitleg tekst="Logt echt in op de mailserver van de klant. Vul je een adres in, dan gaat er ook een echt testbericht uit, want inloggen lukt soms wel terwijl versturen alsnog geweigerd wordt. Een geslaagde test ruimt een eerdere storingsmelding op.">
+              <ActieKnop
+                label="Verbinding testen"
+                bezigLabel="Verbinden..."
+                className="rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              />
+            </MetUitleg>
+          </form>
+        )}
       </div>
 
       {/* Alles wat de klant ook ziet: inzendingen, notificatie-e-mail, documenten */}
