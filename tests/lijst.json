@@ -49,6 +49,7 @@
   "pdf-lezen-of-opslaan.mts",
   "preview-access.cjs",
   "publiceren.cjs",
+  "seo-poort.mts",
   "site-onderhoud.mts",
   "slot-wacht.mts",
   "uploads-parallel.mts",

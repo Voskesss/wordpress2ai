@@ -20,6 +20,30 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.3.0 (21 september 2026)
+
+**Zes controles erbij die de vindbaarheid bewaken.** De poort keek al of elke
+pagina een titel, een omschrijving en werkende links had. Daar komt nu bij:
+
+- **Bedrijfsgegevens.** Staat er een telefoonnummer of adres op de site, dan
+  hoort er ook een bedrijfsblok in de code te staan met diezelfde gegevens.
+  Dat is wat Google gebruikt voor lokale resultaten, en wat je kaartje met
+  foto, adres en belknop in de zoekresultaten voedt.
+- **Pagina's die per ongeluk op niet-indexeren staan.** De stilste fout die er
+  is: de pagina werkt gewoon, er komt geen foutmelding, en hij verdwijnt
+  binnen weken uit Google. Stond hij eerder wel in de zoekresultaten, dan is
+  dit nu een harde fout.
+- **Eén hoofdkop per pagina.** Zonder hoofdkop weet Google niet waar de pagina
+  over gaat, met vijf ook niet.
+- **Dubbele titels en omschrijvingen.** Staat dezelfde titel op meerdere
+  pagina's, dan kiest Google er zelf één en negeert de rest.
+- **Pagina's waar niets naartoe linkt.** Die vindt Google wel via de sitemap,
+  maar ze tellen nauwelijks mee.
+- **Paginagewicht.** Hoeveel een bezoeker moet binnenhalen voor één pagina,
+  met een schatting van wat dat op een telefoon betekent.
+
+Op één na zijn het allemaal waarschuwingen: een werklijstje, geen blokkade.
+
 ## 1.2.1 (20 september 2026)
 
 De controle op kwijtgeraakte onderdelen keek alleen naar WordPress-kenmerken.

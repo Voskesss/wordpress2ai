@@ -1,0 +1,155 @@
+/**
+ * De SEO-regels van de opleveringspoort die over de héle site gaan, niet over
+ * één pagina. Zelfde opzet als lib/verlies.ts: pure functies, geen I/O. De
+ * poort verzamelt per pagina wat hij toch al leest en geeft het hier door.
+ *
+ * Waarom dit bestaat: de poort bewaakte wel of elke pagina een titel en een
+ * omschrijving heeft, maar niet of die titels van elkaar verschillen, of er
+ * één hoofdkop is, of een pagina überhaupt ergens vandaan bereikbaar is, en
+ * of een bedrijf zich als bedrijf voorstelt aan Google.
+ */
+
+export type PaginaGegevens = {
+  /** Pad zoals de bezoeker het ziet, bv. "/over-ons/". */
+  pad: string;
+  /** Bestandspad binnen de site, voor in de melding. */
+  rel: string;
+  titel?: string;
+  omschrijving?: string;
+  /** Aantal <h1> op de pagina. */
+  koppen: number;
+  /** Interne paden waar deze pagina naartoe linkt. */
+  linktNaar: string[];
+  noindex: boolean;
+};
+
+export type SeoBevinding = { regel: string; waar: string; detail: string; hard: boolean };
+
+/** Dezelfde titel of omschrijving op meerdere pagina's: Google kiest er dan
+ * zelf één en negeert de rest. Klassieke WordPress-erfenis. */
+export function dubbeleTeksten(paginas: PaginaGegevens[]): SeoBevinding[] {
+  const uit: SeoBevinding[] = [];
+  for (const [veld, naam] of [
+    ["titel", "titel"],
+    ["omschrijving", "meta description"],
+  ] as const) {
+    const perWaarde = new Map<string, string[]>();
+    for (const p of paginas) {
+      if (p.noindex) continue;
+      const waarde = p[veld]?.trim();
+      if (!waarde) continue;
+      perWaarde.set(waarde, [...(perWaarde.get(waarde) ?? []), p.rel]);
+    }
+    for (const [waarde, waar] of perWaarde) {
+      if (waar.length < 2) continue;
+      uit.push({
+        regel: "dubbele-teksten",
+        waar: waar.join(", "),
+        detail: `${waar.length} pagina's delen dezelfde ${naam} ("${kort(waarde)}"). Google kiest er dan zelf één en negeert de rest.`,
+        hard: false,
+      });
+    }
+  }
+  return uit;
+}
+
+/** Precies één hoofdkop per pagina: zonder H1 weet Google niet waar de pagina
+ * over gaat, met meerdere weet hij het ook niet. */
+export function koppenControle(paginas: PaginaGegevens[]): SeoBevinding[] {
+  const uit: SeoBevinding[] = [];
+  for (const p of paginas) {
+    if (p.noindex) continue;
+    if (p.koppen === 0)
+      uit.push({ regel: "koppen", waar: p.rel, detail: "Geen <h1>: Google weet niet waar deze pagina over gaat.", hard: false });
+    else if (p.koppen > 1)
+      uit.push({ regel: "koppen", waar: p.rel, detail: `${p.koppen} keer <h1>. Er hoort er precies één te zijn; de rest wordt <h2>.`, hard: false });
+  }
+  return uit;
+}
+
+/** Een pagina die bestaat maar waar vanaf geen enkele andere pagina naartoe
+ * linkt. Google vindt hem via de sitemap, maar hij telt nauwelijks mee. */
+export function verweesdePaginas(paginas: PaginaGegevens[]): SeoBevinding[] {
+  const bereikt = new Set<string>();
+  for (const p of paginas) for (const doel of p.linktNaar) bereikt.add(normaliseer(doel));
+  const uit: SeoBevinding[] = [];
+  for (const p of paginas) {
+    const pad = normaliseer(p.pad);
+    if (p.noindex || pad === "/" || bereikt.has(pad)) continue;
+    uit.push({
+      regel: "verweesd",
+      waar: p.rel,
+      detail: "Geen enkele pagina linkt hiernaartoe. Zet hem in het menu of link ernaar vanaf een verwante pagina.",
+      hard: false,
+    });
+  }
+  return uit;
+}
+
+/** Soorten waarmee je je als bedrijf voorstelt aan Google. */
+const BEDRIJFSSOORTEN =
+  /"@type"\s*:\s*"(LocalBusiness|Organization|ProfessionalService|Store|Restaurant|MedicalBusiness|HealthAndBeautyBusiness|HomeAndConstructionBusiness|AutomotiveBusiness|LegalService|FinancialService|AccountingService|Dentist|Physician|VisualArtsStore|Person)"/i;
+
+/**
+ * Staat er een telefoonnummer of adres op de site, dan is het een bedrijf met
+ * een vindbare vestiging, en dan hoort er een bedrijfsblok in de code te staan
+ * met dezelfde gegevens. Dat is wat Google gebruikt voor lokale resultaten.
+ */
+export function bedrijfsgegevens(opties: {
+  heeftTelefoon: boolean;
+  heeftAdres: boolean;
+  jsonLd: string[];
+  telefoonnummers: string[];
+}): SeoBevinding[] {
+  if (!opties.heeftTelefoon && !opties.heeftAdres) return [];
+  const alleJson = opties.jsonLd.join("\n");
+  if (!BEDRIJFSSOORTEN.test(alleJson)) {
+    return [
+      {
+        regel: "bedrijfsgegevens",
+        waar: "hele site",
+        detail:
+          "De site noemt een telefoonnummer of adres, maar stelt zich nergens als bedrijf voor in de code (JSON-LD met LocalBusiness of Organization). Dat is wat Google gebruikt voor lokale resultaten.",
+        hard: false,
+      },
+    ];
+  }
+  // Wél een blok, maar zonder contactgegevens erin: dan mist juist het nuttige deel.
+  const uit: SeoBevinding[] = [];
+  if (opties.heeftTelefoon && !/"telephone"/i.test(alleJson))
+    uit.push({
+      regel: "bedrijfsgegevens",
+      waar: "hele site",
+      detail: "Het bedrijfsblok noemt geen telephone, terwijl het nummer wel op de site staat.",
+      hard: false,
+    });
+  if (opties.heeftAdres && !/"address"|PostalAddress/i.test(alleJson))
+    uit.push({
+      regel: "bedrijfsgegevens",
+      waar: "hele site",
+      detail: "Het bedrijfsblok noemt geen address, terwijl het adres wel op de site staat.",
+      hard: false,
+    });
+  for (const nummer of opties.telefoonnummers) {
+    const cijfers = nummer.replace(/\D/g, "").slice(-9);
+    if (cijfers.length === 9 && !alleJson.replace(/\D/g, "").includes(cijfers))
+      uit.push({
+        regel: "bedrijfsgegevens",
+        waar: "hele site",
+        detail: `Telefoonnummer ${nummer} staat op de site maar niet in het bedrijfsblok. Google vergelijkt die met het Google-bedrijfsprofiel.`,
+        hard: false,
+      });
+  }
+  return uit;
+}
+
+function kort(s: string): string {
+  return s.length > 60 ? `${s.slice(0, 57)}...` : s;
+}
+
+function normaliseer(pad: string): string {
+  const zonderVraag = pad.split(/[?#]/)[0];
+  const schoon = zonderVraag.replace(/index\.html?$/i, "");
+  if (!schoon.startsWith("/")) return `/${schoon}`;
+  return schoon.endsWith("/") || schoon === "/" ? schoon : `${schoon}/`;
+}

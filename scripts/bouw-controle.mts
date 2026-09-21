@@ -112,13 +112,31 @@ if (!zonderMobiel) {
 
   const browser = await chromium.launch();
   const pagina = await browser.newPage({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+  // Paginagewicht: alles bij elkaar wat een bezoeker moet binnenhalen. Bewust
+  // niet de laadtijd meten, want die is hier lokaal en zonder netwerk en zegt
+  // dus niets over de werkelijkheid. Bytes wél: op 4G is ruwweg 1 MB ≈ 2 s.
+  const GEWICHT_GRENS = 2_500_000;
+  let gewicht = 0;
+  pagina.on("response", (r) => {
+    const n = Number(r.headers()["content-length"] ?? 0);
+    if (Number.isFinite(n)) gewicht += n;
+  });
+
   for (const p of paginas.sort()) {
+    gewicht = 0;
     await pagina.goto(`http://localhost:${poort}${p}`, { waitUntil: "networkidle", timeout: 30000 }).catch(() => null);
     const overloop = await pagina.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     if (overloop > 2)
       bevindingen.push({ ernst: "fout", regel: "mobiel", waar: p, detail: `Horizontale scroll op 375px (${overloop}px te breed).` });
+    if (gewicht > GEWICHT_GRENS)
+      bevindingen.push({
+        ernst: "waarschuwing",
+        regel: "paginagewicht",
+        waar: p,
+        detail: `${(gewicht / 1_000_000).toFixed(1)} MB binnenhalen voor één pagina (±${Math.round(gewicht / 500_000)} s op 4G). Kijk naar de zwaarste afbeeldingen.`,
+      });
   }
   // Hamburgermenu: aanwezig, en na een tik zijn de menulinks zichtbaar
   await pagina.goto(`http://localhost:${poort}/`, { waitUntil: "networkidle" }).catch(() => null);

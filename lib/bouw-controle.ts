@@ -30,6 +30,13 @@ export type SeoManifest = unknown;
 type ManifestRegel = { pad: string; title?: string };
 
 import { vergelijkOnderdelen } from "./verlies";
+import {
+  bedrijfsgegevens,
+  dubbeleTeksten,
+  koppenControle,
+  verweesdePaginas,
+  type PaginaGegevens,
+} from "./seo-poort";
 
 export function normaliseerManifest(ruw: SeoManifest): ManifestRegel[] {
   if (Array.isArray(ruw))
@@ -101,9 +108,12 @@ export async function controleerSiteMap(
     }
   };
 
-  const paginas = (await htmlBestanden(map)).filter(
-    (p) => !relatief(map, p).startsWith("delen" + path.sep),
-  );
+  // delen/ zijn fragmenten en sjablonen/ zijn mallen met {{plaatshouders}}
+  // (zie lib/actueel.ts): allebei geen pagina's die een bezoeker ooit opvraagt.
+  const paginas = (await htmlBestanden(map)).filter((p) => {
+    const rel = relatief(map, p);
+    return !rel.startsWith("delen" + path.sep) && !rel.startsWith("sjablonen" + path.sep);
+  });
   if (!paginas.length) {
     fout("structuur", map, "Geen enkele HTML-pagina gevonden.");
     return uit;
@@ -140,6 +150,12 @@ export async function controleerSiteMap(
   const delenNamen = new Set(delen.keys());
 
   const indexeerbaar: string[] = [];
+  // Voor de sitebrede SEO-regels (lib/seo-poort.ts): wat we per pagina toch
+  // al lezen, verzamelen we hier op zodat het na de lus vergeleken kan worden.
+  const seoPaginas: PaginaGegevens[] = [];
+  const jsonLd: string[] = [];
+  const telefoonnummers = new Set<string>();
+  let heeftAdres = false;
 
   for (const bestand of paginas) {
     const rel = relatief(map, bestand);
@@ -250,6 +266,22 @@ export async function controleerSiteMap(
 
     // 6. Titel, omschrijving en favicon per pagina
     const titel = inhoud.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim();
+    // Meelezen voor de sitebrede SEO-regels na deze lus.
+    seoPaginas.push({
+      pad: padVanBestand(rel),
+      rel,
+      titel,
+      omschrijving: inhoud.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim(),
+      koppen: (inhoud.match(/<h1\b/gi) ?? []).length,
+      linktNaar: [...inhoud.matchAll(/href=["'](\/[^"'#?]*)["']/gi)].map((m) => m[1]),
+      noindex,
+    });
+    for (const m of inhoud.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi))
+      jsonLd.push(m[1]);
+    for (const m of inhoud.matchAll(/href=["']tel:([+0-9 ()-]{8,})["']/gi))
+      telefoonnummers.add(m[1].trim());
+    if (/\b\d{4}\s?[A-Z]{2}\b/.test(inhoud) || /"postalCode"|streetAddress/i.test(inhoud))
+      heeftAdres = true;
     if (!titel) fout("seo", rel, "Geen <title>.");
     if (!noindex) {
       if (!/<meta[^>]+name=["']description["'][^>]*content=["'][^"']+["']/i.test(inhoud))
@@ -337,6 +369,19 @@ export async function controleerSiteMap(
         fout("oud-adres", pad, "Bestond op de oude site, maar heeft hier geen pagina en geen 301.");
         continue;
       }
+      // Stond in Google, staat nu op niet-indexeren. Er gaat niets kapot en er
+      // komt geen fout: de pagina verdwijnt binnen weken stil uit de resultaten.
+      if (bestaatAlsPagina(pad)) {
+        const genormaliseerd = pad.endsWith("/") || pad.includes(".") ? pad : `${pad}/`;
+        const hier = seoPaginas.find((q) => q.pad === genormaliseerd || q.pad === pad);
+        if (hier?.noindex)
+          fout(
+            "noindex-verlies",
+            hier.rel,
+            "Deze pagina stond in Google en staat nu op niet-indexeren. Haal de robots-noindex weg, of zet er een 301 naartoe als hij echt moet verdwijnen.",
+          );
+      }
+
       if (bestaatAlsPagina(pad) && gegevens.title) {
         const rel = (pad.endsWith("/") ? pad + "index.html" : pad).replace(/^\//, "");
         try {
@@ -362,7 +407,22 @@ export async function controleerSiteMap(
     /* geen afbeeldingen-map */
   }
 
-  // 11. Wat had de vorige versie dat deze niet meer heeft? Alleen mogelijk als we
+  // 11. Sitebrede SEO-regels: dubbele titels, hoofdkoppen, verweesde pagina's
+  // en of een bedrijf zich als bedrijf voorstelt. Zie lib/seo-poort.ts.
+  for (const b of [
+    ...dubbeleTeksten(seoPaginas),
+    ...koppenControle(seoPaginas),
+    ...verweesdePaginas(seoPaginas),
+    ...bedrijfsgegevens({
+      heeftTelefoon: telefoonnummers.size > 0,
+      heeftAdres,
+      jsonLd,
+      telefoonnummers: [...telefoonnummers],
+    }),
+  ])
+    (b.hard ? fout : waarschuw)(b.regel, b.waar, b.detail);
+
+  // 12. Wat had de vorige versie dat deze niet meer heeft? Alleen mogelijk als we
   // de bron erbij krijgen. Dit vangt het stilste soort fout: er ontstaat geen
   // fout, er is gewoon iets minder. Zo verdween de zoekfunctie van
   // evc-professionals zonder dat iemand het merkte. Zie lib/verlies.ts.
