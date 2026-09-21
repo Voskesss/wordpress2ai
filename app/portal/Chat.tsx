@@ -7,6 +7,7 @@ import VideoBank from "./VideoBank";
 import DocumentBank from "./DocumentBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
+import DemoOpdrachten from "./DemoOpdrachten";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
@@ -826,15 +827,25 @@ export default function Chat({
     };
   }, []);
 
-  // Voorbeeldopdracht uit het demo-welkomscherm klaarzetten in de invoerbalk
+  // Voorbeeldopdracht uit het demo-welkomscherm of de suggestieknoppen.
+  // Het lege invoerveld is wat een demo doodslaat: iemand weet niet wat hij
+  // moet typen, tikt iets halfslachtigs en gaat weg met de indruk dat het
+  // tegenvalt. Met `verstuurDirect` is één klik genoeg en ziet hij het meteen
+  // gebeuren. Alleen in de demo; in het portaal blijft het klaarzetten.
   useEffect(() => {
     function opStart(e: Event) {
-      const tekst = (e as CustomEvent<string>).detail;
+      const ruw = (e as CustomEvent<string | { tekst: string; verstuurDirect?: boolean }>).detail;
+      const tekst = typeof ruw === "string" ? ruw : ruw?.tekst;
+      const direct = typeof ruw === "string" ? false : Boolean(ruw?.verstuurDirect);
       if (!tekst || nieuwBezigRef.current || conceptActie) return;
       setInvoer(tekst);
       setHintWeg(true);
       setMobielWeergave("chat");
       setMobielVol(true);
+      if (direct && isDemo) {
+        setTimeout(() => verstuur(tekst), 60);
+        return;
+      }
       setTimeout(() => invoerRef.current?.focus(), 100);
     }
     window.addEventListener("wp2ai-startopdracht", opStart);
@@ -3259,6 +3270,11 @@ export default function Chat({
           )}
 
           </div>
+
+          {/* Klaarstaande opdrachten, alleen in de probeer-demo. Het lege
+              invoerveld is wat een demo doodslaat; met één klik ziet iemand
+              binnen tien seconden zijn eigen wijziging op de site staan. */}
+          {isDemo && <DemoOpdrachten />}
 
           {/* Invoerbalk */}
           <div

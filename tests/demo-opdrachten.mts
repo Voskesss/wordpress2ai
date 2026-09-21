@@ -1,0 +1,57 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { OPDRACHTEN } from "../app/portal/DemoOpdrachten";
+
+/**
+ * Wat een demo doodslaat is het lege invoerveld: iemand komt binnen, weet niet
+ * wat hij moet typen, tikt iets halfslachtigs en gaat weg met de indruk dat
+ * het tegenvalt. Deze knoppen halen dat weg: één klik en de opdracht gaat
+ * meteen weg.
+ *
+ * Twee dingen bewaken: dat het alléén in de demo gebeurt (een klant moet zijn
+ * eigen site nooit ongevraagd zien veranderen), en dat de voorbeelden
+ * verschillend van aard blijven, want anders lijkt het één trucje.
+ */
+
+const chat = await readFile(new URL("../app/portal/Chat.tsx", import.meta.url), "utf8");
+const strip = await readFile(new URL("../app/portal/DemoOpdrachten.tsx", import.meta.url), "utf8");
+const welkom = await readFile(new URL("../app/portal/DemoWelkom.tsx", import.meta.url), "utf8");
+
+// 1. De strip verschijnt alleen in de demo
+assert.ok(chat.includes("{isDemo && <DemoOpdrachten />}"), "de suggestieknoppen staan niet achter isDemo");
+
+// 2. En direct versturen kan ook alleen daar
+const luisteraar = chat.slice(chat.indexOf("function opStart"), chat.indexOf("window.addEventListener(\"wp2ai-startopdracht\""));
+assert.ok(luisteraar.includes("if (direct && isDemo)"), "een suggestie kan buiten de demo ongevraagd verstuurd worden");
+assert.ok(
+  luisteraar.indexOf("verstuur(tekst)") > luisteraar.indexOf("isDemo"),
+  "er wordt verstuurd voordat er gecontroleerd is of dit de demo is"
+);
+
+// 3. Een gewone tekst (zoals het portaal die stuurt) wordt alleen klaargezet
+assert.ok(
+  luisteraar.includes('typeof ruw === "string" ? false'),
+  "een oude, kale opdracht zou nu ineens verstuurd kunnen worden"
+);
+
+// 4. Vier voorbeelden, verschillend van aard, allemaal echte opdrachten
+assert.ok(OPDRACHTEN.length >= 4, "te weinig voorbeelden om breedte te laten zien");
+for (const o of OPDRACHTEN) {
+  assert.ok(o.tekst.length > 25, `te vage opdracht: ${o.kop}`);
+  assert.ok(o.uitleg.length > 10, `${o.kop} legt niet uit wat er gebeurt`);
+  assert.ok(!o.tekst.includes("—") && !o.uitleg.includes("—"), `lang streepje bij ${o.kop}`);
+}
+assert.equal(new Set(OPDRACHTEN.map((o) => o.tekst)).size, OPDRACHTEN.length, "twee voorbeelden doen hetzelfde");
+
+// 5. Het welkomscherm zet geen tekst meer klaar: dan zou de bezoeker die
+//    eerst moeten wegwerken voor hij op een suggestie kan klikken
+assert.ok(
+  !welkom.includes("wp2ai-startopdracht"),
+  "het welkomscherm zet nog een opdracht klaar in de invoerbalk"
+);
+assert.ok(welkom.includes("onClick={sluit}"), "de welkomknop doet iets anders dan sluiten");
+
+// 6. De strip is weg te klikken; niemand wil hem eeuwig zien
+assert.ok(strip.includes("setWeg(true)"), "de suggesties zijn niet te verbergen");
+
+console.log("demo-opdrachten: ok");

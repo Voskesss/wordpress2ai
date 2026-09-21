@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.19.0 (21 september 2026)
+
+In de probeer-demo staan nu vier voorbeelden klaar onder de chat: de
+openingstijden aanpassen, een nieuwe pagina laten maken, een balk bovenaan
+zetten en de kleur van de knoppen veranderen. Eén klik en de opdracht gaat
+meteen weg, dus je ziet binnen tien seconden je eigen wijziging op de site
+staan zonder dat je iets hoeft te bedenken.
+
+Het lege invoerveld was wat de demo tegenhield: wie niet weet wat hij moet
+typen, tikt iets halfslachtigs en gaat weg met de indruk dat het tegenvalt.
+Het welkomscherm zet daarom ook geen tekst meer klaar in de balk.
+
+Dit geldt alleen voor de demo. In het klantportaal verandert er niets.
+
 ## 1.18.0 (21 september 2026)
 
 De ingebouwde outreachmails zijn herschreven. Die zijn het vangnet: er staan

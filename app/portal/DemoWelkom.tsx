@@ -27,12 +27,12 @@ export default function DemoWelkom() {
     [
       "1",
       "Vraag een wijziging",
-      "Typ (of spreek) gewoon wat je anders wilt — bijvoorbeeld “zet de croissants bovenaan” of kies een van de suggesties.",
+      "Klik op een van de voorbeelden onder de chat, of typ (of spreek) gewoon zelf wat je anders wilt.",
     ],
     [
       "2",
       "Bekijk het concept",
-      "De AI bouwt het voor je en laat een voorbeeld zien. Nog niet goed? Zeg wat er anders moet.",
+      "De AI bouwt het voor je en laat een voorbeeld zien. Nog niet goed? Zeg gewoon wat er anders moet.",
     ],
     [
       "3",
@@ -50,8 +50,9 @@ export default function DemoWelkom() {
         </h2>
         <p className="mt-2 text-stone-600 leading-relaxed">
           Dit is de website van een <strong>fictieve bakkerij</strong>. Jij mag
-          hem aanpassen — zo ervaar je precies hoe makkelijk je straks je eigen
-          website beheert, zonder iets van techniek te weten.
+          hem aanpassen, zo ervaar je precies hoe makkelijk je straks je eigen
+          website beheert, zonder iets van techniek te weten. Onder de chat
+          staan vier voorbeelden klaar: één klik en je ziet het gebeuren.
         </p>
         <div className="mt-5 space-y-4">
           {stappen.map(([nr, kop, tekst]) => (
@@ -70,20 +71,15 @@ export default function DemoWelkom() {
           De demo-site wordt elk uur teruggezet, dus je kunt niets kapotmaken.
         </p>
         <p className="mt-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 sm:hidden">
-          💻 Tip: op een computer werkt de demo nóg prettiger — daar zie je de
+          💻 Tip: op een computer werkt de demo nóg prettiger, daar zie je de
           site groot naast de chat.
         </p>
         <button
-          onClick={() => {
-            sluit();
-            // Veilige eerste opdracht alvast klaarzetten in de invoerbalk:
-            // de bezoeker hoeft alleen nog op versturen te drukken
-            window.dispatchEvent(
-              new CustomEvent("wp2ai-startopdracht", {
-                detail: "Zet de openingstijden op zaterdag op 08:00 tot 16:00",
-              })
-            );
-          }}
+          // Vroeger zette deze knop één opdracht klaar in de invoerbalk. Nu
+          // staan er vier knoppen onder de chat die het ook meteen versturen,
+          // dus hier alleen sluiten: anders staat er tekst in de balk die de
+          // bezoeker moet wegwerken voor hij op een suggestie kan klikken.
+          onClick={sluit}
           className="lift mt-5 w-full rounded-full bg-violet-700 px-6 py-3.5 font-semibold text-white shadow-lg shadow-violet-200 hover:bg-violet-600"
         >
           Leuk, ik ga het proberen →
