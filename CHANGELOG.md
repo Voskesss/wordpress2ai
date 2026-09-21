@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.11.0 (21 september 2026)
+
+**Koude outreach gaat voortaan vanaf een eigen afzender.** Post aan mensen die
+ons nog niet kennen wordt nu eenmaal vaker als ongewenst weggeklikt, en dat
+telt mee in de reputatie van het adres waar hij vandaan komt. Tot nu toe
+deelde die post zijn afzender met alle klantmail: afspraakbevestigingen,
+uitnodigingen voor het portaal, facturen.
+
+Dat is nu gescheiden. Klantpost blijft gaan zoals hij ging; koude post krijgt
+zijn eigen adres. Antwoorden komen nog steeds gewoon in dezelfde postbus
+binnen, dus aan de gesprekken verandert niets.
+
 ## 1.10.1 (21 september 2026)
 
 De scan levert ook een contactpersoon, een inschatting warm of koud, en een

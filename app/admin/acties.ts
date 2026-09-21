@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
+import { outreachAfzender } from "@/lib/afzender";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 
@@ -587,7 +588,8 @@ export async function verstuurOutreach(formData: FormData) {
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
-  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  // Koude post vanaf het eigen outreach-domein; zie lib/afzender.ts.
+  const basisFrom = outreachAfzender();
   const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -815,7 +817,8 @@ export async function outreachTestmail(formData: FormData) {
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
-  const basisFrom = process.env.RESEND_FROM ?? "WordSwap <onboarding@resend.dev>";
+  // Koude post vanaf het eigen outreach-domein; zie lib/afzender.ts.
+  const basisFrom = outreachAfzender();
   const adres = basisFrom.match(/<([^>]+)>/)?.[1] ?? basisFrom;
   await fetch("https://api.resend.com/emails", {
     method: "POST",
