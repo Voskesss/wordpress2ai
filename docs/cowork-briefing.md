@@ -106,7 +106,7 @@ uit de mail.
 - Geen termijnen ("binnen een week klaar").
 - Geen garanties, gratis proeven of "no cure no pay" die hier niet staan.
 - Nooit iets over hun site wat niet bij twee aparte controles hetzelfde
-  opleverde. Zie punt 8: dat is de belangrijkste regel van allemaal.
+  opleverde. Zie punt 9: dat is de belangrijkste regel van allemaal.
 
 ## 6. Hoe de mail moet klinken
 
@@ -128,9 +128,10 @@ Harde vormregels, want daar gaat het mis:
 WordSwap." Dat is ontwapenend en het klopt. Ken je de voornaam niet, dan
 "Hallo," en verder geen naam verzinnen.
 
-De opbouw die werkt: eerst wat je aan hun site zag (feitelijk, zonder verwijt),
-dan wat dat in de praktijk betekent, dan wat wij ervoor in de plaats zetten met
-een voorbeeld uit hun eigen vak, dan de prijs en de uitnodiging om te
+De opbouw die werkt: eerst kort wie je bent, dan wat je aan hun site zag
+(een eerlijk compliment als het er is, zie punt 8), dan wat er blijft liggen en
+wat dat in de praktijk betekent, dan hoe het bij ons makkelijker gaat met een
+voorbeeld uit hun eigen vak, en tot slot de prijs en de uitnodiging om te
 antwoorden.
 
 ## 7. De onderwerpregel
@@ -181,7 +182,40 @@ En de laatste drie raken iets wat geld kost als het misstaat.
 Voor mail 2 en 3 een ander onderwerp, nooit een herhaling van mail 1.
 Voorbeeld voor mail 2: `wat kost je website je per maand?`
 
-## 8. De mailreden: alleen wat bevestigd is
+## 8. Kijk eerst als bezoeker, niet als monteur
+
+Voor je iets over een site schrijft: open hem en kijk ernaar zoals een klant
+van dat bedrijf zou doen. Niet naar de versienummers, naar het werk.
+
+**Ziet hij er goed uit? Zeg dat dan, en meen het.** Veel van deze bedrijven
+hebben ooit geld uitgegeven aan een site waar ze trots op waren. Die trots is
+je ingang, niet je vijand.
+
+Een compliment werkt alleen als het waar en concreet is:
+
+| Niet zo | Wel zo |
+|---|---|
+| "Wat een mooie website!" | "De foto's van jullie tuinprojecten zijn echt goed." |
+| "Ziet er professioneel uit." | "De site leest prettig, je ziet in één oogopslag wat jullie doen." |
+| "Mooi design." | "Die voor-en-na-foto's op de projectenpagina werken sterk." |
+
+Kun je niets vinden dat je eerlijk kunt prijzen, schrijf dan niets. Een
+verzonnen compliment is erger dan geen compliment: dat voelt iedereen.
+
+**Stel daarna de tweede vraag: waar zou ons systeem hier helpen?** Meestal is
+het antwoord hetzelfde: er komt niets meer bij. De projecten van de laatste
+twee jaar staan er niet op. De prijzen kloppen niet meer. Het nieuws stopt in
+2023.
+
+Dat verandert de toon van de hele mail. Een mooie site die stilstaat is geen
+kapotte site, dus schrijf er ook niet over alsof er iets kapot is. De insteek
+is: mooi gemaakt, zonde dat er niets bij komt, en dat kan makkelijker.
+
+**En de keerzijde:** ziet een site er goed uit én wordt hij bijgehouden, dan is
+dat geen prospect. Stuur hem niet mee. Wij hebben niets toe te voegen en dat
+merkt hij.
+
+## 9. De mailreden: alleen wat bevestigd is
 
 Een bevinding mag alleen de **reden** van een mail zijn als hij bij twee aparte
 controles hetzelfde opleverde. Stuur die mee met `status: "bevestigd"`.
@@ -201,7 +235,7 @@ Schrijf een bevinding in gevolgen, niet in techniek:
 | "LCP 4.8s" | "Op een telefoon duurt het ruim vier seconden voor er iets in beeld staat." |
 | "Geen SSL" | "Bezoekers krijgen van hun browser een waarschuwing te zien voor ze op de site zijn." |
 
-## 9. Per branche: waar het bij hen schuurt
+## 10. Per branche: waar het bij hen schuurt
 
 Dit is de kern van je vraag. Het aanbod is voor iedereen hetzelfde, maar het
 **voorbeeld** moet uit hun eigen week komen. Kies er één, en maak hem concreet.
@@ -240,12 +274,12 @@ Verandert elk seizoen en staat vaak nog op vorig jaar.
 Ken je de branche niet, gebruik dan het algemene voorbeeld: "zet dit erop met
 deze foto's", zonder te doen alsof je hun vak kent.
 
-## 10. Wie je overslaat
+## 11. Wie je overslaat
 
 Sla deze beroepsgroepen over, of stuur ze mee zonder mailtekst. WordSwap zet ze
 toch automatisch apart, maar dan heb je er geen werk aan gehad:
 
-- **Juridisch**: advocaat, advocatuur, notaris, deurwaarder, jurist, mediator
+- **Juridisch**: advocaat, advocatuur, notaris, deurwaarder, jurist
 - **Financieel**: accountant, accountancy, belastingadviseur, fiscalist
 - **Zorg**: huisarts, tandarts, psycholoog, apotheek, verloskundige
 
@@ -253,10 +287,14 @@ Niet omdat het niet mag, maar omdat deze kantoren een geheimhoudingsplicht
 hebben en moeten kunnen uitleggen waar gegevens van hun klanten staan. Dat
 gesprek voer je aan de telefoon, niet per koude mail.
 
+Een mediationbureau hoort hier **niet** bij: dat is geen advocatenkantoor en
+die mailen we gewoon. Doet een kantoor allebei ("Advocatuur & Mediation"), dan
+telt het advocatendeel en valt het wel af.
+
 Ook overslaan: bedrijven zonder e-mailadres hoeven geen mailtekst. Die zijn om
 te bellen. Stuur ze wel mee, met het telefoonnummer.
 
-## 11. De koppeling
+## 12. De koppeling
 
 `POST https://wordswap.nl/api/scan-prospects`
 met `Authorization: Bearer <SCAN_TOKEN>` en JSON.

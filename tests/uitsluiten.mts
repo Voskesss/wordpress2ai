@@ -33,6 +33,12 @@ for (const [bedrijf, website] of [
 assert.ok(uitgesloten("Kantoor Katwijk", "notariskatwijk.nl"), "woord in het domein wordt gemist");
 assert.ok(uitgesloten("Van Dijk", "vandijk-advocaten.nl"), "een streepje in het domein blokkeert de treffer");
 
+// 2c. Een mediationbureau is geen advocatenkantoor en mag gewoon gemaild
+// worden. Een kantoor dat allebei doet valt wel af op het woord advocatuur.
+assert.equal(uitgesloten("MediationBuro Limburg", "mbl-limburg.nl"), null);
+assert.equal(uitgesloten("Mediation Noord", "mediationnoord.nl"), null);
+assert.ok(uitgesloten("Balkenende Advocatuur & Mediation", "hetkantoorkatwijk.nl"));
+
 // 3. De andere groepen
 assert.equal(uitgesloten("Tandartspraktijk De Bron", "debron.nl")?.sleutel, "zorg");
 assert.equal(uitgesloten("Jansen Accountants", "jansen.nl")?.sleutel, "financieel");

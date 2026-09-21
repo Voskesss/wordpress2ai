@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.15.2 (21 september 2026)
+
+Mediationbureaus horen niet bij de beroepsgroepen die we overslaan. Een
+mediationbureau is geen advocatenkantoor en die benaderen we gewoon. Een
+kantoor dat allebei doet valt nog steeds af op het advocatendeel.
+
 ## 1.15.1 (21 september 2026)
 
 Reparatie: de Verbeter-knop bij een outreachmail leek willekeurig te haperen.

@@ -88,4 +88,26 @@ assert.ok(
 assert.ok(klein.includes("vraagje over je website"), "de terugval-onderwerpregel ontbreekt");
 assert.ok(klein.includes("wie zet jullie projecten op de site?"), "het branchegerichte onderwerp ontbreekt");
 
+// 11. De scan moet naar de site kijken als bezoeker en prijzen wat goed is.
+//     Zonder die regel gaat elke mail over verval, ook bij een mooie site.
+assert.ok(klein.includes("compliment"), "de briefing zegt niets over een compliment");
+assert.ok(
+  klein.includes("verzonnen compliment"),
+  "de grens ontbreekt: een compliment mag alleen als het waar is"
+);
+assert.ok(
+  /wordt hij bijgehouden, dan is\s*\ndat geen prospect|geen prospect/i.test(brief),
+  "de briefing zegt niet dat een goed bijgehouden site geen prospect is"
+);
+
+// 12. Mediation hoort niet bij de uitgesloten groepen en de briefing ook niet
+assert.ok(
+  !GROEPEN.some((g) => g.woorden.some((w) => w.startsWith("mediat"))),
+  "mediation staat weer in de uitsluitlijst"
+);
+assert.ok(
+  /mediationbureau hoort hier \*\*niet\*\* bij/i.test(brief),
+  "de briefing zegt niet dat mediation wel gemaild wordt"
+);
+
 console.log("cowork-briefing: ok");

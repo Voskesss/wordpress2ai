@@ -11,6 +11,10 @@
  * uitleggen waar cliëntgegevens staan. Dat gesprek kun je winnen, maar niet
  * vanuit een koude mail; komt die vraag ná je mail, dan sta je achter.
  *
+ * Mediators horen hier bewust NIET bij. Een mediationbureau is geen
+ * advocatenkantoor: er ligt geen dossierplicht op die de hosting van een
+ * website raakt, en Jos wil ze gewoon benaderen.
+ *
  * Uitgesloten betekent dus niet weggegooid. Ze blijven op het scherm staan,
  * met de reden erbij, buiten de bulk. Wil Jos er één bellen of met de hand
  * schrijven, dan zet hij de status zelf terug op "nieuw". Dat is bewust een
@@ -45,8 +49,6 @@ export const GROEPEN: Groep[] = [
       "juridisch",
       "juristen",
       "rechtsbijstand",
-      "mediation",
-      "mediator",
     ],
   },
   {
