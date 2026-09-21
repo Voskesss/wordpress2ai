@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.21.1 (21 september 2026)
+
+Reparatie: een opdracht die halverwege omviel kon het werkslot van een site
+eindeloos bezet houden. De klus zelf was dood, maar het signaal "ik ben nog
+bezig" bleef doorlopen, en elke volgende opdracht wachtte daar netjes op.
+Een nieuw gesprek beginnen hielp niet, want het slot hoort bij de persoon,
+niet bij het gesprek.
+
+Een slot vervalt nu na twintig minuten hoe dan ook, ruim boven wat een echte
+opdracht ooit nodig heeft. En de uurlijkse demo-reset ruimt de sloten van de
+demo mee op, zodat elke bezoeker schoon begint.
+
 ## 1.21.0 (21 september 2026)
 
 De demo wordt elk uur teruggezet. Zat er op dat moment iemand midden in een

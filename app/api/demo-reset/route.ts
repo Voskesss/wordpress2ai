@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
@@ -97,6 +97,14 @@ async function reset() {
         .set({ demoResetOp: new Date() })
         .where(eq(sites.id, site.id))
         .catch((e) => console.error("Reset-stempel zetten mislukt:", e));
+
+      // Sloten van alle demo-bezoekers weghalen. De hartslag van een lopende
+      // klus ziet dan dat zijn rij weg is en stopt zichzelf; een omgevallen
+      // klus die alleen nog uit een hartslag bestond, hield anders tot in de
+      // eeuwigheid iedereen tegen.
+      await db
+        .execute(sql`DELETE FROM operation_leases WHERE scope LIKE ${`site:${site.id}:%`}`)
+        .catch((e) => console.error("Demo-sloten opruimen mislukt:", e));
 
       // 3. Chatgeschiedenis en wijzigingen wissen (leads blijven in Clerk)
       const siteChanges = await db

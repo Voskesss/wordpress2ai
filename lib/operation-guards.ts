@@ -7,6 +7,20 @@ import { db } from "@/db";
  * verdwijnt de functie, dan valt het slot binnen ±1,5 minuut vanzelf vrij
  * (voorheen stond het tot 6 minuten vast). */
 const LEASE_SECONDEN = 90;
+/**
+ * Absolute bovengrens voor één slot, los van de hartslag.
+ *
+ * De hartslag ververst het slot elke tien seconden zolang het proces leeft.
+ * Valt een klus halverwege om zonder netjes vrij te geven, dan bleef die
+ * hartslag gewoon doorlopen op de warme server en ververste hij het slot
+ * eindeloos. Bij Jos hield één omgevallen demo-klus zo twee uur lang alles
+ * tegen: elke nieuwe opdracht kreeg "er wordt nog gewerkt, wacht even".
+ *
+ * Niets op Vercel mag langer dan 800 seconden draaien, dus twintig minuten
+ * hindert geen echte klus en vangt precies de zombie.
+ */
+const MAX_SLOT_SECONDEN = 20 * 60;
+const HARTSLAG_MS = 10_000;
 /** @param opVerloren wordt aangeroepen als het slot is weggehaald (de eigenaar
  * drukte op stop of verliet de pagina). De lopende bewerking hoort dan te
  * stoppen: zonder slot mag er niet meer geschreven worden. */
@@ -24,7 +38,20 @@ export async function claimOperation(
   `);
   if (!result.rows.length) return null;
   let verlorenGemeld = false;
+  let slagen = 0;
   const hartslag = setInterval(() => {
+    // Bovengrens bereikt: niet meer verversen, zodat het slot binnen
+    // LEASE_SECONDEN vanzelf vervalt. De klus zelf wordt ook gestopt, want
+    // wie hier nog zit is geen echte klus meer.
+    if (++slagen * HARTSLAG_MS > MAX_SLOT_SECONDEN * 1000) {
+      clearInterval(hartslag);
+      if (!verlorenGemeld) {
+        verlorenGemeld = true;
+        console.error(`Slot ${scope} liep tegen de bovengrens van ${MAX_SLOT_SECONDEN}s: hartslag gestopt`);
+        opVerloren?.();
+      }
+      return;
+    }
     void db
       .execute(
         sql`UPDATE operation_leases SET expires_at = now() + make_interval(secs => ${LEASE_SECONDEN}) WHERE scope = ${scope} AND owner = ${owner} RETURNING owner`,
@@ -38,7 +65,7 @@ export async function claimOperation(
         }
       })
       .catch((e) => console.error("Slot verlengen mislukt:", e));
-  }, 10_000);
+  }, HARTSLAG_MS);
   hartslag.unref?.();
   return async () => {
     clearInterval(hartslag);
