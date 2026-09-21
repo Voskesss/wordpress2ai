@@ -103,11 +103,19 @@ assert.match(ronde, /promoveerReagerendeProspects/, "promotie draait niet mee in
 
   // Geen bevestigde bevinding: geen mail, ook niet als de scan mailbaar zegt
   assert.match(route, /hard\.length > 0/, "mailbaar wordt klakkeloos overgenomen");
-  assert.match(route, /status: magMailen \? "nieuw" : "niet_mailen"/, "niet-mailbare prospects komen in de mailstroom");
+  assert.match(
+    route,
+    /magMailen\s*\?\s*"nieuw"\s*:\s*"niet_mailen"/,
+    "niet-mailbare prospects komen in de mailstroom"
+  );
 
   // En dan wordt er ook geen concept-mail klaargezet: anders staat er een mail
   // klaar die je met één klik verstuurt terwijl de reden niet hard is
-  assert.match(route, /aangemaakt && magMailen && g\.onderwerp/, "er staat een mail klaar zonder bevestigde reden");
+  assert.match(
+    route,
+    /aangemaakt && magMailen && !groep && g\.onderwerp/,
+    "er staat een mail klaar zonder bevestigde reden"
+  );
 }
 
 

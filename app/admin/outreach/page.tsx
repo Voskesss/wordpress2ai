@@ -11,6 +11,7 @@ import MailBewerker from "./MailBewerker";
 import ObservatieVeld from "./ObservatieVeld";
 import ScanVak from "./ScanVak";
 import WatWerkt from "./WatWerkt";
+import { UITGESLOTEN_STATUS, uitgesloten } from "@/lib/uitsluiten";
 
 export const metadata: Metadata = {
   title: "Outreach",
@@ -30,6 +31,7 @@ const statusLabel: Record<string, [string, string]> = {
   gereageerd: ["gereageerd 🎉", "bg-emerald-50 border-emerald-200 text-emerald-700"],
   klant: ["klant ✓", "bg-emerald-100 border-emerald-300 text-emerald-800"],
   niet_mailen: ["niet mailen", "bg-red-50 border-red-200 text-red-700"],
+  uitgesloten: ["buiten de bulk", "bg-amber-50 border-amber-200 text-amber-800"],
 };
 
 const dagen = (d: Date | null) =>
@@ -50,11 +52,12 @@ export default async function Outreach({
     persoonlijk.find((m) => m.prospectId === pid && m.nummer === nr) ?? null;
   const afgemeld = alle.filter((p) => p.status === "niet_mailen");
   const filters: Record<string, (p: (typeof alle)[number]) => boolean> = {
-    actie: (p) => p.status !== "niet_mailen" && !["gereageerd", "klant"].includes(p.status),
+    actie: (p) => !["niet_mailen", UITGESLOTEN_STATUS, "gereageerd", "klant"].includes(p.status),
     nieuw: (p) => p.status === "nieuw",
     loopt: (p) => p.status.startsWith("mail"),
     raak: (p) => ["gereageerd", "klant"].includes(p.status),
-    alles: (p) => p.status !== "niet_mailen",
+    apart: (p) => p.status === UITGESLOTEN_STATUS,
+    alles: (p) => !["niet_mailen", UITGESLOTEN_STATUS].includes(p.status),
   };
   const filter = filters[toon] ?? filters.actie;
   // Sortering: eerst wie nog nooit gemaild is, dan wie het langst stil is
@@ -189,13 +192,14 @@ export default async function Outreach({
       )}
 
       {/* Overzicht per fase — klik om de lijst te filteren */}
-      <div className="mt-10 grid gap-2 sm:grid-cols-5">
+      <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {(
           [
             ["actie", "Actie nodig", alle.filter(filters.actie).length, "bg-amber-100 text-amber-800"],
             ["nieuw", "Nog te mailen", alle.filter((p) => p.status === "nieuw").length, "bg-stone-100 text-stone-700"],
             ["loopt", "Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
             ["raak", "Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
+            ["apart", "Buiten de bulk", alle.filter(filters.apart).length, "bg-amber-100 text-amber-800"],
             ["alles", "Alles", alle.filter(filters.alles).length, "bg-white border border-stone-200 text-stone-700"],
           ] as const
         ).map(([sleutel, label, aantal, kleur]) => (
@@ -359,6 +363,18 @@ export default async function Outreach({
                   </details>
                 );
               })()}
+              {p.status === UITGESLOTEN_STATUS && (
+                <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <strong>Buiten de bulk gehouden{(() => {
+                    const g = uitgesloten(p.bedrijf, p.website, p.branche);
+                    return g ? ` (${g.label.toLowerCase()})` : "";
+                  })()}.</strong>{" "}
+                  {uitgesloten(p.bedrijf, p.website, p.branche)?.reden}{" "}
+                  Wil je hier toch iets mee, bel dan of schrijf met de hand. Zet
+                  je hem hieronder op &ldquo;nieuw&rdquo;, dan doet hij weer
+                  gewoon mee.
+                </p>
+              )}
               {p.status === "niet_mailen" && (
                 <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-sm text-red-800">
                   🚫 Deze persoon wil geen mail meer. Er kan niets meer verstuurd
@@ -444,6 +460,7 @@ export default async function Outreach({
                       <option value="mail3">mail 3 verstuurd</option>
                       <option value="gereageerd">gereageerd</option>
                       <option value="klant">klant geworden</option>
+                      <option value={UITGESLOTEN_STATUS}>buiten de bulk (beroepsgroep)</option>
                       <option value="niet_mailen">niet mailen</option>
                     </select>
                   </label>

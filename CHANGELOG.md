@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.15.0 (21 september 2026)
+
+Advocaten, notarissen, accountants en zorgpraktijken gaan niet meer mee in de
+koude bulk. Niet omdat het niet mag, maar omdat deze kantoren een
+geheimhoudingsplicht hebben en moeten kunnen uitleggen waar gegevens van hun
+klanten staan. Dat gesprek voer je aan de telefoon, niet per koude mail.
+
+Ze worden niet weggegooid: ze staan apart onder "Buiten de bulk", met de reden
+erbij. Wil je er toch iets mee, dan zet je zo'n bedrijf zelf terug op "nieuw".
+Dat is bewust een handeling. De twaalf die al in de lijst stonden zijn meteen
+verplaatst; er was er nog geen enkele gemaild.
+
 ## 1.14.0 (21 september 2026)
 
 Wie op een outreachmail antwoordt met "graag verwijderen" of "niet meer

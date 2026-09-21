@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { leads, prospectMails, prospects } from "@/db/schema";
 import { isDubbel, maakRegister, onthoud, schoonDomein, schoonEmail } from "@/lib/dubbel-check";
+import { UITGESLOTEN_STATUS, uitgesloten } from "@/lib/uitsluiten";
 
 /**
  * Ingang voor de websitescan die buiten WordSwap draait (Cowork).
@@ -112,6 +113,7 @@ export async function POST(verzoek: Request) {
   let nieuw = 0;
   const overgeslagen: Record<string, number> = {};
   const zonderMail: string[] = [];
+  const buitenDeBulk: string[] = [];
 
   for (const g of gevonden) {
     const kandidaat = {
@@ -137,6 +139,7 @@ export async function POST(verzoek: Request) {
     // zelf al, maar we rekenen het hier na: één plek die het fout heeft is
     // genoeg om iemand aan te schrijven over iets wat niet klopt.
     const magMailen = Boolean(kandidaat.email) && (g.mailbaar ?? hard.length > 0) && hard.length > 0;
+    const groep = uitgesloten(kandidaat.bedrijf, kandidaat.website, g.branche);
     const [aangemaakt] = await db.insert(prospects).values({
       bedrijf: (kandidaat.bedrijf || kandidaat.website || "Onbekend").slice(0, 200),
       website: kandidaat.website,
@@ -159,12 +162,18 @@ export async function POST(verzoek: Request) {
       // Zonder mailadres heeft mailen geen zin; die zet je op bellen.
       // Niet mailbaar betekent niet waardeloos: het blijft een bedrijf om te
       // bellen, alleen zonder mailreden die we kunnen waarmaken.
-      status: magMailen ? "nieuw" : "niet_mailen",
+      // Beroepsgroepen met een geheimhoudingsplicht komen binnen als
+      // uitgesloten: wel op het scherm, buiten de bulk. Zie lib/uitsluiten.ts.
+      status: groep
+        ? UITGESLOTEN_STATUS
+        : magMailen
+          ? "nieuw"
+          : "niet_mailen",
     }).returning({ id: prospects.id });
 
     // De concept-mail meteen klaarzetten als hij meekomt: dan hoeft Jos alleen
     // nog te lezen, bij te schaven en op verzenden te drukken.
-    if (aangemaakt && magMailen && g.onderwerp?.trim() && g.mailtekst?.trim()) {
+    if (aangemaakt && magMailen && !groep && g.onderwerp?.trim() && g.mailtekst?.trim()) {
       await db.insert(prospectMails).values({
         prospectId: aangemaakt.id,
         nummer: 1,
@@ -173,7 +182,8 @@ export async function POST(verzoek: Request) {
       });
     }
     onthoud(kandidaat, register);
-    if (!magMailen) zonderMail.push(kandidaat.bedrijf || kandidaat.website);
+    if (groep) buitenDeBulk.push(kandidaat.bedrijf || kandidaat.website);
+    else if (!magMailen) zonderMail.push(kandidaat.bedrijf || kandidaat.website);
     nieuw++;
   }
 
@@ -182,8 +192,16 @@ export async function POST(verzoek: Request) {
     nieuw,
     overgeslagen,
     nietMailbaar: zonderMail.length,
-    opmerking: zonderMail.length
-      ? `${zonderMail.length} zonder mailadres of zonder bevestigde bevinding: die staan op "niet mailen" en zijn bedoeld om te bellen.`
-      : undefined,
+    uitgesloten: buitenDeBulk.length,
+    opmerking: [
+      zonderMail.length
+        ? `${zonderMail.length} zonder mailadres of zonder bevestigde bevinding: die staan op "niet mailen" en zijn bedoeld om te bellen.`
+        : null,
+      buitenDeBulk.length
+        ? `${buitenDeBulk.length} uit een beroepsgroep die we niet koud mailen (juridisch, financieel, zorg): die staan apart en gaan niet mee in de bulk.`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined,
   });
 }

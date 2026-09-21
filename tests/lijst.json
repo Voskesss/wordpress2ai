@@ -62,6 +62,7 @@
   "site-onderhoud.mts",
   "slot-wacht.mts",
   "smtp.mts",
+  "uitsluiten.mts",
   "uploads-parallel.mts",
   "vangnet-basis.mts",
   "vangnet-bericht.mts",

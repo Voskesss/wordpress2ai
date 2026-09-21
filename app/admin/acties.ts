@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { outreachAfzender } from "@/lib/afzender";
 import { sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { UITGESLOTEN_STATUS, uitgesloten } from "@/lib/uitsluiten";
 
 /** Zelfde bewerkingsslot als de chat, foto's en publiceren: een admin-actie
  * die main of de branches aanpast mag niet tegelijk met een klantbewerking
@@ -500,6 +501,9 @@ export async function prospectToevoegen(formData: FormData) {
       kenmerken: kenmerken || null,
       prijs: prijs || null,
       telefoon: telefoon || null,
+      // Zie lib/uitsluiten.ts: beroepsgroepen met geheimhoudingsplicht komen
+      // er wel in, maar buiten de bulk.
+      ...(uitgesloten(bedrijf, schoonWebsite, branche) ? { status: UITGESLOTEN_STATUS } : {}),
     });
   revalidatePath("/admin/outreach");
 }
@@ -514,7 +518,7 @@ export async function prospectBijwerken(formData: FormData) {
   const observatie = formData.get("observatie");
   const email = formData.get("email");
   const wijziging: Record<string, unknown> = {};
-  if (["nieuw", "mail1", "mail2", "mail3", "gereageerd", "klant", "niet_mailen"].includes(status)) {
+  if (["nieuw", "mail1", "mail2", "mail3", "gereageerd", "klant", "niet_mailen", UITGESLOTEN_STATUS].includes(status)) {
     wijziging.status = status;
   }
   if (typeof observatie === "string") wijziging.observatie = observatie.trim() || null;
@@ -563,7 +567,7 @@ export async function verstuurOutreach(formData: FormData) {
   if (!Number.isInteger(id)) return;
   const [p] = await db.select().from(prospects).where(eq(prospects.id, id));
   if (!p) return;
-  if (["niet_mailen", "gereageerd", "klant", "mail3"].includes(p.status)) return;
+  if (["niet_mailen", "gereageerd", "klant", "mail3", UITGESLOTEN_STATUS].includes(p.status)) return;
   // Extra vangnet: staat dit e-mailadres ergens op niet-mailen, dan nooit versturen
   const afgemeld = await db
     .select()
