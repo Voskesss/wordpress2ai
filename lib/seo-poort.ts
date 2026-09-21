@@ -117,7 +117,14 @@ export function koppenControle(paginas: PaginaGegevens[]): SeoBevinding[] {
  * linkt. Google vindt hem via de sitemap, maar hij telt nauwelijks mee. */
 export function verweesdePaginas(paginas: PaginaGegevens[]): SeoBevinding[] {
   const bereikt = new Set<string>();
-  for (const p of paginas) for (const doel of p.linktNaar) bereikt.add(normaliseer(doel));
+  for (const p of paginas)
+    for (const doel of p.linktNaar) {
+      // Een link kan absoluut zijn (/over-ons/) of relatief (over-ons.html).
+      // Relatief hoort er óók bij: zonder dat lijkt op een site met relatieve
+      // links élke pagina verweesd. Gevonden op de demo-bakkerij.
+      bereikt.add(normaliseer(doel));
+      if (!doel.startsWith("/")) bereikt.add(normaliseer(samen(p.pad, doel)));
+    }
   const uit: SeoBevinding[] = [];
   for (const p of paginas) {
     const pad = normaliseer(p.pad);
@@ -132,7 +139,16 @@ export function verweesdePaginas(paginas: PaginaGegevens[]): SeoBevinding[] {
   return uit;
 }
 
-/** Soorten waarmee je je als bedrijf voorstelt aan Google. */
+/**
+ * Soorten waarmee je je als bedrijf voorstelt aan Google.
+ *
+ * Deze lijst is per definitie onvolledig: schema.org heeft tientallen soorten
+ * bedrijven (Bakery, Florist, Plumber...) en die ga je nooit allemaal opsommen.
+ * Gevonden toen de demo-bakkerij een keurig Bakery-blok had en de poort alsnog
+ * klaagde. Daarom telt hieronder óók een blok dat gewoon een adres of
+ * telefoonnummer noemt: dát is het signaal dat het om een vindbare vestiging
+ * gaat, ongeacht hoe de soort heet.
+ */
 const BEDRIJFSSOORTEN =
   /"@type"\s*:\s*"(LocalBusiness|Organization|ProfessionalService|Store|Restaurant|MedicalBusiness|HealthAndBeautyBusiness|HomeAndConstructionBusiness|AutomotiveBusiness|LegalService|FinancialService|AccountingService|Dentist|Physician|VisualArtsStore|Person)"/i;
 
@@ -149,7 +165,10 @@ export function bedrijfsgegevens(opties: {
 }): SeoBevinding[] {
   if (!opties.heeftTelefoon && !opties.heeftAdres) return [];
   const alleJson = opties.jsonLd.join("\n");
-  if (!BEDRIJFSSOORTEN.test(alleJson)) {
+  const steltZichVoor =
+    BEDRIJFSSOORTEN.test(alleJson) ||
+    (/"@type"/.test(alleJson) && /"address"|"telephone"|PostalAddress/i.test(alleJson));
+  if (!steltZichVoor) {
     return [
       {
         regel: "bedrijfsgegevens",
@@ -191,6 +210,19 @@ export function bedrijfsgegevens(opties: {
 
 function kort(s: string): string {
   return s.length > 60 ? `${s.slice(0, 57)}...` : s;
+}
+
+/** Relatieve link oplossen vanaf de pagina waar hij op staat. */
+function samen(vanaf: string, doel: string): string {
+  const basis = vanaf.endsWith("/") ? vanaf : vanaf.replace(/[^/]*$/, "");
+  const delen = (basis + doel).split("/");
+  const uit: string[] = [];
+  for (const d of delen) {
+    if (d === "." || d === "") continue;
+    if (d === "..") uit.pop();
+    else uit.push(d);
+  }
+  return "/" + uit.join("/");
 }
 
 function normaliseer(pad: string): string {

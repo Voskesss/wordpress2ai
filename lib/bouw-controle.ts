@@ -282,7 +282,10 @@ export async function controleerSiteMap(
         .match(/<meta[^>]+property=["']og:description["'][^>]*content=(["'])([\s\S]*?)\1/i)?.[2]
         ?.trim(),
       koppen: (inhoud.match(/<h1\b/gi) ?? []).length,
-      linktNaar: [...inhoud.matchAll(/href=["'](\/[^"'#?]*)["']/gi)].map((m) => m[1]),
+      // Ook relatieve links, want lang niet elke site linkt absoluut.
+      linktNaar: [...inhoud.matchAll(/href=["']([^"'#?:]+)["']/gi)]
+        .map((m) => m[1])
+        .filter((h) => !/^(mailto|tel|https?|javascript)/i.test(h)),
       noindex,
     });
     for (const m of inhoud.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi))

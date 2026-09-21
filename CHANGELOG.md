@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.7.1 (21 september 2026)
+
+Twee controles sloegen vals alarm. Een site die zijn links relatief schrijft
+kreeg de melding dat élke pagina onbereikbaar was, terwijl het menu gewoon
+werkte. En een bedrijfsblok telde alleen mee als de soort in onze lijst stond,
+waardoor een bakkerij met keurige gegevens toch een melding kreeg. Nu telt het
+adres, niet de naam van de soort.
+
 ## 1.7.0 (21 september 2026)
 
 Het zoekvak kan nu ook als zichtbaar invoerveld, in plaats van als vergrootglas

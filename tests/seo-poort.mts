@@ -186,4 +186,64 @@ assert.deepEqual(
   [],
 );
 
+
+// --- Twee gaten die de demo-bakkerij blootlegde (21-09-2026)
+
+// 10. Relatieve links tellen ook mee. Een site die links schrijft als
+//     "over-ons.html" in plaats van "/over-ons/" zag er anders uit alsof élke
+//     pagina verweesd was.
+assert.deepEqual(
+  verweesdePaginas([
+    p({ pad: "/", linktNaar: ["blog.html"] }),
+    p({ pad: "/blog.html" }),
+  ]),
+  [],
+  "relatieve link telt niet mee",
+);
+// Ook vanuit een submap: het artikel is bereikbaar via een relatieve link
+assert.deepEqual(
+  verweesdePaginas([
+    p({ pad: "/", linktNaar: ["/nieuws/"] }),
+    p({ pad: "/nieuws/", linktNaar: ["artikel.html"] }),
+    p({ pad: "/nieuws/artikel.html" }),
+  ]).map((b) => b.waar),
+  [],
+  "relatieve link binnen een map telt niet mee",
+);
+// En echt verweesd blijft gemeld
+assert.equal(
+  verweesdePaginas([p({ pad: "/", linktNaar: ["blog.html"] }), p({ pad: "/verstopt.html" }), p({ pad: "/blog.html" })]).length,
+  1,
+);
+
+// 11. Een bedrijfsblok telt ook als de soort niet in onze lijst staat.
+//     schema.org heeft tientallen soorten (Bakery, Florist, Plumber) en die ga
+//     je nooit allemaal opsommen; het adres is het echte signaal.
+assert.deepEqual(
+  bedrijfsgegevens({
+    heeftTelefoon: true,
+    heeftAdres: true,
+    jsonLd: [`{"@type":"Bakery","name":"Bakkerij Jansen","telephone":"+31 26 123 4567","address":{"@type":"PostalAddress","postalCode":"6811 AA"}}`],
+    telefoonnummers: ["+31 26 123 4567"],
+  }),
+  [],
+  "een Bakery met adres en telefoon hoort gewoon te tellen",
+);
+// Zonder enig blok blijft de melding staan
+assert.equal(
+  bedrijfsgegevens({ heeftTelefoon: true, heeftAdres: true, jsonLd: [], telefoonnummers: [] }).length,
+  1,
+);
+// Een blok zonder adres én zonder bekende soort telt niet als bedrijf
+assert.equal(
+  bedrijfsgegevens({
+    heeftTelefoon: true,
+    heeftAdres: true,
+    jsonLd: [`{"@type":"BlogPosting","headline":"Iets"}`],
+    telefoonnummers: [],
+  }).length,
+  1,
+  "een blogbericht is geen bedrijfsblok",
+);
+
 console.log("seo-poort: ok");
