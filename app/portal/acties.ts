@@ -454,3 +454,87 @@ export async function meldWebsiteOpmerking(formData: FormData) {
   pot.set(`akkoord-opmerking-${site.id}`, "1", { ...koek, maxAge: 60 * 60 * 24 * 14 });
   revalidatePath("/portal");
 }
+
+/**
+ * Mail vanaf het eigen adres van de klant: de gegevens van zijn eigen mailbox.
+ *
+ * De klant mag dit zelf instellen, net als DNS, maar het is wel het soort
+ * scherm waar je iets kapot kunt maken zonder het te merken: één verkeerd
+ * teken in het wachtwoord en de mail gaat stilletjes weer via ons. Daarom
+ * staat de testknop er direct naast en is die geen optie maar de bedoeling.
+ */
+export async function bewaarEigenMailserver(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site) return;
+  const host = String(formData.get("host") ?? "").trim();
+  const poort = Number(formData.get("poort") || 465);
+  const gebruiker = String(formData.get("gebruiker") ?? "").trim();
+  const wachtwoord = String(formData.get("wachtwoord") ?? "");
+  const afzender = String(formData.get("afzender") ?? "").trim();
+
+  if (!host) {
+    // Leegmaken = terug naar de standaardroute via ons.
+    await db
+      .update(sites)
+      .set({
+        smtpHost: null,
+        smtpPoort: null,
+        smtpGebruiker: null,
+        smtpWachtwoord: null,
+        smtpAfzender: null,
+        smtpFoutOp: null,
+        smtpFoutTekst: null,
+      })
+      .where(eq(sites.id, site.id));
+    revalidatePath("/portal");
+    return;
+  }
+
+  const { versleutel } = await import("@/lib/mail");
+  await db
+    .update(sites)
+    .set({
+      smtpHost: host,
+      smtpPoort: Number.isInteger(poort) ? poort : 465,
+      smtpGebruiker: gebruiker || null,
+      smtpAfzender: afzender || null,
+      // Leeg laten = huidige wachtwoord behouden; we tonen het nooit terug.
+      ...(wachtwoord ? { smtpWachtwoord: versleutel(wachtwoord) } : {}),
+    })
+    .where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+}
+
+/**
+ * Meteen uitproberen, met een echt testbericht naar de klant zelf. Zonder dit
+ * vult iemand iets verkeerds in, ziet hij niets gebeuren, en denkt hij dat het
+ * goed staat: de mail gaat dan maandenlang via ons in plaats van via hem.
+ */
+export async function testEigenMailserver(formData: FormData) {
+  const site = await eigenSite(Number(formData.get("siteId")));
+  if (!site?.smtpHost || !site.smtpGebruiker || !site.smtpWachtwoord) return;
+  const naarAdres = String(formData.get("testAdres") ?? "").trim();
+
+  const { ontsleutel } = await import("@/lib/mail");
+  const { testSmtp } = await import("@/lib/smtp");
+  const uitslag = await testSmtp(
+    {
+      host: site.smtpHost,
+      poort: site.smtpPoort ?? 465,
+      gebruiker: site.smtpGebruiker,
+      wachtwoord: ontsleutel(site.smtpWachtwoord) ?? "",
+      afzender: site.smtpAfzender,
+    },
+    naarAdres || undefined,
+    site.naam,
+  );
+  await db
+    .update(sites)
+    .set(
+      uitslag.ok
+        ? { smtpFoutOp: null, smtpFoutTekst: null }
+        : { smtpFoutOp: new Date(), smtpFoutTekst: `${uitslag.melding} ${uitslag.uitleg}` },
+    )
+    .where(eq(sites.id, site.id));
+  revalidatePath("/portal");
+}

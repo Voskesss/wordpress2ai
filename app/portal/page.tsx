@@ -14,6 +14,7 @@ import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
 import { demoLiveWorker, demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
+import EigenMailserver from "./EigenMailserver";
 import KlantFacturen from "./KlantFacturen";
 import BevestigingsMails from "./BevestigingsMails";
 import MeenemenBlok from "./MeenemenBlok";
@@ -402,6 +403,17 @@ export default async function Portal({
                   />
                   <AfspraakBlok siteId={site.id} />
                   <BevestigingsMails siteId={site.id} />
+                  <EigenMailserver
+                    siteId={site.id}
+                    smtpHost={site.smtpHost}
+                    smtpPoort={site.smtpPoort}
+                    smtpGebruiker={site.smtpGebruiker}
+                    smtpAfzender={site.smtpAfzender}
+                    smtpIngesteld={Boolean(site.smtpWachtwoord)}
+                    smtpFoutOp={site.smtpFoutOp}
+                    smtpFoutTekst={site.smtpFoutTekst}
+                    eigenAdres={site.notificatieEmail ?? emails[0] ?? null}
+                  />
                   <KlantFacturen siteId={site.id} />
                   <MeenemenBlok siteId={site.id} />
                   <MeelezenRegel siteId={site.id} meelezenUit={site.meelezenUit} />

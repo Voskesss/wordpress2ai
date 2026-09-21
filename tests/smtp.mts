@@ -57,4 +57,45 @@ const migratie = await readFile(new URL("../db/migrations/20260921-smtp-storing.
 assert.ok(/smtp_fout_op/.test(migratie) && /smtp_fout_tekst/.test(migratie), "migratie mist een kolom");
 assert.ok(/IF NOT EXISTS/i.test(migratie), "migratie moet opnieuw te draaien zijn");
 
+
+
+// --- Het portaalblok: de klant stelt zijn eigen mailbox in
+const acties = await readFile(new URL("../app/portal/acties.ts", import.meta.url), "utf8");
+const blok = await readFile(new URL("../app/portal/EigenMailserver.tsx", import.meta.url), "utf8");
+
+// 7. Alleen de eigenaar: zonder deze controle kan iedereen met een siteId de
+//    mailinstellingen van een andere klant overschrijven
+for (const fn of ["bewaarEigenMailserver", "testEigenMailserver"]) {
+  const lichaam = acties.slice(acties.indexOf(`export async function ${fn}`));
+  const eind = lichaam.indexOf("\nexport async function", 10);
+  const stuk = eind > 0 ? lichaam.slice(0, eind) : lichaam;
+  assert.ok(/eigenSite\(/.test(stuk), `${fn} controleert niet of dit jouw site is`);
+  assert.ok(/if \(!site/.test(stuk), `${fn} gaat door zonder site`);
+}
+
+// 8. Het wachtwoord wordt versleuteld opgeslagen en nooit teruggetoond
+assert.ok(acties.includes("versleutel(wachtwoord)"), "wachtwoord wordt niet versleuteld");
+assert.ok(
+  /\.\.\.\(wachtwoord \? \{ smtpWachtwoord/.test(acties),
+  "een leeg wachtwoordveld hoort het bestaande wachtwoord te laten staan",
+);
+assert.ok(!/name="wachtwoord"[^>]*defaultValue/.test(blok), "wachtwoord mag niet terug op het scherm komen");
+assert.ok(/name="wachtwoord"[\s\S]{0,120}type="password"/.test(blok), "wachtwoordveld hoort verborgen te typen");
+
+// 9. Host leegmaken zet ook de storingsmelding terug: anders blijft er een rood
+//    blok staan voor een server die niet meer gebruikt wordt
+const leegmaken = acties.slice(acties.indexOf("export async function bewaarEigenMailserver"));
+assert.ok(/smtpFoutOp: null/.test(leegmaken.slice(0, leegmaken.indexOf("versleutel"))), "storingsmelding blijft staan na leegmaken");
+
+// 10. De testknop staat in hetzelfde blok. Zonder testen vult iemand iets
+//     verkeerds in, ziet niets, en denkt dat het goed staat
+assert.ok(blok.includes("testEigenMailserver"), "geen testknop in het portaalblok");
+assert.ok(/Uitproberen/.test(blok), "de testknop hoort herkenbaar te heten");
+
+// 11. Eerlijk over de gevolgen bij een storing: de bezoeker merkt niets, en dat
+//     is juist waarom het uitgelegd moet worden
+assert.ok(/bezoekers merken hier niets van/i.test(blok), "leg uit dat een storing onzichtbaar is voor bezoekers");
+
+// 12. Geen lange streepjes in wat de klant leest
+assert.ok(!blok.includes("—"), "lang streepje in het portaalblok");
 console.log("smtp: ok");

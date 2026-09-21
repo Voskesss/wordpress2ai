@@ -20,6 +20,23 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.0 (21 september 2026)
+
+**Je kunt nu zelf instellen dat de mail van je website vanaf je eigen adres
+komt.** Dat kon al, maar alleen als wij het voor je invulden. Wijzig je het
+wachtwoord van je mailbox, dan kun je dat nu zelf bijwerken in je portaal
+zonder op ons te wachten.
+
+Met een knop Uitproberen ernaast, die een echt testbericht naar je toe stuurt.
+Dat is geen extraatje: zonder testen vul je iets verkeerds in, zie je niets
+gebeuren, en gaan je berichten maandenlang via ons in plaats van via jou.
+
+Werkt je mailserver even niet, dan zie je dat in je portaal staan, met de
+vermoedelijke oorzaak erbij. Je bezoekers merken er niets van, want hun
+berichten komen gewoon aan.
+
+Je wachtwoord wordt versleuteld opgeslagen en nooit teruggetoond.
+
 ## 1.4.0 (21 september 2026)
 
 **Een kapotte mailserver blijft niet langer onopgemerkt.** Klanten kunnen de
