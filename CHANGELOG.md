@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.5.2 (21 september 2026)
+
+Nog twee dingen rond diezelfde apostrof. Een omschrijving die ermee begint,
+zoals "'s Ochtends open", werd gezien als helemaal ontbrekend. Dat was een
+harde fout die een oplevering tegenhield terwijl er niets aan de hand was.
+
+En de controle op dubbele teksten kijkt nu ook naar de tekst die WhatsApp en
+LinkedIn onder het deelplaatje tonen. Die raakt los van de gewone omschrijving
+zodra iemand er één bijwerkt en de ander vergeet, en dan staat er op elke
+gedeelde link hetzelfde.
+
 ## 1.5.1 (21 september 2026)
 
 De controle op dubbele teksten sloeg vals alarm bij Nederlandse teksten met

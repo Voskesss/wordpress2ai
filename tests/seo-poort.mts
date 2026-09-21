@@ -150,4 +150,40 @@ assert.deepEqual(
   [],
 );
 
+
+// --- Apostrof aan het BEGIN liet de aanwezigheidscontrole falen: die meldde
+//     dan "Geen meta description" als harde fout, terwijl hij er gewoon stond.
+//     Komt voor in het Nederlands: "'s Ochtends open", "'t Gooi".
+{
+  const patroon = /<meta[^>]+name=["']description["'][^>]*content=(["'])(?!\1)[\s\S]*?\1/i;
+  for (const inhoud of [
+    `<meta name="description" content="Gewone omschrijving.">`,
+    `<meta name="description" content="'s Ochtends open, kom gerust langs.">`,
+    `<meta name="description" content="Alle pagina's van ons bedrijf.">`,
+    `<meta name='description' content='Met enkele aanhalingstekens.'>`,
+  ])
+    assert.ok(patroon.test(inhoud), `onterecht als ontbrekend gezien: ${inhoud}`);
+  // En een lege omschrijving telt nog steeds niet
+  assert.ok(!patroon.test(`<meta name="description" content="">`), "lege omschrijving hoort te melden");
+}
+
+// --- Deeltekst voor sociale media: die raakt los van de omschrijving zodra
+//     iemand er één bijwerkt. Bij EVC toonden 21 tagpagina's daardoor overal
+//     dezelfde tekst op WhatsApp, terwijl de omschrijving al uniek was.
+const ogDubbel = dubbeleTeksten([
+  p({ pad: "/a/", omschrijving: "Uniek A", ogOmschrijving: "Overal dezelfde deeltekst" }),
+  p({ pad: "/b/", omschrijving: "Uniek B", ogOmschrijving: "Overal dezelfde deeltekst" }),
+]);
+assert.equal(ogDubbel.length, 1, "gedeelde deeltekst wordt niet gemeld");
+assert.match(ogDubbel[0].detail, /WhatsApp/, "zeg waar die tekst opduikt");
+
+// Unieke deelteksten blijven stil
+assert.deepEqual(
+  dubbeleTeksten([
+    p({ pad: "/a/", ogOmschrijving: "Over apk keuren" }),
+    p({ pad: "/b/", ogOmschrijving: "Over autotechniek" }),
+  ]),
+  [],
+);
+
 console.log("seo-poort: ok");

@@ -278,6 +278,9 @@ export async function controleerSiteMap(
       omschrijving: inhoud
         .match(/<meta[^>]+name=["']description["'][^>]*content=(["'])([\s\S]*?)\1/i)?.[2]
         ?.trim(),
+      ogOmschrijving: inhoud
+        .match(/<meta[^>]+property=["']og:description["'][^>]*content=(["'])([\s\S]*?)\1/i)?.[2]
+        ?.trim(),
       koppen: (inhoud.match(/<h1\b/gi) ?? []).length,
       linktNaar: [...inhoud.matchAll(/href=["'](\/[^"'#?]*)["']/gi)].map((m) => m[1]),
       noindex,
@@ -290,7 +293,10 @@ export async function controleerSiteMap(
       heeftAdres = true;
     if (!titel) fout("seo", rel, "Geen <title>.");
     if (!noindex) {
-      if (!/<meta[^>]+name=["']description["'][^>]*content=["'][^"']+["']/i.test(inhoud))
+      // Aanhalingsteken vangen en tot dezelfde soort lezen: anders faalt dit op
+      // een omschrijving die mét een apostrof begint ("'s Ochtends open"), en
+      // dat is een harde fout die dan onterecht afgaat.
+      if (!/<meta[^>]+name=["']description["'][^>]*content=(["'])(?!\1)[\s\S]*?\1/i.test(inhoud))
         fout("seo", rel, "Geen meta description.");
       if (!/<link[^>]+rel=["']canonical["']/i.test(inhoud))
         waarschuw("seo", rel, "Geen canonical-link.");

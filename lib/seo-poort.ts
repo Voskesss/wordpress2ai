@@ -16,6 +16,10 @@ export type PaginaGegevens = {
   rel: string;
   titel?: string;
   omschrijving?: string;
+  /** De tekst die WhatsApp en LinkedIn onder het deelplaatje tonen. Staat vaak
+   * gelijk aan de omschrijving, maar raakt er los van zodra iemand er één
+   * bijwerkt en de ander vergeet. */
+  ogOmschrijving?: string;
   /** Aantal <h1> op de pagina. */
   koppen: number;
   /** Interne paden waar deze pagina naartoe linkt. */
@@ -30,7 +34,7 @@ export type SeoBevinding = { regel: string; waar: string; detail: string; hard: 
  * mee voor iemand die de zoekresultaten bekijkt: twee pagina's die pas bij
  * teken 200 uiteenlopen, zien er in Google identiek uit.
  */
-const ZICHTBAAR = { titel: 60, omschrijving: 155 } as const;
+const ZICHTBAAR = { titel: 60, omschrijving: 155, ogOmschrijving: 155 } as const;
 
 /** Waar beginnen twee teksten van elkaar te verschillen? */
 function eersteVerschil(a: string, b: string): number {
@@ -51,6 +55,7 @@ export function dubbeleTeksten(paginas: PaginaGegevens[]): SeoBevinding[] {
   for (const [veld, naam] of [
     ["titel", "titel"],
     ["omschrijving", "meta description"],
+    ["ogOmschrijving", "deeltekst voor WhatsApp en LinkedIn"],
   ] as const) {
     const zichtbaar = ZICHTBAAR[veld];
     const perWaarde = new Map<string, string[]>();
