@@ -73,6 +73,22 @@ const ENTITEITEN: Record<string, string> = {
   "&oacute;": "ó",
 };
 
+/**
+ * Zelfde als naarTekst, maar elk element blijft een eigen regel. Nodig om te
+ * kunnen zien welke stukjes op elke pagina terugkomen: na het platslaan tot
+ * één regel plakt de kopbalk aan de paginatitel vast en lijkt hij uniek.
+ */
+function naarRegels(html: string): string[] {
+  let t = html.replace(ONTDOE_BLOKKEN, "\n").replace(/<!--[\s\S]*?-->/g, "\n");
+  t = t.replace(/<[^>]+>/g, "\n");
+  for (const [entiteit, teken] of Object.entries(ENTITEITEN)) t = t.split(entiteit).join(teken);
+  return t
+    .replace(/&[a-z]+;/gi, " ")
+    .split("\n")
+    .map((r) => r.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
 function naarTekst(html: string): string {
   let t = html.replace(ONTDOE_BLOKKEN, " ").replace(/<!--[\s\S]*?-->/g, " ");
   t = t.replace(/<[^>]+>/g, " ");
@@ -102,10 +118,49 @@ function titelVan(html: string): string {
 }
 
 function inhoudVan(html: string): string {
-  // Na het uitvouwen staan menu en voettekst óók in de pagina. Zonder die eruit
-  // te knippen matcht elke zoekopdracht op elke pagina.
+  // Heeft de site een <main>, dan is dat precies de eigen inhoud van de pagina.
   const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
-  return naarTekst(main ?? html);
+  // Zonder <main> valt de hele pagina erin, inclusief <head>. De titel staat al
+  // apart in de index, dus die hoeft niet nog eens in de tekst.
+  const romp = main ?? html.replace(/<head\b[\s\S]*?<\/head>/i, " ");
+  return naarRegels(romp).join("\n");
+}
+
+/** Hoeveel pagina's een zin moet delen voordat hij als omlijsting geldt. */
+const OMLIJSTING_AANDEEL = 0.8;
+/** Onder dit aantal pagina's is "staat overal" geen betrouwbaar signaal. */
+const OMLIJSTING_MINIMUM = 5;
+
+/**
+ * Haalt menu, kopbalk en voettekst uit de tekst, ook als de site geen <main>
+ * heeft en de omlijsting in gewone divs zit (zoals bij evcprofessionals).
+ *
+ * De truc: tekst die op bijna élke pagina staat ís de omlijsting. Dat hoeven we
+ * dus niet aan tagnamen te herkennen, we kunnen het meten. Zonder dit begint
+ * elk zoekresultaat met "Inloggen | 📞 +31 6..." en matcht elke zoekopdracht
+ * op elke pagina.
+ */
+export function zonderOmlijsting(teksten: string[]): string[] {
+  if (teksten.length < OMLIJSTING_MINIMUM) return teksten;
+  const grens = Math.ceil(teksten.length * OMLIJSTING_AANDEEL);
+  const telling = new Map<string, number>();
+  const stukken = teksten.map((t) => deelOp(t));
+  for (const lijst of stukken) {
+    for (const zin of new Set(lijst)) telling.set(zin, (telling.get(zin) ?? 0) + 1);
+  }
+  return stukken.map((lijst) =>
+    lijst
+      .filter((zin) => (telling.get(zin) ?? 0) < grens)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+/** Per element knippen: dat is de eenheid die zich herhaalt. Per woord tellen
+ * zou gewone woorden wegstrepen, per hele pagina zou niets ooit matchen. */
+function deelOp(tekst: string): string[] {
+  return tekst.split("\n").map((s) => s.trim()).filter(Boolean);
 }
 
 /**
@@ -128,6 +183,10 @@ export function bouwZoekindex(
 
   // Budget eerlijk verdelen: veel pagina's betekent minder tekst per pagina,
   // zodat het bestand op een telefoon klein blijft.
+  // Omlijsting eruit vóór het afkappen, anders vult het menu het budget.
+  const schoon = zonderOmlijsting(paginas.map((p) => p.volledig));
+  paginas.forEach((p, i) => (p.volledig = schoon[i] || p.volledig));
+
   const perPagina = paginas.length
     ? Math.max(TEKST_MIN, Math.min(TEKST_MAX, Math.floor(ZOEKINDEX_BUDGET / paginas.length)))
     : TEKST_MAX;

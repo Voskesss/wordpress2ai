@@ -20,6 +20,19 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.6.1 (21 september 2026)
+
+De zoekfunctie zocht ook in het menu en de kopbalk. Op een site waar die niet
+in een apart inhoudsblok staan, stond de hele kopregel in elke pagina: zoeken
+op een woord uit het menu gaf dan alle pagina's als resultaat, en elk
+resultaat begon met "Inloggen" en het telefoonnummer in plaats van met de
+inhoud.
+
+De zoeklijst herkent de omlijsting nu vanzelf: tekst die op vrijwel elke
+pagina staat hoort bij het sjabloon en niet bij de pagina. Bij de eerste site
+waar dit speelde ging de zoeklijst van 288 kB naar 47 kB en zakte het aantal
+resultaten op een menu-woord van alle 33 naar 1.
+
 ## 1.6.0 (21 september 2026)
 
 **Een nieuw ontwerp kan niet meer ongemerkt iets laten vallen.** Bij een

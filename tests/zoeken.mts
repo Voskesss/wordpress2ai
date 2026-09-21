@@ -148,3 +148,49 @@ assert.equal(padVanBestand("404.html"), "/404.html");
 }
 
 console.log("zoeken: ok");
+
+// --- Omlijsting uit de zoektekst (21-09-2026)
+// Jos: "hij zoekt niet echt he." Klopte. Bij evcprofessionals, een site zonder
+// <main>, stond de hele kopbalk in elke pagina: "Inloggen EVC Omgeving |
+// 📞 +31 641467690". Daardoor matchte "inloggen" op alle 33 pagina's en begon
+// elk zoekresultaat met het menu in plaats van met de inhoud.
+{
+  const { zonderOmlijsting } = await import("../lib/zoeken");
+
+  const menu = "Home\nContact\nInloggen";
+  const paginas = [
+    `${menu}\nOver ons en onze geschiedenis`,
+    `${menu}\nKosten van een traject`,
+    `${menu}\nVeelgestelde vragen`,
+    `${menu}\nOnze partners`,
+    `${menu}\nNeem contact op met het team`,
+  ];
+  const schoon = zonderOmlijsting(paginas);
+
+  // Wat overal staat is weg
+  for (const t of schoon) {
+    assert.ok(!t.includes("Inloggen"), `omlijsting bleef staan: ${t}`);
+    assert.ok(!/\bHome\b/.test(t), `menu bleef staan: ${t}`);
+  }
+  // Wat eigen is blijft
+  assert.ok(schoon[0].includes("geschiedenis"), "eigen inhoud weggegooid");
+  assert.ok(schoon[1].includes("Kosten"), "eigen inhoud weggegooid");
+
+  // Een woord dat toevallig in het menu én in de inhoud staat blijft in de
+  // inhoud bewaard: we knippen per element, niet per woord
+  assert.ok(schoon[4].includes("contact op met het team"), "te grof geknipt");
+
+  // Onder de vijf pagina's is "staat overal" geen betrouwbaar signaal: dan
+  // zou een site van drie pagina's zijn halve inhoud kwijtraken
+  const klein = [`${menu}\nEen`, `${menu}\nTwee`, `${menu}\nDrie`];
+  assert.deepEqual(zonderOmlijsting(klein), klein, "te kleine site wordt uitgekleed");
+
+  // Een zin die op de helft van de pagina's staat is inhoud, geen omlijsting
+  const halfom = [
+    "Gedeelde zin\nEen", "Gedeelde zin\nTwee", "Gedeelde zin\nDrie",
+    "Vier", "Vijf", "Zes",
+  ];
+  assert.ok(zonderOmlijsting(halfom)[0].includes("Gedeelde zin"), "te snel als omlijsting gezien");
+
+  console.log("zoeken-omlijsting: ok");
+}
