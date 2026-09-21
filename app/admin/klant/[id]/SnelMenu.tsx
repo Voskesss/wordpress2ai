@@ -17,6 +17,7 @@ export default function SnelMenu({ heeft }: { heeft: Record<string, boolean> }) 
     { anker: "versies", label: "Versies" },
     { anker: "sjabloon", label: "↺ Sjabloon" },
     { anker: "feedback", label: "👍👎 Feedback" },
+    { anker: "formulier-privacy", label: "🔒 Berichten bewaren" },
     { anker: "chatgeschiedenis", label: "💬 Chats" },
     { anker: "wordpress-kopie", label: "🛟 WP-kopie" },
     { anker: "video", label: "🎬 Video" },

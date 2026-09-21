@@ -825,7 +825,9 @@ export default async function KlantDetail({
           praktijk met gegevens van haar eigen klanten is dit de vraag die het
           gesprek maakt of breekt. Zie lib/formulier-privacy.ts. */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 className="font-display text-xl font-semibold">🔒 Formulierberichten bewaren</h2>
+        <h2 id="formulier-privacy" className="scroll-mt-24 font-display text-xl font-semibold">
+          🔒 Formulierberichten bewaren
+        </h2>
         <p className="mt-2 text-sm text-stone-600">
           Wat doen wij met wat er via de formulieren van deze site binnenkomt?
           Zet dit strenger bij een praktijk die gegevens van haar eigen klanten

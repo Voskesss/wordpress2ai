@@ -62,6 +62,7 @@
   "publiceren.cjs",
   "seo-poort.mts",
   "site-onderhoud.mts",
+  "snelmenu.mts",
   "slot-wacht.mts",
   "smtp.mts",
   "uitsluiten.mts",

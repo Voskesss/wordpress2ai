@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.16.1 (21 september 2026)
+
+Het nieuwe blok voor het bewaren van formulierberichten staat nu ook in het
+snelmenu bovenaan de klantpagina, zodat je er niet meer naartoe hoeft te
+scrollen.
+
 ## 1.16.0 (21 september 2026)
 
 Per website is nu te kiezen hoeveel wij bewaren van de berichten die via de
