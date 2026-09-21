@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.13.2 (21 september 2026)
+
+Reparatie: op de outreachkaart stonden de gegevens en de knoppen in dezelfde
+regel. Bij een lang mailadres werd de tekstkolom samengeduwd en viel het adres
+letter voor letter uit elkaar. De knoppen staan nu op hun eigen regel.
+
 ## 1.13.1 (21 september 2026)
 
 Onder een koude mail staat voortaan alleen de voornaam. Een volledige naam

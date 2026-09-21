@@ -233,40 +233,43 @@ export default async function Outreach({
           const mailBaar = volgende !== null && !["niet_mailen", "gereageerd", "klant"].includes(p.status);
           return (
             <div key={p.id} className="rounded-3xl border border-stone-200 bg-white p-5">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold">
-                    {p.bedrijf}{" "}
-                    <a
-                      href={`https://${p.website.replace(/^https?:\/\//, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-1 text-sm font-normal text-violet-700 hover:underline"
-                    >
-                      {p.website} ↗
-                    </a>
-                  </p>
-                  {/* Zonder mailadres is dit een belletje, geen mailtje. Dan moet het
-                      nummer meteen zichtbaar en aanklikbaar zijn, anders is de kaart
-                      onbruikbaar voor precies de helft van wat de scan oplevert. */}
-                  <p className="text-sm text-stone-500 break-all">
-                    {p.email || <span className="text-amber-700">geen mailadres, dit is bellen</span>}
-                    {p.telefoon && (
-                      <>
-                        {" · "}
-                        <a href={`tel:${p.telefoon.replace(/\s/g, "")}`} className="font-medium text-violet-700 hover:underline">
-                          {p.telefoon}
-                        </a>
-                      </>
-                    )}
-                    {p.contactpersoon && <> · {p.contactpersoon}</>}
-                  </p>
-                  {(p.kans || p.bron || p.plaats) && (
-                    <p className="mt-0.5 text-xs text-stone-400">
-                      {[p.plaats, p.bron, p.kans ? `kans: ${p.kans}` : null].filter(Boolean).join(" · ")}
-                    </p>
+              {/* Gegevens en knoppen staan bewust in twee rijen: samen in één
+                  flexrij werd de tekstkolom door lange knoplabels tot niets
+                  samengeduwd en viel het mailadres per letter uit elkaar. */}
+              <div>
+                <p className="font-semibold">
+                  {p.bedrijf}{" "}
+                  <a
+                    href={`https://${p.website.replace(/^https?:\/\//, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-1 text-sm font-normal text-violet-700 hover:underline"
+                  >
+                    {p.website} ↗
+                  </a>
+                </p>
+                {/* Zonder mailadres is dit een belletje, geen mailtje. Dan moet het
+                    nummer meteen zichtbaar en aanklikbaar zijn, anders is de kaart
+                    onbruikbaar voor precies de helft van wat de scan oplevert. */}
+                <p className="text-sm text-stone-500 break-words">
+                  {p.email || <span className="text-amber-700">geen mailadres, dit is bellen</span>}
+                  {p.telefoon && (
+                    <>
+                      {" · "}
+                      <a href={`tel:${p.telefoon.replace(/\s/g, "")}`} className="font-medium text-violet-700 hover:underline">
+                        {p.telefoon}
+                      </a>
+                    </>
                   )}
-                </div>
+                  {p.contactpersoon && <> · {p.contactpersoon}</>}
+                </p>
+                {(p.kans || p.bron || p.plaats) && (
+                  <p className="mt-0.5 text-xs text-stone-400">
+                    {[p.plaats, p.bron, p.kans ? `kans: ${p.kans}` : null].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <a
                   href={`https://${p.website.replace(/^https?:\/\//, "")}`}
                   target="_blank"

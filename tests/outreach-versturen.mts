@@ -58,4 +58,15 @@ assert.ok(
 // 6. Eén knop om de site van de prospect te openen
 assert.ok(pagina.includes("🔗 Site bekijken"), "geen knop om de site van de prospect te openen");
 
+// 7. Gegevens en knoppen staan niet in dezelfde flexrij. Deden ze dat wel,
+//    dan duwden de lange knoplabels de tekstkolom tot niets samen en viel
+//    het mailadres letter voor letter uit elkaar.
+const kop = pagina.slice(pagina.indexOf("<div key={p.id}"), pagina.indexOf("🔗 Site bekijken"));
+assert.ok(!kop.includes("min-w-0 flex-1"), "de gegevens staan weer in dezelfde flexrij als de knoppen");
+assert.ok(!kop.includes("break-all"), "break-all breekt een mailadres per letter af: gebruik break-words");
+assert.ok(
+  kop.includes('<div className="mt-3 flex flex-wrap items-center gap-2">'),
+  "de knoppen hebben geen eigen rij meer"
+);
+
 console.log("outreach-versturen: ok");
