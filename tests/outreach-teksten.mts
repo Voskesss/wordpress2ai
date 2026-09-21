@@ -57,10 +57,16 @@ for (const o of onderwerpen) {
   assert.ok(!/^(re:|fwd:)/i.test(o), `onderwerp doet alsof er al contact was: "${o}"`);
 }
 
-// 6. Jos' eigen regel: geen lange streepjes in wat de deur uitgaat
+// 6. Jos' eigen regel: geen lange streepjes in een zin, want dat leest als AI.
+//    Als scheidingslijn of versiering mag hij wel, dus we kijken alleen naar
+//    een streepje met tekst aan beide kanten.
+const inEenZin = /[^\s—]\s*—\s*[^\s—]/;
 for (const n of [1, 2, 3] as const) {
-  assert.ok(!maakOutreachMail(n, p).html.includes("—"), `lang streepje in mail ${n}`);
-  assert.ok(!standaardSjabloon(n).tekst.includes("—"), `lang streepje in sjabloon ${n}`);
+  assert.ok(!inEenZin.test(maakOutreachMail(n, p).html), `lang streepje midden in een zin, mail ${n}`);
+  assert.ok(!inEenZin.test(standaardSjabloon(n).tekst), `lang streepje midden in een zin, sjabloon ${n}`);
 }
+// Een streep die op zichzelf staat is versiering en mag blijven
+assert.ok(!inEenZin.test("Hallo,\n\n———\n\nGroet"), "een scheidingslijn wordt onterecht afgekeurd");
+assert.ok(inEenZin.test("De site is er wel — maar hij kost aandacht"), "een streepje in een zin glipt erdoor");
 
 console.log("outreach-teksten: ok");
