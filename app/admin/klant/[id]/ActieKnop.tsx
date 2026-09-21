@@ -12,12 +12,16 @@ export default function ActieKnop({
   klaarLabel = "✓ Opgeslagen",
   className,
   title,
+  formAction,
 }: {
   label: string;
   bezigLabel: string;
   klaarLabel?: string;
   className?: string;
   title?: string;
+  /** Andere serveractie dan die van het formulier — voor een tweede knop
+   * in hetzelfde formulier (bv. "alleen opslaan" naast "versturen"). */
+  formAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const { pending } = useFormStatus();
   const wasPending = useRef(false);
@@ -36,6 +40,7 @@ export default function ActieKnop({
   return (
     <button
       type="submit"
+      formAction={formAction}
       title={title}
       disabled={pending}
       aria-live="polite"

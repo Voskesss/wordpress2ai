@@ -9,7 +9,7 @@ menselijke samenvatting. Het is ook de bron voor serviceberichten aan klanten.
 live ging:
 
 ```bash
-git tag -a v1.0.1 -m "Korte omschrijving" && git push origin v1.0.1
+git tag -a v<nummer> -m "Korte omschrijving" && git push origin v<nummer>
 ```
 
 Elke klantsite krijgt bij het overzetten een `wordswap.json` mee met de versie
@@ -19,6 +19,17 @@ welke stand van de bouwmotor hij gemaakt is.
 Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
+
+## 1.13.0 (21 september 2026)
+
+De mail die naar een prospect gaat staat nu met één klik open: lezen,
+aanpassen en versturen gebeurt in hetzelfde vak. Wat op het scherm staat is
+precies wat verstuurd wordt, want bij versturen wordt die tekst eerst
+bewaard. Daarmee kan een bewerking die je vergat op te slaan niet meer
+stilletjes verloren gaan.
+
+Op elke kaart staat ook een knop om de website van het bedrijf te openen, om
+er zelf even naar te kijken voor je iets verstuurt.
 
 ## 1.12.1 (21 september 2026)
 

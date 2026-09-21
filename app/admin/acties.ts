@@ -580,6 +580,20 @@ export async function verstuurOutreach(formData: FormData) {
     .select()
     .from(mailSjablonen)
     .where(and(eq(mailSjablonen.nummer, nummer), eq(mailSjablonen.actief, true)));
+  // Wordt de mail vanuit het bewerkvak verstuurd, dan is wat daar staat de
+  // waarheid: eerst bewaren als persoonlijke versie, dan diezelfde tekst
+  // versturen. Zo kan wat je op het scherm leest nooit afwijken van wat
+  // de prospect krijgt.
+  const bewerktOnderwerp = String(formData.get("onderwerp") ?? "").trim();
+  const bewerkteTekst = String(formData.get("tekst") ?? "").trim();
+  if (bewerktOnderwerp && bewerkteTekst) {
+    await db
+      .delete(prospectMails)
+      .where(and(eq(prospectMails.prospectId, id), eq(prospectMails.nummer, nummer)));
+    await db
+      .insert(prospectMails)
+      .values({ prospectId: id, nummer, onderwerp: bewerktOnderwerp, tekst: bewerkteTekst });
+  }
   const [pers] = await db
     .select()
     .from(prospectMails)

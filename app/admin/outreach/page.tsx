@@ -267,6 +267,14 @@ export default async function Outreach({
                     </p>
                   )}
                 </div>
+                <a
+                  href={`https://${p.website.replace(/^https?:\/\//, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-stone-300 px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+                >
+                  🔗 Site bekijken
+                </a>
                 <span className={`rounded-full border px-3 py-1 text-xs font-medium ${kleur}`}>
                   {label}
                   {dagenStil !== null && p.status.startsWith("mail") && (
@@ -300,6 +308,54 @@ export default async function Outreach({
                   </form>
                 )}
               </div>
+              {/* Eén klik: de mail die eruit gaat staat meteen open om te lezen,
+                  aan te passen en te versturen. Wat hier staat is wat de
+                  prospect krijgt — opslaan gebeurt bij het versturen vanzelf. */}
+              {mailBaar && volgende !== null && p.email.includes("@") && (() => {
+                const mail = kiesMail(volgende, p, actiefSjabloon(volgende), persVoor(p.id, volgende));
+                return (
+                  <details className="mt-3 rounded-2xl border-2 border-violet-200 bg-violet-50/40">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-violet-800">
+                      ✉️ Mail {volgende} lezen, aanpassen en versturen
+                      <span className="ml-2 font-normal text-violet-600">
+                        naar {p.email}
+                      </span>
+                    </summary>
+                    <form action={verstuurOutreach} className="grid gap-3 px-4 pb-4">
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="prospectId" value={p.id} />
+                      <input type="hidden" name="nummer" value={volgende} />
+                      <MailBewerker
+                        beginOnderwerp={mail.onderwerp}
+                        beginTekst={mail.tekst}
+                        bedrijf={p.bedrijf}
+                        website={p.website}
+                        observatie={p.observatie}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <ActieKnop
+                          label={`Verstuur mail ${volgende} naar ${p.email}`}
+                          bezigLabel="Versturen..."
+                          klaarLabel="✓ Verstuurd"
+                          className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+                        />
+                        <ActieKnop
+                          formAction={prospectMailOpslaan}
+                          label="Alleen opslaan"
+                          bezigLabel="Opslaan..."
+                          className="rounded-full border border-violet-300 px-5 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
+                        />
+                      </div>
+                      {teVroeg && (
+                        <p className="text-xs text-amber-700">
+                          Let op: de vorige mail is {dagenStil} dagen geleden verstuurd.
+                          Aanbevolen is minstens {aanbevolenNa} dagen wachten.
+                        </p>
+                      )}
+                    </form>
+                  </details>
+                );
+              })()}
               {p.status === "niet_mailen" && (
                 <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-sm text-red-800">
                   🚫 Deze persoon wil geen mail meer. Er kan niets meer verstuurd
@@ -349,25 +405,9 @@ export default async function Outreach({
                         </p>
                         <p className="mt-1 text-sm font-semibold">Onderwerp: {mail.onderwerp}</p>
                         {isVolgende && (
-                          <details className="mt-2">
-                            <summary className="cursor-pointer text-xs font-medium text-violet-700 hover:underline">
-                              ✍️ {mail.bron === "persoonlijk" ? "Persoonlijke versie bewerken" : "Personaliseer deze mail voor deze prospect"}
-                            </summary>
-                            <form action={prospectMailOpslaan} className="mt-3 grid gap-2">
-                              <input type="hidden" name="prospectId" value={p.id} />
-                              <input type="hidden" name="nummer" value={nr} />
-                              <MailBewerker
-                                beginOnderwerp={persVoor(p.id, nr)?.onderwerp ?? mail.onderwerp}
-                                beginTekst={persVoor(p.id, nr)?.tekst ?? mail.tekst}
-                                bedrijf={p.bedrijf}
-                                website={p.website}
-                                observatie={p.observatie}
-                              />
-                              <div>
-                                <ActieKnop label="Bewaar persoonlijke versie" bezigLabel="Opslaan..." className="rounded-full border border-violet-300 px-4 py-1.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 cursor-pointer" />
-                              </div>
-                            </form>
-                          </details>
+                          <p className="mt-1 text-xs text-violet-700">
+                            Aanpassen doe je in het paarse vak bovenaan deze kaart.
+                          </p>
                         )}
                         <div
                           className="mt-2 rounded-xl border border-stone-100 bg-stone-50 p-4 text-sm [&_p]:mb-2 [&_a]:text-violet-700"
@@ -377,7 +417,8 @@ export default async function Outreach({
                     );
                   })}
                   <p className="text-xs text-stone-400">
-                    Pas je de observatie hieronder aan, dan verandert mail 1 automatisch mee.
+                    Dit is de leesweergave. Pas je de observatie hieronder aan, dan
+                    verandert mail 1 automatisch mee.
                   </p>
                 </div>
               </details>
