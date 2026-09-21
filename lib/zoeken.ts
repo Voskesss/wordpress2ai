@@ -212,13 +212,21 @@ export function zoekFragment(): string {
   </div>
 </div>
 <style>
-.ws-zoek { position: relative; display: inline-flex; align-items: center; }
+/* Deze bouwsteen landt in het menu van een onbekende site. Sites verbergen
+   geneste lijsten in hun menu, want dat zijn hun uitklapmenu's, en dan
+   verdwijnt onze resultatenlijst stilletjes (gevonden op evcprofessionals:
+   zes treffers in de pagina, display:none op de lijst). Daarom staan de paar
+   eigenschappen die over zichtbaarheid gaan hier hard vast. */
+.ws-zoek { position: relative; display: inline-flex !important; align-items: center; visibility: visible !important; }
 .ws-zoek-knop { background: none; border: 0; padding: 10px; cursor: pointer; color: inherit; min-width: 44px; min-height: 44px; }
 .ws-zoek-knop svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 .ws-zoek-knop:hover { color: var(--ws-zoek-accent, currentColor); }
-.ws-zoekvlak { position: absolute; top: calc(100% + 8px); right: 0; z-index: 90; width: min(420px, calc(100vw - 32px)); background: #fff; color: #333; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 14px; }
+.ws-zoek .ws-zoekvlak[hidden] { display: none !important; }
+.ws-zoek .ws-zoekvlak:not([hidden]) { display: block !important; }
+.ws-zoek .ws-zoekvlak { position: absolute; top: calc(100% + 8px); right: 0; z-index: 90; width: min(420px, calc(100vw - 32px)); background: #fff; opacity: 1 !important; transform: none !important; color: #333; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 14px; }
 .ws-zoekvlak input { width: 100%; box-sizing: border-box; padding: 11px 14px; font: inherit; font-size: 16px; border: 1px solid rgba(0,0,0,.18); border-radius: 3px; min-height: 46px; background: #fff; color: inherit; }
-.ws-zoekuitslag { list-style: none; margin: 10px 0 0; padding: 0; max-height: 60vh; overflow-y: auto; }
+.ws-zoek .ws-zoekuitslag { display: block !important; position: static !important; list-style: none; margin: 10px 0 0; padding: 0; max-height: 60vh; overflow-y: auto; background: none; box-shadow: none; }
+.ws-zoek .ws-zoekuitslag > li { display: block !important; float: none !important; position: static !important; width: auto !important; opacity: 1 !important; visibility: visible !important; }
 .ws-zoekuitslag li + li { border-top: 1px solid rgba(0,0,0,.08); }
 .ws-zoekuitslag a { display: block; padding: 10px 2px; color: inherit; text-decoration: none; }
 .ws-zoekuitslag a:hover, .ws-zoekuitslag a:focus { color: var(--ws-zoek-accent, inherit); }
@@ -226,7 +234,7 @@ export function zoekFragment(): string {
 .ws-zoekuitslag span { display: block; font-size: 13px; line-height: 20px; opacity: .75; }
 .ws-zoekuitslag .ws-zoek-niets { padding: 10px 2px; font-size: 14px; opacity: .8; }
 .ws-zoek-verborgen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 600px) { .ws-zoekvlak { position: fixed; left: 16px; right: 16px; width: auto; top: auto; } }
+@media (max-width: 600px) { .ws-zoek .ws-zoekvlak { position: fixed; left: 16px; right: 16px; width: auto; top: auto; } }
 </style>
 <script>
 (function () {

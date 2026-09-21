@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.6.3 (21 september 2026)
+
+De zoekresultaten bleven onzichtbaar op sites met uitklapmenu's. Zulke sites
+verbergen de lijstjes in hun menu, want dat zijn hun submenu's, en onze
+resultatenlijst is ook zo'n lijstje. De treffers werden dus wel gevonden maar
+niet getoond.
+
+De zoekfunctie houdt nu zelf de regie over wat zichtbaar is, zonder aan de
+opmaak van de site te komen.
+
 ## 1.6.2 (21 september 2026)
 
 In het zoekvak gebeurde niets als je op enter drukte. Nu opent enter het

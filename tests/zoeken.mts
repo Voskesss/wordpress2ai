@@ -225,3 +225,32 @@ console.log("zoeken: ok");
 
   console.log("zoeken-enter: ok");
 }
+
+// --- De opmaak van de site mag onze resultaten niet verbergen (21-09-2026)
+// Jos: "er gebeurt niks als ik op enter klik." Het zoeken wérkte: zes treffers
+// stonden in de pagina. Maar de lijst stond op display:none, want de site
+// verbergt geneste lijsten in zijn menu (dat zijn zijn uitklapmenu's) en onze
+// resultatenlijst is een geneste lijst. Deze bouwsteen landt in het menu van
+// een onbekende site, dus moet hij daartegen kunnen.
+{
+  const { zoekFragment } = await import("../lib/zoeken");
+  const css = zoekFragment();
+
+  // De resultatenlijst en haar items zijn niet weg te drukken
+  assert.match(css, /\.ws-zoek \.ws-zoekuitslag \{[^}]*display: block !important/, "lijst is te verbergen door de site");
+  assert.match(css, /\.ws-zoek \.ws-zoekuitslag > li \{[^}]*display: block !important/, "items zijn te verbergen door de site");
+
+  // Open of dicht blijft van ons, niet van de site
+  assert.match(css, /\.ws-zoek \.ws-zoekvlak\[hidden\] \{ display: none !important/, "dicht is niet afgedwongen");
+  assert.match(css, /\.ws-zoek \.ws-zoekvlak:not\(\[hidden\]\) \{ display: block !important/, "open is niet afgedwongen");
+
+  // Een uitklapmenu positioneert zijn lijsten vaak absoluut; die van ons niet
+  assert.match(css, /\.ws-zoek \.ws-zoekuitslag \{[^}]*position: static !important/, "lijst kan weggepositioneerd worden");
+
+  // En de regels zijn gebonden aan .ws-zoek, zodat we niets van de site slopen
+  const belangrijk = [...css.matchAll(/([^\s{;][^{;]*)\{[^}]*!important/g)].map((m) => m[1].trim());
+  for (const kiezer of belangrijk)
+    assert.ok(kiezer.includes(".ws-zoek"), `regel met !important buiten onze bouwsteen: ${kiezer}`);
+
+  console.log("zoeken-opmaak: ok");
+}
