@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.20.0 (21 september 2026)
+
+De probeer-demo draait nu op hetzelfde AI-model als een echte klantsite.
+Daarvoor stond er het snelle, goedkope model onder, en dat liet het product
+slechter zien dan het is: op een klus van een paar bestanden ging het zoeken
+en kostte het negentien stappen.
+
+De vier voorbeelden onder de chat zijn ook lichter gemaakt. Ze raken alle vier
+maar één bestand, zodat je binnen enkele seconden ziet gebeuren wat je vroeg.
+
 ## 1.19.0 (21 september 2026)
 
 In de probeer-demo staan nu vier voorbeelden klaar onder de chat: de

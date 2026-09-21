@@ -54,4 +54,22 @@ assert.ok(welkom.includes("onClick={sluit}"), "de welkomknop doet iets anders da
 // 6. De strip is weg te klikken; niemand wil hem eeuwig zien
 assert.ok(strip.includes("setWeg(true)"), "de suggesties zijn niet te verbergen");
 
+// 7. Geen opdracht mag het menu raken. De demosite heeft geen delen-map, dus
+//    het menu staat in elke pagina apart: één menu-item toevoegen is daar
+//    zeven bestanden herschrijven en minuten wachten. Precies niet wat je een
+//    bezoeker als eerste indruk wilt geven.
+for (const o of OPDRACHTEN) {
+  assert.ok(
+    !/\bmenu\b|alle pagina|elke pagina|nieuwe pagina/i.test(o.tekst),
+    `opdracht "${o.kop}" raakt meerdere pagina's en laat de demo traag ogen`
+  );
+}
+
+// 8. De demo draait op hetzelfde model als een klantsite
+const chatRoute = await readFile(new URL("../app/api/chat/route.ts", import.meta.url), "utf8");
+assert.ok(
+  !/isDemo\s*\?\s*"claude-haiku/.test(chatRoute),
+  "de demo draait weer op het snelle model en oogt daardoor trager dan het product is"
+);
+
 console.log("demo-opdrachten: ok");

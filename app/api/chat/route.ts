@@ -762,7 +762,7 @@ export async function POST(req: Request) {
                 );
                 const herstel = await draaiChatAgent({
                   werkmap,
-                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  model: "claude-sonnet-5",
                   systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
                   opdracht: `OVERAL DOORVOEREN (automatisch). De eigenaar heeft bevestigd dat deze achtergebleven restanten óók bijgewerkt moeten worden. Doe precies dit en verder niets:\n${regels.join(
                     "\n",
@@ -1124,11 +1124,12 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             mobielVoor = await mobielRisicos(werkmap).catch(() => null);
             const uitkomst = await draaiChatAgent({
               werkmap,
-              // Demo: klein snel model — prospects moeten direct resultaat zien.
-              // Klantsites: Sonnet voor de hoogste kwaliteit.
-              model: site.isDemo
-                ? "claude-haiku-4-5-20251001"
-                : "claude-sonnet-5",
+              // Ook de demo draait op Sonnet. Het snelle model was goedkoper,
+              // maar liet het product slechter zien dan het is: op een klus
+              // van een paar bestanden ging het zoeken en kostte het negentien
+              // stappen, terwijl een klant hetzelfde in een paar stappen ziet
+              // gebeuren. Een demo die traag oogt kost meer dan hij bespaart.
+              model: "claude-sonnet-5",
               systeem: systeemPrompt(
                 site.naam,
                 site.richtlijnen,
@@ -1259,7 +1260,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 stuur({ type: "status", tekst: "Ik controleer of het ook goed staat op een telefoon..." });
                 const herstel = await draaiChatAgent({
                   werkmap,
-                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  model: "claude-sonnet-5",
                   systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
                   opdracht: `MOBIELCONTROLE (automatisch, na je vorige wijziging). Je hebt lay-out direct in de HTML gezet (inline style). Een inline style wint van de media queries in de stylesheet, waardoor de pagina op een telefoon te breed wordt:\n${nieuw
                     .slice(0, 12)
@@ -1376,7 +1377,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 stuur({ type: "status", tekst: "Ik loop de vaste afspraken na..." });
                 const herstel = await draaiChatAgent({
                   werkmap,
-                  model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                  model: "claude-sonnet-5",
                   systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
                   opdracht: `AFSPRAKENCONTROLE (automatisch, na je vorige wijziging). Op de pagina's die je zojuist aanpaste ontbreekt nog het volgende:\n${open
                     .slice(0, 10)
@@ -1620,7 +1621,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                   const voorHerstel = await maakSnapshot(werkmap);
                   const herstel = await draaiChatAgent({
                     werkmap,
-                    model: site.isDemo ? "claude-haiku-4-5-20251001" : "claude-sonnet-5",
+                    model: "claude-sonnet-5",
                     systeem: systeemPrompt(site.naam, site.richtlijnen, site.isDemo, site.githubRepo),
                     opdracht: `MOBIELCONTROLE (automatisch, na je vorige wijziging). Ik heb de gewijzigde pagina's echt laten zien op een telefoon (390px breed). Ze zijn breder dan het scherm, waardoor je op een telefoon horizontaal moet schuiven:\n${beschrijfProblemen(
                       teBreed,
