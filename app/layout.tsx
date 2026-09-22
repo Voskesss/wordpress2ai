@@ -292,6 +292,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <summary>Meer over eenvoudiger websitebeheer</summary>
               <nav>
                 {[
+                  ["website-hoveniersbedrijf", "Voor hoveniers"],
+                  ["website-schildersbedrijf", "Voor schilders"],
+                  ["website-installatiebedrijf", "Voor installateurs"],
+                  ["website-bouwbedrijf", "Voor bouwbedrijven"],
+                  ["website-kapsalon", "Voor kappers"],
                   ["wordpress-overzetten", "WordPress overzetten"],
                   ["wordpress-alternatief", "WordPress-alternatief"],
                   ["website-zonder-onderhoud", "Zonder onderhoud"],

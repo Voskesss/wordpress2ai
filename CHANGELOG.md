@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.27.0 (22 september 2026)
+
+Vijf nieuwe pagina's op de website, per vak: hoveniers, schilders,
+installateurs, bouwbedrijven en kapsalons. Daar stond nog niets voor, terwijl
+dat precies de bedrijven zijn die WordSwap gebruiken. Wie zoekt op "website
+voor hoveniersbedrijf" kwam nergens uit.
+
+Elke pagina gebruikt het voorbeeld uit dat vak: een tuinproject erop met een
+appje vanaf de klus, voor-en-na-foto's vanaf de steiger, een prijslijst die in
+een minuut klopt. En overal staat wat er níét kan, zodat niemand op iets
+rekent dat wij niet bouwen.
+
 ## 1.26.0 (22 september 2026)
 
 Komt een bericht van je contactformulier niet als mail bij je aan, dan krijgt
