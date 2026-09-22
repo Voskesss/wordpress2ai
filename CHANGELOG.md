@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.29.1 (22 september 2026)
+
+**Leads: "Afspraak gepland" als eigen status.** Staat er een gesprek in de
+agenda, dan was dat tot nu toe niet aan de leadlijst te zien: zo iemand stond
+gewoon op "In gesprek", tussen alle anderen. Er is nu een aparte status
+"Afspraak gepland", in oranje, zodat hij eruit springt. De lead blijft gewoon
+meelopen in de opvolging, want een geplande afspraak is geen afgeronde lead.
+
 ## 1.28.1 (22 september 2026)
 
 Uit de fotobank kun je nu meerdere foto's tegelijk kiezen om mee te sturen
