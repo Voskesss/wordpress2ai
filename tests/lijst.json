@@ -77,6 +77,7 @@
   "smtp.mts",
   "uitsluiten.mts",
   "uploads-parallel.mts",
+  "voorbeeld-wachten.mts",
   "vangnet-basis.mts",
   "vangnet-bericht.mts",
   "verdwenen.mts",

@@ -761,6 +761,65 @@ export default function Chat({
   }
   const [iframeSrc, setIframeSrc] = useState(() => basisVoor(Boolean(openConcept)));
 
+  /**
+   * Wacht tot de voorbeeldomgeving antwoordt voor we hem laten zien.
+   *
+   * Een omgeving wordt pas aangemaakt bij de eerste wijziging, en een nieuwe
+   * worker is een halve minuut lang nog niet bereikbaar. Het voorbeeldvenster
+   * wees er al heen en toonde dan de foutpagina van de browser, compleet met
+   * "heeft de verbinding geweigerd". Dat leest als: jullie site is stuk.
+   *
+   * Dit geldt voor iedereen. In de demo ontstaat de eigen omgeving bij de
+   * eerste opdracht, bij een klant gebeurt hetzelfde met zijn werkversie de
+   * eerste keer dat er een concept wordt uitgerold.
+   *
+   * Een fetch zonder cors vertelt ons niets over de inhoud, maar hij weigert
+   * wél als er niets luistert. Duurt hij te lang, dan gaan we ervan uit dat de
+   * site gewoon traag is en laten we hem zien: liever een trage pagina dan een
+   * venster dat onterecht afgeschermd blijft.
+   */
+  const [wachtOpOmgeving, setWachtOpOmgeving] = useState(false);
+  useEffect(() => {
+    if (!iframeSrc.startsWith("https://")) {
+      setWachtOpOmgeving(false);
+      return;
+    }
+    let gestopt = false;
+    let pogingen = 0;
+    async function kijk() {
+      while (!gestopt && pogingen < 30) {
+        try {
+          await fetch(iframeSrc, {
+            mode: "no-cors",
+            cache: "no-store",
+            signal: AbortSignal.timeout(6000),
+          });
+        } catch (e) {
+          // Te traag is geen "bestaat niet": dan tonen we hem gewoon.
+          const traag = e instanceof DOMException && (e.name === "AbortError" || e.name === "TimeoutError");
+          if (!traag) {
+            pogingen++;
+            if (!gestopt) setWachtOpOmgeving(true);
+            await new Promise((r) => setTimeout(r, 2000));
+            continue;
+          }
+        }
+        if (!gestopt) {
+          setWachtOpOmgeving(false);
+          // Nu hij antwoordt het venster opnieuw laden, anders blijft de
+          // foutpagina staan die de browser al getoond had.
+          if (pogingen > 0) setReloadTeller((t) => t + 1);
+        }
+        return;
+      }
+      if (!gestopt) setWachtOpOmgeving(false);
+    }
+    void kijk();
+    return () => {
+      gestopt = true;
+    };
+  }, [iframeSrc]);
+
   /** Herlaadt het voorbeeld op de pagina waar de eigenaar nu naar kijkt. */
   /** Na weggooien of terugdraaien kan de huidige pagina verdwenen zijn
    * (bv. een pagina die alleen in het concept bestond) — herladen toont dan
@@ -2274,6 +2333,22 @@ export default function Chat({
             />
           )}
         </div>
+
+        {/* Je eigen demo-omgeving bestaat nog niet: dekkend afschermen, want
+            anders staat de foutpagina van de browser in beeld. */}
+        {wachtOpOmgeving && (
+          <div className="absolute inset-0 z-[35] flex items-center justify-center bg-white" role="status" aria-live="polite">
+            <div className="mx-4 flex max-w-sm items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-6 py-4 text-sm font-medium text-stone-700 shadow-lg">
+              <svg className="h-5 w-5 shrink-0 animate-spin text-violet-700" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              {isDemo
+                ? "Je eigen demo wordt klaargezet, dat duurt een halve minuut. Daarna zie je hem hier vanzelf."
+                : "Je voorbeeld wordt klaargezet, dat duurt een halve minuut. Daarna zie je het hier vanzelf."}
+            </div>
+          </div>
+        )}
 
         {/* Vriendelijke lader tijdens klaarzetten/verversen */}
         {laderTekst && !oplevering && (

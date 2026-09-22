@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.25.1 (22 september 2026)
+
+Reparatie: bij je allereerste wijziging kon het voorbeeldvenster kort de
+foutpagina van de browser tonen, met "heeft de verbinding geweigerd". Dat leest
+als een kapotte site, terwijl er niets aan de hand was: je voorbeeldomgeving
+wordt op dat moment aangemaakt en is een halve minuut lang nog niet
+bereikbaar.
+
+Het venster wacht nu tot die omgeving antwoordt en laat zolang zien dat hij
+wordt klaargezet. Zodra hij er is verschijnt je site vanzelf.
+
 ## 1.25.0 (22 september 2026)
 
 In de outreach staan nu twee knoppen op de kaart zelf: **🕓 Later** en
