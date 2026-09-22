@@ -14,7 +14,7 @@ import Kiezer, { type Dag } from "@/app/afspraak/[token]/Kiezer";
  * bijvoorbeeld vanuit de mail of voor wie geen account heeft.
  */
 export default async function AfspraakBlok({ siteId }: { siteId: number }) {
-  const { blokken, afspraken: rijen, token } = await afspraakStand(siteId);
+  const { blokken, afspraken: rijen, token } = await afspraakStand({ soort: "site", id: siteId });
   // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
   const nu = new Date();
   const komend = rijen.filter((a) => a.start.getTime() + a.duurMinuten * 60_000 > nu.getTime());

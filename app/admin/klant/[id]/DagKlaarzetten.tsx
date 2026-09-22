@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { zetAfspraakBlokKlaar, type BlokUitkomst } from "../../acties-afspraken";
+import EigenaarVelden, { type Eigenaarschap } from "./EigenaarVelden";
 
 const invoer =
   "mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal focus:border-violet-500 focus:outline-none";
@@ -9,7 +10,7 @@ const invoer =
 /** Eén dag erbij zetten. Na het opslaan staat het formulier meteen klaar voor
  * de volgende dag (datum een dag verder, tijden blijven staan), zodat je in één
  * ruk een paar dagen kunt klaarzetten. */
-export default function DagKlaarzetten({ siteId, startDatum }: { siteId: number; startDatum: string }) {
+export default function DagKlaarzetten({ siteId, leadId, startDatum }: Eigenaarschap & { startDatum: string }) {
   const [stand, verstuur, bezig] = useActionState<BlokUitkomst | null, FormData>(zetAfspraakBlokKlaar, null);
   const [datum, setDatum] = useState(startDatum);
   const laatsteMelding = useRef<BlokUitkomst | null>(null);
@@ -30,7 +31,7 @@ export default function DagKlaarzetten({ siteId, startDatum }: { siteId: number;
 
   return (
     <form action={verstuur} className="mt-4 grid gap-3 sm:grid-cols-5 items-end">
-      <input type="hidden" name="siteId" value={siteId} />
+      <EigenaarVelden siteId={siteId} leadId={leadId} />
       <label className="block text-sm font-semibold sm:col-span-2">
         Dag
         <input

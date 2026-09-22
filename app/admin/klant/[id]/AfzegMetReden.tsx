@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { annuleerAfspraak } from "../../acties-afspraken";
 import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
+import EigenaarVelden, { type Eigenaarschap } from "./EigenaarVelden";
 
 function VerstuurKnop() {
   const { pending } = useFormStatus();
@@ -22,10 +23,10 @@ function VerstuurKnop() {
  * naar de klant komt — zelfde tweestapsopzet als bij de klant zelf. */
 export default function AfzegMetReden({
   siteId,
+  leadId,
   afspraakId,
   label,
-}: {
-  siteId: number;
+}: Eigenaarschap & {
   afspraakId: number;
   label: string;
 }) {
@@ -43,7 +44,7 @@ export default function AfzegMetReden({
   }
   return (
     <form action={annuleerAfspraak} className="flex w-full flex-wrap items-end gap-2 rounded-lg border border-red-200 bg-white/70 p-2">
-      <input type="hidden" name="siteId" value={siteId} />
+      <EigenaarVelden siteId={siteId} leadId={leadId} />
       <input type="hidden" name="afspraakId" value={afspraakId} />
       <label className="block min-w-[14rem] flex-1 text-xs font-semibold text-stone-700">
         Reden voor de klant (mag leeg)
@@ -53,13 +54,15 @@ export default function AfzegMetReden({
           className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-normal focus:border-red-400 focus:outline-none"
         />
       </label>
-      <MailVoorbeeldKnop
-        klein
-        soort="afspraak-afzegging"
-        siteId={siteId}
-        extra={{ afspraakId: String(afspraakId) }}
-        velden={[["reden", "reden"]]}
-      />
+      {siteId ? (
+        <MailVoorbeeldKnop
+          klein
+          soort="afspraak-afzegging"
+          siteId={siteId}
+          extra={{ afspraakId: String(afspraakId) }}
+          velden={[["reden", "reden"]]}
+        />
+      ) : null}
       <VerstuurKnop />
       <button type="button" onClick={() => setOpen(false)} className="text-xs font-semibold text-stone-500 underline cursor-pointer">
         Toch niet

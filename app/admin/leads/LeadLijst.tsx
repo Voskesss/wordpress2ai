@@ -11,9 +11,13 @@ import {
   leadVerwijderen,
 } from "../acties-leads";
 import ActieKnop from "../klant/[id]/ActieKnop";
+import AfspraakVak, { type LeadAfspraakStand } from "./AfspraakVak";
+import KlantKnop from "./KlantKnop";
 import AiMailVak from "./AiMailVak";
 
 export type LeadRij = {
+  /** Gezet zodra deze lead klant is geworden */
+  siteId?: number | null;
   id: number;
   naam: string;
   email: string | null;
@@ -188,7 +192,23 @@ function ActieRegel({ actie, nu }: { actie: ActieRij; nu: string }) {
   );
 }
 
-function LeadKaart({ lead, acties, post, nu }: { lead: LeadRij; acties: ActieRij[]; post: PostRegel[]; nu: string }) {
+function LeadKaart({
+  lead,
+  acties,
+  post,
+  nu,
+  afspraken,
+  morgen,
+  repoVoorstel,
+}: {
+  lead: LeadRij;
+  acties: ActieRij[];
+  post: PostRegel[];
+  nu: string;
+  afspraken: LeadAfspraakStand;
+  morgen: string;
+  repoVoorstel: string;
+}) {
   const openActies = acties.filter((a) => !a.gedaan).sort((a, b) => (a.datum ?? "9999").localeCompare(b.datum ?? "9999"));
   const gedaan = acties.filter((a) => a.gedaan).sort((a, b) => (b.gedaanOp ?? "").localeCompare(a.gedaanOp ?? ""));
   return (
@@ -245,6 +265,19 @@ function LeadKaart({ lead, acties, post, nu }: { lead: LeadRij; acties: ActieRij
         )}
       </div>
 
+      <AfspraakVak leadId={lead.id} stand={afspraken} startDatum={morgen} heeftEmail={Boolean(lead.email)} />
+
+      {lead.siteId ? (
+        <p className="mt-3 text-sm text-emerald-800">
+          ✓ Klant geworden ·{" "}
+          <a href={`/admin/klant/${lead.siteId}`} className="font-semibold underline">
+            naar de klantpagina
+          </a>
+        </p>
+      ) : (
+        <KlantKnop leadId={lead.id} naam={lead.naam} voorstel={repoVoorstel} />
+      )}
+
       {lead.notities && <p className="mt-3 whitespace-pre-line text-sm text-stone-600">{lead.notities}</p>}
       <details className="mt-3">
         <summary className="cursor-pointer text-sm font-semibold text-violet-700">Gegevens en status bijwerken</summary>
@@ -273,11 +306,20 @@ export default function LeadLijst({
   acties,
   post,
   nu,
+  afspraken,
+  morgen,
+  repoVoorstellen,
 }: {
   leads: LeadRij[];
   acties: ActieRij[];
   post: Record<number, PostRegel[]>;
   nu: string;
+  /** Afspraakstand per lead-id; leads zonder dagen of afspraken staan er niet in */
+  afspraken: Record<number, LeadAfspraakStand>;
+  /** Eerstvolgende werkdag, als voorzet bij het klaarzetten */
+  morgen: string;
+  /** Voorgestelde repo-naam per lead-id, voor "wordt klant" */
+  repoVoorstellen: Record<number, string>;
 }) {
   const [filter, setFilter] = useState("open");
   const [zoek, setZoek] = useState("");
@@ -426,7 +468,17 @@ export default function LeadLijst({
                   )}
                 </span>
               </button>
-              {isOpen && <LeadKaart lead={l} acties={actiesPerLead.get(l.id) ?? []} post={post[l.id] ?? []} nu={nu} />}
+              {isOpen && (
+                <LeadKaart
+                  lead={l}
+                  acties={actiesPerLead.get(l.id) ?? []}
+                  post={post[l.id] ?? []}
+                  nu={nu}
+                  afspraken={afspraken[l.id] ?? { blokken: [], afspraken: [], token: null, mailOpTekst: null }}
+                  morgen={morgen}
+                  repoVoorstel={repoVoorstellen[l.id] ?? ""}
+                />
+              )}
             </div>
           );
         })}

@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   let mail: { onderwerp: string; html: string } | null = null;
   let bijlageNoot = "";
   if (soort === "afspraak-uitnodiging") {
-    const { blokken, token } = await afspraakStand(site.id);
+    const { blokken, token } = await afspraakStand({ soort: "site", id: site.id });
     if (blokken.length === 0) return new Response("Zet eerst dagen klaar; dan is er iets te tonen.", { status: 400 });
     mail = bouwAfspraakUitnodiging({
       siteNaam: site.naam,

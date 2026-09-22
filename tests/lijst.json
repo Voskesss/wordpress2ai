@@ -6,6 +6,7 @@
   "actueel.mts",
   "afmelding.mts",
   "afspraken.mts",
+    "afspraken-leads.mts",
   "afzender.mts",
   "agent-boundary.cjs",
   "ai-budget.mts",

@@ -1,10 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
-import { db } from "@/db";
-import { sites } from "@/db/schema";
 import { duurInWoorden, momentInWoorden, vrijeMomenten } from "@/lib/afspraken";
-import { afspraakStand, bezetteTijden } from "@/lib/afspraken-db";
+import { afspraakStand, bezetteTijden, eigenaarViaToken } from "@/lib/afspraken-db";
+import { contactZin } from "@/lib/klant-mails";
 import AfzegKnop from "./AfzegKnop";
 import Kiezer, { type Dag } from "./Kiezer";
 
@@ -14,19 +12,20 @@ export const dynamic = "force-dynamic";
 
 export default async function AfspraakPagina({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const [site] = token && token.length >= 20 ? await db.select().from(sites).where(eq(sites.afspraakToken, token)) : [];
+  // De code hoort bij een klant (site) of bij een potentiële klant (lead)
+  const wie = await eigenaarViaToken(token);
 
   // Ingelogde klant? Dan nemen we naam en e-mail gewoon over uit zijn account.
-  const gebruiker = site ? await currentUser().catch(() => null) : null;
-  const isKlant = Boolean(gebruiker && site && gebruiker.id === site.clerkUserId);
+  const gebruiker = wie?.clerkUserId ? await currentUser().catch(() => null) : null;
+  const isKlant = Boolean(gebruiker && wie?.clerkUserId && gebruiker.id === wie.clerkUserId);
   const ingelogdAls = isKlant
     ? {
-        naam: [gebruiker!.firstName, gebruiker!.lastName].filter(Boolean).join(" ") || site!.naam,
+        naam: [gebruiker!.firstName, gebruiker!.lastName].filter(Boolean).join(" ") || wie!.naam,
         email: gebruiker!.emailAddresses?.[0]?.emailAddress ?? "",
       }
     : null;
 
-  const stand = site ? await afspraakStand(site.id) : null;
+  const stand = wie ? await afspraakStand(wie.eigenaar) : null;
   const nu = new Date();
   // "Komend" = het gesprek is nog niet afgelopen; daarna verdwijnt hij vanzelf
   const komend = (stand?.afspraken ?? []).filter(
@@ -52,8 +51,8 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
     <div className="mt-4 space-y-3">
       {bevestigde.map((a) => (
         <div key={a.id} className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-stone-800">
-          ✓ Afgesproken: <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong>. Jos belt je. Komt het toch niet
-          uit? Zeg hem hieronder af.
+          ✓ Afgesproken: <strong>{momentInWoorden(a.start, a.duurMinuten)}</strong>. {contactZin(a.contact ?? a.telefoon)}{" "}
+          Komt het toch niet uit? Zeg hem hieronder af.
           <AfzegKnop token={token} afspraakId={a.id} />
         </div>
       ))}
@@ -63,7 +62,7 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
   return (
     <main className="mx-auto max-w-2xl px-6 py-14">
       <h1 className="font-display text-3xl font-semibold tracking-tight">Een moment afspreken met Jos</h1>
-      {!site ? (
+      {!wie ? (
         <p className="mt-4 text-stone-600">
           Deze link werkt niet (meer). Vraag Jos gerust om een nieuwe, of mail{" "}
           <a href="mailto:info@wordswap.nl" className="font-semibold text-violet-700 hover:underline">
@@ -97,7 +96,13 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
       ) : (
         <>
           <p className="mt-3 text-stone-600">
-            Voor <strong>{site.naam}</strong>. Kies een moment dat jou uitkomt; Jos belt je dan.
+            {wie.eigenaar.soort === "site" ? (
+              <>
+                Voor <strong>{wie.naam}</strong>. Kies een moment dat jou uitkomt; Jos belt je dan.
+              </>
+            ) : (
+              <>Kies een moment dat jou uitkomt. Jos laat je daarna weten of hij belt of een videogesprek stuurt.</>
+            )}
           </p>
           {afspraakLijst}
           <div className="mt-6">

@@ -3,9 +3,10 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
+import { afspraakBlokken, afspraken, leadActies, leadPost, leads, sites, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { LEAD_STATUSSEN } from "@/lib/leads";
+import { slugify } from "@/lib/actueel";
 import { haalSiteTekst, schrijfLeadMail } from "@/lib/lead-mail-ai";
 import type { MailStap } from "@/lib/lead-opvolging";
 import { werkLeadsBij } from "@/lib/leads-bijwerken";
@@ -96,6 +97,11 @@ export async function leadVerwijderen(formData: FormData) {
   // staat blijft daar.
   const { prospects } = await import("@/db/schema");
   await db.update(prospects).set({ leadId: null }).where(eq(prospects.leadId, id));
+  // Klaargezette dagen en afspraken van deze lead horen ook weg. Zonder dit
+  // blijft een bevestigde kennismaking tijd blokkeren in bezetteTijden(),
+  // terwijl er niemand meer is om mee af te spreken.
+  await db.delete(afspraakBlokken).where(eq(afspraakBlokken.leadId, id));
+  await db.delete(afspraken).where(eq(afspraken.leadId, id));
   await db.delete(leadActies).where(eq(leadActies.leadId, id));
   await db.delete(leadPost).where(eq(leadPost.leadId, id));
   await db.delete(leads).where(eq(leads.id, id));
@@ -211,4 +217,51 @@ export async function formulierGedaan(formData: FormData) {
     .set({ conceptOnderwerp: null, conceptTekst: null, conceptKlaarOp: null, bijgewerkt: new Date() })
     .where(eq(leads.id, id));
   revalidatePath("/admin/leads");
+}
+
+export type KlantUitkomst = { ok: boolean; melding: string; siteId?: number };
+
+/**
+ * Lead wordt klant: maakt de klantrij aan, koppelt hem aan de lead en zet de
+ * leadstatus op "klant geworden".
+ *
+ * De kennismakingsafspraak blijft bewust aan de lead hangen en verhuist niet
+ * mee: dat gesprek hoorde bij de leadfase en staat zo op de juiste plek in de
+ * tijdlijn. Het agenda-overzicht laat afspraken van klanten én leads zien, dus
+ * een komende kennismaking verdwijnt niet uit beeld door deze knop.
+ */
+export async function leadWordtKlant(
+  _vorige: KlantUitkomst | null,
+  formData: FormData,
+): Promise<KlantUitkomst> {
+  const admin = await requireAdmin();
+  const id = Number(formData.get("leadId"));
+  if (!Number.isInteger(id) || id <= 0) return { ok: false, melding: "Onbekende lead." };
+  const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+  if (!lead) return { ok: false, melding: "Onbekende lead." };
+  if (lead.siteId) return { ok: false, melding: "Deze lead is al klant." };
+
+  const repo = slugify(String(formData.get("repo") ?? "").trim() || lead.naam);
+  if (!repo) return { ok: false, melding: "Vul een repo-naam in." };
+  const [bestaat] = await db.select({ id: sites.id }).from(sites).where(eq(sites.githubRepo, repo));
+  if (bestaat) return { ok: false, melding: `Er is al een klant met repo ${repo}; kies een andere naam.` };
+
+  const [site] = await db
+    .insert(sites)
+    .values({
+      clerkUserId: admin.id,
+      naam: lead.naam,
+      githubRepo: repo,
+      domein: lead.website || null,
+      // Nog geen eigen account: hierdoor weet klantAdres() al waar de mail heen
+      // moet, en wordt de klant gekoppeld zodra hij zelf inlogt.
+      uitnodigingEmail: lead.email || null,
+    })
+    .returning({ id: sites.id });
+  if (!site) return { ok: false, melding: "De klant aanmaken lukte niet." };
+
+  await db.update(leads).set({ siteId: site.id, status: "klant", bijgewerkt: new Date() }).where(eq(leads.id, id));
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin");
+  return { ok: true, melding: `${lead.naam} staat nu als klant in de lijst.`, siteId: site.id };
 }
