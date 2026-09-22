@@ -12,6 +12,46 @@ const API = "https://api.cloudflare.com/client/v4";
 // aanwijs-modus (element aanklikken in de preview) en opent links naar andere
 // domeinen (social media, webmail) in een nieuw tabblad — die weigeren in een
 // iframe te laden. Doet niets buiten een iframe.
+/**
+ * Cookiemelding wegnemen in het voorbeeldvenster, en alleen daar.
+ *
+ * Bij een migratie blijft de bestaande cookiemelding van de klant staan; die
+ * hoort bij zijn site en wij halen hem er niet uit. Maar in het venster naast
+ * de chat staat hij elke keer opnieuw in beeld, precies over de pagina die je
+ * aan het aanpassen bent. Dat is geen toestemming vragen, dat is in de weg
+ * zitten: de bezoeker aan wie iets gevraagd moet worden, is de eigenaar niet.
+ *
+ * Het hoort bij PAGINA_MELDER en draait dus alleen als de pagina in een
+ * iframe staat. Een echte bezoeker krijgt zijn cookiemelding gewoon.
+ *
+ * Alleen namen van bekende cookiemeldingen, want blind op het woord "cookie"
+ * zoeken haalt ook een cookiebeleid-pagina onderuit. En de rem op scrollen die
+ * sommige meldingen op de body zetten gaat er weer af, anders zit het
+ * voorbeeld vast.
+ *
+ * Bewust zo geschreven dat er niets gebeurt als het script niet draait: het
+ * voegt de regel alleen tóe binnen een iframe. Andersom (verbergen en het
+ * daarna terugdraaien voor bezoekers) zou bij een hapering de cookiemelding
+ * van een klant laten verdwijnen, en daar hangt een wettelijke plicht aan.
+ */
+const COOKIEMELDING_WEG = [
+  "#cookie-law-info-bar", ".cli-modal-backdrop", "#cookie-notice", "#cookie-banner",
+  ".cookie-banner", ".cookie-consent", ".cookie-bar", "#cookiescript_injected",
+  "#CybotCookiebotDialog", "#CybotCookiebotDialogBodyUnderlay", "#onetrust-banner-sdk",
+  "#onetrust-consent-sdk", ".onetrust-pc-dark-filter", "#usercentrics-root",
+  "#didomi-host", ".didomi-popup-open", "#iubenda-cs-banner", ".iubenda-cs-container",
+  "#moove_gdpr_cookie_info_bar", ".cmplz-cookiebanner", "#cmplz-cookiebanner-container",
+  ".BorlabsCookie", "#BorlabsCookieBox", "#tarteaucitronRoot", ".klaro .cookie-notice",
+  "#osano-cm-window", ".osano-cm-dialog", "#termly-code-snippet-support",
+  "#hs-eu-cookie-confirmation", "#gdpr-cookie-message", ".gdpr-cookie-notice",
+  "#eu-cookie-bar", ".wt-cli-cookie-bar",
+].join(",");
+
+export const COOKIE_VERBERGER =
+  `<script>try{if(parent!==window){var s=document.createElement("style");` +
+  `s.textContent='${COOKIEMELDING_WEG}{display:none!important}html,body{overflow:auto!important}';` +
+  `document.head.appendChild(s)}}catch(x){}</script>`;
+
 export const PAGINA_MELDER =
   '<script>(function(){try{if(parent===window)return;parent.postMessage({type:"wp2ai-pagina",pad:location.pathname},"*");var aan=false,vorig=null,kandidaat=null,tx=0,ty=0;function reset(){if(vorig){vorig.style.outline="";vorig=null}kandidaat=null;document.body.style.cursor=""}function stuur(el){var cs=getComputedStyle(el);parent.postMessage({type:"wp2ai-selectie",pad:location.pathname,tag:el.tagName.toLowerCase(),tekst:(el.innerText||el.getAttribute("alt")||"").trim().slice(0,200),html:el.outerHTML.slice(0,1500),kleuren:{achtergrond:cs.backgroundColor,tekst:cs.color}},"*");aan=false;reset()}addEventListener("message",function(e){if(e.data&&e.data.type==="wp2ai-tekst-live"&&e.data.zoek){try{var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n;var z=String(e.data.zoek),v=String(e.data.vervang||"");while((n=w.nextNode())){var t=n.textContent||"";var i=t.replace(/\\s+/g," ").indexOf(z);if(t.indexOf(z)>=0||i>=0){var el=n.parentElement;n.textContent=t.indexOf(z)>=0?t.replace(z,v):v;if(el){el.style.transition="background .3s";var oud=el.style.background;el.style.background="#fef3c7";setTimeout(function(){el.style.background=oud},1200);el.scrollIntoView({behavior:"smooth",block:"center"})}break}}}catch(x){}}if(e.data&&e.data.type==="wp2ai-werkplek"&&e.data.zoek){try{var w2=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n2,z2=String(e.data.zoek);while((n2=w2.nextNode())){if(((n2.textContent||"").replace(/\\s+/g," ")).indexOf(z2)>=0){var el2=n2.parentElement;if(el2){var oud2=el2.style.outline;el2.style.outline="3px solid #fbbf24";el2.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(function(){el2.style.outline=oud2},2000)}break}}}catch(x){}}if(e.data&&e.data.type==="wp2ai-aanwijzen"){aan=!!e.data.aan;document.body.style.cursor=aan?"crosshair":"";if(!aan)reset()}if(e.data&&e.data.type==="wp2ai-aanwijs-bevestig"&&kandidaat){stuur(kandidaat)}});addEventListener("mouseover",function(e){if(!aan)return;if(vorig)vorig.style.outline="";vorig=e.target;vorig.style.outline="3px solid #7c3aed"},true);addEventListener("click",function(e){if(aan){e.preventDefault();e.stopPropagation();stuur(e.target);return}var a=e.target&&e.target.closest?e.target.closest("a[href]"):null;if(!a)return;try{var u=new URL(a.getAttribute("href"),location.href);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){e.preventDefault();e.stopPropagation();window.open(u.href,"_blank","noopener")}}catch(x){}},true);addEventListener("touchstart",function(e){if(!aan||!e.touches[0])return;tx=e.touches[0].clientX;ty=e.touches[0].clientY},true);addEventListener("touchend",function(e){if(!aan)return;var t=e.changedTouches&&e.changedTouches[0];if(!t)return;if(Math.abs(t.clientX-tx)>12||Math.abs(t.clientY-ty)>12)return;e.preventDefault();e.stopPropagation();var el=document.elementFromPoint(t.clientX,t.clientY);if(!el||el===document.body||el===document.documentElement)return;if(vorig)vorig.style.outline="";vorig=el;kandidaat=el;el.style.outline="3px solid #7c3aed";parent.postMessage({type:"wp2ai-aanwijs-focus",tag:el.tagName.toLowerCase(),tekst:(el.innerText||el.getAttribute("alt")||"").trim().slice(0,80)},"*")},{capture:true,passive:false})}catch(e){}})();</script>';
 export const ACCOUNT = "2a71da7bfe94ae3540d4af02be53d53e";
@@ -206,7 +246,7 @@ async function bereidBestandenVoor(
         /<script>[^<]*wp2ai[^<]*<\/script>/g,
         ""
       );
-      const injectie = PAGINA_MELDER;
+      const injectie = COOKIE_VERBERGER + PAGINA_MELDER;
       if (naam.startsWith("ontwerp-"))
         html = html.replace(/(<body[^>]*>)/i, `$1${ONTWERP_BANNER}`);
       html = html.includes("</body>")

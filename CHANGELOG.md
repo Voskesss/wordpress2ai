@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.24.2 (22 september 2026)
+
+Heb je een cookiemelding op je site, dan staat die niet meer in de weg in het
+voorbeeldvenster naast de chat. Hij verscheen daar telkens opnieuw, precies
+over de pagina die je aan het aanpassen was.
+
+Bezoekers van je site krijgen hem gewoon, ongewijzigd. Het verbergen gebeurt
+alleen in dat ene venster.
+
 ## 1.24.1 (22 september 2026)
 
 Reparatie: het inspreken ging wel aan maar niet meer uit. Het rode knopje
