@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.28.0 (22 september 2026)
+
+Uit de fotobank kun je nu meerdere foto's tegelijk kiezen om mee te sturen
+met één opdracht. Klik "Gebruik in opdracht" bij elke foto die mee moet (de
+knop wordt dan "Gaat mee", nog een keer klikken haalt hem er weer af), druk
+onderin op Klaar en vertel in de chat wat er met de foto's moet gebeuren:
+"zet deze drie in de galerij". Eerst kon er maar één foto per keer mee en
+sloot de bank meteen na het kiezen.
+
 ## 1.27.0 (22 september 2026)
 
 Vijf nieuwe pagina's op de website, per vak: hoveniers, schilders,
