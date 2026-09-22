@@ -2,6 +2,10 @@ export const LEAD_STATUSSEN = [
   { waarde: "nieuw", label: "Nieuw", open: true, kleur: "border-violet-200 bg-violet-50 text-violet-800" },
   { waarde: "wacht_op_reactie", label: "Wacht op reactie", open: true, kleur: "border-amber-200 bg-amber-50 text-amber-800" },
   { waarde: "in_gesprek", label: "In gesprek", open: true, kleur: "border-sky-200 bg-sky-50 text-sky-800" },
+  // Er staat een gesprek gepland. Eigen, opvallende kleur: dit is de enige
+  // status waar een datum aan hangt die Jos niet mag missen, en tussen alle
+  // blauw en groen viel hij anders weg.
+  { waarde: "afspraak", label: "Afspraak gepland", open: true, kleur: "border-orange-300 bg-orange-100 text-orange-900" },
   { waarde: "kopie_maken", label: "Kopie maken", open: true, kleur: "border-emerald-200 bg-emerald-50 text-emerald-800" },
   { waarde: "kopie_klaar", label: "Kopie klaar, wacht op akkoord", open: true, kleur: "border-emerald-200 bg-emerald-50 text-emerald-800" },
   { waarde: "klant", label: "Klant geworden", open: false, kleur: "border-emerald-300 bg-emerald-100 text-emerald-900" },

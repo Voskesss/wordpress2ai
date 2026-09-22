@@ -20,7 +20,7 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## 1.29.0 (22 september 2026)
+## 1.30.0 (22 september 2026)
 
 Een afspraak inplannen kan nu ook met iemand die nog geen klant is. Stond
 iemand op de leadlijst, dan kon je hem tot nu toe geen momenten voorstellen:
@@ -39,6 +39,14 @@ Wat daarbij hoort:
   door elkaar zien, zodat je één agenda houdt en niets dubbel kunt boeken.
 * Wordt iemand klant, dan maak je met één knop de klantomgeving aan. Het
   kennismakingsgesprek blijft staan waar het gebeurde, bij de lead.
+
+## 1.29.1 (22 september 2026)
+
+**Leads: "Afspraak gepland" als eigen status.** Staat er een gesprek in de
+agenda, dan was dat tot nu toe niet aan de leadlijst te zien: zo iemand stond
+gewoon op "In gesprek", tussen alle anderen. Er is nu een aparte status
+"Afspraak gepland", in oranje, zodat hij eruit springt. De lead blijft gewoon
+meelopen in de opvolging, want een geplande afspraak is geen afgeronde lead.
 
 ## 1.28.1 (22 september 2026)
 
