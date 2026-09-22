@@ -110,4 +110,22 @@ assert.ok(
   "de briefing zegt niet dat mediation wel gemaild wordt"
 );
 
+// 13. De scanprompt en onze eigen opleveringspoort moeten dezelfde dingen
+//     herkennen. Loopt dat uiteen, dan meldt de scan een site als omzetbaar
+//     terwijl de poort hem later afkeurt, of andersom.
+const prompt = await readFile(new URL("../docs/scan-prompt-omzetbaarheid.md", import.meta.url), "utf8");
+const poort = await readFile(new URL("../lib/verlies.ts", import.meta.url), "utf8");
+const promptKlein = prompt.toLowerCase();
+for (const naam of ["zoekfunctie", "vertaalknop", "nieuwsbrief", "agenda", "webshop", "ledeninlog", "reacties"]) {
+  assert.ok(poort.includes(naam.slice(0, 8)), `${naam} is geen onderdeel meer in lib/verlies.ts`);
+}
+// De harde herkenningspunten uit de poort staan ook in de prompt
+for (const merk of ["woocommerce", "wp-login", "mailpoet", "tribe-events", "comment-form", "gtranslate", "searchform"]) {
+  assert.ok(poort.toLowerCase().includes(merk), `${merk} herkent de poort niet meer`);
+  assert.ok(promptKlein.includes(merk), `${merk} staat niet in de scanprompt, dus de scan mist het`);
+}
+// En de twee dingen die nooit beloofd mogen worden
+assert.ok(/nooit beloven/i.test(prompt), "de scanprompt verbiedt het beloven van een voorraadkoppeling niet");
+assert.ok(!prompt.includes("—"), "lang streepje in de scanprompt");
+
 console.log("cowork-briefing: ok");

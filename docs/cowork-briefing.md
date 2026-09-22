@@ -40,6 +40,11 @@ gebruik die dan; anders "vanaf 150 euro".
 
 ## 3. Wat kan wel en wat kan niet
 
+Voor het scannen van een site op omzetbaarheid staat een aparte opdracht klaar
+in `docs/scan-prompt-omzetbaarheid.md`, met per onderdeel waaraan je het in de
+pagina herkent. Die herkenningspunten komen uit onze eigen opleveringspoort.
+
+
 Dit is de belangrijkste tabel van dit document. Beloof niets dat hieronder in
 de rechterkolom staat.
 
