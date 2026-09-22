@@ -158,6 +158,7 @@ export async function bevestigAfspraak(formData: FormData) {
   // een zin ("Ik stuur je een Teams-uitnodiging.") wordt letterlijk gebruikt.
   const contact = String(formData.get("contact") ?? "").trim().slice(0, 200) || null;
   const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000) || null;
+  const eigenOnderwerp = String(formData.get("onderwerp") ?? "").trim().slice(0, 150) || null;
   if (!Number.isInteger(id) || !eigenaar) return;
   const [afspraak] = await db
     .select()
@@ -201,7 +202,7 @@ export async function bevestigAfspraak(formData: FormData) {
   const bijlagen = [{ bestandsnaam: "afspraak.ics", inhoud: ics }];
 
   if (afspraak.email) {
-    const mail = bouwAfspraakBevestiging({ ...afspraak, contact, eigenTekst });
+    const mail = bouwAfspraakBevestiging({ ...afspraak, contact, eigenTekst, eigenOnderwerp });
     await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, bijlagen });
   }
   await mailVanJos({
@@ -278,6 +279,7 @@ export async function mailAfspraakVoorstel(
   }
   const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
   const zonderStandaard = formData.get("zonderStandaard") === "on";
+  const onderwerp = String(formData.get("onderwerp") ?? "").trim().slice(0, 150);
   if (zonderStandaard && !eigenTekst) {
     return { ok: false, melding: "Laat je de standaardzin weg, schrijf dan zelf een berichtje." };
   }
@@ -290,6 +292,7 @@ export async function mailAfspraakVoorstel(
     eigenTekst,
     zonderStandaard,
     soort: eigenaar.soort === "lead" ? "lead" : "klant",
+    onderwerp,
   });
   const gelukt = await mailVanJos({ naar: info.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
   if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };

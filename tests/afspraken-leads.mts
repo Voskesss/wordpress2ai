@@ -11,7 +11,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { eigenaarKolommen, eigenaarPad, eigenaarVan } from "../lib/afspraken";
-import { bouwAfspraakUitnodiging } from "../lib/klant-mails";
+import { bouwAfspraakBevestiging, bouwAfspraakUitnodiging } from "../lib/klant-mails";
 import { statusBijAfspraak } from "../lib/leads";
 
 // Precies één eigenaar, welke kant je ook op kijkt
@@ -82,6 +82,34 @@ import { statusBijAfspraak } from "../lib/leads";
   assert.ok(!/ik bel je/i.test(lead.html), "bij een lead beloven we geen telefoontje");
   assert.match(lead.html, /kennis te maken/);
 
+  // Eigen onderwerp: als je al weet waar het gesprek over gaat, hoort er niet
+  // "Even kennismaken?" boven te staan
+  const eigen = bouwAfspraakUitnodiging({
+    siteNaam: "Dirk Jan",
+    naam: "Dirk Jan",
+    link: "https://www.wordswap.nl/afspraak/abc",
+    duurMinuten: 30,
+    dagen,
+    soort: "lead",
+    onderwerp: "Even een moment prikken voor onze Zoom",
+  });
+  assert.equal(eigen.onderwerp, "Even een moment prikken voor onze Zoom");
+
+  // Standaardzin weggelaten: dan past het standaardonderwerp ook niet meer
+  const zonder = bouwAfspraakUitnodiging({
+    siteNaam: "Dirk Jan",
+    naam: "Dirk Jan",
+    link: "https://www.wordswap.nl/afspraak/abc",
+    duurMinuten: 30,
+    dagen,
+    soort: "lead",
+    zonderStandaard: true,
+    eigenTekst: "Zoals besproken, hier staan een paar momenten klaar.",
+  });
+  assert.equal(zonder.onderwerp, "Wanneer schikt het jou?");
+  assert.ok(!/kennis te maken/.test(zonder.html), "de standaardzin hoort dan echt weg te zijn");
+  assert.match(zonder.html, /Zoals besproken/);
+
   const klant = bouwAfspraakUitnodiging({
     siteNaam: "Bakkerij Jansen",
     naam: "Jan",
@@ -92,6 +120,23 @@ import { statusBijAfspraak } from "../lib/leads";
   assert.equal(klant.onderwerp, "Even samen kijken naar Bakkerij Jansen?");
   assert.match(klant.html, /\/portal#afspraak/);
   assert.match(klant.html, /ik bel je/i);
+}
+
+// De bevestigingsmail: eigen onderwerp mag, en het onderwerp van de AFSPRAAK
+// ("Kennismaken met ...") mag nooit per ongeluk de onderwerpregel worden
+{
+  const start = new Date("2026-09-24T07:00:00Z");
+  const basis = { naam: "Dirk Jan", telefoon: null, opmerking: null, start, duurMinuten: 30 };
+
+  const gewoon = bouwAfspraakBevestiging({ ...basis, onderwerp: "Kennismaken met Dirk Jan" } as typeof basis);
+  assert.match(gewoon.onderwerp, /^Afspraak bevestigd: /, "een meegelifte afspraak-onderwerp mag de mailtitel niet kapen");
+
+  const eigen = bouwAfspraakBevestiging({ ...basis, eigenOnderwerp: "Onze Zoom staat vast" });
+  assert.equal(eigen.onderwerp, "Onze Zoom staat vast");
+
+  const zoom = bouwAfspraakBevestiging({ ...basis, contact: "Ik stuur je een Zoom-link." });
+  assert.match(zoom.html, /Ik stuur je een Zoom-link\./);
+  assert.ok(!/Ik bel je/.test(zoom.html), "met een Zoom-zin hoort er geen belzin meer te staan");
 }
 
 // De leadstatus schuift mee met de agenda, maar alleen waar dat mag

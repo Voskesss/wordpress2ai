@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.1 (22 september 2026)
+
+**Zelf het onderwerp van de afspraakmails kiezen.** De uitnodiging aan een
+potentiële klant heette altijd "Even kennismaken?", maar soms is het gesprek
+allang afgesproken en wil je alleen nog momenten voorstellen. Bij het versturen
+kun je nu zelf een onderwerp meegeven, en dat kan ook bij de bevestigingsmail.
+Laat je het leeg, dan blijft alles zoals het was. Laat je de standaardzin weg,
+dan wordt het onderwerp voortaan "Wanneer schikt het jou?" in plaats van een
+kennismaking die het niet is.
+
 ## 1.30.0 (22 september 2026)
 
 Een afspraak inplannen kan nu ook met iemand die nog geen klant is. Stond

@@ -116,8 +116,14 @@ export default async function AfsprakenOverzicht() {
                             title="Komt onder de afspraakregels in de bevestigingsmail."
                             className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
                           />
+                          <input
+                            name="onderwerp"
+                            placeholder="Onderwerp van de mail (leeg = 'Afspraak bevestigd: ...')"
+                            title="Eigen onderwerpregel voor de bevestigingsmail. Leeg = 'Afspraak bevestigd:' met het moment erachter."
+                            className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
+                          />
                           {a.siteId ? (
-                            <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"]]} />
+                            <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"], ["onderwerp", "onderwerp"]]} />
                           ) : null}
                           <ActieKnop
                             label="Bevestigen"

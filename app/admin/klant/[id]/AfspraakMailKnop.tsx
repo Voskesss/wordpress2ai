@@ -22,6 +22,17 @@ export default function AfspraakMailKnop({
     <form action={verstuur} className="mt-4 border-t border-stone-100 pt-4">
       <EigenaarVelden siteId={siteId} leadId={leadId} />
       <label className="block text-sm font-semibold text-stone-700">
+        Onderwerp <span className="font-normal text-stone-500">(mag leeg)</span>
+        <input
+          name="onderwerp"
+          placeholder={
+            leadId ? "Leeg = 'Even kennismaken?'" : "Leeg = 'Even samen kijken naar <naam>?'"
+          }
+          title="Handig als je al weet waar het gesprek over gaat, bijvoorbeeld: Even een moment prikken voor onze Zoom."
+          className="mt-1 mb-3 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm font-normal focus:border-violet-500 focus:outline-none"
+        />
+      </label>
+      <label className="block text-sm font-semibold text-stone-700">
         Eigen berichtje in de mail <span className="font-normal text-stone-500">(mag leeg)</span>
         <textarea
           name="bericht"
@@ -36,8 +47,12 @@ export default function AfspraakMailKnop({
       <label className="mt-2 flex items-start gap-2 text-sm text-stone-700">
         <input type="checkbox" name="zonderStandaard" className="mt-1 accent-emerald-700" />
         <span>
-          Standaardzin weglaten <span className="text-stone-500">(&quot;om samen naar je website te kijken&quot;)</span>{" "}
-          — dan staat alleen jouw eigen berichtje boven de dagen.
+          Standaardzin weglaten{" "}
+          <span className="text-stone-500">
+            ({leadId ? "\u201com kennis te maken\u201d" : "\u201com samen naar je website te kijken\u201d"})
+          </span>{" "}
+          — dan staat alleen jouw eigen berichtje boven de dagen, en wordt het onderwerp &quot;Wanneer schikt het
+          jou?&quot;.
         </span>
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-3">

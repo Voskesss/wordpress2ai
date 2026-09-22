@@ -39,6 +39,8 @@ export function bouwAfspraakUitnodiging(o: {
   eigenTekst?: string | null;
   zonderStandaard?: boolean;
   soort?: "klant" | "lead";
+  /** Eigen onderwerpregel; leeg = het standaardonderwerp hieronder */
+  onderwerp?: string | null;
 }): { onderwerp: string; html: string } {
   const isLead = o.soort === "lead";
   const duur = duurInWoorden(o.duurMinuten);
@@ -57,8 +59,15 @@ export function bouwAfspraakUitnodiging(o: {
   const standaardZin = isLead
     ? `<p>Ik heb een paar momenten vrijgehouden om kennis te maken. Het gesprek duurt ${duur}, bellen of videobellen, wat jij prettig vindt.</p>`
     : `<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>`;
+  // Laat je de standaardzin weg, dan gaat de mail ergens anders over dan
+  // kennismaken of "even samen kijken", dus dan past dat onderwerp ook niet.
+  const standaardOnderwerp = o.zonderStandaard
+    ? "Wanneer schikt het jou?"
+    : isLead
+      ? "Even kennismaken?"
+      : `Even samen kijken naar ${o.siteNaam}?`;
   return {
-    onderwerp: isLead ? `Even kennismaken?` : `Even samen kijken naar ${o.siteNaam}?`,
+    onderwerp: o.onderwerp?.trim() || standaardOnderwerp,
     html: inWordSwapHuisstijl(`<p>Beste ${ontsnap(voornaam(o.naam))},</p>
 ${alineas(o.eigenTekst)}
 ${o.zonderStandaard ? `<p>Je kunt kiezen uit deze momenten (${duur}):</p>` : standaardZin}
@@ -95,10 +104,14 @@ export function bouwAfspraakBevestiging(o: {
   contact?: string | null;
   /** Eigen berichtje van Jos, onder de afspraakregels */
   eigenTekst?: string | null;
+  /** Eigen onderwerpregel; leeg = "Afspraak bevestigd: <moment>". Bewust NIET
+   * "onderwerp" genoemd: de afspraakrij heeft zelf een veld onderwerp (waar het
+   * gesprek over gaat) en die zou hier via {...afspraak} in sluipen. */
+  eigenOnderwerp?: string | null;
 }): { onderwerp: string; html: string } {
   const wanneer = momentInWoorden(o.start, o.duurMinuten);
   return {
-    onderwerp: `Afspraak bevestigd: ${wanneer}`,
+    onderwerp: o.eigenOnderwerp?.trim() || `Afspraak bevestigd: ${wanneer}`,
     html: inWordSwapHuisstijl(`<p>Beste ${ontsnap(voornaam(o.naam))},</p>
 <p>De afspraak staat: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(o.duurMinuten)}).</p>
 <p>${ontsnap(contactZin(o.contact ?? o.telefoon))} In de bijlage zit een agendabestand; met één klik zet je de afspraak in je eigen agenda.</p>
