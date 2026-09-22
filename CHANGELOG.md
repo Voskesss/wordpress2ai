@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.24.0 (22 september 2026)
+
+De ingeklapte conceptbalk op de telefoon geldt nu ook voor klanten, niet
+alleen in de demo. Het gele blok kostte daar 176 pixels; de balk doet
+hetzelfde in 58, en dat scheelt ruim een kwart van je scherm voor de chat.
+
+Alle vier de acties staan in de balk zelf: publiceren, het concept bekijken,
+een stap terug met een pijltje, en weggooien met een kruisje. Weet je niet wat
+die tekens doen, dan klap je met de drie puntjes uit en staat het voluit.
+
+Weggooien vraagt op de telefoon één keer na. Het is niet terug te draaien en
+het kruisje staat vlak naast "stap terug", dus een mistik zou al je werk
+kosten. Op een computer verandert er niets.
+
 ## 1.23.1 (22 september 2026)
 
 Reparatie op de telefoon: in de chat kon je soms niet meer bij de bovenkant

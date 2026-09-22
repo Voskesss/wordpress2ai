@@ -87,18 +87,12 @@ assert.ok(!melding.includes("—"), "lang streepje in de daggrens-melding");
 // 11. De ingeklapte conceptstrook is alleen voor de demo op een telefoon.
 //     Gemeten op 390px breed: de gewone strook is 176 pixels hoog, deze 48.
 //     Een klant houdt de gewone strook, ook op zijn telefoon.
-assert.ok(
-  chat.includes("{concept && isDemo && isMobiel && ("),
-  "de ingeklapte strook staat niet achter isDemo én isMobiel",
-);
-assert.ok(
-  chat.includes("{concept && !(isDemo && isMobiel) && ("),
-  "de gewone conceptstrook is niet meer voorbehouden aan klanten en aan de computer",
-);
+assert.ok(chat.includes("{concept && isMobiel && ("), "de ingeklapte strook staat niet achter isMobiel");
+assert.ok(chat.includes("{concept && !isMobiel && ("), "de gewone strook hoort alleen op een computer");
 
 // 12. En in die strook blijft elke actie bereikbaar; niets mag stilletjes
 //     verdwijnen omdat het scherm smal is
-const strook = await readFile(new URL("../app/portal/DemoConceptStrip.tsx", import.meta.url), "utf8");
+const strook = await readFile(new URL("../app/portal/ConceptStripMobiel.tsx", import.meta.url), "utf8");
 for (const [wat, zoek] of [
   ["publiceren", "onPubliceer"],
   ["het concept bekijken", "onBekijk"],
@@ -107,7 +101,34 @@ for (const [wat, zoek] of [
 ] as const) {
   assert.ok(strook.includes(zoek), `${wat} is niet meer te doen op een telefoon`);
 }
-assert.ok(strook.includes("aria-label=\"Meer conceptacties\""), "het meer-menu is niet te bedienen met een schermlezer");
+// Elke knop moet een naam hebben voor een schermlezer: de twee pictogrammen
+// zeggen zonder label niets.
+assert.equal(
+  (strook.match(/aria-label=/g) ?? []).length,
+  3,
+  "niet elke pictogramknop heeft een naam voor een schermlezer",
+);
+assert.ok(strook.includes("aria-expanded"), "het uitklapmenu meldt niet of het open staat");
+// De twee pictogrammen staan in de balk zelf, niet alleen achter de puntjes
+const balk = strook.slice(strook.indexOf("<div className=\"flex items-center"), strook.indexOf("meerOpen && ("));
+for (const [wat, teken] of [["stap terug", "↩"], ["weggooien", "✕"]] as const) {
+  assert.ok(balk.includes(teken), `${wat} staat niet als pictogram in de balk zelf`);
+}
 assert.ok(!strook.includes("—"), "lang streepje in de conceptstrook");
+
+// 13. Weggooien is niet terug te draaien en staat op een telefoon als klein
+//     kruisje naast "stap terug". Eén mistik kost al je werk, dus dat vragen
+//     we na. Op de computer staat er een heel woord op de knop.
+assert.ok(strook.includes("window.confirm("), "weggooien vraagt niets na, terwijl het naast stap terug staat");
+assert.ok(
+  strook.indexOf("weggooienMetVraag") < strook.indexOf("onClick={onStapTerug}") ||
+    strook.includes("onClick={weggooienMetVraag}"),
+  "de kruisjesknop gooit nog rechtstreeks weg",
+);
+assert.ok(!strook.includes("onClick={onVerwerp}"), "ergens gooit een knop nog zonder navraag weg");
+
+// 14. Vingers zijn geen muisaanwijzers: de pictogrammen zijn minstens 40px
+const maat = strook.match(/h-(\d+) w-\1 shrink-0/)?.[1];
+assert.ok(Number(maat) >= 10, `pictogramknoppen van h-${maat} (${Number(maat) * 4}px) zijn te klein om te raken`);
 
 console.log("demo-opdrachten: ok");

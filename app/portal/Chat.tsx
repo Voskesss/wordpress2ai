@@ -8,7 +8,7 @@ import DocumentBank from "./DocumentBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import DemoOpdrachten from "./DemoOpdrachten";
-import DemoConceptStrip from "./DemoConceptStrip";
+import ConceptStripMobiel from "./ConceptStripMobiel";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
@@ -2900,8 +2900,10 @@ export default function Chat({
           )}
 
           {/* Concept-strip */}
-          {concept && isDemo && isMobiel && (
-            <DemoConceptStrip
+          {/* Op een telefoon de ingeklapte strook, voor de demo én voor
+              klanten: het gewone blok kost daar 176 van de 844 pixels. */}
+          {concept && isMobiel && (
+            <ConceptStripMobiel
               conceptActie={conceptActie}
               bezig={bezig}
               nieuwBezig={nieuwBezig}
@@ -2912,7 +2914,7 @@ export default function Chat({
               onVerwerp={() => conceptVerwerken("verwerp")}
             />
           )}
-          {concept && !(isDemo && isMobiel) && (
+          {concept && !isMobiel && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
