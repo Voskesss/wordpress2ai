@@ -202,7 +202,7 @@ export async function POST(req: Request) {
     const client = new Anthropic();
     const resp = await client.messages.create({
       model: "claude-sonnet-5",
-      max_tokens: 1500,
+      max_tokens: 4000,
       system: `Je adviseert Jos (WordSwap: zet WordPress-sites om naar statische sites op eigen Cloudflare-infra; mail verkoopt hij via Soverin, €10/jr inkoop per mailbox) tijdens een líve klantgesprek. Hij plakt DNS/registrar-feiten van het domein van de prospect.
 
 Vaste werkwijze: (1) domein blijft bij losse registrar, alleen nameservers naar Jos' Cloudflare-account; zit domein gebundeld bij de WordPress-hoster, dan eerst losmaken/verhuizen vóór opzegging. (2) Bij DNS-verhuizing alle records één-op-één meenemen, inclusief subdomeinen. (3) Mail: bij de hoster = moet mee naar Soverin (mailbox aanmaken → imapsync → dan pas MX om); Google/Microsoft actief = laten staan, alleen records meenemen, eventueel besparingsgesprek; alleen doorsturen = gratis via Cloudflare Email Routing of upsell Soverin-mailbox; geen mail = upsell. (4) Nooit iets opzeggen voor domein+mail veilig zijn; één SPF-record per domein.

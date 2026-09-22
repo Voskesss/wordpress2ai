@@ -92,7 +92,12 @@ export async function schrijfLeadMail(o: {
     const resp = await client.messages.create({
       // Mails aan leads: taalkwaliteit en toon gaan voor
       model: "claude-sonnet-5",
-      max_tokens: 700,
+      // Stond op 700 en dat was te krap: dit model denkt standaard na, dat
+      // denken telt mee in max_tokens en is onzichtbaar. Een eerste mail kost
+      // gemeten 1185 tokens, dus ging het hele budget op aan denken en kwam er
+      // NUL tekst terug. Niet zichtbaar als fout, alleen "de AI kon geen tekst
+      // maken". max_tokens is een plafond, geen doel: hoger zetten kost niets.
+      max_tokens: 16000,
       system: `Je schrijft namens Jos van WordSwap een mail aan een lead (iemand die via een advertentie een websitecheck aanvroeg).
 
 ${WAT_WORDSWAP_IS}
@@ -120,6 +125,13 @@ Antwoord uitsluitend met JSON: {"onderwerp": "...", "tekst": "..."}. Het onderwe
         },
       ],
     });
+    // Afgekapt is iets anders dan onleesbaar, en allebei iets anders dan een
+    // storing. Zonder dit onderscheid komt elke oorzaak uit op dezelfde vage
+    // melding, en dan zoek je een middag naar een getal.
+    if (resp.stop_reason === "max_tokens") {
+      console.error(`Leadmail-AI afgekapt: max_tokens bereikt (${resp.usage.output_tokens} tokens, geen volledige tekst).`);
+      return null;
+    }
     return parseMailJson(resp.content.map((c) => (c.type === "text" ? c.text : "")).join(""));
   } catch (e) {
     console.error("Leadmail-AI mislukt:", e);

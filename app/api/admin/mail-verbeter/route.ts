@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   try {
   resp = await client.messages.create({
     model: "claude-sonnet-5",
-    max_tokens: 3000,
+    max_tokens: 4000,
     system: los
       ? `Je helpt Jos van WordSwap met een zakelijke e-mail.
 

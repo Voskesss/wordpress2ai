@@ -154,14 +154,14 @@ export async function conceptMetAi(
     huidig: lead.conceptOnderwerp && lead.conceptTekst ? { onderwerp: lead.conceptOnderwerp, tekst: lead.conceptTekst } : null,
     instructie: veld(formData, "instructie"),
   });
-  if (!concept) return { gelukt: false, melding: "De AI kon geen tekst maken — probeer het zo nog eens." };
+  if (!concept) return { gelukt: false, melding: "De AI kon geen tekst maken. Probeer het zo nog eens." };
 
   await db
     .update(leads)
     .set({ conceptSoort: soort, conceptOnderwerp: concept.onderwerp, conceptTekst: concept.tekst, conceptKlaarOp: new Date(), bijgewerkt: new Date() })
     .where(eq(leads.id, id));
   revalidatePath("/admin/leads");
-  return { gelukt: true, melding: "Klaar — de nieuwe tekst staat in het kaartje bovenaan de pagina." };
+  return { gelukt: true, melding: "Klaar, de nieuwe tekst staat in het kaartje bovenaan de pagina." };
 }
 
 /** De mailtekst van een klaarstaande stap opslaan: Jos maakt de inhoud (samen

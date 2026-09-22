@@ -35,7 +35,7 @@ export async function POST() {
     try {
       const resp = await client.messages.create({
         model: "claude-sonnet-5",
-        max_tokens: 1200,
+        max_tokens: 4000,
         system: `Je schrijft voor Jos van WordSwap (zet WordPress-sites om naar snelle sites zonder onderhoud; aanpassen doe je daarna door te typen in een chat; no cure no pay) een koude maar vriendelijke eerste acquisitie-mail aan één specifiek bedrijf.
 
 Huisstijl: Nederlands, je-vorm, kort (5-7 korte alinea's max), over de situatie van de ontvanger (niet "wij doen"), geen brede beloftes, geen buzzwoorden, respectvol over hun site (de eigenaar is er trots op), precies één actie: één reply met "laat maar zien" is genoeg.

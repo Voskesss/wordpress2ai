@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.29.2 (22 september 2026)
+
+**De knop "Mail klaarzetten met AI" bij een lead deed het niet.** Er kwam
+alleen "de AI kon geen tekst maken", zonder dat er ergens iets te vinden was.
+De oorzaak was een te krap ingesteld tokenbudget: het model denkt tegenwoordig
+eerst zelf na, dat denken telt mee in dat budget, en bij een eerste leadmail
+was het budget al op voor het eerste woord op papier stond. Het budget staat nu
+ruim, en als een antwoord toch ooit afgekapt wordt, staat dat voortaan met
+zoveel woorden in het logboek in plaats van te verdwijnen.
+
 ## 1.29.1 (22 september 2026)
 
 **Leads: "Afspraak gepland" als eigen status.** Staat er een gesprek in de

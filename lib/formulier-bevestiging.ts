@@ -159,7 +159,7 @@ export async function maakVoorstel(o: {
     const resp = await client.messages.create({
       // Eén keer per formulier en de tekst gaat naar klanten van de klant: taalkwaliteit gaat voor
       model: "claude-sonnet-5",
-      max_tokens: 400,
+      max_tokens: 4000,
       system: `Je schrijft de automatische bevestigingsmail die iemand krijgt direct na het invullen van een formulier op de website van een Nederlands bedrijf.
 
 Regels:
