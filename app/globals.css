@@ -855,6 +855,11 @@ main p {
 }
 .footer-resources summary {
   cursor: pointer;
+  /* De hele blok stond op 10px, ook deze kop. Dan zie je de knop niet en
+     klapt niemand hem open. De links eronder blijven wel klein. */
+  font-size: 15px;
+  font-weight: 600;
+  color: #244b3d;
 }
 .footer-resources nav {
   display: flex;

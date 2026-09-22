@@ -188,13 +188,26 @@ export default function NieuweWebsite() {
             </label>
             <label className="block text-sm font-semibold">
               Welk ontwerp past bij je?
-              <select name="ontwerp" className={invoer} defaultValue="ai">
-                <option value="ai">AI-ontwerp (vanaf €250)</option>
+              {/* "Mijn huidige site overzetten" stond er niet bij, terwijl dat
+                  de goedkoopste en meest gekozen route is. Wie op deze pagina
+                  belandt en gaandeweg bedenkt dat zijn site eigenlijk prima is,
+                  moest iets kiezen dat duurder is dan hij nodig heeft. */}
+              <select name="ontwerp" className={invoer} defaultValue="advies">
+                <option value="overzetten">
+                  Mijn huidige ontwerp overzetten (vanaf €150)
+                </option>
+                <option value="ai">
+                  AI-ontwerp (vanaf €250 tot 8 pagina&apos;s, daarboven meer)
+                </option>
                 <option value="designer">
                   Ontwerp door een designer (vanaf €1750)
                 </option>
-                <option value="advies">Weet ik nog niet — adviseer me</option>
+                <option value="advies">Weet ik nog niet, adviseer me</option>
               </select>
+              <span className="mt-1 block text-xs font-normal text-stone-500">
+                Twijfel je? Kies gerust het laatste. We kijken eerst naar je
+                site en zeggen eerlijk wat er past.
+              </span>
             </label>
             <label className="block text-sm font-semibold">
               Vertel over je site: wat doe je, welke pagina&apos;s heb je nodig,

@@ -29,6 +29,24 @@ onderin op Klaar en vertel in de chat wat er met de foto's moet gebeuren:
 "zet deze drie in de galerij". Eerst kon er maar één foto per keer mee en
 sloot de bank meteen na het kiezen.
 
+## 1.28.0 (22 september 2026)
+
+Drie dingen op de website.
+
+Het uitklapkopje onderaan ("Meer over eenvoudiger websitebeheer") stond op
+dezelfde minuscule letter als de links eronder. Nu leesbaar, zodat je ziet dat
+je erop kunt klikken.
+
+In het formulier voor een nieuwe website ontbrak de goedkoopste en meest
+gekozen route: je huidige ontwerp overzetten vanaf 150 euro. Wie daar belandde
+en gaandeweg bedacht dat zijn site eigenlijk prima is, moest iets kiezen dat
+duurder was dan hij nodig had. Bij het AI-ontwerp staat er nu ook bij dat 250
+euro geldt tot acht pagina's.
+
+En elke landingspagina kan voortaan zijn eigen afbeelding hebben. Die stond
+hard ingesteld, waardoor bijvoorbeeld de pagina voor hoveniers een ondernemer
+in een atelier liet zien.
+
 ## 1.27.1 (22 september 2026)
 
 Zestien pagina's op de website hadden een titel of omschrijving die Google

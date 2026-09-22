@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type Onderwerp = "ondernemer" | "websitebeheer" | "meubelmaker-lamp";
+export type Onderwerp = "ondernemer" | "websitebeheer" | "meubelmaker-lamp";
 const omschrijvingen: Record<Onderwerp, string> = {
   ondernemer: "Ondernemer werkt aan haar website in een atelier",
   websitebeheer: "Ondernemer werkt geconcentreerd aan haar website",

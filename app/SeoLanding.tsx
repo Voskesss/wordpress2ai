@@ -1,4 +1,4 @@
-import VerhaalBeeld from "./VerhaalBeeld";
+import VerhaalBeeld, { type Onderwerp } from "./VerhaalBeeld";
 import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
@@ -10,6 +10,10 @@ export type LandingData = {
   titel: string; // H1
   intro: string;
   blokken: { kop: string; tekst: string }[];
+  /** Welk beeld bij deze pagina hoort. Stond hard op "ondernemer", waardoor
+   *  alle landingspagina's dezelfde illustratie toonden: ook de pagina voor
+   *  hoveniers liet een ondernemer in een atelier zien. */
+  beeld?: Onderwerp;
   faq: { vraag: string; antwoord: string }[];
 };
 
@@ -77,7 +81,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           </p>
         </div>
         {data.nieuweWebsite ? (
-          <VerhaalBeeld onderwerp="ondernemer" />
+          <VerhaalBeeld onderwerp={data.beeld ?? "ondernemer"} />
         ) : (
           <OverstapVisual />
         )}
