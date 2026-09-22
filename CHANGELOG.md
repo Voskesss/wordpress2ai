@@ -20,6 +20,26 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.29.0 (22 september 2026)
+
+Een afspraak inplannen kan nu ook met iemand die nog geen klant is. Stond
+iemand op de leadlijst, dan kon je hem tot nu toe geen momenten voorstellen:
+de afsprakenmodule werkte alleen bij bestaande klanten. Vanaf nu zet je bij een
+lead net zo goed een paar dagen klaar, stuur je hem het voorstel per mail, en
+kiest hij zelf een moment.
+
+Wat daarbij hoort:
+
+* De uitnodiging aan iemand die nog geen klant is gaat over kennismaken en
+  belooft geen telefoontje: bellen of videobellen mag hij zelf zeggen.
+* Bij het bevestigen kun je invullen hoe je contact opneemt, bijvoorbeeld dat je
+  een Zoom-link stuurt. Dat staat nu ook op de pagina waar hij zijn moment koos,
+  niet alleen in de mail.
+* Het afsprakenoverzicht laat afspraken met klanten en met potentiële klanten
+  door elkaar zien, zodat je één agenda houdt en niets dubbel kunt boeken.
+* Wordt iemand klant, dan maak je met één knop de klantomgeving aan. Het
+  kennismakingsgesprek blijft staan waar het gebeurde, bij de lead.
+
 ## 1.28.1 (22 september 2026)
 
 Uit de fotobank kun je nu meerdere foto's tegelijk kiezen om mee te sturen

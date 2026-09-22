@@ -23,7 +23,13 @@ function knop(url: string, label: string): string {
   return `<p><a href="${url}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">${label}</span></a></p>`;
 }
 
-/** Uitnodiging: de klaargezette dagen plus de planlink en de portaalroute. */
+/**
+ * Uitnodiging: de klaargezette dagen plus de planlink en, voor een klant, de
+ * portaalroute. Bij een potentiële klant (soort "lead") gaat het over
+ * kennismaken in plaats van over "je website", vervalt de portaalalinea (die
+ * heeft nog geen account) en beloven we geen telefoontje: bellen of
+ * videobellen mag hij zelf zeggen.
+ */
 export function bouwAfspraakUitnodiging(o: {
   siteNaam: string;
   naam?: string | null;
@@ -32,7 +38,9 @@ export function bouwAfspraakUitnodiging(o: {
   dagen: { datum: string; van: string; tot: string }[];
   eigenTekst?: string | null;
   zonderStandaard?: boolean;
+  soort?: "klant" | "lead";
 }): { onderwerp: string; html: string } {
+  const isLead = o.soort === "lead";
   const duur = duurInWoorden(o.duurMinuten);
   const dagen = o.dagen
     .map(
@@ -46,18 +54,21 @@ export function bouwAfspraakUitnodiging(o: {
         )} tussen ${ontsnap(b.van)} en ${ontsnap(b.tot)}</li>`,
     )
     .join("");
+  const standaardZin = isLead
+    ? `<p>Ik heb een paar momenten vrijgehouden om kennis te maken. Het gesprek duurt ${duur}, bellen of videobellen, wat jij prettig vindt.</p>`
+    : `<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>`;
   return {
-    onderwerp: `Even samen kijken naar ${o.siteNaam}?`,
+    onderwerp: isLead ? `Even kennismaken?` : `Even samen kijken naar ${o.siteNaam}?`,
     html: inWordSwapHuisstijl(`<p>Beste ${ontsnap(voornaam(o.naam))},</p>
 ${alineas(o.eigenTekst)}
-${
-      o.zonderStandaard
-        ? `<p>Je kunt kiezen uit deze momenten (${duur}):</p>`
-        : `<p>Ik heb een paar momenten vrijgehouden om samen naar je website te kijken. Het gesprek duurt ${duur}; ik bel je.</p>`
-    }
+${o.zonderStandaard ? `<p>Je kunt kiezen uit deze momenten (${duur}):</p>` : standaardZin}
 <ul>${dagen}</ul>
 ${knop(o.link, "Kies een moment")}
-<p style="color:#57534e;font-size:14px">Je kunt ook <a href="https://www.wordswap.nl/portal#afspraak" style="color:#6d28d9">inloggen op je eigen omgeving</a> en daar bij <em>Even samen kijken</em> een moment kiezen. Ben je ingelogd, dan hoef je niets in te vullen: je naam en e-mailadres neem ik over uit je account.</p>
+${
+      isLead
+        ? ""
+        : `<p style="color:#57534e;font-size:14px">Je kunt ook <a href="https://www.wordswap.nl/portal#afspraak" style="color:#6d28d9">inloggen op je eigen omgeving</a> en daar bij <em>Even samen kijken</em> een moment kiezen. Ben je ingelogd, dan hoef je niets in te vullen: je naam en e-mailadres neem ik over uit je account.</p>`
+    }
 <p>Komt geen van deze dagen uit? Laat het gerust weten, met een dag en tijd die jou wél schikt, dan plan ik dat in.</p>
 <p>Groet,<br>Jos</p>`),
   };

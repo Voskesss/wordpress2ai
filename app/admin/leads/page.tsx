@@ -4,9 +4,13 @@ import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { leadActies, leadPost, leads, verzondenMails } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { slugify } from "@/lib/actueel";
+import { komendeWerkdagen } from "@/lib/afspraken";
+import { afsprakenPerLead, type LeadAfspraakRijen } from "@/lib/afspraken-db";
 import { vandaag } from "@/lib/leads";
 import type { MailStap } from "@/lib/lead-opvolging";
 import BijwerkKnop from "./BijwerkKnop";
+import type { LeadAfspraakStand } from "./AfspraakVak";
 import LeadLijst, { type PostRegel } from "./LeadLijst";
 import LeadVak from "./LeadVak";
 import OpvolgKaart from "./OpvolgKaart";
@@ -27,6 +31,9 @@ export default async function Leads() {
   const alleActies = await db.select().from(leadActies).catch(() => null);
   const allePost = await db.select().from(leadPost).catch(() => []);
   const alleVerzonden = await db.select().from(verzondenMails).catch(() => []);
+  // Afspraken per lead in één ronde; leeg als de kolommen nog niet bestaan
+  const afsprakenVanLeads = await afsprakenPerLead().catch(() => new Map<number, LeadAfspraakRijen>());
+  const morgen = komendeWerkdagen(1)[0];
 
   // Tijdlijn per lead: systeem-mails (Mailer) en Soverin-post, op e-mailadres bij elkaar
   const tijdlijn = new Map<number, PostRegel[]>();
@@ -53,6 +60,44 @@ export default async function Leads() {
         })),
     ].sort((a, b) => b.datum.localeCompare(a.datum));
     if (regels.length > 0) tijdlijn.set(l.id, regels);
+  }
+
+  // Wat de leadkaart per lead nodig heeft: klaargezette dagen, aanvragen en de
+  // planlink. Datums als tekst, want de kaart is een client-component.
+  const afspraakStanden: Record<number, LeadAfspraakStand> = {};
+  const repoVoorstellen: Record<number, string> = {};
+  for (const l of alle ?? []) {
+    repoVoorstellen[l.id] = slugify(l.naam);
+    const stand = afsprakenVanLeads.get(l.id);
+    afspraakStanden[l.id] = {
+      blokken: (stand?.blokken ?? []).map((b) => ({
+        id: b.id,
+        datum: b.datum,
+        van: b.van,
+        tot: b.tot,
+        duurMinuten: b.duurMinuten,
+      })),
+      afspraken: (stand?.afspraken ?? []).map((a) => ({
+        id: a.id,
+        startIso: a.start.toISOString(),
+        duurMinuten: a.duurMinuten,
+        status: a.status,
+        naam: a.naam,
+        email: a.email,
+        telefoon: a.telefoon,
+        opmerking: a.opmerking,
+      })),
+      token: l.afspraakToken ?? null,
+      mailOpTekst:
+        l.afspraakMailOp?.toLocaleString("nl-NL", {
+          timeZone: "Europe/Amsterdam",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        }) ?? null,
+    };
   }
 
   const concepten = (alle ?? [])
@@ -107,8 +152,12 @@ export default async function Leads() {
       ) : (
         <LeadLijst
           nu={nu}
+          afspraken={afspraakStanden}
+          morgen={morgen}
+          repoVoorstellen={repoVoorstellen}
           leads={alle.map((l) => ({
             id: l.id,
+            siteId: l.siteId,
             naam: l.naam,
             email: l.email,
             telefoon: l.telefoon,

@@ -16,7 +16,7 @@ function dagTekst(datum: string): string {
  * klaarstaat ziet de klant hier ook niets van.
  */
 export default async function AfsprakenBlok({ siteId }: { siteId: number }) {
-  const { blokken, afspraken: rijen, token, mailOp } = await afspraakStand(siteId);
+  const { blokken, afspraken: rijen, token, mailOp } = await afspraakStand({ soort: "site", id: siteId });
   const morgen = komendeWerkdagen(1)[0];
   const planLink = token ? `https://www.wordswap.nl/afspraak/${token}` : null;
 

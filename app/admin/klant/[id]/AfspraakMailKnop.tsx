@@ -3,14 +3,15 @@
 import { useActionState } from "react";
 import { mailAfspraakVoorstel, type MailUitkomst } from "../../acties-afspraken";
 import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
+import EigenaarVelden, { type Eigenaarschap } from "./EigenaarVelden";
 
 /** Nodigt de klant per mail uit voor de klaargezette dagen. Je ziet wanneer hij
  * verstuurd is, en kunt hem daarna nog een keer sturen (herinnering). */
 export default function AfspraakMailKnop({
   siteId,
+  leadId,
   verstuurdOp,
-}: {
-  siteId: number;
+}: Eigenaarschap & {
   /** Al verstuurd? Dan hier het moment, al in leesbare tekst */
   verstuurdOp: string | null;
 }) {
@@ -19,7 +20,7 @@ export default function AfspraakMailKnop({
 
   return (
     <form action={verstuur} className="mt-4 border-t border-stone-100 pt-4">
-      <input type="hidden" name="siteId" value={siteId} />
+      <EigenaarVelden siteId={siteId} leadId={leadId} />
       <label className="block text-sm font-semibold text-stone-700">
         Eigen berichtje in de mail <span className="font-normal text-stone-500">(mag leeg)</span>
         <textarea
@@ -40,11 +41,13 @@ export default function AfspraakMailKnop({
         </span>
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-3">
-      <MailVoorbeeldKnop
-        soort="afspraak-uitnodiging"
-        siteId={siteId}
-        velden={[["bericht", "bericht"], ["zonderStandaard", "zonderStandaard"]]}
-      />
+      {siteId ? (
+        <MailVoorbeeldKnop
+          soort="afspraak-uitnodiging"
+          siteId={siteId}
+          velden={[["bericht", "bericht"], ["zonderStandaard", "zonderStandaard"]]}
+        />
+      ) : null}
       <button
         type="submit"
         disabled={bezig}

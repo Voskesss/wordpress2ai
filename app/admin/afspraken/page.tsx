@@ -4,6 +4,7 @@ import { duurInWoorden } from "@/lib/afspraken";
 import { alleKomendeAfspraken } from "@/lib/afspraken-db";
 import { bevestigAfspraak } from "../acties-afspraken";
 import AfzegMetReden from "../klant/[id]/AfzegMetReden";
+import EigenaarVelden from "../klant/[id]/EigenaarVelden";
 import MailVoorbeeldKnop from "../klant/[id]/MailVoorbeeldKnop";
 import ActieKnop from "../klant/[id]/ActieKnop";
 
@@ -47,7 +48,8 @@ export default async function AfsprakenOverzicht() {
       </Link>
       <h1 className="mt-3 font-display text-3xl sm:text-4xl font-semibold tracking-tight">📅 Afspraken</h1>
       <p className="mt-2 text-sm text-stone-600">
-        Alle komende afspraken en aanvragen, van al je klanten, op volgorde van de afspraakdatum.
+        Alle komende afspraken en aanvragen, van je klanten en van potentiële klanten uit de leadlijst, op volgorde
+        van de afspraakdatum.
         {aanvragen > 0 && (
           <>
             {" "}
@@ -68,7 +70,7 @@ export default async function AfsprakenOverzicht() {
             <section key={dag.kop}>
               <h2 className="font-display text-lg font-semibold text-stone-800">{dag.kop}</h2>
               <div className="mt-2 space-y-2">
-                {dag.items.map(({ afspraak: a, siteNaam }) => (
+                {dag.items.map(({ afspraak: a, siteNaam, soort }) => (
                   <div
                     key={a.id}
                     className={`flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
@@ -81,9 +83,17 @@ export default async function AfsprakenOverzicht() {
                       {a.status === "bevestigd" ? "✓" : a.ingelogd ? "⏳ ✅" : "⏳ 🔗"}{" "}
                       <strong>{tijdvak(a.start, a.duurMinuten)}</strong> (
                       {duurInWoorden(a.duurMinuten)}) ·{" "}
-                      <Link href={`/admin/klant/${a.siteId}#afspraken-blok`} className="font-semibold underline">
+                      <Link
+                        href={soort === "site" ? `/admin/klant/${a.siteId}#afspraken` : "/admin/leads#afspraken"}
+                        className="font-semibold underline"
+                      >
                         {siteNaam}
                       </Link>
+                      {soort === "lead" && (
+                        <span className="ml-1.5 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-800">
+                          potentiële klant
+                        </span>
+                      )}
                       {a.naam ? ` · ${a.naam}` : ""}
                       {a.telefoon ? ` · ${a.telefoon}` : ""}
                       {a.opmerking ? ` · "${a.opmerking}"` : ""}
@@ -91,7 +101,7 @@ export default async function AfsprakenOverzicht() {
                     {a.status === "aangevraagd" && (
                       <>
                         <form action={bevestigAfspraak} className="flex flex-wrap items-center gap-2">
-                          <input type="hidden" name="siteId" value={a.siteId} />
+                          <EigenaarVelden siteId={a.siteId ?? undefined} leadId={a.leadId ?? undefined} />
                           <input type="hidden" name="afspraakId" value={a.id} />
                           <input
                             name="contact"
@@ -106,7 +116,9 @@ export default async function AfsprakenOverzicht() {
                             title="Komt onder de afspraakregels in de bevestigingsmail."
                             className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
                           />
-                          <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"]]} />
+                          {a.siteId ? (
+                            <MailVoorbeeldKnop klein soort="afspraak-bevestiging" siteId={a.siteId} extra={{ afspraakId: String(a.id) }} velden={[["contact", "contact"], ["bericht", "bericht"]]} />
+                          ) : null}
                           <ActieKnop
                             label="Bevestigen"
                             bezigLabel="Bevestigen..."
@@ -114,11 +126,11 @@ export default async function AfsprakenOverzicht() {
                             className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 cursor-pointer"
                           />
                         </form>
-                        <AfzegMetReden siteId={a.siteId} afspraakId={a.id} label="Afwijzen" />
+                        <AfzegMetReden siteId={a.siteId ?? undefined} leadId={a.leadId ?? undefined} afspraakId={a.id} label="Afwijzen" />
                       </>
                     )}
                     {a.status === "bevestigd" && (
-                      <AfzegMetReden siteId={a.siteId} afspraakId={a.id} label="Afzeggen" />
+                      <AfzegMetReden siteId={a.siteId ?? undefined} leadId={a.leadId ?? undefined} afspraakId={a.id} label="Afzeggen" />
                     )}
                   </div>
                 ))}

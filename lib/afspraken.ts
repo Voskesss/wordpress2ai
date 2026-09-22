@@ -11,6 +11,30 @@
 /** Starttijden staan altijd op :00 of :30, ook bij een gesprek van een uur. */
 export const STAP_MINUTEN = 30;
 
+/**
+ * Bij wie hoort een blok of afspraak: bij een klant met een site, of bij een
+ * potentiële klant uit de leadlijst. Precies een van de twee, nooit beide en
+ * nooit geen van beide; de database bewaakt dat met een CHECK.
+ */
+export type Eigenaar = { soort: "site" | "lead"; id: number };
+
+/** Wie hoort er bij deze rij? Null kan alleen bij oude, kapotte rijen. */
+export function eigenaarVan(rij: { siteId: number | null; leadId: number | null }): Eigenaar | null {
+  if (rij.siteId) return { soort: "site", id: rij.siteId };
+  if (rij.leadId) return { soort: "lead", id: rij.leadId };
+  return null;
+}
+
+/** De kolommen waarmee een nieuw blok of een nieuwe afspraak wordt weggeschreven. */
+export function eigenaarKolommen(e: Eigenaar): { siteId: number | null; leadId: number | null } {
+  return e.soort === "site" ? { siteId: e.id, leadId: null } : { siteId: null, leadId: e.id };
+}
+
+/** Waar de admin deze eigenaar bekijkt, voor links en revalidatePath. */
+export function eigenaarPad(e: Eigenaar): string {
+  return e.soort === "site" ? `/admin/klant/${e.id}` : "/admin/leads";
+}
+
 export type Blok = { datum: string; van: string; tot: string; duurMinuten: number };
 export type Bezet = { start: Date; duurMinuten: number };
 

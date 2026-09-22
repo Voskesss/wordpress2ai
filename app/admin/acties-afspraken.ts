@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { afspraakBlokken, afspraken, sites } from "@/db/schema";
+import { afspraakBlokken, afspraken, leads, sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import {
   duurInWoorden,
@@ -15,37 +15,91 @@ import {
   STAP_MINUTEN,
 } from "@/lib/afspraken";
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
-import { afspraakStand } from "@/lib/afspraken-db";
+import {
+  afspraakStand,
+  afspraakVan,
+  blokVan,
+  eigenaarKolommen,
+  eigenaarPad,
+  type Eigenaar,
+} from "@/lib/afspraken-db";
 import { klantAdres } from "@/lib/klant-adres";
 import { bouwAfspraakAfzegging, bouwAfspraakBevestiging, bouwAfspraakUitnodiging, contactZin } from "@/lib/klant-mails";
-import { abonnementen } from "@/db/schema";
 
 const DUREN = [30, 60, 90, 120];
 
-/** Zorgt dat de site een onraadbare code heeft voor de deelbare planlink. */
-async function zorgToken(siteId: number): Promise<string> {
-  const [rij] = await db.select({ token: sites.afspraakToken }).from(sites).where(eq(sites.id, siteId));
-  if (rij?.token) return rij.token;
+/**
+ * Wie hoort bij dit formulier? Een klantpagina stuurt siteId mee, de leadlijst
+ * leadId. Number("") is 0, dus we eisen een echt positief getal.
+ */
+function eigenaarUitForm(formData: FormData): Eigenaar | null {
+  const leadId = Number(formData.get("leadId"));
+  if (Number.isInteger(leadId) && leadId > 0) return { soort: "lead", id: leadId };
+  const siteId = Number(formData.get("siteId"));
+  if (Number.isInteger(siteId) && siteId > 0) return { soort: "site", id: siteId };
+  return null;
+}
+
+/**
+ * Naam, aanhef, mailadres en adminpad van de eigenaar, voor mails en links.
+ * `naam` is waar het over gaat (de site, of de naam van de lead), `aanhef` is
+ * de persoon die de mail leest: bij een klant de naam uit het abonnement.
+ */
+async function eigenaarInfo(
+  e: Eigenaar,
+): Promise<{ naam: string; aanhef: string; email: string | null; pad: string } | null> {
+  if (e.soort === "site") {
+    const [site] = await db.select().from(sites).where(eq(sites.id, e.id));
+    if (!site) return null;
+    const adres = await klantAdres(site);
+    return { naam: site.naam, aanhef: adres?.naam ?? site.naam, email: adres?.email ?? null, pad: eigenaarPad(e) };
+  }
+  const [lead] = await db.select().from(leads).where(eq(leads.id, e.id));
+  if (!lead) return null;
+  return { naam: lead.naam, aanhef: lead.naam, email: lead.email?.trim() || null, pad: eigenaarPad(e) };
+}
+
+/** De schermen die na een wijziging opnieuw moeten worden opgebouwd. */
+function verversEigenaar(e: Eigenaar) {
+  revalidatePath(eigenaarPad(e));
+  if (e.soort === "site") revalidatePath("/portal");
+  revalidatePath("/admin/afspraken");
+}
+
+/** Zorgt dat de eigenaar een onraadbare code heeft voor de deelbare planlink. */
+async function zorgToken(e: Eigenaar): Promise<string> {
+  const bestaand =
+    e.soort === "site"
+      ? (await db.select({ token: sites.afspraakToken }).from(sites).where(eq(sites.id, e.id)))[0]?.token
+      : (await db.select({ token: leads.afspraakToken }).from(leads).where(eq(leads.id, e.id)))[0]?.token;
+  if (bestaand) return bestaand;
   const token = randomBytes(18).toString("base64url");
-  await db.update(sites).set({ afspraakToken: token }).where(eq(sites.id, siteId));
+  if (e.soort === "site") await db.update(sites).set({ afspraakToken: token }).where(eq(sites.id, e.id));
+  else await db.update(leads).set({ afspraakToken: token }).where(eq(leads.id, e.id));
   return token;
+}
+
+/** Het stempel "uitnodiging verstuurd" wissen of zetten. */
+async function zetMailStempel(e: Eigenaar, moment: Date | null) {
+  if (e.soort === "site") await db.update(sites).set({ afspraakMailOp: moment }).where(eq(sites.id, e.id));
+  else await db.update(leads).set({ afspraakMailOp: moment }).where(eq(leads.id, e.id));
 }
 
 export type BlokUitkomst = { ok: boolean; melding: string; datum?: string };
 
-/** Eén dag met tijdvak klaarzetten voor deze klant. Geeft antwoord terug, zodat
- * het formulier meteen klaar kan staan voor de volgende dag. */
+/** Eén dag met tijdvak klaarzetten voor deze klant of lead. Geeft antwoord terug,
+ * zodat het formulier meteen klaar kan staan voor de volgende dag. */
 export async function zetAfspraakBlokKlaar(
   _vorige: BlokUitkomst | null,
   formData: FormData,
 ): Promise<BlokUitkomst> {
   await requireAdmin();
-  const siteId = Number(formData.get("siteId"));
+  const eigenaar = eigenaarUitForm(formData);
   const datum = String(formData.get("datum") ?? "");
   const van = String(formData.get("van") ?? "");
   const tot = String(formData.get("tot") ?? "");
   const duurMinuten = Number(formData.get("duur"));
-  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
+  if (!eigenaar) return { ok: false, melding: "Onbekende klant." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || !/^\d{2}:\d{2}$/.test(van) || !/^\d{2}:\d{2}$/.test(tot)) {
     return { ok: false, melding: "Vul een geldige dag en tijden in." };
   }
@@ -58,18 +112,14 @@ export async function zetAfspraakBlokKlaar(
   }
   const vandaag = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
   if (datum < vandaag) return { ok: false, melding: "Die dag is al geweest." };
-  await zorgToken(siteId);
+  if (!(await eigenaarInfo(eigenaar))) return { ok: false, melding: "Onbekende klant." };
+  await zorgToken(eigenaar);
   // Eerste dag van een nieuwe ronde? Dan hoort de oude "uitnodiging verstuurd"-
   // stempel niet meer bij deze dagen: wissen, zodat de mailknop weer vers begint.
-  const [alIets] = await db
-    .select({ id: afspraakBlokken.id })
-    .from(afspraakBlokken)
-    .where(eq(afspraakBlokken.siteId, siteId))
-    .limit(1);
-  if (!alIets) await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
-  await db.insert(afspraakBlokken).values({ siteId, datum, van, tot, duurMinuten });
-  revalidatePath(`/admin/klant/${siteId}`);
-  revalidatePath("/portal");
+  const [alIets] = await db.select({ id: afspraakBlokken.id }).from(afspraakBlokken).where(blokVan(eigenaar)).limit(1);
+  if (!alIets) await zetMailStempel(eigenaar, null);
+  await db.insert(afspraakBlokken).values({ ...eigenaarKolommen(eigenaar), datum, van, tot, duurMinuten });
+  verversEigenaar(eigenaar);
   const dagTekst = new Date(`${datum}T12:00:00`).toLocaleDateString("nl-NL", {
     weekday: "long",
     day: "numeric",
@@ -82,21 +132,17 @@ export async function zetAfspraakBlokKlaar(
 export async function verwijderAfspraakBlok(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("blokId"));
-  const siteId = Number(formData.get("siteId"));
-  if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
-  await db.delete(afspraakBlokken).where(and(eq(afspraakBlokken.id, id), eq(afspraakBlokken.siteId, siteId)));
-  const [over] = await db
-    .select({ id: afspraakBlokken.id })
-    .from(afspraakBlokken)
-    .where(eq(afspraakBlokken.siteId, siteId))
-    .limit(1);
-  if (!over) await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
-  revalidatePath(`/admin/klant/${siteId}`);
+  const eigenaar = eigenaarUitForm(formData);
+  if (!Number.isInteger(id) || !eigenaar) return;
+  await db.delete(afspraakBlokken).where(and(eq(afspraakBlokken.id, id), blokVan(eigenaar)));
+  const [over] = await db.select({ id: afspraakBlokken.id }).from(afspraakBlokken).where(blokVan(eigenaar)).limit(1);
+  if (!over) await zetMailStempel(eigenaar, null);
+  verversEigenaar(eigenaar);
 }
 
-/** Alle klaargezette dagen van deze klant weghalen (bv. na een afspraak). */
-async function ruimBlokkenOp(siteId: number) {
-  await db.delete(afspraakBlokken).where(eq(afspraakBlokken.siteId, siteId));
+/** Alle klaargezette dagen van deze eigenaar weghalen (bv. na een afspraak). */
+async function ruimBlokkenOp(eigenaar: Eigenaar) {
+  await db.delete(afspraakBlokken).where(blokVan(eigenaar));
 }
 
 /**
@@ -106,34 +152,34 @@ async function ruimBlokkenOp(siteId: number) {
 export async function bevestigAfspraak(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("afspraakId"));
-  const siteId = Number(formData.get("siteId"));
+  const eigenaar = eigenaarUitForm(formData);
   // Contact: leeg = bellen op het opgegeven nummer; een nummer = dat nummer;
   // een zin ("Ik stuur je een Teams-uitnodiging.") wordt letterlijk gebruikt.
   const contact = String(formData.get("contact") ?? "").trim().slice(0, 200) || null;
   const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000) || null;
-  if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
+  if (!Number.isInteger(id) || !eigenaar) return;
   const [afspraak] = await db
     .select()
     .from(afspraken)
-    .where(and(eq(afspraken.id, id), eq(afspraken.siteId, siteId)));
+    .where(and(eq(afspraken.id, id), afspraakVan(eigenaar)));
   if (!afspraak || afspraak.status !== "aangevraagd") return;
-  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site) return;
+  const info = await eigenaarInfo(eigenaar);
+  if (!info) return;
 
   await db
     .update(afspraken)
-    .set({ status: "bevestigd", bevestigdOp: new Date() })
+    .set({ status: "bevestigd", bevestigdOp: new Date(), contact })
     .where(eq(afspraken.id, id));
-  // Andere openstaande aanvragen van deze klant vervallen, net als de dagen
+  // Andere openstaande aanvragen van deze eigenaar vervallen, net als de dagen
   await db
     .update(afspraken)
     .set({ status: "geannuleerd" })
-    .where(and(eq(afspraken.siteId, siteId), eq(afspraken.status, "aangevraagd")));
-  await ruimBlokkenOp(siteId);
-  await db.update(sites).set({ afspraakMailOp: null }).where(eq(sites.id, siteId));
+    .where(and(afspraakVan(eigenaar), eq(afspraken.status, "aangevraagd")));
+  await ruimBlokkenOp(eigenaar);
+  await zetMailStempel(eigenaar, null);
 
   const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
-  const titel = `WordSwap — ${site.naam}`;
+  const titel = `WordSwap — ${info.naam}`;
   const ics = Buffer.from(
     maakIcs({
       id: afspraak.id,
@@ -158,10 +204,10 @@ export async function bevestigAfspraak(formData: FormData) {
   await mailVanJos({
     naar: "jos@wordswap.nl",
     bcc: false,
-    onderwerp: `📅 Afspraak bevestigd: ${site.naam} — ${wanneer}`,
-    html: `<p>Bevestigd met <strong>${ontsnap(afspraak.naam ?? site.naam)}</strong>${
+    onderwerp: `📅 Afspraak bevestigd: ${info.naam} — ${wanneer}`,
+    html: `<p>Bevestigd met <strong>${ontsnap(afspraak.naam ?? info.naam)}</strong>${
       afspraak.email ? ` (${ontsnap(afspraak.email)})` : ""
-    }.</p>
+    }${eigenaar.soort === "lead" ? " — <strong>potentiële klant</strong> uit de leadlijst" : ""}.</p>
 <ul>
 <li>Wanneer: <strong>${ontsnap(wanneer)}</strong> (${duurInWoorden(afspraak.duurMinuten)})</li>
 <li>Telefoon: ${ontsnap(afspraak.telefoon ?? "niet opgegeven")}</li>
@@ -170,21 +216,20 @@ ${afspraak.opmerking ? `<li>Bericht: ${ontsnap(afspraak.opmerking)}</li>` : ""}
 <p>Het agendabestand zit in de bijlage. De klant heeft een bevestiging gekregen en de voorgestelde dagen zijn weggehaald.</p>`,
     bijlagen,
   });
-  revalidatePath(`/admin/klant/${siteId}`);
-  revalidatePath("/portal");
+  verversEigenaar(eigenaar);
 }
 
 /** Een aanvraag of afspraak afzeggen; de klant hoort het per mail. */
 export async function annuleerAfspraak(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("afspraakId"));
-  const siteId = Number(formData.get("siteId"));
+  const eigenaar = eigenaarUitForm(formData);
   const reden = String(formData.get("reden") ?? "").trim().slice(0, 500);
-  if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
+  if (!Number.isInteger(id) || !eigenaar) return;
   const [afspraak] = await db
     .select()
     .from(afspraken)
-    .where(and(eq(afspraken.id, id), eq(afspraken.siteId, siteId)));
+    .where(and(eq(afspraken.id, id), afspraakVan(eigenaar)));
   if (!afspraak || afspraak.status === "geannuleerd") return;
   await db
     .update(afspraken)
@@ -194,49 +239,57 @@ export async function annuleerAfspraak(formData: FormData) {
     const mail = bouwAfspraakAfzegging({ ...afspraak, reden });
     await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
   }
-  revalidatePath(`/admin/klant/${siteId}`);
-  revalidatePath("/portal");
+  verversEigenaar(eigenaar);
 }
 
 
 export type MailUitkomst = { ok: boolean; melding: string };
 
 /**
- * De klant uitnodigen: mailtje met de klaargezette dagen en de planlink. Kan de
- * klant niet op die dagen, dan vragen we hem te laten weten wanneer wél.
+ * De klant of potentiële klant uitnodigen: mailtje met de klaargezette dagen en
+ * de planlink. Kan hij niet op die dagen, dan vragen we hem te laten weten
+ * wanneer wél.
  */
 export async function mailAfspraakVoorstel(
   _vorige: MailUitkomst | null,
   formData: FormData,
 ): Promise<MailUitkomst> {
   await requireAdmin();
-  const siteId = Number(formData.get("siteId"));
-  if (!Number.isInteger(siteId)) return { ok: false, melding: "Onbekende klant." };
-  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site) return { ok: false, melding: "Onbekende klant." };
-  const { blokken, token } = await afspraakStand(siteId);
+  const eigenaar = eigenaarUitForm(formData);
+  if (!eigenaar) return { ok: false, melding: "Onbekende klant." };
+  const info = await eigenaarInfo(eigenaar);
+  if (!info) return { ok: false, melding: "Onbekende klant." };
+  const { blokken, token } = await afspraakStand(eigenaar);
   if (blokken.length === 0) return { ok: false, melding: "Zet eerst dagen klaar." };
   if (!token) return { ok: false, melding: "Er is nog geen planlink; zet eerst een dag klaar." };
-  const ontvanger = await klantAdres(site);
-  if (!ontvanger) return { ok: false, melding: "Geen e-mailadres bekend bij deze klant." };
+  if (!info.email) {
+    return {
+      ok: false,
+      melding:
+        eigenaar.soort === "lead"
+          ? "Deze lead heeft geen e-mailadres; vul het eerst in bij zijn gegevens."
+          : "Geen e-mailadres bekend bij deze klant.",
+    };
+  }
   const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
   const zonderStandaard = formData.get("zonderStandaard") === "on";
   if (zonderStandaard && !eigenTekst) {
     return { ok: false, melding: "Laat je de standaardzin weg, schrijf dan zelf een berichtje." };
   }
   const mail = bouwAfspraakUitnodiging({
-    siteNaam: site.naam,
-    naam: ontvanger.naam,
+    siteNaam: info.naam,
+    naam: info.aanhef,
     link: `https://www.wordswap.nl/afspraak/${token}`,
     duurMinuten: blokken[0].duurMinuten,
     dagen: blokken,
     eigenTekst,
     zonderStandaard,
+    soort: eigenaar.soort === "lead" ? "lead" : "klant",
   });
-  const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+  const gelukt = await mailVanJos({ naar: info.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
   if (!gelukt) return { ok: false, melding: "Versturen mislukte. Probeer het nog eens." };
 
-  await db.update(sites).set({ afspraakMailOp: new Date() }).where(eq(sites.id, siteId));
-  revalidatePath(`/admin/klant/${siteId}`);
-  return { ok: true, melding: `Verstuurd naar ${ontvanger.email}.` };
+  await zetMailStempel(eigenaar, new Date());
+  verversEigenaar(eigenaar);
+  return { ok: true, melding: `Verstuurd naar ${info.email}.` };
 }

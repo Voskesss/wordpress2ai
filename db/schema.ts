@@ -521,6 +521,13 @@ export const leads = pgTable("leads", {
   conceptKlaarOp: timestamp("concept_klaar_op"),
   // Eenmalige terugblik in het Soverin-postvak (oude mails aan deze lead ophalen)
   soverinDoorzocht: boolean("soverin_doorzocht").notNull().default(false),
+  // Eigen planlink (/afspraak/<code>) en wanneer het afspraakvoorstel de deur
+  // uit ging. Zelfde opzet als bij een klant, zie sites hierboven.
+  afspraakToken: text("afspraak_token"),
+  afspraakMailOp: timestamp("afspraak_mail_op", { withTimezone: true }),
+  // Gezet zodra deze lead klant is geworden: de klantrij die eruit voortkwam.
+  // De leadgeschiedenis (tijdlijn, kennismakingsafspraak) blijft bij de lead.
+  siteId: integer("site_id"),
   // Lead-id bij Meta, zodat de Graph API-import dezelfde lead nooit twee keer aanmaakt
   metaLeadId: text("meta_lead_id").unique(),
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
@@ -658,7 +665,10 @@ export const webinarMails = pgTable(
 /** Dagen die Jos per klant klaarzet om een afspraak op te maken. */
 export const afspraakBlokken = pgTable("afspraak_blokken", {
   id: serial("id").primaryKey(),
-  siteId: integer("site_id").notNull(),
+  /** Eigenaar: OF een klant (siteId) OF een potentiële klant (leadId), nooit
+   * beide. Een CHECK in de database bewaakt dat; zie de migratie van 22-09. */
+  siteId: integer("site_id"),
+  leadId: integer("lead_id"),
   datum: text("datum").notNull(), // YYYY-MM-DD, Nederlandse tijd
   van: text("van").notNull(), // HH:MM
   tot: text("tot").notNull(), // HH:MM
@@ -669,7 +679,9 @@ export const afspraakBlokken = pgTable("afspraak_blokken", {
 /** Gekozen afspraken. Een bevestigde afspraak blokkeert die tijd bij alle klanten. */
 export const afspraken = pgTable("afspraken", {
   id: serial("id").primaryKey(),
-  siteId: integer("site_id").notNull(),
+  /** Eigenaar: zie de opmerking bij afspraakBlokken hierboven. */
+  siteId: integer("site_id"),
+  leadId: integer("lead_id"),
   start: timestamp("start", { withTimezone: true }).notNull(),
   duurMinuten: integer("duur_minuten").notNull(),
   status: text("status", { enum: ["aangevraagd", "bevestigd", "geannuleerd"] })
@@ -680,6 +692,9 @@ export const afspraken = pgTable("afspraken", {
   telefoon: text("telefoon"),
   opmerking: text("opmerking"),
   onderwerp: text("onderwerp"),
+  /** Hoe Jos contact opneemt, zoals ingevuld bij het bevestigen: leeg is
+   * bellen, een zin wordt letterlijk gebruikt (bv. "Ik stuur je een Zoom-link.") */
+  contact: text("contact"),
   /** Aanvraag van een ingelogde klant (dan kloppen naam en e-mail zeker) */
   ingelogd: boolean("ingelogd").notNull().default(false),
   clerkUserId: text("clerk_user_id"),
