@@ -24,6 +24,7 @@ import {
   type Eigenaar,
 } from "@/lib/afspraken-db";
 import { klantAdres } from "@/lib/klant-adres";
+import { werkLeadStatusBijAfspraak } from "@/lib/lead-afspraakstatus";
 import { bouwAfspraakAfzegging, bouwAfspraakBevestiging, bouwAfspraakUitnodiging, contactZin } from "@/lib/klant-mails";
 
 const DUREN = [30, 60, 90, 120];
@@ -177,6 +178,8 @@ export async function bevestigAfspraak(formData: FormData) {
     .where(and(afspraakVan(eigenaar), eq(afspraken.status, "aangevraagd")));
   await ruimBlokkenOp(eigenaar);
   await zetMailStempel(eigenaar, null);
+  // Staat er nu een gesprek in de agenda, dan hoort de lead op "Afspraak gepland"
+  if (eigenaar.soort === "lead") await werkLeadStatusBijAfspraak(eigenaar.id);
 
   const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
   const titel = `WordSwap — ${info.naam}`;
@@ -235,6 +238,8 @@ export async function annuleerAfspraak(formData: FormData) {
     .update(afspraken)
     .set({ status: "geannuleerd", afzegReden: reden || null })
     .where(eq(afspraken.id, id));
+  // Geen afspraak meer? Dan mag "Afspraak gepland" ook weer weg
+  if (eigenaar.soort === "lead") await werkLeadStatusBijAfspraak(eigenaar.id);
   if (afspraak.email) {
     const mail = bouwAfspraakAfzegging({ ...afspraak, reden });
     await mailVanJos({ naar: afspraak.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });

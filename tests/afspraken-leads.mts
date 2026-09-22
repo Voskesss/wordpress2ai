@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { eigenaarKolommen, eigenaarPad, eigenaarVan } from "../lib/afspraken";
 import { bouwAfspraakUitnodiging } from "../lib/klant-mails";
+import { statusBijAfspraak } from "../lib/leads";
 
 // Precies één eigenaar, welke kant je ook op kijkt
 {
@@ -93,6 +94,42 @@ import { bouwAfspraakUitnodiging } from "../lib/klant-mails";
   assert.match(klant.html, /ik bel je/i);
 }
 
+// De leadstatus schuift mee met de agenda, maar alleen waar dat mag
+{
+  // Bevestigde afspraak: van open status naar "Afspraak gepland"
+  assert.equal(statusBijAfspraak("nieuw", true), "afspraak");
+  assert.equal(statusBijAfspraak("wacht_op_reactie", true), "afspraak");
+  assert.equal(statusBijAfspraak("in_gesprek", true), "afspraak");
+  assert.equal(statusBijAfspraak("afspraak", true), null, "al goed, dus niets te doen");
+
+  // Afgezegd: terug naar "in gesprek", maar alleen vanuit "afspraak" zelf
+  assert.equal(statusBijAfspraak("afspraak", false), "in_gesprek");
+  assert.equal(statusBijAfspraak("in_gesprek", false), null);
+  assert.equal(statusBijAfspraak("nieuw", false), null, "zonder afspraak blijft nieuw gewoon nieuw");
+
+  // Wat Jos met de hand afsloot blijft staan, ook als er nog een afspraak loopt
+  for (const afgerond of ["klant", "geen_match", "afgehaakt"]) {
+    assert.equal(statusBijAfspraak(afgerond, true), null, `${afgerond} mag niet meeschuiven`);
+    assert.equal(statusBijAfspraak(afgerond, false), null, `${afgerond} mag niet meeschuiven`);
+  }
+}
+
+// Niets in de afsprakenmodule verstuurt uit zichzelf mail: elke verzending
+// hangt aan een klik van Jos of van degene die de planlink opent.
+{
+  const bronnen = ["app/admin/acties-afspraken.ts", "app/afspraak/[token]/acties.ts"];
+  for (const pad of bronnen) {
+    const bron = readFileSync(pad, "utf8");
+    for (const stuk of bron.split("mailVanJos(").slice(1)) {
+      const naar = stuk.slice(0, 400);
+      assert.ok(
+        /naar:\s*"jos@wordswap\.nl"|naar:\s*(afspraak\.email|email|info\.email|ontvanger\.email)/.test(naar),
+        `${pad}: mail gaat naar een onverwacht adres — ${naar.slice(0, 80)}`,
+      );
+    }
+  }
+}
+
 console.log(
-  "PASS afspraken-leads: precies één eigenaar (code én database), kennismaking blijft bij de lead, lead-uitnodiging zonder portaal en zonder belbelofte.",
+  "PASS afspraken-leads: precies één eigenaar (code én database), kennismaking blijft bij de lead, lead-uitnodiging zonder portaal en zonder belbelofte, leadstatus schuift alleen mee waar dat mag, en mail gaat alleen naar Jos of naar de aanvrager zelf.",
 );

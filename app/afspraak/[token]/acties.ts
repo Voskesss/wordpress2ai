@@ -14,6 +14,7 @@ import {
   eigenaarPad,
   eigenaarViaToken,
 } from "@/lib/afspraken-db";
+import { werkLeadStatusBijAfspraak } from "@/lib/lead-afspraakstatus";
 import { inWordSwapHuisstijl, mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 
 /** Hooguit zoveel aanvragen per planlink per uur: rem tegen misbruik van de link. */
@@ -148,6 +149,9 @@ export async function zegAfspraakAf(_vorige: KiesUitkomst | null, formData: Form
     .update(afspraken)
     .set({ status: "geannuleerd", afzegReden: reden || null })
     .where(eq(afspraken.id, afspraak.id));
+
+  // Zegt hij de afspraak af, dan klopt "Afspraak gepland" niet meer
+  if (eigenaar.soort === "lead") await werkLeadStatusBijAfspraak(eigenaar.id);
 
   const wanneer = momentInWoorden(afspraak.start, afspraak.duurMinuten);
   await mailVanJos({

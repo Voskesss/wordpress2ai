@@ -13,6 +13,24 @@ export const LEAD_STATUSSEN = [
   { waarde: "afgehaakt", label: "Afgehaakt", open: false, kleur: "border-stone-200 bg-stone-100 text-stone-600" },
 ] as const;
 
+/**
+ * Welke statussen meeschuiven met de agenda. Wie al klant is, geen match of
+ * afgehaakt, blijft staan waar hij staat: die heeft Jos bewust zo gezet.
+ */
+const MEESCHUIVEND = ["nieuw", "wacht_op_reactie", "in_gesprek", "afspraak"];
+
+/**
+ * De status die bij de agenda hoort, of null als er niets hoeft te veranderen.
+ * Staat er een bevestigde afspraak in de toekomst, dan "afspraak"; is die
+ * afgezegd, dan terug naar "in_gesprek", maar alleen vanuit "afspraak" zelf,
+ * zodat een afzegging nooit een status overschrijft die Jos met de hand koos.
+ */
+export function statusBijAfspraak(huidig: string, heeftKomendeAfspraak: boolean): string | null {
+  if (!MEESCHUIVEND.includes(huidig)) return null;
+  const hoort = heeftKomendeAfspraak ? "afspraak" : huidig === "afspraak" ? "in_gesprek" : huidig;
+  return hoort === huidig ? null : hoort;
+}
+
 export function statusInfo(waarde: string) {
   return LEAD_STATUSSEN.find((s) => s.waarde === waarde) ?? LEAD_STATUSSEN[0];
 }
