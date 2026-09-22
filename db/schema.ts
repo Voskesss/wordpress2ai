@@ -44,6 +44,9 @@ export const sites = pgTable("sites", {
   // Wanneer deze demosite voor het laatst is teruggezet. Een klus die al liep
   // ziet daaraan dat zijn tak en concept weg zijn, en stopt zichzelf.
   demoResetOp: timestamp("demo_reset_op", { withTimezone: true }),
+  // Wanneer we voor het laatst meldden dat een formuliermail niet aankwam.
+  // Eén melding per etmaal per site; zie lib/mail.ts.
+  formulierMailFoutOp: timestamp("formulier_mail_fout_op", { withTimezone: true }),
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),

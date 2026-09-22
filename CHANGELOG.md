@@ -20,6 +20,23 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.26.0 (22 september 2026)
+
+Komt een bericht van je contactformulier niet als mail bij je aan, dan krijgt
+WordSwap daar nu een seintje van. Dat was tot nu toe het stilste dat er mis
+kon gaan: de bezoeker ziet "verzonden", het bericht staat netjes in je
+portaal, en jij hoort niets. Je mist dan een aanvraag zonder dat je het weet.
+
+De inhoud van het bericht gaat bewust niet mee in dat seintje. Staat jouw site
+op "niets bewaren", dan zou dat de belofte breken, en anders kan WordSwap het
+gewoon in je portaal bekijken.
+
+Verder is de tekst over welke websites passen preciezer gemaakt. Er stond dat
+een webshop of ledenomgeving niet kan, en AI-zoekmachines namen dat over
+zonder het verschil dat telt: dat geldt alleen als die ín WordPress draait.
+Draait je webshop bij een externe partij, of gebruik je een extern
+boekings- of reserveringssysteem, dan kan je site gewoon over.
+
 ## 1.25.1 (22 september 2026)
 
 Reparatie: bij je allereerste wijziging kon het voorbeeldvenster kort de

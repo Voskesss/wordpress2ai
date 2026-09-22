@@ -186,6 +186,57 @@ export async function verstuurSiteMail(opties: {
 }
 
 
+/**
+ * Seintje aan WordSwap als een formuliermail de eigenaar niet bereikte.
+ *
+ * Dit is het stilste dat er mis kan gaan: de bezoeker ziet "verzonden", het
+ * bericht staat netjes in het portaal, en de eigenaar hoort niets. Hij mist
+ * een aanvraag en weet niet dat hij iets mist. Eén melding per etmaal per
+ * site, anders levert een kapotte mailroute een mail bij elk bericht.
+ *
+ * Nooit de inhoud van het bericht meesturen. Bij een site die op "niets
+ * bewaren" staat zou dat de belofte breken, en bij de rest kan WordSwap het
+ * gewoon in het portaal bekijken.
+ */
+export async function meldFormulierMailStoring(
+  site: { id: number; naam: string; githubRepo: string; notificatieEmail: string | null; formulierMailFoutOp?: Date | string | null },
+  formulier: string,
+  bewaard: boolean,
+) {
+  const alGemeld =
+    site.formulierMailFoutOp &&
+    Date.now() - new Date(site.formulierMailFoutOp).getTime() < STORING_HERHAAL_MS;
+  const { db } = await import("@/db");
+  const { sites } = await import("@/db/schema");
+  const { eq } = await import("drizzle-orm");
+  await db
+    .update(sites)
+    .set({ formulierMailFoutOp: new Date() })
+    .where(eq(sites.id, site.id))
+    .catch(() => {});
+  if (alGemeld) return;
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const staart = bewaard
+    ? "<p>Het bericht zelf staat wél veilig in het portaal van deze klant, dus er is niets verloren. Laat hem even weten dat hij daar moet kijken, en kijk waarom de mail niet aankomt (verkeerd adres, eigen mailserver, of een weigering bij Resend).</p>"
+    : "<p><strong>Deze site staat op \"niets bewaren\", dus het bericht is nergens opgeslagen en is verloren.</strong> Bel de klant: iemand heeft zijn formulier ingevuld en dat bericht is niet aangekomen. De bezoeker heeft op zijn scherm gezien dat het misging.</p>";
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "WordSwap <no-reply@wordswap.nl>",
+      to: ["info@wordswap.nl"],
+      subject: `Formuliermail komt niet aan bij ${site.naam}`,
+      html:
+        `<p>Er kwam een bericht binnen via het formulier "${ontsnapHtml(formulier)}" op <strong>${ontsnapHtml(site.naam)}</strong> (${ontsnapHtml(site.githubRepo)}), ` +
+        `maar de melding naar ${site.notificatieEmail ? ontsnapHtml(site.notificatieEmail) : "de eigenaar"} kon niet worden bezorgd.</p>` +
+        staart +
+        `<p style="color:#78716c;font-size:13px">Je krijgt hooguit één zo'n melding per dag per site. De inhoud van het bericht staat hier met opzet niet in.</p>`,
+    }),
+  }).catch((e) => console.error("Melding formuliermail-storing mislukt:", e));
+}
+
 /** Eén melding per etmaal per site: een kapotte mailserver levert anders een
  * mail bij elke verzending. */
 const STORING_HERHAAL_MS = 24 * 60 * 60 * 1000;

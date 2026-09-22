@@ -374,6 +374,18 @@ export async function POST(req: Request) {
         antwoordNaar: invullerEmail,
         bijlagen,
       });
+      // Kwam de melding niet aan, dan mist de eigenaar een aanvraag zonder
+      // dat hij het merkt: het bericht staat wel in zijn portaal, maar daar
+      // kijkt niemand dagelijks. Eén seintje per dag per site naar WordSwap.
+      if (!weg) {
+        const { after } = await import("next/server");
+        after(async () => {
+          const { meldFormulierMailStoring } = await import("@/lib/mail");
+          await meldFormulierMailStoring(site, formulier, bewaren).catch((e) =>
+            console.error("Melding formuliermail-storing mislukt:", e),
+          );
+        });
+      }
       // Bewaren we niets, dan is een mislukte mail geen ongemak maar verlies.
       // Dan moet de bezoeker het weten, zodat hij kan bellen in plaats van te
       // wachten op een antwoord dat nooit komt.
