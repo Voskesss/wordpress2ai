@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.25.0 (22 september 2026)
+
+In de outreach staan nu twee knoppen op de kaart zelf: **🕓 Later** en
+**🚫 Niet mailen**. Dat zat achter "Bewerken / status wijzigen", en dan doe
+je het tijdens het langslopen niet.
+
+"Later bekijken" is nieuw, voor een bedrijf dat nu niet interessant genoeg is
+maar wel blijft bestaan. Het krijgt een eigen lijst, valt buiten de bulk, en
+je kunt het altijd weer op "nieuw" zetten. Dat is iets anders dan niet-mailen,
+want dat is definitief en niet te wissen.
+
 ## 1.24.2 (22 september 2026)
 
 Heb je een cookiemelding op je site, dan staat die niet meer in de weg in het

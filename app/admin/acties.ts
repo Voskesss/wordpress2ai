@@ -519,7 +519,7 @@ export async function prospectBijwerken(formData: FormData) {
   const observatie = formData.get("observatie");
   const email = formData.get("email");
   const wijziging: Record<string, unknown> = {};
-  if (["nieuw", "mail1", "mail2", "mail3", "gereageerd", "klant", "niet_mailen", UITGESLOTEN_STATUS].includes(status)) {
+  if (["nieuw", "mail1", "mail2", "mail3", "gereageerd", "klant", "niet_mailen", "later", UITGESLOTEN_STATUS].includes(status)) {
     wijziging.status = status;
   }
   if (typeof observatie === "string") wijziging.observatie = observatie.trim() || null;
@@ -568,7 +568,7 @@ export async function verstuurOutreach(formData: FormData) {
   if (!Number.isInteger(id)) return;
   const [p] = await db.select().from(prospects).where(eq(prospects.id, id));
   if (!p) return;
-  if (["niet_mailen", "gereageerd", "klant", "mail3", UITGESLOTEN_STATUS].includes(p.status)) return;
+  if (["niet_mailen", "gereageerd", "klant", "mail3", "later", UITGESLOTEN_STATUS].includes(p.status)) return;
   // Extra vangnet: staat dit e-mailadres ergens op niet-mailen, dan nooit versturen
   const afgemeld = await db
     .select()

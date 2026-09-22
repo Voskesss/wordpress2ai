@@ -32,6 +32,7 @@ const statusLabel: Record<string, [string, string]> = {
   klant: ["klant ✓", "bg-emerald-100 border-emerald-300 text-emerald-800"],
   niet_mailen: ["niet mailen", "bg-red-50 border-red-200 text-red-700"],
   uitgesloten: ["buiten de bulk", "bg-amber-50 border-amber-200 text-amber-800"],
+  later: ["later bekijken", "bg-sky-50 border-sky-200 text-sky-800"],
 };
 
 const dagen = (d: Date | null) =>
@@ -52,12 +53,13 @@ export default async function Outreach({
     persoonlijk.find((m) => m.prospectId === pid && m.nummer === nr) ?? null;
   const afgemeld = alle.filter((p) => p.status === "niet_mailen");
   const filters: Record<string, (p: (typeof alle)[number]) => boolean> = {
-    actie: (p) => !["niet_mailen", UITGESLOTEN_STATUS, "gereageerd", "klant"].includes(p.status),
+    actie: (p) => !["niet_mailen", UITGESLOTEN_STATUS, "later", "gereageerd", "klant"].includes(p.status),
     nieuw: (p) => p.status === "nieuw",
     loopt: (p) => p.status.startsWith("mail"),
     raak: (p) => ["gereageerd", "klant"].includes(p.status),
     apart: (p) => p.status === UITGESLOTEN_STATUS,
-    alles: (p) => !["niet_mailen", UITGESLOTEN_STATUS].includes(p.status),
+    later: (p) => p.status === "later",
+    alles: (p) => !["niet_mailen", UITGESLOTEN_STATUS, "later"].includes(p.status),
   };
   const filter = filters[toon] ?? filters.actie;
   // Sortering: eerst wie nog nooit gemaild is, dan wie het langst stil is
@@ -192,7 +194,7 @@ export default async function Outreach({
       )}
 
       {/* Overzicht per fase — klik om de lijst te filteren */}
-      <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:grid-cols-7">
         {(
           [
             ["actie", "Actie nodig", alle.filter(filters.actie).length, "bg-amber-100 text-amber-800"],
@@ -200,6 +202,7 @@ export default async function Outreach({
             ["loopt", "Loopt (mail 1-3)", alle.filter((p) => p.status.startsWith("mail")).length, "bg-violet-100 text-violet-800"],
             ["raak", "Gereageerd / klant", alle.filter((p) => ["gereageerd", "klant"].includes(p.status)).length, "bg-emerald-100 text-emerald-800"],
             ["apart", "Buiten de bulk", alle.filter(filters.apart).length, "bg-amber-100 text-amber-800"],
+            ["later", "Later bekijken", alle.filter(filters.later).length, "bg-sky-100 text-sky-800"],
             ["alles", "Alles", alle.filter(filters.alles).length, "bg-white border border-stone-200 text-stone-700"],
           ] as const
         ).map(([sleutel, label, aantal, kleur]) => (
@@ -300,6 +303,35 @@ export default async function Outreach({
                     />
                   </form>
                 )}
+                {/* Meteen wegzetten vanuit het overzicht. Zat eerst achter
+                    "Bewerken / status wijzigen", en dan doe je het niet: je
+                    scrolt door en laat hem staan tussen de kandidaten. */}
+                {!["niet_mailen", "later", "klant"].includes(p.status) && (
+                  <>
+                    <form action={prospectBijwerken}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="status" value="later" />
+                      <ActieKnop
+                        label="🕓 Later"
+                        title="Nu niet interessant genoeg, maar misschien later wel. Komt in de aparte lijst Later bekijken en gaat niet mee in de bulk."
+                        bezigLabel="..."
+                        klaarLabel="✓"
+                        className="rounded-full border border-sky-300 px-3 py-1.5 text-sm font-semibold text-sky-800 hover:bg-sky-50 cursor-pointer"
+                      />
+                    </form>
+                    <form action={prospectBijwerken}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="status" value="niet_mailen" />
+                      <ActieKnop
+                        label="🚫 Niet mailen"
+                        title="Nooit meer mailen. Deze lijst is bewust niet te wissen en het adres kan ook niet opnieuw toegevoegd worden."
+                        bezigLabel="..."
+                        klaarLabel="✓"
+                        className="rounded-full border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 cursor-pointer"
+                      />
+                    </form>
+                  </>
+                )}
                 {mailBaar && (
                   <form action={verstuurOutreach}>
                     <input type="hidden" name="id" value={p.id} />
@@ -363,6 +395,14 @@ export default async function Outreach({
                   </details>
                 );
               })()}
+              {p.status === "later" && (
+                <p className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                  <strong>Later bekijken.</strong> Nu niet interessant genoeg,
+                  maar niet afgeschreven. Hij gaat niet mee in de bulk en staat
+                  in de lijst &ldquo;Later bekijken&rdquo;. Zet hem hieronder
+                  terug op &ldquo;nieuw&rdquo; als je hem toch wilt benaderen.
+                </p>
+              )}
               {p.status === UITGESLOTEN_STATUS && (
                 <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                   <strong>Buiten de bulk gehouden{(() => {
@@ -460,6 +500,7 @@ export default async function Outreach({
                       <option value="mail3">mail 3 verstuurd</option>
                       <option value="gereageerd">gereageerd</option>
                       <option value="klant">klant geworden</option>
+                      <option value="later">later bekijken</option>
                       <option value={UITGESLOTEN_STATUS}>buiten de bulk (beroepsgroep)</option>
                       <option value="niet_mailen">niet mailen</option>
                     </select>
