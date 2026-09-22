@@ -29,6 +29,15 @@ onderin op Klaar en vertel in de chat wat er met de foto's moet gebeuren:
 "zet deze drie in de galerij". Eerst kon er maar één foto per keer mee en
 sloot de bank meteen na het kiezen.
 
+## 1.27.1 (22 september 2026)
+
+Zestien pagina's op de website hadden een titel of omschrijving die Google
+afkapt, tot 231 tekens aan toe. Die zijn ingekort met dezelfde woorden, zodat
+er in de zoekresultaten een hele zin staat in plaats van een halve.
+
+De controle die dit vond staat nu vast in de testen, zodat een nieuwe pagina
+er niet meer langs kan.
+
 ## 1.27.0 (22 september 2026)
 
 Vijf nieuwe pagina's op de website, per vak: hoveniers, schilders,

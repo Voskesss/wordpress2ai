@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Een trage WordPress-site? Bekijk eerst waar het aan ligt.", "description": "Grote afbeeldingen, externe scripts, plugins en hosting kunnen een website vertragen. Soms is optimaliseren voldoende. Wil je ook af van WordPress-beheer, dan kan een overstap naar een statische site passen.", "alternates": {"canonical": "/wordpress-website-traag"}};
+export const metadata: Metadata = {"title": "Een trage WordPress-site? Bekijk eerst waar het aan ligt.", "description": "Afbeeldingen, scripts, plugins en hosting kunnen je site vertragen. Soms is optimaliseren genoeg. Wil je ook af van WordPress-beheer, kijk dan hier.", "alternates": {"canonical": "/wordpress-website-traag"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Trage WordPress-site",
   "titel": "Een trage WordPress-site? Bekijk eerst waar het aan ligt.",

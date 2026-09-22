@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Je WordPress-website overzetten, met overzicht en controle.", "description": "Je wilt eenvoudiger websitebeheer, maar je domein, mail en bestaande inhoud moeten zorgvuldig worden behandeld. WordSwap bekijkt eerst wat er mee kan. Daarna krijg je een prijs en een kopie om te beoordelen.", "alternates": {"canonical": "/wordpress-overzetten"}};
+export const metadata: Metadata = {"title": "Je WordPress-website overzetten, met overzicht en controle.", "description": "Je domein, mail en inhoud moeten zorgvuldig behandeld worden. WordSwap bekijkt eerst wat er mee kan, daarna krijg je een prijs en een kopie.", "alternates": {"canonical": "/wordpress-overzetten"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "WordPress overzetten",
   "titel": "Je WordPress-website overzetten, met overzicht en controle.",

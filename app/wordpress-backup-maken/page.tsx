@@ -4,7 +4,7 @@ import SeoLanding from "../SeoLanding";
 export const metadata: Metadata = {
   title: "Een complete backup van je WordPress-site maken",
   description:
-    "Zo maak je in 10 minuten gratis een volledige kopie van je WordPress-site (bestanden én database) met UpdraftPlus — zonder technische kennis. Handig vóór elke overstap of grote wijziging.",
+    "Zo maak je in 10 minuten gratis een volledige kopie van je WordPress-site, bestanden én database, met UpdraftPlus. Zonder technische kennis.",
   alternates: { canonical: "/wordpress-backup-maken" },
 };
 

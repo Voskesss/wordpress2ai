@@ -4,7 +4,7 @@ import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
   title: "Veiligheid: je website, AI-chat en controle",
   description:
-    "Geen WordPress-plugins op je publieke site. Wel beveiligde accounts, controle vóór publicatie en versiegeschiedenis. Lees hoe WordSwap de beveiliging voor je regelt.",
+    "Geen WordPress-plugins op je publieke site. Wel beveiligde accounts, controle vóór publicatie en versiegeschiedenis. Zo regelt WordSwap dat.",
   alternates: { canonical: "/veiligheid" },
 };
 const vragen = [

@@ -7,7 +7,7 @@ import { josFoto } from "@/lib/persoonlijk";
 export const metadata: Metadata = {
   title: "Een website is goedkoop geworden. Het gedoe erna niet.",
   description:
-    "Iedereen belooft een goedkope AI-website. Klopt, bouwen is goedkoop geworden. Maar hosting, mail, domein, vindbaarheid en aanpassen dan? Wat WordSwap wél regelt.",
+    "Iedereen belooft een goedkope AI-website. Bouwen is inderdaad goedkoop geworden. Maar hosting, mail, domein, vindbaarheid en aanpassen dan?",
   alternates: { canonical: "/ai-website" },
 };
 

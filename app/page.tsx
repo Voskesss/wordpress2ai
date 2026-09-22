@@ -9,7 +9,7 @@ import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
   title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
   description:
-    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 + vanaf €19 per maand, excl. btw. Gratis websitecheck.",
+    "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 en vanaf €19 per maand.",
   alternates: { canonical: "/" },
   // Deelvoorbeeld (LinkedIn, WhatsApp, Facebook), los van de paginatitel hierboven.
   // Een eigen openGraph vervangt die van de layout helemaal, dus alles opnieuw.

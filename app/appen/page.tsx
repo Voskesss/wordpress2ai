@@ -7,7 +7,7 @@ import { josFoto } from "@/lib/persoonlijk";
 export const metadata: Metadata = {
   title: "Je laatste project op je website? Stuur een appje.",
   description:
-    "Foto’s van je laatste project op je site zetten door ze te appen. In bèta bij WordSwap. Vandaag kan het al via de chat van je eigen website: je zegt wat erop moet, je site past het aan.",
+    "Foto’s van je laatste project op je site zetten door ze te appen. In bèta. Vandaag kan het al via de chat van je eigen website.",
   alternates: { canonical: "/appen" },
 };
 

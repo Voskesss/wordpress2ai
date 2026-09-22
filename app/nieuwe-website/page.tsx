@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Nieuwe website",
   description:
-    "Liever een compleet nieuwe website in plaats van je WordPress-site overzetten? Kies voor een AI-ontwerp (snel en voordelig) of een ontwerp door een designer — altijd met de AI-beheerder erbij.",
+    "Liever een compleet nieuwe website dan je WordPress-site overzetten? Kies een AI-ontwerp of een ontwerp door een designer, met de AI-beheerder erbij.",
 };
 
 const stappen = [

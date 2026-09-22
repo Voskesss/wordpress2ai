@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Je eigen AI en WordSwap: wat kan er al?",
   description:
-    "Bij WordSwap is je website van jou — ook voor je AI. Beheer hem via onze chat, laat je eigen assistent meehelpen, of werk als expert met je eigen AI-tools rechtstreeks op de bestanden. Zo werkt het.",
+    "Je website is van jou, ook voor je AI. Beheer hem via onze chat, laat je eigen assistent meehelpen, of werk rechtstreeks op de bestanden.",
   alternates: { canonical: "/eigen-ai-koppelen" },
 };
 

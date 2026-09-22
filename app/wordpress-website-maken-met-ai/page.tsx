@@ -5,7 +5,7 @@ import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
   title: "WordPress-website maken met AI? Bouwen én blijven bijhouden",
   description:
-    "Een nieuwe website zonder WordPress, vanaf €250 excl. btw. Daarna zelf bijhouden met AI-chat. Heb je al een site? Bekijk ook de overstap met bestaand ontwerp.",
+    "Een nieuwe website zonder WordPress, vanaf €250 excl. btw. Daarna zelf bijhouden via AI-chat. Heb je al een site? Bekijk ook de overstap.",
   alternates: {
     canonical: "/wordpress-website-maken-met-ai",
   },
