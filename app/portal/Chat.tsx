@@ -8,6 +8,7 @@ import DocumentBank from "./DocumentBank";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import DemoOpdrachten from "./DemoOpdrachten";
+import DemoConceptStrip from "./DemoConceptStrip";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
@@ -2886,7 +2887,19 @@ export default function Chat({
           )}
 
           {/* Concept-strip */}
-          {concept && (
+          {concept && isDemo && isMobiel && (
+            <DemoConceptStrip
+              conceptActie={conceptActie}
+              bezig={bezig}
+              nieuwBezig={nieuwBezig}
+              stapTerugBezig={stapTerugBezig}
+              onBekijk={() => setMobielWeergave("site")}
+              onPubliceer={() => conceptVerwerken("publiceer")}
+              onStapTerug={stapTerug}
+              onVerwerp={() => conceptVerwerken("verwerp")}
+            />
+          )}
+          {concept && !(isDemo && isMobiel) && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
@@ -3277,7 +3290,11 @@ export default function Chat({
           {/* Klaarstaande opdrachten, alleen in de probeer-demo. Het lege
               invoerveld is wat een demo doodslaat; met één klik ziet iemand
               binnen tien seconden zijn eigen wijziging op de site staan. */}
-          {isDemo && <DemoOpdrachten />}
+          {/* Niet terwijl er iets loopt, en niet zolang er een concept open
+              staat: op een telefoon schuift de conceptstrook er anders 140
+              pixels aan suggesties onder en ben je de gewonnen ruimte weer
+              kwijt. Wie een concept heeft, is toch met dat concept bezig. */}
+          {isDemo && !bezig && !concept && <DemoOpdrachten />}
 
           {/* Invoerbalk */}
           <div

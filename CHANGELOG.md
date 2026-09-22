@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.23.0 (22 september 2026)
+
+Het gele conceptblok nam op een telefoon te veel van het scherm in beslag,
+precies waar de chat hoort te staan. In de demo klapt het nu in tot één
+regel: "Concept, niet live" met Bekijk en Publiceer ernaast, en stap terug en
+concept weggooien achter een knopje. Gemeten op een telefoon van 390 breed
+gaat het van 176 naar 48 pixels.
+
+De voorbeeldknoppen verdwijnen zolang er een opdracht loopt of een concept
+open staat, anders was die gewonnen ruimte er meteen weer af.
+
+Voor klanten verandert er niets; die houden het vertrouwde blok, ook op hun
+telefoon.
+
 ## 1.22.0 (22 september 2026)
 
 De probeer-demo is uitgekleed, zonder dat er iets verandert voor klanten.

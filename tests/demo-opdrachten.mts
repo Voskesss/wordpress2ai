@@ -18,7 +18,10 @@ const strip = await readFile(new URL("../app/portal/DemoOpdrachten.tsx", import.
 const welkom = await readFile(new URL("../app/portal/DemoWelkom.tsx", import.meta.url), "utf8");
 
 // 1. De strip verschijnt alleen in de demo
-assert.ok(chat.includes("{isDemo && <DemoOpdrachten />}"), "de suggestieknoppen staan niet achter isDemo");
+assert.ok(
+  chat.includes("{isDemo && !bezig && !concept && <DemoOpdrachten />}"),
+  "de suggestieknoppen horen alleen in de demo, niet tijdens een lopende beurt en niet naast een open concept",
+);
 
 // 2. En direct versturen kan ook alleen daar
 const luisteraar = chat.slice(chat.indexOf("function opStart"), chat.indexOf("window.addEventListener(\"wp2ai-startopdracht\""));
@@ -80,5 +83,31 @@ assert.ok(daggrens.includes("!(await isBeheerder())"), "de beheerder loopt tegen
 // 10. En de melding houdt zich aan de streepjesregel
 const melding = chatRoute.slice(chatRoute.indexOf("Je hebt het maximum van de demo"), chatRoute.indexOf("Je hebt het maximum van de demo") + 200);
 assert.ok(!melding.includes("—"), "lang streepje in de daggrens-melding");
+
+// 11. De ingeklapte conceptstrook is alleen voor de demo op een telefoon.
+//     Gemeten op 390px breed: de gewone strook is 176 pixels hoog, deze 48.
+//     Een klant houdt de gewone strook, ook op zijn telefoon.
+assert.ok(
+  chat.includes("{concept && isDemo && isMobiel && ("),
+  "de ingeklapte strook staat niet achter isDemo én isMobiel",
+);
+assert.ok(
+  chat.includes("{concept && !(isDemo && isMobiel) && ("),
+  "de gewone conceptstrook is niet meer voorbehouden aan klanten en aan de computer",
+);
+
+// 12. En in die strook blijft elke actie bereikbaar; niets mag stilletjes
+//     verdwijnen omdat het scherm smal is
+const strook = await readFile(new URL("../app/portal/DemoConceptStrip.tsx", import.meta.url), "utf8");
+for (const [wat, zoek] of [
+  ["publiceren", "onPubliceer"],
+  ["het concept bekijken", "onBekijk"],
+  ["stap terug", "onStapTerug"],
+  ["concept weggooien", "onVerwerp"],
+] as const) {
+  assert.ok(strook.includes(zoek), `${wat} is niet meer te doen op een telefoon`);
+}
+assert.ok(strook.includes("aria-label=\"Meer conceptacties\""), "het meer-menu is niet te bedienen met een schermlezer");
+assert.ok(!strook.includes("—"), "lang streepje in de conceptstrook");
 
 console.log("demo-opdrachten: ok");

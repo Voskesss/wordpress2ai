@@ -77,22 +77,22 @@ export default function DemoOpdrachten() {
           verbergen
         </button>
       </div>
-      <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+      <div className="mt-2 grid grid-cols-2 gap-1.5">
         {OPDRACHTEN.map((o) => (
           <button
             key={o.kop}
             type="button"
             onClick={() => start(o)}
-            className="lift rounded-xl border border-violet-200 bg-white px-3 py-2 text-left hover:border-violet-400"
+            className="lift rounded-xl border border-violet-200 bg-white px-2.5 py-2 text-left hover:border-violet-400 sm:px-3"
           >
-            <span className="block text-sm font-semibold text-stone-800">{o.kop}</span>
-            <span className="block text-xs text-stone-500">{o.uitleg}</span>
+            <span className="block text-xs font-semibold text-stone-800 sm:text-sm">{o.kop}</span>
+            <span className="block text-[11px] leading-tight text-stone-500 sm:text-xs">{o.uitleg}</span>
           </button>
         ))}
       </div>
       <p className="mt-2 text-[11px] text-violet-700">
-        Of typ gewoon zelf wat je anders wilt. Je kunt niets kapotmaken: de
-        demo-site wordt elk uur teruggezet.
+        Of typ zelf wat je wilt aanpassen.
+        <span className="hidden sm:inline"> Je kunt niets kapotmaken: de demo-site wordt elk uur teruggezet.</span>
       </p>
     </div>
   );
