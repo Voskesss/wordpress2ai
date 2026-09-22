@@ -20,7 +20,7 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## 1.28.0 (22 september 2026)
+## 1.28.1 (22 september 2026)
 
 Uit de fotobank kun je nu meerdere foto's tegelijk kiezen om mee te sturen
 met één opdracht. Klik "Gebruik in opdracht" bij elke foto die mee moet (de
