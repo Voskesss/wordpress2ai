@@ -408,7 +408,7 @@ export default function Chat({
   const kleurInputRef = useRef<HTMLInputElement>(null);
   const [luistert, setLuistert] = useState(false);
   const [spraakKan, setSpraakKan] = useState(false);
-  const herkenningRef = useRef<{ stop: () => void } | null>(null);
+  const herkenningRef = useRef<{ stop: () => void; abort?: () => void } | null>(null);
 
   useEffect(() => {
     const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
@@ -443,9 +443,30 @@ export default function Chat({
     wasBezig.current = bezig;
   }, [bezig]);
 
+  /**
+   * Stopt het luisteren en zet het knopje meteen uit.
+   *
+   * Drie dingen gingen hier mis. We riepen stop() aan, en die vraagt de
+   * browser om het laatste stukje nog netjes af te maken; op een telefoon
+   * gebeurt dat soms niet en dan bleef het rode knopje eindeloos pulseren.
+   * abort() kapt er direct mee. Verder wachtten we met het uitzetten van het
+   * knopje op onend, en dat komt in datzelfde geval nooit. En hij bleef
+   * doorluisteren nadat je je bericht al verstuurd had.
+   */
+  function stopSpraak() {
+    const rec = herkenningRef.current;
+    herkenningRef.current = null;
+    setLuistert(false);
+    try {
+      rec?.abort ? rec.abort() : rec?.stop();
+    } catch {
+      // Al gestopt of geen toestemming meer: het knopje staat nu toch uit
+    }
+  }
+
   function wisselSpraak() {
     if (luistert) {
-      herkenningRef.current?.stop();
+      stopSpraak();
       return;
     }
     const w = window as unknown as {
@@ -825,6 +846,20 @@ export default function Chat({
     return () => {
       mq.removeEventListener("change", zet);
       grof.removeEventListener("change", zetTouch);
+    };
+  }, []);
+
+  // Luisteren stopt als dit scherm verdwijnt: een microfoon die openblijft
+  // nadat je weg bent geklikt, is niet uit te leggen.
+  useEffect(() => {
+    return () => {
+      const rec = herkenningRef.current;
+      herkenningRef.current = null;
+      try {
+        rec?.abort ? rec.abort() : rec?.stop();
+      } catch {
+        // niets te stoppen
+      }
     };
   }, []);
 
@@ -1224,6 +1259,9 @@ export default function Chat({
   ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
     if (!tekst) return;
+    // Je bent klaar met praten zodra je verstuurt; anders bleef de microfoon
+    // openstaan en tikte je volgende zin zichzelf in het lege veld.
+    if (luistert) stopSpraak();
     if (bezigRef.current && !uitWachtrij) {
       // AI is nog bezig: bericht in de wachtrij zetten en meteen tonen
       const q = wachtrijRef.current;
@@ -3654,7 +3692,10 @@ export default function Chat({
                 <Tip tekst={luistert ? "Klik om te stoppen met luisteren" : "Spreek je wijziging in — vertel gewoon wat er anders moet"}>
                   <button
                     onClick={wisselSpraak}
-                    disabled={bezig}
+                    // Tijdens het luisteren nooit uitschakelen: anders staat
+                    // het rode knopje te pulseren terwijl je er niets meer
+                    // mee kunt. Beginnen kan wel pas als de AI klaar is.
+                    disabled={bezig && !luistert}
                     aria-label={luistert ? "Stop met inspreken" : "Spreek je wijziging in"}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
                       luistert ? "bg-red-600 text-white animate-pulse" : "text-stone-500 hover:bg-stone-100"

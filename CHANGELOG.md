@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.24.1 (22 september 2026)
+
+Reparatie: het inspreken ging wel aan maar niet meer uit. Het rode knopje
+bleef pulseren en reageerde nergens op, vooral op een telefoon.
+
+Er waren drie oorzaken. We vroegen de browser netjes af te ronden in plaats
+van direct te stoppen, en op een telefoon gebeurde dat soms niet. Het knopje
+ging pas uit als dat afronden gelukt was, dus juist dan nooit. En zodra de AI
+aan het werk was, stond de knop helemaal uit.
+
+De microfoon stopt nu ook vanzelf als je je bericht verstuurt of het scherm
+verlaat. Daarvoor bleef hij openstaan en tikte je volgende zin zichzelf in
+het lege veld.
+
 ## 1.24.0 (22 september 2026)
 
 De ingeklapte conceptbalk op de telefoon geldt nu ook voor klanten, niet
