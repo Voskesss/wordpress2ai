@@ -2366,7 +2366,15 @@ export default function Chat({
             splitModus
               ? "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
               : mobielChat
-                ? "flex min-h-0 flex-1 flex-col justify-end gap-0 overflow-y-auto bg-white p-3"
+                ? // Op een telefoon stond hier "justify-end" samen met
+                  // "overflow-y-auto". Die combinatie klemt de bovenkant zodra
+                  // de inhoud hoger wordt dan het vak: je kunt er niet meer bij
+                  // en iOS tekent teksten over elkaar heen. Hetzelfde effect
+                  // (alles onderaan) halen we nu met mt-auto op het eerste
+                  // blok hieronder, en dat heeft die kwaal niet.
+                  // overflow-x-hidden: zonder rem liet één element dat een paar
+                  // pixels te breed is het hele gesprek opzij schuiven.
+                  "flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden bg-white p-3"
                 : isMobiel
                   ? "hidden"
                 : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
@@ -2374,7 +2382,12 @@ export default function Chat({
                   "relative z-10 mx-auto w-[min(96%,44rem)] lg:w-[min(94%,52rem)] xl:w-[min(92%,62rem)] 2xl:w-[min(90%,72rem)] pb-3"
           }
         >
-          <ChatHulp onInChat={hulpvraagInChat} />
+          {/* mt-auto op het eerste blok duwt alles naar de onderkant, net als
+              justify-end deed, maar zonder de klem aan de bovenkant. Op de
+              computer staat hier "contents", dus daar verandert er niets. */}
+          <div className={mobielChat ? "mt-auto" : "contents"}>
+            <ChatHulp onInChat={hulpvraagInChat} />
+          </div>
           {herstelFout && (
             <div role="alert" className="mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-950">
               <p>{herstelFout.tekst}</p>

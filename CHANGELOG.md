@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.23.1 (22 september 2026)
+
+Reparatie op de telefoon: in de chat kon je soms niet meer bij de bovenkant
+van het gesprek, schoof het scherm opzij als je erover veegde, en tekende de
+telefoon teksten over elkaar heen.
+
+Dat kwam door een opmaakcombinatie die de browser laat denken dat er niets te
+scrollen valt, terwijl de bovenkant van het gesprek buiten beeld hangt. In een
+proef stond het bovenste blok 150 pixels boven de rand en was het niet te
+bereiken. Het gesprek plakt nog steeds aan de onderkant, maar nu zonder die
+klem, en er zit een rem op het opzij schuiven.
+
+Op een computer verandert er niets.
+
 ## 1.23.0 (22 september 2026)
 
 Het gele conceptblok nam op een telefoon te veel van het scherm in beslag,

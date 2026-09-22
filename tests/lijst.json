@@ -20,6 +20,7 @@
   "chat-bestandsslot.mts",
   "chat-response.cjs",
   "chat-tijdgrens.mts",
+  "chat-mobiel.mts",
   "chat-tips.mts",
   "chat-volledig.mts",
   "concept-opruimen.mts",
