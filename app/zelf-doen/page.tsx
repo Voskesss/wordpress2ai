@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Zelf je WordPress-site omzetten — de complete handleiding",
   description:
-    "Stap voor stap je WordPress-site zelf omzetten naar een snelle statische website: export, hosting, formulieren, 301-redirects en SEO-behoud. Gratis en zonder addertjes — en eerlijk over waar het lastig wordt.",
+    "Stap voor stap je WordPress-site zelf omzetten: export, hosting, formulieren, redirects en SEO-behoud. Gratis, en eerlijk over waar het lastig wordt.",
 };
 
 type Stap = {

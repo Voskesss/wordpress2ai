@@ -5,7 +5,7 @@ import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
   title: "WordPress omzetten naar een snelle, AI-vriendelijke website",
   description:
-    "WordPress omzetten met aandacht voor laadtijd, leesbare inhoud, bestaande URL’s en SEO. Daarna zelf bijhouden met AI. Geen garantie op zoekposities of AI-vermeldingen.",
+    "WordPress omzetten met aandacht voor laadtijd, bestaande adressen en SEO. Daarna zelf bijhouden met AI. Geen garantie op zoekposities.",
   alternates: {
     canonical: "/wordpress-omzetten-snel-en-ai-vriendelijk",
   },

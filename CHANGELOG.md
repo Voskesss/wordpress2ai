@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.27.1 (22 september 2026)
+
+Zestien pagina's op de website hadden een titel of omschrijving die Google
+afkapt, tot 231 tekens aan toe. Die zijn ingekort met dezelfde woorden, zodat
+er in de zoekresultaten een hele zin staat in plaats van een halve.
+
+De controle die dit vond staat nu vast in de testen, zodat een nieuwe pagina
+er niet meer langs kan.
+
 ## 1.27.0 (22 september 2026)
 
 Vijf nieuwe pagina's op de website, per vak: hoveniers, schilders,

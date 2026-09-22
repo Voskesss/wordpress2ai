@@ -6,7 +6,7 @@ import PersoonlijkBlok from "../PersoonlijkBlok";
 export const metadata: Metadata = {
   title: "Over WordSwap — wie, wat en waarom",
   description:
-    "WordSwap is een Nederlandse dienst uit Oosterbeek die WordPress-websites omzet naar snelle websites zonder WordPress-beheer, die je daarna aanpast door het te typen. Opgericht door Jos Klijnhout.",
+    "WordSwap is een Nederlandse dienst uit Oosterbeek die WordPress-sites omzet naar snelle sites zonder onderhoud. Opgericht door Jos Klijnhout.",
   alternates: { canonical: "/over-wordswap" },
 };
 

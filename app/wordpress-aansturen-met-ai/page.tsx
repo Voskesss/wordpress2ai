@@ -5,7 +5,7 @@ import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
   title: "Je WordPress-website omzetten en via AI aanpassen",
   description:
-    "Je WordPress-website omzetten zodat je hem via AI kunt aanpassen? WordSwap zet je bestaande site over (zelfde ontwerp en adressen) en daarna wijzig je alles door het gewoon te typen. Vanaf €150, eerst zien dan betalen.",
+    "WordSwap zet je bestaande WordPress-site over, met hetzelfde ontwerp en dezelfde adressen. Daarna wijzig je alles door het te typen. Vanaf €150.",
   alternates: {
     canonical: "/wordpress-aansturen-met-ai",
   },

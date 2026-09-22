@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Een WordPress-alternatief voor ondernemers die zelf willen aanpassen.", "description": "WordPress is flexibel. Maar als je vooral teksten, foto’s en diensten actueel wilt houden, kan het beheer meer werk zijn dan je wilt. WordSwap vervangt WordPress door een statische website die je via een ingebouwde AI-chat beheert.", "alternates": {"canonical": "/wordpress-alternatief"}};
+export const metadata: Metadata = {"title": "Een WordPress-alternatief voor wie zelf wil aanpassen", "description": "Wil je vooral teksten, foto’s en diensten actueel houden? WordSwap vervangt WordPress door een statische site die je via een AI-chat beheert.", "alternates": {"canonical": "/wordpress-alternatief"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "WordPress-alternatief",
   "titel": "Een WordPress-alternatief voor ondernemers die zelf willen aanpassen.",
