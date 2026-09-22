@@ -225,7 +225,7 @@ export default function Chat({
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
   const [herstelFout, setHerstelFout] = useState<{ soort: "gesprek" | "bericht" | "publiceer" | "verwerp"; tekst: string } | null>(null);
-  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto: string | null; pagina: string } | null>(null);
+  const mislukteOpdracht = useRef<{ tekst: string; fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFotos: string[]; pagina: string } | null>(null);
 
   const [bezig, setBezigState] = useState(false);
   const bezigRef = useRef(false);
@@ -391,8 +391,9 @@ export default function Chat({
   // HTML van het aangewezen element bij "Kies uit de fotobank": daarmee kan de
   // server precies de aangewezen plek raken als de foto vaker op de pagina staat
   const [fotobankElement, setFotobankElement] = useState<string | null>(null);
-  // Uit de fotobank gekozen foto om in de volgende chatopdracht te gebruiken
-  const [fotobankKeuze, setFotobankKeuze] = useState<string | null>(null);
+  // Uit de fotobank gekozen foto's om in de volgende chatopdracht te
+  // gebruiken — meerdere tegelijk kan ("zet deze drie in de galerij")
+  const [fotobankKeuzes, setFotobankKeuzes] = useState<string[]>([]);
   // Schermvullende weergave (handig in de admin en op kleinere schermen)
   const [volledigScherm, setVolledigScherm] = useState(false);
   // Grote schermen: standaard de gesplitste weergave (site links, gesprek
@@ -581,7 +582,7 @@ export default function Chat({
     video: { commandId: string; naam: string } | null;
     sel: Selectie | null;
     kleur: string | null;
-    bankFoto: string | null;
+    bankFotos: string[];
   } | null>(null);
 
   /** Herlaadt de werkversie en springt naar de opgegeven pagina. */
@@ -1313,7 +1314,7 @@ export default function Chat({
   async function verstuur(
     overrideTekst?: unknown,
     overrideAfbeelding?: File,
-    uitWachtrij?: { fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFoto?: string | null },
+    uitWachtrij?: { fotos: File[]; docs?: File[]; video: { commandId: string; naam: string } | null; sel: Selectie | null; kleur: string | null; bankFotos?: string[] },
     extra?: { controle?: boolean }
   ) {
     const tekst = (typeof overrideTekst === "string" ? overrideTekst : invoer).trim();
@@ -1331,7 +1332,7 @@ export default function Chat({
         video: videoKlaarRef.current ?? q?.video ?? null,
         sel: selectie ?? q?.sel ?? null,
         kleur: kleur ?? q?.kleur ?? null,
-        bankFoto: fotobankKeuze ?? q?.bankFoto ?? null,
+        bankFotos: [...new Set([...(q?.bankFotos ?? []), ...fotobankKeuzes])].slice(0, MAX_FOTOS),
       };
       setInvoer("");
       setAfbeeldingen([]);
@@ -1339,7 +1340,7 @@ export default function Chat({
       setVideoKlaar(null);
       setSelectie(null);
       setKleur(null);
-      setFotobankKeuze(null);
+      setFotobankKeuzes([]);
       setChatOpen(true);
       setBerichten((b) => [
         ...b,
@@ -1361,8 +1362,8 @@ export default function Chat({
     setSelectie(null);
     const gekozenKleur = uitWachtrij ? uitWachtrij.kleur : kleur;
     setKleur(null);
-    const gekozenBankFoto = uitWachtrij ? (uitWachtrij.bankFoto ?? null) : fotobankKeuze;
-    setFotobankKeuze(null);
+    const gekozenBankFotos = uitWachtrij ? (uitWachtrij.bankFotos ?? []) : fotobankKeuzes;
+    setFotobankKeuzes([]);
     if (!uitWachtrij) {
       // Wat er is AANGEWEZEN hoort zichtbaar bij het bericht: anders lijkt
       // het (voor de eigenaar, en bij teruglezen) alsof niemand weet waar
@@ -1383,7 +1384,7 @@ export default function Chat({
           ? `Ik zet je ${teVersturenDocs.length > 1 ? "documenten" : "document"} klaar...`
           : null,
     );
-    const opdracht = { tekst, fotos: teVersturen, docs: teVersturenDocs, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, bankFoto: gekozenBankFoto, pagina: huidigePagina };
+    const opdracht = { tekst, fotos: teVersturen, docs: teVersturenDocs, video: meegestuurdeVideo, sel: gekozen, kleur: gekozenKleur, bankFotos: gekozenBankFotos, pagina: huidigePagina };
     let gelukt = false;
     const stopper = new AbortController();
     stopRef.current = stopper;
@@ -1423,7 +1424,7 @@ export default function Chat({
           if (meegestuurdeVideo) form.set("videoCommandId", meegestuurdeVideo.commandId);
           if (gekozen) form.set("selectie", JSON.stringify(gekozen));
           if (gekozenKleur) form.set("kleur", gekozenKleur);
-          if (gekozenBankFoto) form.set("fotobankPad", gekozenBankFoto);
+          for (const p of gekozenBankFotos) form.append("fotobankPad", p);
           if (extra?.controle) { form.set("controle", "1"); form.set("apparaat", apparaat); }
           return fetch("/api/chat", { method: "POST", body: form, signal: stopper.signal });
         }
@@ -1437,7 +1438,7 @@ export default function Chat({
             huidigePagina,
             selectie: gekozen ?? undefined,
             kleur: gekozenKleur ?? undefined,
-            fotobankPad: gekozenBankFoto ?? undefined,
+            fotobankPaden: gekozenBankFotos.length > 0 ? gekozenBankFotos : undefined,
             fotoUrls: fotoUrls ?? undefined,
             videoCommandId: meegestuurdeVideo?.commandId,
             controle: extra?.controle || undefined,
@@ -1574,7 +1575,7 @@ export default function Chat({
       const q = wachtrijRef.current;
       if (q && gelukt) {
         wachtrijRef.current = null;
-        void verstuur(q.tekst, undefined, { fotos: q.fotos, docs: q.docs, video: q.video, sel: q.sel, kleur: q.kleur, bankFoto: q.bankFoto });
+        void verstuur(q.tekst, undefined, { fotos: q.fotos, docs: q.docs, video: q.video, sel: q.sel, kleur: q.kleur, bankFotos: q.bankFotos });
       }
       setStatusTekst(null);
     }
@@ -1981,7 +1982,7 @@ export default function Chat({
     setVideoKlaar(opdracht.video);
     setSelectie(opdracht.sel);
     setKleur(opdracht.kleur);
-    setFotobankKeuze(opdracht.bankFoto);
+    setFotobankKeuzes(opdracht.bankFotos);
     setHuidigePagina(opdracht.pagina);
     huidigeRef.current = opdracht.pagina;
     setHerstelFout(null);
@@ -2897,8 +2898,17 @@ export default function Chat({
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
+              // Aanklikken = toevoegen aan het stapeltje (nogmaals = eraf); de
+              // bank blijft open zodat je meerdere foto's tegelijk kunt kiezen
+              // ("zet deze drie in de galerij") — voorheen sloot hij na één
+              // foto en kon er maar één mee (22-09).
+              gekozen={fotobankKeuzes}
               onGebruik={(pad) => {
-                setFotobankKeuze(pad);
+                setFotobankKeuzes((k) =>
+                  k.includes(pad) ? k.filter((p) => p !== pad) : [...k, pad].slice(0, MAX_FOTOS),
+                );
+              }}
+              onKlaarKiezen={() => {
                 setFotobankOpen(false);
                 setChatOpen(true);
                 invoerRef.current?.focus();
@@ -3179,22 +3189,33 @@ export default function Chat({
             </div>
           )}
 
-          {/* Uit de fotobank gekozen foto */}
-          {fotobankKeuze && (
+          {/* Uit de fotobank gekozen foto's */}
+          {fotobankKeuzes.length > 0 && (
             <div className="mb-3 min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-300 bg-violet-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-              <div className="flex min-w-0 items-center justify-between gap-3">
-                <p className="line-clamp-2 min-w-0 flex-1 break-words text-sm text-violet-900">
-                  <span className="font-semibold">Foto uit de bank:</span>{" "}
-                  {fotobankKeuze.split("/").pop()}
-                  <span className="text-violet-600"> — vertel hieronder wat ermee moet gebeuren</span>
-                </p>
-                <button
-                  onClick={() => setFotobankKeuze(null)}
-                  aria-label="Foto-keuze wissen"
-                  className="shrink-0 cursor-pointer text-violet-400 hover:text-violet-700"
-                >
-                  ✕
-                </button>
+              <p className="text-sm text-violet-900">
+                <span className="font-semibold">
+                  {fotobankKeuzes.length === 1 ? "Foto uit de bank" : `${fotobankKeuzes.length} foto's uit de bank`}
+                </span>
+                <span className="text-violet-600"> — vertel hieronder wat ermee moet gebeuren</span>
+              </p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {fotobankKeuzes.map((pad) => (
+                  <span
+                    key={pad}
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-violet-200 bg-white px-2.5 py-1 text-xs text-violet-900"
+                  >
+                    <span className="truncate" title={pad}>
+                      {pad.split("/").pop()}
+                    </span>
+                    <button
+                      onClick={() => setFotobankKeuzes((k) => k.filter((p) => p !== pad))}
+                      aria-label={`${pad.split("/").pop()} niet meesturen`}
+                      className="shrink-0 cursor-pointer text-violet-400 hover:text-violet-700"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
               </div>
             </div>
           )}

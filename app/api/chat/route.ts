@@ -263,8 +263,11 @@ export async function POST(req: Request) {
   type Selectie = { pad?: string; tag?: string; tekst?: string; html?: string };
   let selectie: Selectie | null = null;
   let kleur: string | null = null;
-  // Uit de fotobank gekozen foto waar het bericht over gaat
-  let fotobankPad: string | null = null;
+  // Uit de fotobank gekozen foto's waar het bericht over gaat (meerdere kan:
+  // "zet deze drie in de galerij")
+  let fotobankPaden: string[] = [];
+  const geldigBankPad = (v: unknown): v is string =>
+    typeof v === "string" && /^[\w./-]{1,200}$/.test(v) && !v.includes("..");
   // "Klopt niet, kijk zelf even": de AI krijgt een schermafbeelding van wat de eigenaar ziet
   let controle = false;
   let apparaat: "telefoon" | "tablet" | "desktop" = "desktop";
@@ -296,10 +299,7 @@ export async function POST(req: Request) {
       if (/^#[0-9a-fA-F]{6}$/.test(k)) kleur = k;
     }
     videoCommandId = String(form.get("videoCommandId") ?? "") || undefined;
-    {
-      const f = String(form.get("fotobankPad") ?? "");
-      if (/^[\w./-]{1,200}$/.test(f) && !f.includes("..")) fotobankPad = f;
-    }
+    fotobankPaden = form.getAll("fotobankPad").filter(geldigBankPad).slice(0, MAX_FOTOS);
     controle = form.get("controle") === "1";
     apparaat = apparaatVan(form.get("apparaat"));
     if (form.get("kanaal") === "whatsapp") kanaal = "whatsapp";
@@ -347,6 +347,7 @@ export async function POST(req: Request) {
       huidigePagina?: string;
       selectie?: Selectie;
       fotobankPad?: string;
+      fotobankPaden?: string[];
       /** Adressen van foto's die de browser rechtstreeks in de Blob-opslag
        * heeft gezet (grote of veel foto's passen niet in één verzoek). */
       fotoUrls?: string[];
@@ -366,10 +367,9 @@ export async function POST(req: Request) {
     afbeeldingen.push(
       ...(await haalFotosUitOpslag(body.fotoUrls, MAX_FOTOS)),
     );
-    {
-      const f = String(body.fotobankPad ?? "");
-      if (/^[\w./-]{1,200}$/.test(f) && !f.includes("..")) fotobankPad = f;
-    }
+    fotobankPaden = (Array.isArray(body.fotobankPaden) ? body.fotobankPaden : [body.fotobankPad])
+      .filter(geldigBankPad)
+      .slice(0, MAX_FOTOS);
     if (typeof body.kleur === "string" && /^#[0-9a-fA-F]{6}$/.test(body.kleur))
       kleur = body.kleur;
   }
@@ -609,7 +609,7 @@ export async function POST(req: Request) {
     // SNELPAD: alvast (parallel met het ophalen van de site) herkennen of dit
     // bericht een pure, letterlijke tekstwissel is die zonder agent kan.
     const snelBelofte =
-      afbeeldingen.length === 0 && documenten.length === 0 && !videoCommandId && !selectie && !kleur && !controle && !fotobankPad
+      afbeeldingen.length === 0 && documenten.length === 0 && !videoCommandId && !selectie && !kleur && !controle && fotobankPaden.length === 0
         ? classificeerTekstwissel(bericht).catch(() => null)
         : Promise.resolve(null);
 
@@ -848,15 +848,18 @@ export async function POST(req: Request) {
               .catch(() => null);
           }
 
-          // Gekozen fotobank-foto: kwaliteit meten zodat de AI gewaarschuwd is
-          let fotobankKwaliteit: string | null = null;
-          if (fotobankPad) {
+          // Gekozen fotobank-foto's: kwaliteit meten zodat de AI gewaarschuwd is
+          const fotobankKwaliteit: string[] = [];
+          if (fotobankPaden.length > 0) {
             const { meetFotoKwaliteit, kwaliteitsWaarschuwing } = await import("@/lib/foto-kwaliteit");
-            fotobankKwaliteit = kwaliteitsWaarschuwing(
-              await meetFotoKwaliteit(
-                await readFile(path.join(werkmap, fotobankPad)).catch(() => Buffer.alloc(0)),
-              ),
-            );
+            for (const pad of fotobankPaden) {
+              const w = kwaliteitsWaarschuwing(
+                await meetFotoKwaliteit(
+                  await readFile(path.join(werkmap, pad)).catch(() => Buffer.alloc(0)),
+                ),
+              );
+              if (w) fotobankKwaliteit.push(fotobankPaden.length > 1 ? `${pad}: ${w}` : w);
+            }
           }
 
           if (afbeeldingen.length > 3)
@@ -1036,8 +1039,8 @@ export async function POST(req: Request) {
             kleur
               ? `De eigenaar heeft met de kleurkiezer een kleur gekozen: ${kleur}. Gebruik EXACT deze kleurcode voor wat hij in het bericht vraagt (en pas waar logisch ook hover-/accentvarianten aan zodat het consistent blijft).`
               : null,
-            fotobankPad
-              ? `De eigenaar heeft in de fotobank de foto "${fotobankPad}" gekozen — zijn bericht gaat over déze foto. Het bestand staat al in de werkmap (BEKIJK hem eerst met lees_bestand); plaats of gebruik hem zoals gevraagd en vraag nooit om hem opnieuw te sturen.${fotobankKwaliteit ? ` LET OP: ${fotobankKwaliteit} — beoordeel bij het bekijken of hij geschikt is voor de gevraagde plek en waarschuw anders kort met een alternatief.` : ""}`
+            fotobankPaden.length > 0
+              ? `De eigenaar heeft in de fotobank ${fotobankPaden.length === 1 ? `de foto "${fotobankPaden[0]}"` : `deze ${fotobankPaden.length} foto's`} gekozen — zijn bericht gaat over ${fotobankPaden.length === 1 ? "déze foto" : `déze foto's: ${fotobankPaden.map((p) => `"${p}"`).join(", ")}`}. ${fotobankPaden.length === 1 ? "Het bestand staat" : "De bestanden staan"} al in de werkmap (BEKIJK ze eerst met lees_bestand); plaats of gebruik ze zoals gevraagd en vraag nooit om ze opnieuw te sturen.${fotobankKwaliteit.length > 0 ? ` LET OP: ${fotobankKwaliteit.join("; ")} — beoordeel bij het bekijken of dit geschikt is voor de gevraagde plek en waarschuw anders kort met een alternatief.` : ""}`
               : null,
             selectie
               ? `De eigenaar heeft in het voorbeeld een onderdeel AANGEWEZEN — het bericht gaat over precies dit element op pagina ${selectie.pad ?? "/"}:\n<${selectie.tag ?? "element"}> met tekst "${(selectie.tekst ?? "").slice(0, 200)}"\nHTML: ${(selectie.html ?? "").slice(0, 1500)}\nZoek dit element op in het bijbehorende bestand en pas dáár aan wat gevraagd wordt.`

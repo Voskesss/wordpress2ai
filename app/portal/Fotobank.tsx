@@ -17,6 +17,8 @@ export default function Fotobank({
   onKlaar,
   onSluit,
   onGebruik,
+  gekozen,
+  onKlaarKiezen,
 }: {
   siteId: number;
   /** Sleutel voor /site-weergave: de miniaturen komen daarmee uit dezelfde
@@ -44,8 +46,14 @@ export default function Fotobank({
   }) => void;
   onSluit: () => void;
   /** Bladeren zonder vervangdoel: foto kiezen om in een chatopdracht te
-   * gebruiken ("zet deze foto op ..."). */
+   * gebruiken ("zet deze foto op ..."). Aanklikken voegt toe aan het
+   * stapeltje, nogmaals klikken haalt hem er weer af — zo kun je meerdere
+   * foto's tegelijk meesturen. */
   onGebruik?: (pad: string) => void;
+  /** De foto's die nu op het stapeltje liggen (beheerd door de chat). */
+  gekozen?: string[];
+  /** Klaar met kiezen: bank dicht, terug naar het chatveld. */
+  onKlaarKiezen?: () => void;
 }) {
   const [beelden, setBeelden] = useState<Beeld[] | null>(null);
   const [fout, setFout] = useState<string | null>(null);
@@ -152,7 +160,7 @@ export default function Fotobank({
       <p className="mt-1 text-xs text-stone-500">
         {vervangDoel
           ? "Klik een foto aan en hij komt op de plek van de aangewezen foto te staan (als concept — jij publiceert). Liever een nieuw bestand? Gebruik dan de knop \"Vervang deze foto\"."
-          : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Klik \"Gebruik in opdracht\" en vertel in de chat wat er met de foto moet gebeuren. Een foto op de site vervangen? Wijs hem aan en kies daar \"Kies uit de fotobank\"."}
+          : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Klik \"Gebruik in opdracht\" bij elke foto die mee moet (meerdere kan) en vertel daarna in de chat wat ermee moet gebeuren. Een foto op de site vervangen? Wijs hem aan en kies daar \"Kies uit de fotobank\"."}
       </p>
       <label className="mt-2 flex items-center gap-2 text-xs text-stone-600">
         <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
@@ -226,9 +234,13 @@ export default function Fotobank({
               {!vervangDoel && onGebruik && (
                 <button
                   onClick={() => onGebruik(b.pad)}
-                  className="mt-1 cursor-pointer rounded-full border border-violet-300 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-50"
+                  className={`mt-1 cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                    gekozen?.includes(b.pad)
+                      ? "border-violet-700 bg-violet-700 text-white hover:bg-violet-600"
+                      : "border-violet-300 text-violet-700 hover:bg-violet-50"
+                  }`}
                 >
-                  Gebruik in opdracht
+                  {gekozen?.includes(b.pad) ? "✓ Gaat mee" : "Gebruik in opdracht"}
                 </button>
               )}
               {/* Opruimen kan alleen bij foto's die nergens meer op de site
@@ -266,6 +278,21 @@ export default function Fotobank({
           </div>
         ))}
       </div>
+      {/* Onderin blijven hangen zolang er iets op het stapeltje ligt: zo kun
+          je doorbladeren en meer aanklikken, en ben je met één knop terug in
+          de chat om te vertellen wat er met de foto's moet gebeuren. */}
+      {!vervangDoel && onKlaarKiezen && (gekozen?.length ?? 0) > 0 && (
+        <div className="sticky -bottom-4 -mx-4 -mb-4 mt-3 border-t border-violet-100 bg-white/95 p-3 backdrop-blur">
+          <button
+            onClick={onKlaarKiezen}
+            className="w-full cursor-pointer rounded-full bg-violet-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-600"
+          >
+            {gekozen!.length === 1
+              ? "Klaar — 1 foto gaat mee met je opdracht"
+              : `Klaar — ${gekozen!.length} foto's gaan mee met je opdracht`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
