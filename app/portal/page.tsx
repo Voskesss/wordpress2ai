@@ -12,7 +12,7 @@ import { geefWebsiteAkkoord } from "./acties";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
-import { demoLiveWorker, demoWorker } from "@/lib/demo";
+import { demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 import EigenMailserver from "./EigenMailserver";
 import KlantFacturen from "./KlantFacturen";
@@ -358,7 +358,9 @@ export default async function Portal({
                   verbruik={verbruikMap[site.id] ?? null}
                   liveUrl={
                     site.isDemo && demoHeeftWijzigingen[site.id]
-                      ? `${demoLiveWorker(site.githubRepo, userId)}.wordswap.workers.dev`
+                      ? // Zijn eigen omgeving is in de demo ook zijn live site;
+                        // er wordt geen tweede worker meer uitgerold.
+                        `${demoWorker(site.githubRepo, userId)}.wordswap.workers.dev`
                       : site.domein
                   }
                   werkversieUrl={

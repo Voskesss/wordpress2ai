@@ -79,12 +79,12 @@ export async function POST(req: Request) {
     )
       return NextResponse.json({ error: "Site niet actief" }, { status: 403 });
     if (rij.site.isDemo) {
-      const { demoLiveWorker } = await import("@/lib/demo");
-      await deployRepoNaarCloudflareRef(
-        rij.site.githubRepo,
-        demoLiveWorker(rij.site.githubRepo, userId),
-        rij.change.branch,
-      );
+      // In de demo rolden we hier een tweede worker uit (wvl-...), puur zodat
+      // "Open live site" ergens heen kon wijzen. De bezoeker zag zijn
+      // wijziging al in het voorbeeld, dus die uitrol veranderde niets aan
+      // wat hij zag: alleen een wachttijd en een kans om te mislukken, per
+      // bezoeker. Publiceren blijft een echt moment (de status gaat om en de
+      // badge slaat om), maar zijn voorbeeldomgeving ís vanaf nu zijn site.
     } else {
       if (!rij.site.siteSlug)
         return NextResponse.json(
@@ -153,14 +153,15 @@ export async function POST(req: Request) {
       await verwijderBranch(rij.site.githubRepo, rij.change.branch).catch((e) =>
         console.error("Branch opruimen na publicatie:", e),
       );
-    // Demo: het portaal moet vanaf nu naar de PERSOONLIJKE live-site kijken,
-    // niet naar de gedeelde demo (die toont anders de oude versie, ook na verversen)
+    // Demo: het portaal moet vanaf nu naar de eigen omgeving van deze
+    // bezoeker kijken, niet naar de gedeelde demo (die toont anders de oude
+    // versie, ook na verversen).
     if (rij.site.isDemo) {
-      const { demoLiveWorker } = await import("@/lib/demo");
+      const { demoWorker } = await import("@/lib/demo");
       const { CF_SUBDOMEIN } = await import("@/lib/cloudflare");
       return NextResponse.json({
         ok: true,
-        liveUrl: `${demoLiveWorker(rij.site.githubRepo, userId)}.${CF_SUBDOMEIN}.workers.dev`,
+        liveUrl: `${demoWorker(rij.site.githubRepo, userId)}.${CF_SUBDOMEIN}.workers.dev`,
       });
     }
     return NextResponse.json({ ok: true });

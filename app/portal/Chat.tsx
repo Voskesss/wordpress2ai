@@ -2129,7 +2129,10 @@ export default function Chat({
                 <span className="hidden sm:inline">Open concept</span>
               </a>
             )}
-            {liveUrl && (
+            {/* In de demo geen "Open live site": daar is zijn voorbeeld ook zijn
+                site, dus een aparte link zou na een volgende wijziging iets
+                tonen wat nog niet gepubliceerd is. */}
+            {liveUrl && !isDemo && (
               <a
                 href={`https://${liveUrl}`}
                 target="_blank"
@@ -3688,6 +3691,9 @@ export default function Chat({
                 </svg>
               </button>
               </Tip>
+              {/* Vindbaarheid is niets voor een demo: die site wordt elk uur
+                  teruggezet en staat op noindex. Alleen ruis in de balk. */}
+              {!isDemo && (<>
               <Tip tekst="Titel, Google-omschrijving en webadres van deze pagina zelf regelen">
               <button
                 onClick={() => setSeoOpen((v) => !v)}
@@ -3700,6 +3706,7 @@ export default function Chat({
                 <span className="text-xs font-bold tracking-tight">SEO</span>
               </button>
               </Tip>
+              </>)}
               </>)}
               <textarea
                 ref={invoerRef}

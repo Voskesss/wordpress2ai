@@ -126,11 +126,16 @@ const path = require("node:path");
       );
       assert.equal(testState.updates.length, 0);
     }
+    // Demo: publiceren rolt geen tweede worker meer uit. De bezoeker ziet zijn
+    // wijziging al in zijn eigen omgeving, dus er valt niets te deployen en
+    // een kapotte uitrol kan het publiceren niet meer tegenhouden.
     reset();
     testState.row.site.isDemo = true;
     testState.failDeploy = true;
-    assert.equal((await publish(req())).status, 503);
-    assert.equal(testState.row.change.status, "concept");
+    const demoDeploys = testState.deploys;
+    assert.equal((await publish(req())).status, 200);
+    assert.equal(testState.deploys, demoDeploys, "demo publiceren mag niets uitrollen");
+    assert.equal(testState.row.change.status, "gepubliceerd");
     const undo = await load("ongedaan");
     reset({ failDeploy: true });
     testState.row.change.status = "gepubliceerd";

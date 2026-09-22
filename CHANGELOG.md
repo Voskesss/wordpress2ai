@@ -20,6 +20,22 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.22.0 (22 september 2026)
+
+De probeer-demo is uitgekleed, zonder dat er iets verandert voor klanten.
+
+Publiceren blijft een echt moment: je ziet "concept, nog niet live", je klikt
+Publiceer, en het venster slaat om naar "gelijk aan de live site". Wat
+verdwenen is, is de tweede website die daarvoor per bezoeker werd uitgerold.
+Die was onzichtbaar, kostte wachttijd en kon mislukken, terwijl de bezoeker
+zijn wijziging al in het voorbeeld zag staan. Zijn eigen omgeving is nu ook
+zijn site, en daarom is de knop "Open live site" in de demo weg: er is niets
+anders meer om te openen.
+
+Verder uit de demo: de SEO-knop, en de AI maakt er geen nieuwe pagina's meer
+aan en laat het menu met rust. Dat raakt elke pagina tegelijk en duurt
+minuten, en dat is precies waar iemand afhaakt die voor het eerst kijkt.
+
 ## 1.21.5 (21 september 2026)
 
 Correctie op 1.21.3: de reden dat een "geen interesse" niet herkend werd, was

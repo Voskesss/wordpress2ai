@@ -91,7 +91,7 @@ export async function POST(req: Request) {
       .set({ status: "herstel_mislukt", baseSha: target })
       .where(eq(changes.id, changeId));
     if (rij.site.isDemo) {
-      const { demoWorker, demoLiveWorker } = await import("@/lib/demo");
+      const { demoWorker } = await import("@/lib/demo");
       const { deployRepoNaarCloudflareRef } = await import("@/lib/cloudflare");
       if (target)
         await gh(
@@ -119,18 +119,13 @@ export async function POST(req: Request) {
           },
         );
       }
-      await Promise.all([
-        deployRepoNaarCloudflareRef(
-          rij.site.githubRepo,
-          demoWorker(rij.site.githubRepo, userId),
-          target,
-        ),
-        deployRepoNaarCloudflareRef(
-          rij.site.githubRepo,
-          demoLiveWorker(rij.site.githubRepo, userId),
-          target,
-        ),
-      ]);
+      // Eén omgeving per bezoeker: die is in de demo zowel zijn voorbeeld als
+      // zijn site. De tweede worker (wvl-...) bestaat niet meer.
+      await deployRepoNaarCloudflareRef(
+        rij.site.githubRepo,
+        demoWorker(rij.site.githubRepo, userId),
+        target,
+      );
     } else {
       if (!target) throw new Error("Hersteldoel ontbreekt");
       await zetTerugNaarVersie(rij.site.githubRepo, target);
