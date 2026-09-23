@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.8 (23 september 2026)
+
+**Leads uit Meta komen nu echt binnen.** Meta kent twee soorten sleutels: één
+voor je bedrijf en één voor je pagina, en alleen die tweede mag leadformulieren
+lezen. Dat is nergens te zien en levert alleen een cryptische foutmelding op.
+Het systeem leidt die paginasleutel nu zelf af uit de sleutel die je invult, dus
+je hoeft er niets extra's voor te doen. Welke rechten je precies nodig hebt
+staat voortaan in de code opgeschreven, zodat dit niet nog een keer uitgezocht
+hoeft te worden.
+
 ## 1.30.7 (23 september 2026)
 
 **De leadlijst laat nu zien wat er als laatste gebeurde.** In elke regel stond
