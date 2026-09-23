@@ -54,6 +54,17 @@ export async function fragmentUitBron(bron: Buffer | string): Promise<string | n
 }
 
 /** Eigen tekst uit een reply halen: aanhalingen ("> ...") en de Op...schreef-regel eraf. */
+/**
+ * Hoeveel van een mail we bewaren voor de tijdlijn.
+ *
+ * Stond op 400 en dat was te kort: je las de eerste alinea en miste net het
+ * stuk waar het antwoord in stond. Het is bewust GEEN hele mail, want dan
+ * sleep je de hele antwoordreeks mee en wordt de tijdlijn onleesbaar. De
+ * aanhalingen worden er hierboven al afgeknipt, dus dit is alleen wat iemand
+ * zelf geschreven heeft.
+ */
+const FRAGMENT_TEKENS = 1200;
+
 function fragmentVan(tekst: string | undefined): string | null {
   if (!tekst) return null;
   const regels = tekst.split("\n");
@@ -62,7 +73,7 @@ function fragmentVan(tekst: string | undefined): string | null {
     .join("\n")
     .split(/\nOp .{5,80} schreef .{2,80}:?\s*$/m)[0]
     .trim();
-  if (eigen) return eigen.slice(0, 400);
+  if (eigen) return eigen.slice(0, FRAGMENT_TEKENS);
   // Niets ongequote over: dan typte de afzender zijn antwoord tussen onze
   // aangehaalde tekst (oudere Outlook en veel telefoons doen dat). Dan is de
   // aanhaling zélf zijn bericht. De ">"-tekens eraf en doorgeven; onze eigen
@@ -71,7 +82,7 @@ function fragmentVan(tekst: string | undefined): string | null {
     .map((r) => r.replace(/^\s*(>\s?)+/, ""))
     .join("\n")
     .trim();
-  return ontquote ? ontquote.slice(0, 400) : null;
+  return ontquote ? ontquote.slice(0, FRAGMENT_TEKENS) : null;
 }
 
 async function zoekInMap(

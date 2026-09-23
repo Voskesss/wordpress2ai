@@ -46,7 +46,7 @@ export default async function Leads() {
           richting: "uit" as const,
           via: "Mailer",
           onderwerp: m.onderwerp,
-          fragment: m.tekst.slice(0, 300),
+          fragment: m.tekst.slice(0, 1200),
           datum: m.verzonden.toISOString(),
         })),
       ...allePost

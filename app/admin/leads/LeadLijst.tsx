@@ -154,6 +154,30 @@ function PostTijdlijn({ regels }: { regels: PostRegel[] }) {
   );
 }
 
+/**
+ * Wat er als laatste gebeurde met deze lead.
+ *
+ * Waarom dit er moest komen: in de rij stond alleen de VOLGENDE actie. Jos
+ * mailde iemand vanuit zijn eigen postbus en zag dat nergens terug, dus leek
+ * het alsof er niets gebeurd was. Nu staat het er, ongeacht of de mail uit de
+ * Mailer kwam of uit Soverin.
+ */
+function LaatsteContact({ regel }: { regel?: PostRegel }) {
+  if (!regel) return <span className="text-xs text-stone-300">nog geen contact</span>;
+  const wat = regel.richting === "in" ? "reactie" : "gemaild";
+  const dag = new Date(regel.datum).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Amsterdam",
+  });
+  return (
+    <span className="truncate text-xs text-stone-400" title={regel.onderwerp ?? undefined}>
+      {regel.richting === "in" ? "↙" : "↗"} {wat} · {dag}
+      {regel.via && regel.via !== "reactie" ? ` · ${regel.via}` : ""}
+    </span>
+  );
+}
+
 function ActieRegel({ actie, nu }: { actie: ActieRij; nu: string }) {
   return (
     <li className="flex items-start gap-2 py-1">
@@ -322,6 +346,11 @@ export default function LeadLijst({
   repoVoorstellen: Record<number, string>;
 }) {
   const [filter, setFilter] = useState("open");
+  // Standaard op laatste contact: Jos wil zien bij wie hij het laatst iets
+  // gedaan heeft, ook als dat een mail vanuit zijn eigen postbus was. De
+  // oude volgorde (eerstvolgende actie) blijft kiesbaar, want die is een
+  // takenlijst en dat is iets anders dan een tijdlijn.
+  const [sorteer, setSorteer] = useState<"contact" | "actie">("contact");
   const [zoek, setZoek] = useState("");
   const [openId, setOpenId] = useState<number | null>(null);
 
@@ -333,6 +362,9 @@ export default function LeadLijst({
     }
     return m;
   }, [acties]);
+
+  /** Laatste regel uit de tijdlijn; page.tsx levert die al nieuwste-eerst. */
+  const laatste = (id: number) => post[id]?.[0];
 
   const volgende = (id: number) =>
     (actiesPerLead.get(id) ?? [])
@@ -364,9 +396,14 @@ export default function LeadLijst({
           .toLowerCase();
         return woorden.every((w) => tekst.includes(w));
       })
-      .sort((a, b) => (volgende(a.id)?.datum ?? "9999").localeCompare(volgende(b.id)?.datum ?? "9999"));
+      .sort((a, b) =>
+        sorteer === "contact"
+          ? // Nieuwste contact bovenaan; wie nog nooit contact had onderaan.
+            (laatste(b.id)?.datum ?? "").localeCompare(laatste(a.id)?.datum ?? "")
+          : (volgende(a.id)?.datum ?? "9999").localeCompare(volgende(b.id)?.datum ?? "9999")
+      );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leads, actiesPerLead, filter, zoek]);
+  }, [leads, actiesPerLead, filter, zoek, sorteer]);
 
   const teDoen = acties.filter((a) => !a.gedaan && a.datum && a.datum <= nu).length;
   const aantalOpen = leads.filter((l) => statusInfo(l.status).open).length;
@@ -401,6 +438,15 @@ export default function LeadLijst({
               </option>
             ))}
           </optgroup>
+        </select>
+        <select
+          value={sorteer}
+          onChange={(e) => setSorteer(e.target.value as "contact" | "actie")}
+          title="Waarop de lijst gesorteerd staat"
+          className="rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none"
+        >
+          <option value="contact">Laatste contact bovenaan</option>
+          <option value="actie">Eerstvolgende actie bovenaan</option>
         </select>
       </div>
 
@@ -453,7 +499,9 @@ export default function LeadLijst({
                 <span>
                   <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${s.kleur}`}>{s.label}</span>
                 </span>
-                <span className="flex min-w-0 items-center gap-1.5 text-stone-700" title={v?.tekst}>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <LaatsteContact regel={laatste(l.id)} />
+                  <span className="flex min-w-0 items-center gap-1.5 text-stone-700" title={v?.tekst}>
                   {v ? (
                     <>
                       <span className="min-w-0 truncate">{v.tekst}</span>
@@ -463,9 +511,10 @@ export default function LeadLijst({
                         </span>
                       )}
                     </>
-                  ) : (
-                    <span className="text-stone-400">—</span>
-                  )}
+                    ) : (
+                      <span className="text-stone-400">—</span>
+                    )}
+                  </span>
                 </span>
               </button>
               {isOpen && (

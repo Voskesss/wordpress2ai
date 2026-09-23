@@ -20,6 +20,21 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.7 (23 september 2026)
+
+**De leadlijst laat nu zien wat er als laatste gebeurde.** In elke regel stond
+alleen je vólgende actie. Mailde je iemand vanuit je eigen postbus, dan zag je
+dat nergens terug en leek het alsof er niets was gebeurd. Boven de volgende
+actie staat nu wanneer er voor het laatst contact was en welke kant het op
+ging, of dat nu via de Mailer of via je eigen mailbox liep. De lijst staat ook
+standaard op laatste contact bovenaan; wil je hem weer als takenlijst, dan zet
+je hem met één keuze terug op eerstvolgende actie.
+
+**En je leest meer van een mail.** Van elk bericht werd maar een klein stukje
+bewaard, waardoor je net het deel miste waar het antwoord in stond. Dat is nu
+drie keer zoveel. De aanhalingen van eerdere mails blijven eraf, dus je krijgt
+alleen wat iemand zelf geschreven heeft en niet de hele antwoordreeks.
+
 ## 1.30.6 (23 september 2026)
 
 **Eerst je vraag typen, dan pas WhatsApp.** De knop rechtsonder heet nu "Stel
