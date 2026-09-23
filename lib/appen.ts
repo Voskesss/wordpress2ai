@@ -6,17 +6,15 @@
  * dat de bezoeker er zelf op klikt. Een widget laadt scripts van een derde en
  * dan zit je meteen in de cookiemelding.
  *
- * Het nummer staat hier apart en NIET als import uit lib/persoonlijk.ts. Dat
- * bestand leest de foto van Jos van schijf met node:fs, en dit bestand wordt
- * ook in de browser geladen (AppKnop is een client-component). Een import zou
- * node:fs de browserbundel in trekken en dan faalt de hele build.
- *
- * Dat het toch gelijk blijft aan TELEFOON_LINK bewaakt tests/appen.mts, die
- * allebei inleest en vergelijkt.
+ * Het nummer komt uit lib/contactgegevens.ts. Dat bestand gebruikt bewust geen
+ * node, want dit bestand wordt ook in de browser geladen (AppKnop is een
+ * client-component). Uit lib/persoonlijk.ts importeren zou node:fs de
+ * browserbundel in trekken en de build breken.
  */
+import { TELEFOON_LINK } from "@/lib/contactgegevens";
 
 /** wa.me wil het nummer zonder plus en zonder spaties. */
-export const APP_NUMMER = "31262340122";
+export const APP_NUMMER = TELEFOON_LINK.replace(/[^0-9]/g, "");
 
 /**
  * Wat er alvast in het invoerveld van WhatsApp staat als iemand klikt.
@@ -52,6 +50,51 @@ export function appBericht(pad: string): string {
 /** Volledige link, met het bericht al ingevuld. */
 export function appLink(pad = "/"): string {
   return `https://wa.me/${APP_NUMMER}?text=${encodeURIComponent(appBericht(pad))}`;
+}
+
+/**
+ * Waar de bezoeker vandaan komt, in gewone woorden.
+ *
+ * Dit komt als losse regel ONDER de vraag die iemand zelf typt. Zo blijft zijn
+ * eigen vraag bovenaan staan (dat is wat Jos moet lezen) en weet Jos er toch
+ * bij waar het over gaat, zonder dat hij dat hoeft te vragen.
+ */
+const HERKOMST: [RegExp, string][] = [
+  [/^\/prijzen/, "de prijzenpagina"],
+  [/^\/demo/, "de demo"],
+  [/^\/nieuwe-website/, "de pagina over een nieuwe website"],
+  [/^\/hoe-het-werkt/, "de pagina hoe het werkt"],
+  [/^\/webinar/, "de webinarpagina"],
+  [/^\/partners/, "de pagina over samenwerken"],
+  [/^\/website-hoveniersbedrijf/, "de pagina voor hoveniers"],
+  [/^\/website-schildersbedrijf/, "de pagina voor schilders"],
+  [/^\/website-installatiebedrijf/, "de pagina voor installateurs"],
+  [/^\/website-bouwbedrijf/, "de pagina voor bouwbedrijven"],
+  [/^\/website-kapsalon/, "de pagina voor kapsalons"],
+  [/^\/wordpress/, "de pagina over WordPress overzetten"],
+  [/^\/contact/, "de contactpagina"],
+];
+
+export function herkomst(pad: string): string | null {
+  return HERKOMST.find(([p]) => p.test(pad))?.[1] ?? null;
+}
+
+/**
+ * De uiteindelijke tekst die in WhatsApp komt te staan.
+ *
+ * Getypt de bezoeker niets, dan valt hij terug op het vaste bericht van die
+ * pagina: dan werkt de knop nog steeds als een gewone link.
+ */
+export function appTekst(pad: string, vraag: string): string {
+  const eigen = vraag.trim();
+  if (!eigen) return appBericht(pad);
+  const waar = herkomst(pad);
+  return waar ? `${eigen}\n\n(gestuurd vanaf ${waar} op wordswap.nl)` : eigen;
+}
+
+/** Link met een zelfgetypte vraag erin. */
+export function appLinkMetVraag(pad: string, vraag: string): string {
+  return `https://wa.me/${APP_NUMMER}?text=${encodeURIComponent(appTekst(pad, vraag))}`;
 }
 
 /**

@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.6 (23 september 2026)
+
+**Eerst je vraag typen, dan pas WhatsApp.** De knop rechtsonder heet nu "Stel
+je vraag" en opent een klein vak waarin de bezoeker zijn vraag schrijft. Die
+tekst staat daarna klaar in WhatsApp, waar hij hem zelf verstuurt. Dat scheelt
+een heen en weer: voorheen kwam er "ik heb een vraag over de prijzen" binnen en
+moest je terugvragen wélke vraag. Onder zijn vraag komt automatisch één regel
+te staan met de pagina waar hij vandaan kwam, zodat je de context hebt zonder
+erom te vragen. Er staat met zoveel woorden bij dat het bericht in WhatsApp
+verstuurd wordt en niet door de knop zelf.
+
 ## 1.30.5 (23 september 2026)
 
 **Appen kan nu overal op de site.** Rechtsonder staat op elke pagina een

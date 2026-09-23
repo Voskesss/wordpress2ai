@@ -6,12 +6,12 @@ import path from "node:path";
  * YouTube-link hieronder in (wordt cookie-vrij ingesloten). */
 export const JOS_VIDEO_URL = ""; // bv. "https://www.youtube.com/watch?v=XXXX"
 
-/** Zakelijk telefoonnummer. TELEFOON is wat de bezoeker leest, TELEFOON_LINK
- * wat in de tel:-link staat — één plek, zodat het overal gelijk blijft. */
-export const TELEFOON = "026 234 01 22";
+/** Zakelijk telefoonnummer. Staat in lib/contactgegevens.ts, want dat bestand
+ * gebruikt geen node en kan dus ook in de browser geladen worden. Hier alleen
+ * doorgegeven, zodat bestaande imports blijven werken. */
+export { TELEFOON, TELEFOON_LINK } from "@/lib/contactgegevens";
 /** Google-reviewpagina van WordSwap (Bedrijfsprofiel → "Vraag om reviews"). */
 export const REVIEW_LINK = "https://g.page/r/Caup_2JVRVuoEBM/review";
-export const TELEFOON_LINK = "+31262340122";
 
 export function josFoto(): string | null {
   return existsSync(path.join(process.cwd(), "public", "team", "jos.webp"))

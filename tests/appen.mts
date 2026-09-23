@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { APP_NUMMER, appBericht, appLink, toonZwevendeKnop } from "../lib/appen";
+import { APP_NUMMER, appBericht, appLink, appTekst, herkomst, toonZwevendeKnop } from "../lib/appen";
 import { TELEFOON_LINK } from "../lib/persoonlijk";
 
 /**
@@ -52,5 +52,28 @@ assert.ok(layout.includes("WhatsApp ↗"), "WhatsApp staat niet in de voettekst"
 //    een derde partij, anders zit je alsnog in de cookiemelding.
 const knop = await readFile(new URL("../app/AppKnop.tsx", import.meta.url), "utf8");
 assert.ok(!/<script|src="https?:/.test(knop), "de appknop laadt iets van buiten");
+
+// 8. De zelfgetypte vraag. Die van de bezoeker staat bovenaan, want dat is wat
+//    Jos moet lezen; waar hij vandaan komt staat er los onder.
+const getypt = appTekst("/website-kapsalon", "Wat kost het om mijn site over te zetten?");
+assert.ok(getypt.startsWith("Wat kost het"), "de vraag van de bezoeker staat niet bovenaan");
+assert.ok(getypt.includes("de pagina voor kapsalons"), "de herkomst ontbreekt");
+
+// Niets getypt? Dan gedraagt hij zich als de gewone link van die pagina.
+assert.equal(appTekst("/prijzen", "   "), appBericht("/prijzen"), "lege vraag valt niet terug op het paginabericht");
+
+// Een pagina zonder eigen herkomst voegt niets toe: liever niets dan onzin.
+assert.equal(appTekst("/iets-onbekends", "Mijn vraag"), "Mijn vraag");
+assert.equal(herkomst("/iets-onbekends"), null);
+
+// 9. Het paneel moet eerlijk zijn: deze knop verstuurt niet, hij opent
+//    WhatsApp. Staat er "Versturen", dan denkt iemand dat zijn vraag weg is.
+const paneel = await readFile(new URL("../app/AppKnop.tsx", import.meta.url), "utf8");
+assert.ok(paneel.includes("Verder in WhatsApp"), "de knoptekst belooft iets anders dan hij doet");
+assert.ok(
+  /waar je hem zelf verstuurt/.test(paneel),
+  "er staat niet bij dat de bezoeker in WhatsApp zelf moet versturen"
+);
+assert.ok(!/>\s*Versturen\s*</.test(paneel), 'een knop met alleen "Versturen" wekt de indruk dat het bericht weg is');
 
 console.log("appen: ok");
