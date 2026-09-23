@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { appLink } from "@/lib/appen";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
@@ -206,7 +207,10 @@ export default function Prijzen() {
       </section>
       <div className="shell new-site-note">
         <Link href="/voorwaarden">Lees de voorwaarden</Link> ·{" "}
-        <Link href="/contact">Stel je vraag aan Jos</Link>
+        <Link href="/contact">Stel je vraag aan Jos</Link> ·{" "}
+        <a href={appLink("/prijzen")} target="_blank" rel="noopener noreferrer">
+          App je vraag ↗
+        </a>
       </div>
     </div>
   );

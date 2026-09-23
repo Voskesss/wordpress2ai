@@ -9,6 +9,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
+import AppKnop from "./AppKnop";
+import { appLink } from "@/lib/appen";
 import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
 import { deelAfbeelding } from "./deel-afbeelding";
@@ -258,6 +260,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   <a href="mailto:info@wordswap.nl">info@wordswap.nl ↗</a>
                   <br />
                   <a href={`tel:${TELEFOON_LINK}`}>{TELEFOON}</a>
+                  <br />
+                  <a href={appLink("/")} target="_blank" rel="noopener noreferrer">
+                    WhatsApp ↗
+                  </a>
                 </p>
               </div>
               <nav aria-label="Ontdek WordSwap">
@@ -332,6 +338,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </span>
             </div>
           </footer>
+          <AppKnop />
         </ClerkProvider>
       </body>
     </html>

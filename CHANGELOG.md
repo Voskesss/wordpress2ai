@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.5 (23 september 2026)
+
+**Appen kan nu overal op de site.** Rechtsonder staat op elke pagina een
+WhatsApp-knop, en daarnaast staat het in de voettekst, op de contactpagina en
+onder de prijzen. Het bijzondere zit in wat er alvast in het bericht staat: wie
+vanaf de kapperspagina klikt stuurt "ik heb een kapsalon en een vraag over mijn
+website", en wie vanaf de prijzen komt stuurt iets anders. Zo is meteen duidelijk
+waar iemand vandaan komt. Het is een gewone link, geen chatwidget: er wordt
+niets extra's geladen en er gaat pas iets naar WhatsApp als je er zelf op klikt.
+Op het portaal, de demo en de planpagina blijft de knop weg, want daar staat de
+chat al rechtsonder.
+
 ## 1.30.4 (23 september 2026)
 
 **Zelf een afspraak vastleggen.** Heb je al per mail of telefoon een moment

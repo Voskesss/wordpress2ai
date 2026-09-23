@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import LeadForm from "./LeadForm";
 import ContactVoorkeur from "./ContactVoorkeur";
 import { josFoto, TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
+import { appLink } from "@/lib/appen";
 import { vindHoek } from "@/lib/hoeken";
 
 export const metadata: Metadata = {
@@ -86,6 +87,17 @@ export default async function Contact({
           <p className="mt-1 text-sm text-stone-500">
             Je krijgt Jos zelf aan de lijn. Niet bereikbaar? Laat je nummer achter in het
             formulier, dan belt hij je terug op het moment dat jou uitkomt.
+          </p>
+          <p className="mt-3 border-t border-stone-100 pt-3 text-sm text-stone-600">
+            Liever appen? Dat mag op hetzelfde nummer:{" "}
+            <a
+              href={appLink("/contact")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#244b3d] underline underline-offset-4"
+            >
+              stuur een WhatsApp-bericht ↗
+            </a>
           </p>
         </div>
         {josFoto() && (
