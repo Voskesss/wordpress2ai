@@ -56,13 +56,12 @@ export default function AfspraakMailKnop({
         </span>
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-3">
-      {siteId ? (
         <MailVoorbeeldKnop
           soort="afspraak-uitnodiging"
           siteId={siteId}
-          velden={[["bericht", "bericht"], ["zonderStandaard", "zonderStandaard"]]}
+          leadId={leadId}
+          velden={[["onderwerp", "onderwerp"], ["bericht", "bericht"], ["zonderStandaard", "zonderStandaard"]]}
         />
-      ) : null}
       <button
         type="submit"
         disabled={bezig}
@@ -72,7 +71,7 @@ export default function AfspraakMailKnop({
             : "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
         }`}
       >
-        {bezig ? "Versturen..." : alGestuurd ? "Nog een keer versturen" : "Mail deze dagen naar de klant"}
+        {bezig ? "Versturen..." : alGestuurd ? "Nog een keer versturen" : "Mail deze dagen"}
       </button>
       {stand ? (
         <span className={`text-sm ${stand.ok ? "text-emerald-700" : "text-red-700"}`}>
@@ -82,7 +81,7 @@ export default function AfspraakMailKnop({
       ) : verstuurdOp ? (
         <span className="text-sm text-stone-500">Uitnodiging verstuurd op {verstuurdOp}.</span>
       ) : (
-        <span className="text-sm text-stone-500">De klant heeft nog geen uitnodiging gehad.</span>
+        <span className="text-sm text-stone-500">Nog geen uitnodiging verstuurd.</span>
       )}
       </div>
     </form>

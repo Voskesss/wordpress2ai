@@ -6,6 +6,7 @@ import ActieKnop from "../klant/[id]/ActieKnop";
 import AfspraakMailKnop from "../klant/[id]/AfspraakMailKnop";
 import AfzegMetReden from "../klant/[id]/AfzegMetReden";
 import DagKlaarzetten from "../klant/[id]/DagKlaarzetten";
+import MailVoorbeeldKnop from "../klant/[id]/MailVoorbeeldKnop";
 
 export type LeadAfspraak = {
   id: number;
@@ -103,6 +104,13 @@ export default function AfspraakVak({
                     placeholder="Onderwerp van de mail (leeg = 'Afspraak bevestigd: ...')"
                     title="Eigen onderwerpregel voor de bevestigingsmail. Leeg = 'Afspraak bevestigd:' met het moment erachter."
                     className="w-56 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-emerald-500 focus:outline-none"
+                  />
+                  <MailVoorbeeldKnop
+                    klein
+                    soort="afspraak-bevestiging"
+                    leadId={leadId}
+                    extra={{ afspraakId: String(a.id) }}
+                    velden={[["contact", "contact"], ["bericht", "bericht"], ["onderwerp", "onderwerp"]]}
                   />
                   <ActieKnop
                     label="Bevestigen"

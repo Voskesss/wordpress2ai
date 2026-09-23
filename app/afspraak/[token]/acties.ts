@@ -43,12 +43,20 @@ export async function kiesMoment(_vorige: KiesUitkomst | null, formData: FormDat
   // heeft geen account, dus daar kan dit niet.
   const gebruiker = wie.clerkUserId ? await currentUser().catch(() => null) : null;
   const ingelogd = Boolean(gebruiker && wie.clerkUserId && gebruiker.id === wie.clerkUserId);
+  // Een lead met een bekend adres kreeg de uitnodiging al op dat adres: dat
+  // gebruiken we, en niet wat er getypt wordt. Een tikfout (jos@ in plaats van
+  // josklijnhout@) liet eerder elke bevestiging en afzegging stuiteren.
+  const bekend = wie.leadEmail ? { naam: wie.naam, email: wie.leadEmail } : null;
   const naam = ingelogd
     ? [gebruiker!.firstName, gebruiker!.lastName].filter(Boolean).join(" ") || wie.naam
-    : String(formData.get("naam") ?? "").trim().slice(0, 120);
+    : bekend
+      ? bekend.naam
+      : String(formData.get("naam") ?? "").trim().slice(0, 120);
   const email = ingelogd
     ? (gebruiker!.emailAddresses?.[0]?.emailAddress ?? "")
-    : String(formData.get("email") ?? "").trim().slice(0, 160);
+    : bekend
+      ? bekend.email
+      : String(formData.get("email") ?? "").trim().slice(0, 160);
   if (!naam || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return { ok: false, melding: "Vul je naam en een geldig e-mailadres in." };
   }

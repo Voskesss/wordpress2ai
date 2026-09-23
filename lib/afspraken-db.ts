@@ -31,22 +31,32 @@ export function afspraakVan(e: Eigenaar): SQL {
 /**
  * Wie hoort bij deze planlink? De code staat bij een klant op de site en bij
  * een potentiële klant op de lead. Een lead heeft geen account, dus daar is
- * clerkUserId altijd leeg en loopt het altijd via de gewone, niet-ingelogde weg.
+ * clerkUserId altijd leeg. Wel kennen we meestal zijn mailadres (daar ging de
+ * uitnodiging heen): dat is leadEmail, en dan vragen we het niet opnieuw.
  */
 export async function eigenaarViaToken(
   token: string,
-): Promise<{ eigenaar: Eigenaar; naam: string; clerkUserId: string | null } | null> {
+): Promise<{ eigenaar: Eigenaar; naam: string; clerkUserId: string | null; leadEmail: string | null } | null> {
   if (!token || token.length < 20) return null;
   const [site] = await db
     .select({ id: sites.id, naam: sites.naam, clerkUserId: sites.clerkUserId })
     .from(sites)
     .where(eq(sites.afspraakToken, token));
-  if (site) return { eigenaar: { soort: "site", id: site.id }, naam: site.naam, clerkUserId: site.clerkUserId };
+  if (site) {
+    return { eigenaar: { soort: "site", id: site.id }, naam: site.naam, clerkUserId: site.clerkUserId, leadEmail: null };
+  }
   const [lead] = await db
-    .select({ id: leads.id, naam: leads.naam })
+    .select({ id: leads.id, naam: leads.naam, email: leads.email })
     .from(leads)
     .where(eq(leads.afspraakToken, token));
-  if (lead) return { eigenaar: { soort: "lead", id: lead.id }, naam: lead.naam, clerkUserId: null };
+  if (lead) {
+    return {
+      eigenaar: { soort: "lead", id: lead.id },
+      naam: lead.naam,
+      clerkUserId: null,
+      leadEmail: lead.email?.trim() || null,
+    };
+  }
   return null;
 }
 

@@ -54,15 +54,14 @@ export default function AfzegMetReden({
           className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-normal focus:border-red-400 focus:outline-none"
         />
       </label>
-      {siteId ? (
-        <MailVoorbeeldKnop
-          klein
-          soort="afspraak-afzegging"
-          siteId={siteId}
-          extra={{ afspraakId: String(afspraakId) }}
-          velden={[["reden", "reden"]]}
-        />
-      ) : null}
+      <MailVoorbeeldKnop
+        klein
+        soort="afspraak-afzegging"
+        siteId={siteId}
+        leadId={leadId}
+        extra={{ afspraakId: String(afspraakId) }}
+        velden={[["reden", "reden"]]}
+      />
       <VerstuurKnop />
       <button type="button" onClick={() => setOpen(false)} className="text-xs font-semibold text-stone-500 underline cursor-pointer">
         Toch niet

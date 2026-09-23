@@ -106,7 +106,12 @@ export default async function AfspraakPagina({ params }: { params: Promise<{ tok
           </p>
           {afspraakLijst}
           <div className="mt-6">
-            <Kiezer token={token} dagen={dagen} ingelogdAls={ingelogdAls} />
+            <Kiezer
+              token={token}
+              dagen={dagen}
+              ingelogdAls={ingelogdAls}
+              uitnodigingAan={wie.leadEmail ? { naam: wie.naam, email: wie.leadEmail } : null}
+            />
           </div>
         </>
       )}

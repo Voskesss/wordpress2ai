@@ -10,11 +10,15 @@ export default function Kiezer({
   token,
   dagen,
   ingelogdAls,
+  uitnodigingAan = null,
 }: {
   token: string;
   dagen: Dag[];
   /** Ingelogd als de klant zelf: dan hoeft hij naam en e-mail niet in te vullen */
   ingelogdAls: { naam: string; email: string } | null;
+  /** Potentiële klant met een bekend adres (daar ging de uitnodiging heen): ook
+   * dan niets invullen, zodat een tikfout de bevestiging niet kan laten stuiteren */
+  uitnodigingAan?: { naam: string; email: string } | null;
 }) {
   const [gekozen, setGekozen] = useState<string | null>(null);
   const [stand, verstuur, bezig] = useActionState<KiesUitkomst | null, FormData>(kiesMoment, null);
@@ -61,7 +65,16 @@ export default function Kiezer({
       {gekozen && (
         <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            {ingelogdAls ? (
+            {!ingelogdAls && uitnodigingAan ? (
+              <p className="text-sm text-stone-600 sm:col-span-2">
+                De bevestiging gaat naar <strong>{uitnodigingAan.email}</strong>, het adres waar je de uitnodiging
+                op kreeg. Invullen hoeft niet. Klopt het adres niet? Mail Jos even op{" "}
+                <a href="mailto:info@wordswap.nl" className="font-semibold text-violet-700 hover:underline">
+                  info@wordswap.nl
+                </a>
+                .
+              </p>
+            ) : ingelogdAls ? (
               <p className="text-sm text-stone-600 sm:col-span-2">
                 Je bent ingelogd als <strong>{ingelogdAls.naam}</strong>
                 {ingelogdAls.email ? ` (${ingelogdAls.email})` : ""} — die gegevens gebruik ik, invullen hoeft niet.

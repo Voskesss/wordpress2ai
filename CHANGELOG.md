@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.2 (23 september 2026)
+
+**Bevestigingen aan potentiële klanten kwamen niet aan bij een tikfout.** Wie
+via de planlink een moment koos, moest zijn naam en e-mailadres opnieuw
+intypen, en alle mails daarna gingen naar dat getypte adres. Eén tikfout en de
+bevestiging, en later ook de afzegging, verdwenen in het niets. Nu gebruiken we
+bij een potentiële klant gewoon het adres waar de uitnodiging al heen ging. Hij
+ziet op de pagina naar welk adres de bevestiging gaat en hoeft niets meer in te
+vullen.
+
+**Voorbeeld bekijken kan nu ook bij potentiële klanten.** Het ⓘ-knopje naast de
+uitnodiging, de bevestiging en de afzegging laat de mail zien precies zoals hij
+aankomt, met het onderwerp dat je zelf invulde. Er wordt niets verstuurd.
+
 ## 1.30.1 (22 september 2026)
 
 **Zelf het onderwerp van de afspraakmails kiezen.** De uitnodiging aan een

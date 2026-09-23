@@ -5,12 +5,15 @@
 export default function MailVoorbeeldKnop({
   soort,
   siteId,
+  leadId,
   extra,
   velden = [],
   klein = false,
 }: {
   soort: string;
-  siteId: number;
+  /** Een klant (siteId) of een potentiële klant uit de leadlijst (leadId) */
+  siteId?: number;
+  leadId?: number;
   /** Vaste parameters, bv. { afspraakId: "12" } */
   extra?: Record<string, string>;
   /** Formuliervelden die mee moeten: [veldnaam, parameternaam] */
@@ -25,7 +28,11 @@ export default function MailVoorbeeldKnop({
       onClick={(e) => {
         const form = e.currentTarget.closest("form");
         const fd = form ? new FormData(form) : new FormData();
-        const q = new URLSearchParams({ soort, siteId: String(siteId), ...(extra ?? {}) });
+        const q = new URLSearchParams({
+          soort,
+          ...(leadId ? { leadId: String(leadId) } : { siteId: String(siteId) }),
+          ...(extra ?? {}),
+        });
         for (const [veld, param] of velden) {
           const w = String(fd.get(veld) ?? "").trim();
           if (w) q.set(param, w);

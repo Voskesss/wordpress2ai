@@ -175,6 +175,19 @@ import { statusBijAfspraak } from "../lib/leads";
   }
 }
 
+// Bij een lead met een bekend adres telt het getypte adres niet: zo kan een
+// tikfout (jos@ in plaats van josklijnhout@) geen enkele mail meer laten stuiteren
+{
+  const bron = readFileSync("app/afspraak/[token]/acties.ts", "utf8");
+  const kies = bron.slice(bron.indexOf("export async function kiesMoment"), bron.indexOf("export async function zegAfspraakAf"));
+  assert.match(kies, /const bekend = wie\.leadEmail/, "kiesMoment moet het bekende leadadres ophalen");
+  assert.match(kies, /: bekend\s*\?\s*bekend\.email/, "bij een bekend leadadres moet dat adres winnen van het formulier");
+  assert.ok(
+    kies.indexOf("bekend.email") < kies.indexOf('formData.get("email")'),
+    "het bekende adres moet vóór het getypte adres komen",
+  );
+}
+
 console.log(
   "PASS afspraken-leads: precies één eigenaar (code én database), kennismaking blijft bij de lead, lead-uitnodiging zonder portaal en zonder belbelofte, leadstatus schuift alleen mee waar dat mag, en mail gaat alleen naar Jos of naar de aanvrager zelf.",
 );
