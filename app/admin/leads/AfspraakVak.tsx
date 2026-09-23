@@ -1,7 +1,7 @@
 "use client";
 
 import { duurInWoorden, momentInWoorden } from "@/lib/afspraken";
-import { bevestigAfspraak, verwijderAfspraakBlok } from "../acties-afspraken";
+import { afspraakHandmatig, bevestigAfspraak, verwijderAfspraakBlok } from "../acties-afspraken";
 import ActieKnop from "../klant/[id]/ActieKnop";
 import AfspraakMailKnop from "../klant/[id]/AfspraakMailKnop";
 import AfzegMetReden from "../klant/[id]/AfzegMetReden";
@@ -159,6 +159,71 @@ export default function AfspraakVak({
             wel al appen.
           </p>
         ))}
+
+      <details className="mt-3 border-t border-stone-100 pt-2">
+        <summary className="cursor-pointer text-xs font-semibold text-violet-700">
+          ✍️ Zelf een afspraak vastleggen (al afgesproken per mail of telefoon)
+        </summary>
+        <p className="mt-1.5 text-xs text-stone-500">
+          Voor als je het al geregeld hebt en hij de planlink dus nooit heeft gebruikt. Er gaat{" "}
+          <strong>geen mail</strong> uit: die heeft hij al van jou gehad. De afspraak staat meteen in je agenda en
+          houdt dat tijdvak vrij in je planlink.
+        </p>
+        <form action={afspraakHandmatig} className="mt-2 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="leadId" value={leadId} />
+          <label className="text-xs font-semibold text-stone-600">
+            Wanneer
+            <input
+              name="datum"
+              type="date"
+              required
+              defaultValue={startDatum}
+              className="mt-0.5 block rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-violet-600 focus:outline-none"
+            />
+          </label>
+          <label className="text-xs font-semibold text-stone-600">
+            Hoe laat
+            <input
+              name="tijd"
+              type="time"
+              required
+              step={900}
+              defaultValue="10:00"
+              className="mt-0.5 block rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-violet-600 focus:outline-none"
+            />
+          </label>
+          <label className="text-xs font-semibold text-stone-600">
+            Hoe lang
+            <select
+              name="duur"
+              defaultValue="30"
+              className="mt-0.5 block rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-violet-600 focus:outline-none"
+            >
+              <option value="30">30 minuten</option>
+              <option value="60">1 uur</option>
+              <option value="90">1,5 uur</option>
+              <option value="120">2 uur</option>
+            </select>
+          </label>
+          <input
+            name="contact"
+            placeholder="Hoe? (leeg = bellen)"
+            title="Leeg betekent bellen. Een zin als 'Ik stuur een Teams-link.' wordt letterlijk overgenomen."
+            className="w-48 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-violet-600 focus:outline-none"
+          />
+          <input
+            name="onderwerp"
+            placeholder="Waar gaat het over? (mag leeg)"
+            className="w-48 rounded-lg border border-stone-300 px-2.5 py-1 text-xs focus:border-violet-600 focus:outline-none"
+          />
+          <ActieKnop
+            label="Vastleggen"
+            bezigLabel="Vastleggen..."
+            klaarLabel="✓ Staat erin"
+            className="rounded-full bg-violet-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 cursor-pointer"
+          />
+        </form>
+      </details>
 
       {planLink && (
         <p className="mt-3 border-t border-stone-100 pt-2 text-xs text-stone-500">

@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.4 (23 september 2026)
+
+**Zelf een afspraak vastleggen.** Heb je al per mail of telefoon een moment
+afgesproken, dan hoefde je tot nu toe alsnog de hele planlink-route te lopen,
+terwijl de ander die link nooit gebruikt heeft. Op de leadkaart staat nu
+"Zelf een afspraak vastleggen": datum, tijd en duur invullen en hij staat in je
+agenda. Er gaat geen mail uit, want die heeft de ander al van jou gehad. De
+lead schuift daarna vanzelf naar "Afspraak gepland" en dat tijdvak is meteen
+bezet in je planlink, zodat niemand er overheen kan boeken.
+
 ## 1.30.3 (23 september 2026)
 
 **Geen achternaam meer onder de post.** Mail uit de Mailer kwam binnen als

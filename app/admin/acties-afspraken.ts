@@ -11,6 +11,7 @@ import {
   maakIcs,
   minutenVan,
   momentInWoorden,
+  nederlandseTijd,
 
   STAP_MINUTEN,
 } from "@/lib/afspraken";
@@ -224,6 +225,56 @@ ${afspraak.opmerking ? `<li>Bericht: ${ontsnap(afspraak.opmerking)}</li>` : ""}
 }
 
 /** Een aanvraag of afspraak afzeggen; de klant hoort het per mail. */
+/**
+ * Een afspraak die BUITEN het systeem om gemaakt is: Jos heeft gewoon gemaild
+ * of gebeld en ze zijn eruit. De planlink is dan nooit gebruikt, dus er is
+ * niets om te bevestigen en er staat niets in de agenda.
+ *
+ * Twee dingen bewust anders dan bij bevestigAfspraak():
+ *
+ * 1. GEEN MAIL. De ander heeft zijn afspraak al per mail van Jos gekregen. Een
+ *    tweede bevestiging uit een systeem dat hij niet kent roept vragen op in
+ *    plaats van dat het geruststelt.
+ * 2. Openstaande aanvragen en klaargezette dagen blijven staan. Dit gaat om een
+ *    losse afspraak ernaast, niet om het afronden van een planronde.
+ *
+ * Wel gelijk: de afspraak staat meteen op "bevestigd", dus hij blokkeert het
+ * tijdvak in bezetteTijden() en verschijnt in het agenda-overzicht. En bij een
+ * lead schuift de status mee naar "Afspraak gepland".
+ */
+export async function afspraakHandmatig(formData: FormData) {
+  await requireAdmin();
+  const eigenaar = eigenaarUitForm(formData);
+  if (!eigenaar) return;
+  const datum = String(formData.get("datum") ?? "").trim();
+  const tijd = String(formData.get("tijd") ?? "").trim();
+  // Een half ingevuld formulier levert anders een afspraak op 1 januari 1970 op.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || !/^\d{2}:\d{2}$/.test(tijd)) return;
+  const gekozenDuur = Number(formData.get("duur"));
+  const duurMinuten = DUREN.includes(gekozenDuur) ? gekozenDuur : 30;
+  const info = await eigenaarInfo(eigenaar);
+  if (!info) return;
+
+  await db.insert(afspraken).values({
+    ...eigenaarKolommen(eigenaar),
+    // nederlandseTijd rekent wandkloktijd om en houdt rekening met zomertijd:
+    // 14:00 is 14:00, ook in de week dat de klok verzet wordt.
+    start: nederlandseTijd(datum, tijd),
+    duurMinuten,
+    status: "bevestigd",
+    bevestigdOp: new Date(),
+    naam: info.naam,
+    email: info.email,
+    onderwerp: String(formData.get("onderwerp") ?? "").trim().slice(0, 150) || null,
+    contact: String(formData.get("contact") ?? "").trim().slice(0, 200) || null,
+    opmerking: "Met de hand vastgelegd; buiten de planlink om afgesproken.",
+  });
+  if (eigenaar.soort === "lead") await werkLeadStatusBijAfspraak(eigenaar.id);
+  revalidatePath(info.pad);
+  revalidatePath("/admin/afspraken");
+  revalidatePath("/admin/leads");
+}
+
 export async function annuleerAfspraak(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("afspraakId"));
