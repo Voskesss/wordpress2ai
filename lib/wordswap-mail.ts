@@ -44,7 +44,7 @@ export function inWordSwapHuisstijl(inhoud: string, voet = ""): string {
 ${inhoud}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 18px;border-top:1px solid #e3e8dc;padding-top:18px;width:100%"><tr>
 <td width="64" style="vertical-align:top;padding-top:18px"><img src="https://www.wordswap.nl/team/jos-mail.jpg" width="52" height="52" alt="Jos" style="display:block;width:52px;height:52px;border-radius:50%"></td>
-<td style="vertical-align:top;padding-top:18px;font-size:14px;line-height:1.5;color:#243a31"><strong>Jos Klijnhout</strong><br><span style="color:#657164">Oprichter van WordSwap</span><br><a href="https://wordswap.nl" style="color:#245747;text-decoration:none;font-weight:600">wordswap.nl</a></td>
+<td style="vertical-align:top;padding-top:18px;font-size:14px;line-height:1.5;color:#243a31"><strong>Jos</strong><br><span style="color:#657164">Oprichter van WordSwap</span><br><a href="https://wordswap.nl" style="color:#245747;text-decoration:none;font-weight:600">wordswap.nl</a></td>
 </tr></table>
 </td></tr>
 ${voet ? `<tr><td style="padding:14px 8px 0;font-size:12px;line-height:1.5;color:#8a9185">${voet}</td></tr>` : ""}

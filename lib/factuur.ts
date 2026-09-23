@@ -154,7 +154,7 @@ export async function vervangFactuur(
     html: `<p>Beste ${ontsnap(juist.klantNaam.split(" ")[0])},</p>
 <p>Er stond iets niet goed op factuur ${origineel.nummer}. In de bijlage vind je daarom creditfactuur <strong>${credit.nummer}</strong>, die de oude factuur vervangt, en de herziene factuur <strong>${nieuw.nummer}</strong> met de juiste gegevens.</p>
 <p>De bedragen zijn ongewijzigd en het is al betaald — dit is alleen een administratieve correctie, je hoeft niets te doen.</p>
-<p>Vragen? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Vragen? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos van WordSwap</p>`,
     bijlagen: [
       { bestandsnaam: `Creditfactuur-${credit.nummer}.pdf`, inhoud: Buffer.from(await pdfVan(credit)) },
       { bestandsnaam: `Factuur-${nieuw.nummer}.pdf`, inhoud: Buffer.from(await pdfVan(nieuw)) },
@@ -294,8 +294,8 @@ export async function mailFactuur(f: Factuur): Promise<boolean> {
   const html = isCredit
     ? `<p>Beste ${voornaam},</p><p>In de bijlage vind je creditfactuur <strong>${f.nummer}</strong> van ${euroTekst(-f.totaalCent)} (inclusief btw), als creditering van factuur ${f.creditVoorNummer}. ${
         f.betaalwijze === "terugbetaling" ? "Het bedrag wordt teruggestort op je rekening." : "Je bank heeft de betaling teruggeboekt."
-      }</p><p>Vragen? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`
-    : `<p>Beste ${voornaam},</p><p>In de bijlage vind je factuur <strong>${f.nummer}</strong> van ${euroTekst(f.totaalCent)} (inclusief btw). Dit bedrag is al voldaan via ${f.betaalwijze}, je hoeft dus niets meer te doen.</p><p>Vragen over de factuur? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`;
+      }</p><p>Vragen? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos van WordSwap</p>`
+    : `<p>Beste ${voornaam},</p><p>In de bijlage vind je factuur <strong>${f.nummer}</strong> van ${euroTekst(f.totaalCent)} (inclusief btw). Dit bedrag is al voldaan via ${f.betaalwijze}, je hoeft dus niets meer te doen.</p><p>Vragen over de factuur? Antwoord gewoon op deze mail.</p><p>Met vriendelijke groet,<br>Jos van WordSwap</p>`;
   const gelukt = await mailVanJos({
     naar: f.klantEmail,
     onderwerp: `${isCredit ? "Creditfactuur" : "Factuur"} ${f.nummer} van WordSwap`,

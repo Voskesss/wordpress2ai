@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "Jos Klijnhout | WordSwap <jos@wordswap.nl>",
+      from: "Jos van WordSwap <jos@wordswap.nl>",
       to: [aan.trim()],
       subject: onderwerp.trim(),
       html: losseMailNaarHtml(tekst.trim(), metDemo !== false),

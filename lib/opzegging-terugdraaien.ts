@@ -103,7 +103,7 @@ export async function draaiOpzeggingTerug(
       html: `<p>Beste ${ontsnap(abo.naam.split(" ")[0])},</p>
 <p>Je hebt je opzegging voor <strong>${ontsnap(site.naam)}</strong> ingetrokken. ${ontsnap(melding)}</p>
 <p>Fijn dat je blijft. Heb je ergens hulp bij nodig, laat het me gerust weten.</p>
-<p>Met vriendelijke groet,<br>Jos Klijnhout<br>WordSwap</p>`,
+<p>Met vriendelijke groet,<br>Jos van WordSwap</p>`,
     });
   }
 

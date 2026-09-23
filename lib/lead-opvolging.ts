@@ -106,7 +106,7 @@ Je vroeg via onze advertentie een websitecheck aan, en ik heb je daarover een pa
 
 Kijk anders even in je spam naar mail van jos@wordswap.nl, of stuur me een berichtje, dan weet ik dat het aankomt. Geen interesse meer? Ook goed, dan laat ik je verder met rust.
 
-Groet, Jos Klijnhout, WordSwap (wordswap.nl)`,
+Groet, Jos van WordSwap (wordswap.nl)`,
   };
 }
 

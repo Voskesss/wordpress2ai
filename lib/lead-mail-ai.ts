@@ -88,7 +88,7 @@ export async function schrijfLeadMail(o: {
           ? "Schrijf een korte OPVOLGMAIL: verwijs vriendelijk naar de eerdere mail en het voorstel daarin, en maak duidelijk dat 'nee' ook een prima antwoord is. Geen demo, geen gratis proef."
           : o.soort === "laatste"
             ? "Schrijf een korte LAATSTE mail: netjes afronden zonder te duwen; hooguit noemen dat we op wordswap.nl te vinden zijn als het later alsnog speelt."
-            : "Schrijf een kort bericht voor het CONTACTFORMULIER op hun eigen website: leg uit dat eerdere mails mogelijk in de spam belandden, noem jos@wordswap.nl, en sluit vriendelijk af (dit bericht mag wél eindigen met 'Groet, Jos Klijnhout, WordSwap (wordswap.nl)').";
+            : "Schrijf een kort bericht voor het CONTACTFORMULIER op hun eigen website: leg uit dat eerdere mails mogelijk in de spam belandden, noem jos@wordswap.nl, en sluit vriendelijk af (dit bericht mag wél eindigen met 'Groet, Jos van WordSwap (wordswap.nl)').";
     const resp = await client.messages.create({
       // Mails aan leads: taalkwaliteit en toon gaan voor
       model: "claude-sonnet-5",

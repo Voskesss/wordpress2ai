@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.3 (23 september 2026)
+
+**Geen achternaam meer onder de post.** Mail uit de Mailer kwam binnen als
+"Jos Klijnhout | WordSwap" en zette er onderaan nog eens "Jos Klijnhout" bij.
+Dat leest als een brief van een instantie. Zowel de afzendernaam als de
+handtekening staan nu overal op "Jos van WordSwap": in de Mailer, onder
+facturen, onder de opzegmail en in het bericht dat we in een contactformulier
+achterlaten. Op de website blijft de volledige naam gewoon staan, want daar is
+het juist het tegenovergestelde: daar wil je zien met wie je te maken hebt.
+
 ## 1.30.2 (23 september 2026)
 
 **Bevestigingen aan potentiële klanten kwamen niet aan bij een tikfout.** Wie

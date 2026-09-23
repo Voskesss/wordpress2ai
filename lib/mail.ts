@@ -92,7 +92,7 @@ function isEigenSite(site: MailSite): boolean {
 }
 
 /** WordSwap-huisstijl om een mail heen: dezelfde groene handtekening als de
- * losse mails (logo, Jos Klijnhout, demo-knop), met een juridische regel
+ * losse mails (logo, Jos van WordSwap, demo-knop), met een juridische regel
  * met de handelsnaam eronder. */
 function metWordSwapOpmaak(html: string): string {
   return `<div style="font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
