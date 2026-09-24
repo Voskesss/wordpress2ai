@@ -1,3 +1,5 @@
+import { variantNaam } from "@/lib/beeldmaten";
+
 /**
  * Fotogalerijen bij de migratie mechanisch bouwen. Een pagina met veel foto's
  * (albums van een fotograaf, projectoverzichten) krijgt zijn grid kant-en-klaar
@@ -13,6 +15,10 @@ export type Galerij = { pad: string; slug: string; fotos: GalerijFoto[] };
 
 /** Vanaf dit aantal foto's op één pagina bouwen we het grid zelf. */
 export const GALERIJ_DREMPEL = 12;
+
+/** Breedte van de miniaturen in het raster (cellen zijn 220px, dus ruim
+ * genoeg voor een scherm met dubbele beeldpunten). */
+export const GALERIJ_MINIATUUR = 600;
 
 export function galerijSlug(pad: string): string {
   const slug = pad
@@ -83,7 +89,10 @@ export function maakGalerijFragment(fotos: GalerijFoto[]): string {
   const items = fotos
     .map(
       (f) =>
-        `<a href="${ontsnap(f.bestand)}" class="ws-galerij-item"><img src="${ontsnap(f.bestand)}" alt="${ontsnap(f.alt)}" loading="lazy" decoding="async"></a>`,
+        // Het miniatuur pakt de kleine variant, de link de volle. Een raster
+        // van 174 werken haalde anders 174 keer een beeld van 2000px op om het
+        // in een vakje van 220px te tonen.
+        `<a href="${ontsnap(f.bestand)}" class="ws-galerij-item"><img src="${ontsnap(variantNaam(f.bestand, GALERIJ_MINIATUUR))}" alt="${ontsnap(f.alt)}" loading="lazy" decoding="async"></a>`,
     )
     .join("\n");
   return `<!-- Fotogalerij: automatisch opgebouwd bij de migratie (${fotos.length} foto's uit afbeeldingen/). Foto toevoegen = een regel erbij in het grid. -->

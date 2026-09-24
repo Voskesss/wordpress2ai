@@ -8,6 +8,7 @@
  *            ~/wordswap-klanten/<repo>/       (site-map met afbeeldingen/, hier bouwt Claude)
  */
 import sharp from 'sharp';
+import { VARIANT_BREEDTES, variantNaam } from '../lib/beeldmaten';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
@@ -90,6 +91,20 @@ for (let i = 0; i < teDoen.length; i += 5) {
       const doel = `afbeeldingen/${basis}.webp`;
       const data = await sharp(buf).rotate().resize({ width: 2000, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
       await writeFile(path.join(siteDir, doel), data);
+      // Kleinere maten ernaast: een telefoon hoeft geen beeld van 2000px te
+      // laden om het op 390px te tonen. De uitrol zet hier srcset op; zie
+      // lib/beeldmaten.ts. Het origineel houdt zijn naam, zodat bestaande
+      // verwijzingen blijven werken.
+      // Alleen een variant wegschrijven die echt kleiner is. Bij een bron van
+      // 1170px zou de variant van 1200 een exacte kopie zijn: dat kost opslag
+      // en zet twee identieke keuzes in de srcset. Gemeten bij een schilderij
+      // van Roland: 2000px en 1200px allebei 363 kB, 600px 133 kB.
+      const volleBreedte = (await sharp(data).metadata()).width ?? 0;
+      for (const breedte of VARIANT_BREEDTES) {
+        if (volleBreedte <= breedte) continue;
+        const klein = await sharp(buf).rotate().resize({ width: breedte, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+        await writeFile(path.join(siteDir, variantNaam(doel, breedte)), klein);
+      }
       for (const v of g.varianten) mediaMap[v] = `/${doel}`;
       n++;
     } catch {}

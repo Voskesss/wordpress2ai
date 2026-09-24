@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { zetSrcset } from "@/lib/beeldmaten";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { laadDelen, vouwUit } from "./delen";
@@ -236,6 +237,8 @@ async function bereidBestandenVoor(
   const bestanden = await alleBestanden(werkmap);
   const delen = vulIngebouwdeDelenAan(await laadDelen(werkmap));
   const echtDomein = await echtDomeinVoor(naam);
+  // Welke beeldvarianten er zijn, bepaalt of we srcset kunnen zetten
+  const beeldBestanden = new Set(bestanden.filter((p) => /^afbeeldingen\/.+\.webp$/i.test(p)));
   const uit: { pad: string; data: Buffer }[] = [];
   for (const pad of bestanden) {
     let data = await readFile(path.join(werkmap, pad));
@@ -246,6 +249,10 @@ async function bereidBestandenVoor(
         /<script>[^<]*wp2ai[^<]*<\/script>/g,
         ""
       );
+      // Meerdere beeldmaten aanbieden, zodat een telefoon niet het beeld van
+      // 2000px hoeft te laden. Hier en niet door de AI: mechanisch bij het
+      // uitrollen kan het niet vergeten worden. Zie lib/beeldmaten.ts.
+      html = zetSrcset(html, beeldBestanden);
       const injectie = COOKIE_VERBERGER + PAGINA_MELDER;
       if (naam.startsWith("ontwerp-"))
         html = html.replace(/(<body[^>]*>)/i, `$1${ONTWERP_BANNER}`);

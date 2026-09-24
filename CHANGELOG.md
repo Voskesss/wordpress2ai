@@ -20,6 +20,19 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.9 (24 september 2026)
+
+**Foto's in meerdere maten, zodat een telefoon niet het grote beeld hoeft te
+laden.** Tot nu toe kreeg elke afbeelding één formaat: 2000 pixels breed, ook
+op een scherm van 390. Bij één foto merk je dat niet, bij een pagina met
+tientallen werken is dat het verschil tussen snel en traag. Er komen nu
+kleinere versies naast, en de browser kiest zelf welke hij nodig heeft. In een
+fotogalerij laden de miniaturen voortaan de kleine versie; klik je erop, dan
+komt het grote beeld. Gemeten op een schilderij van een kunstenaar: 363 kB werd
+133 kB per miniatuur. Voor bestaande sites verandert er niets aan de adressen
+van de foto's, en een afbeelding die iemand zelf heeft ingericht blijft zoals
+hij is.
+
 ## 1.30.8 (23 september 2026)
 
 **Leads uit Meta komen nu echt binnen.** Meta kent twee soorten sleutels: één
