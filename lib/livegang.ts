@@ -1,4 +1,6 @@
 import { eq } from "drizzle-orm";
+import { promises as dns } from "node:dns";
+import { DKIM_SELECTORS, mailBevindingen, type MailFeiten } from "@/lib/mail-controle";
 import { db } from "@/db";
 import { abonnementen, formulierInzendingen, sites, wpBackups } from "@/db/schema";
 import { opleveringsAkkoord } from "@/lib/website-akkoord";
@@ -74,6 +76,39 @@ async function domeinToontNieuweSite(domein: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * De mailgegevens van een domein ophalen. Alles apart afgevangen: één
+ * ontbrekend record mag de hele checklist niet omver halen.
+ *
+ * DKIM is niet op te vragen zonder de naam te kennen, dus we proberen de
+ * gebruikelijke namen. Niets gevonden betekent niet dat er niets is; dat staat
+ * ook zo in de uitleg bij die regel.
+ */
+async function mailFeiten(domein: string): Promise<MailFeiten> {
+  const mxRuw = await dns.resolveMx(domein).catch(() => []);
+  const mx = mxRuw.sort((a, b) => a.priority - b.priority).map((r) => r.exchange.toLowerCase().replace(/\.$/, ""));
+  const [txt, dmarc] = await Promise.all([
+    dns.resolveTxt(domein).catch(() => [] as string[][]),
+    dns.resolveTxt(`_dmarc.${domein}`).catch(() => [] as string[][]),
+  ]);
+  const mxBereikbaar = mx[0] ? await dns.resolve4(mx[0]).then((a) => a.length > 0).catch(() => false) : null;
+  const gevonden = await Promise.all(
+    DKIM_SELECTORS.map((sel) =>
+      dns
+        .resolveTxt(`${sel}._domainkey.${domein}`)
+        .then((r) => (r.length ? sel : null))
+        .catch(() => null)
+    )
+  );
+  return {
+    mx,
+    mxBereikbaar,
+    txt: txt.map((r) => r.join("")),
+    dmarc: dmarc.map((r) => r.join("")),
+    dkimSelectors: gevonden.filter((x) => x !== null).map(String),
+  };
 }
 
 export async function livegangChecks(
@@ -198,5 +233,21 @@ export async function livegangChecks(
       uitleg: "Upload de back-up van de oude WordPress-site (terugweg-garantie) bij WordPress-kopie.",
     },
   );
+
+  // E-mail apart, want dat is het enige onderdeel waar een fout niet aan de
+  // site te zien is: de website draait perfect terwijl de post stilstaat.
+  if (domeinIngevuld && site.domein) {
+    try {
+      for (const b of mailBevindingen(await mailFeiten(site.domein.replace(/^www\./, "")))) checks.push(b);
+    } catch {
+      checks.push({
+        sleutel: "mail-opvragen",
+        label: "E-mailgegevens opgehaald",
+        ok: false,
+        uitleg: "De mailgegevens van dit domein konden niet opgevraagd worden. Controleer ze met: npx tsx scripts/mail-check.mts " + site.domein,
+      });
+    }
+  }
+
   return checks;
 }

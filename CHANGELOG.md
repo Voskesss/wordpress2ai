@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.10 (24 september 2026)
+
+**E-mail staat nu als apart blok in de livegang-checklist.** Bij een overstap
+verhuist de website, maar de e-mail moet blijven draaien waar hij draait. Alles
+wat daarvoor nodig is staat in de domeininstellingen, en juist daar gaat het
+mis: één vergeten regel en de post stopt of belandt stilletjes in de spam,
+terwijl de website perfect werkt. Daar zie je het dus niet aan. De checklist
+controleert nu per klant waar de mail draait, of de instellingen compleet zijn,
+en waarschuwt als de mail bij de oude webhoster staat: die hosting mag dan niet
+opgezegd worden.
+
 ## 1.30.9 (24 september 2026)
 
 **Foto's in meerdere maten, zodat een telefoon niet het grote beeld hoeft te
