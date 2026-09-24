@@ -156,6 +156,10 @@ export async function controleerSiteMap(
   const jsonLd: string[] = [];
   const telefoonnummers = new Set<string>();
   let heeftAdres = false;
+  // Safari toont een svg-favicon vaak niet en valt dan terug op /favicon.ico.
+  // Die twee lijsten worden ná de lus één keer gemeld, niet per pagina.
+  const zonderIcoLink: string[] = [];
+  const zonderAppleIcon: string[] = [];
 
   for (const bestand of paginas) {
     const rel = relatief(map, bestand);
@@ -308,6 +312,11 @@ export async function controleerSiteMap(
     }
     if (!/<link[^>]+rel=["'](?:shortcut )?icon["']/i.test(inhoud))
       fout("favicon", rel, "Geen favicon-link in de head.");
+    else {
+      if (!/<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*\.ico["']/i.test(inhoud))
+        zonderIcoLink.push(rel);
+      if (!/<link[^>]+rel=["']apple-touch-icon["']/i.test(inhoud)) zonderAppleIcon.push(rel);
+    }
     if (!/<meta[^>]+name=["']viewport["']/i.test(inhoud))
       fout("mobiel", rel, "Geen viewport-meta.");
     if (/VERVANG\.nl/.test(inhoud))
@@ -321,6 +330,33 @@ export async function controleerSiteMap(
       ZOEKINDEX_PAD,
       "Staat in de repo maar wordt bij elke publicatie opnieuw gemaakt. Weghalen, anders lijkt het alsof je hem met de hand moet bijwerken.",
     );
+  // Favicon: een svg alleen is niet genoeg. Safari negeert svg-iconen vaak en
+  // zoekt /favicon.ico; staat die er niet, dan blijft het tabblad leeg.
+  if (zonderIcoLink.length > 0)
+    fout(
+      "favicon",
+      zonderIcoLink[0],
+      `Alleen een svg-favicon (${zonderIcoLink.length} pagina's). Safari toont die meestal niet: zet er <link rel="icon" href="/favicon.ico" sizes="32x32"> bij.`,
+    );
+  if (zonderAppleIcon.length > 0)
+    waarschuw(
+      "favicon",
+      zonderAppleIcon[0],
+      `Geen apple-touch-icon (${zonderAppleIcon.length} pagina's). Wie de site op zijn iPhone-beginscherm zet, krijgt dan een grijs vlak.`,
+    );
+  if (!(await bestandBestaat("favicon.ico")))
+    fout("favicon", "favicon.ico", "Ontbreekt. Safari valt hierop terug als het svg-icoon niet werkt.");
+  if (!(await bestandBestaat("apple-touch-icon.png")))
+    waarschuw("favicon", "apple-touch-icon.png", "Ontbreekt (180x180, zonder doorzichtige achtergrond).");
+  if (await bestandBestaat("favicon.svg")) {
+    const icoon = await readFile(path.join(map, "favicon.svg"), "utf8");
+    if (/<text\b/i.test(icoon))
+      fout(
+        "favicon",
+        "favicon.svg",
+        "Letter staat er als tekst in. Een favicon wordt zonder het lettertype van de site getekend, dus die letter valt vaak weg. Maak er een vorm van of gebruik een afbeelding.",
+      );
+  }
   if (!(await bestandBestaat("404.html")))
     fout("standaard", "404.html", "Ontbreekt.");
   else {
