@@ -30,6 +30,75 @@ Zegt Jos "maak een voorproefje van <url>" (voor een lead uit de advertentie of o
 
 Lees EERST `.claude/skills/migreer-klant/LEERPUNTEN.md` — de lessen uit eerdere migraties. En andersom: **leer je tijdens deze migratie iets nieuws** (een valkuil, een plugin-patroon, een betere aanpak), dan voeg je dat DIRECT toe aan LEERPUNTEN.md, meld je het aan Jos, en commit je het mee. Zo wordt elke migratie beter dan de vorige.
 
+## Stap 0B — Bouwintake (verplicht, vóór je gaat oogsten)
+
+Waarom dit er is: welke bouwstenen een site krijgt werd tot nu toe per klant in
+het moment besloten. Dat gaat goed zolang het vers in je hoofd zit en daarna
+niet meer. Een kunstenaar krijgt de werken-module, een zorgpraktijk de strengere
+formulierstand, een vereniging bedragen inclusief btw. Vergeet je dat, dan merk
+je het pas na de oplevering.
+
+**Het principe: vraag NOOIT wat je kunt zien.** Eerst kijken, dan pas vragen.
+Vraag je een kunstenaar of hij een galerij heeft, dan weet hij dat je niet
+gekeken hebt.
+
+### B1. Eerst zelf kijken (5 minuten, geen AI-kosten)
+
+Verzamel dit van de live site en meld het in één overzicht aan Jos:
+
+- **Omvang**: aantal pagina's en berichten uit de sitemap, aantal producten of
+  items als die er zijn.
+- **Bouw**: WordPress-versie, thema, pluginlijst uit de HTML.
+- **Wat er extern draait** en dus gewoon meekan: boekingssysteem, webshop op een
+  ander domein, nieuwsbriefdienst (MailerLite, Laposta, Mailchimp), video
+  (Vimeo/YouTube), vertaalwidget, kaarten. Zoek op scripts van derden in de
+  `<head>`.
+- **Wat er IN WordPress draait** en dus niet meekan zoals het is: WooCommerce
+  met een werkende afrekenpagina, ledeninlog, een feed die server-side wordt
+  ingebakken (Smash Balloon).
+- **Certificaat**: `openssl s_client` → uitgever en vervaldatum. Let op de
+  looptijd: een certificaat van 40 dagen vernieuwt zichzelf, een jaarcertificaat
+  vaak niet. Een verlopen certificaat is een spoedgeval; een certificaat dat
+  zichzelf vernieuwt is géén verkoopargument (dat is een keer fout gegaan).
+- **Snelheid op mobiel**: Lighthouse. Meet ALTIJD mobiel, niet alleen desktop:
+  bij rolandbroekhuis.nl was desktop 98 en mobiel 53.
+- **Dode pagina's**: pagina's in de sitemap die nergens meer heen gaan of bij
+  een afgeschafte functie horen (oude `/cart/`, `/checkout/`, themavoorbeelden
+  als `/left-sidebar/`). Die kwamen bij drie van de vier laatste sites voor.
+
+### B2. Dan pas vragen (aan Jos, niet aan de klant)
+
+Deze zeven kan een scan niet beantwoorden. Stel ze in één keer, kort. Weet Jos
+het antwoord niet, dan is dat het signaal dat hij het nog moet vragen VOORDAT er
+gebouwd wordt. Noteer dan letterlijk "niet gevraagd" in plaats van iets aan te
+nemen: een stille aanname is duurder dan een open vraag.
+
+1. **Wat voor bedrijf is dit?** Bepaalt de modules. Kunstenaar of fotograaf →
+   werken plus catalogusformulier. Zorg of juridisch → de strengere
+   formulierstand (zie `lib/formulier-privacy.ts`). Vereniging of stichting →
+   bedragen inclusief btw noemen.
+2. **Wat gaat de klant zelf doen, en hoe vaak?** Wie nooit iets wijzigt heeft
+   iets anders nodig dan wie wekelijks werk toevoegt.
+3. **Wat moet er juist NIET mee?** Verouderde pagina's, oude prijzen, een
+   afgeschafte webshop. Vraag je dit niet, dan zet je hun rommel netjes over.
+4. **Wat komt er binnenkort bij?** Een tweede taal, een webshop, een nieuwe
+   dienst. Wil iemand over drie maanden verkopen, dan weet je nu al dat die
+   winkel extern moet.
+5. **Komen er gevoelige gegevens in de formulieren?** Bepaalt de bewaarstand.
+6. **Bij veel beeld: hoe scherp moet het?** Bij een kunstenaar of fotograaf is
+   dat dé vraag. Beloof nooit afdrukresolutie.
+7. **Wat vindt de klant nu het vervelendst aan zijn site?** Geen technische
+   vraag, wel de beste. Daar hoor je wat hij écht wil.
+
+### B3. Vastleggen
+
+Schrijf het resultaat naar `~/wordswap-klanten/<repo>-bron/bouwintake.md`: wat
+je gevonden hebt, de antwoorden (of "niet gevraagd"), en daaruit afgeleid **de
+modulelijst**: welke bouwstenen krijgt deze site. Neem die lijst over in de
+oplevering, zodat later te zien is wat er bewust wel en niet in zit.
+
+Ga pas naar Stap 1B als dit bestand er staat.
+
 ## Stap 1B — Voorwerk vanaf de LIVE site (standaardroute, geen export)
 
 Doel: dezelfde bron-map opbouwen als de XML-route (`~/wordswap-klanten/<repo>-bron/` met `oud-ontwerp/`, `seo-manifest.json`, `afbeeldingen-op-paginas.json`, `embeds-op-paginas.json`, `media-map.json`), maar dan geoogst van de publieke site.
