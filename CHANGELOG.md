@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.12 (25 september 2026)
+
+**Zeven lessen uit de Van den Berg-controle zitten nu vast in de bouwregels.**
+Een aanmeldformulier van een externe dienst (zoals ActiveCampaign of Mailchimp)
+wordt voortaan één-op-één overgenomen en nooit meer omgebouwd naar ons eigen
+formulier, want dan breken de opvolgmails van die dienst. Sitetracking breder
+dan Google (ActiveCampaign, HubSpot, Hotjar, Clarity) gaat ook intact mee. En
+drie bouwfouten die stil misgingen zijn nu regels: een link met een knop-klasse
+blijft een opgemaakte knop, verborgen elementen blijven écht verborgen (ook
+binnen een grid), en een blog- of kennisoverzicht toont alle berichten, ook als
+het oude overzicht achterliep. Meetscripts krijgen een vaste plek
+(delen/meten.html) en starten pas na de eerste weergave: zelfde meetcodes,
+merkbaar snellere site.
+
 ## 1.30.11 (25 september 2026)
 
 **Een overgezette website blijft nu écht hetzelfde, ook met ingesloten kaarten.**

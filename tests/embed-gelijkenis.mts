@@ -52,4 +52,30 @@ assert.ok(
   "migreer-skill: 'zelfde meetcodes, statistieken lopen door' is verdwenen",
 );
 
+const bouw = await readFile(new URL("../lib/bouw.ts", import.meta.url), "utf8");
+
+// 5. Formulieren van externe diensten (les Van den Berg 25-09): insluitcode 1-op-1,
+//    nooit ombouwen naar ons endpoint — anders breken autoresponder en lijsten
+for (const [naam, tekst] of [["huisregels", huisregels], ["migreer-skill", skill], ["bouw-pijplijn", bouw]] as const) {
+  assert.ok(
+    tekst.includes("ActiveCampaign") && /NOOIT om naar ons endpoint/.test(tekst),
+    `${naam}: de uitzondering voor formulieren van externe diensten is verdwenen`,
+  );
+}
+
+// 6. Sitetracking breder dan Google: ook ActiveCampaign, HubSpot, Hotjar, Clarity intact
+assert.ok(
+  /Hotjar/.test(huisregels) && /Hotjar/.test(skill),
+  "de bredere meetscript-lijst (HubSpot/Hotjar/Clarity) is verdwenen",
+);
+
+// 7. Knoppen blijven knoppen en [hidden] wint altijd (lessen Van den Berg 25-09)
+for (const [naam, tekst] of [["migreer-skill", skill], ["bouw-pijplijn", bouw]] as const) {
+  assert.ok(tekst.includes("[hidden]{display:none"), `${naam}: de [hidden]-stijlregel is verdwenen`);
+  assert.ok(/btn/.test(tekst) && /knopstijl/.test(tekst), `${naam}: de knopklassen-regel is verdwenen`);
+}
+
+// 8. Overzichtspagina's tonen alle gemigreerde berichten, ook als het oude raster achterliep
+assert.ok(/OVERZICHTSPAGINA'S TONEN ALLES/.test(skill), "migreer-skill: de overzicht-toont-alles-regel is verdwenen");
+
 console.log("embed-gelijkenis: ok");
