@@ -15,8 +15,6 @@ import {
   gebruikGevondenLogo,
   uploadMailLogo,
   inzendingVerwerken,
-  uploadKennisDocument,
-  verwijderKennisDocument,
 } from "./acties";
 
 /** Meegestuurde bestanden bij een inzending. Het opslagadres blijft geheim:
@@ -92,11 +90,6 @@ export default async function SiteExtra({
         .orderBy(desc(formulierInzendingen.id));
   const inzendingen = alle.filter((i) => !i.gearchiveerd && i.inhoudBewaard).slice(0, 30);
   const gearchiveerd = alle.filter((i) => i.gearchiveerd && i.inhoudBewaard).slice(0, 50);
-  const documenten = await db
-    .select()
-    .from(kennisDocumenten)
-    .where(eq(kennisDocumenten.siteId, siteId))
-    .orderBy(desc(kennisDocumenten.id));
 
   return (
     <div data-site-extra className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -333,7 +326,7 @@ export default async function SiteExtra({
         )}
       </div>
 
-      {/* Chatbot: klant ziet een interesse-kaart; documenten uploaden is voorlopig alleen voor beheer */}
+      {/* Chatbot: klant ziet een interesse-kaart zolang de chatbot er nog niet is */}
       {!beheerder && (
         <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
           <h3 className="font-display text-lg font-semibold">Een chatbot op je website?</h3>
@@ -354,57 +347,10 @@ export default async function SiteExtra({
           )}
         </div>
       )}
-      {beheerder && (
-      <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-display text-lg font-semibold">
-            Documenten over je bedrijf
-          </h3>
-          <span className="rounded-full bg-violet-50 border border-violet-200 px-2.5 py-0.5 text-xs font-medium text-violet-700">
-            voor de WordSwap-chatbot — binnenkort
-          </span>
-        </div>
-        <p className="mt-2 text-sm text-stone-600">
-          Upload teksten over je diensten, prijzen of veelgestelde vragen
-          (.txt of .md, max 1 MB). Zodra de chatbot voor je website
-          beschikbaar is, beantwoordt hij bezoekersvragen op basis hiervan.
-        </p>
-        {documenten.length > 0 && (
-          <ul className="mt-4 space-y-2">
-            {documenten.map((doc) => (
-              <li
-                key={doc.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm"
-              >
-                <span className="truncate font-medium">{doc.naam}</span>
-                <form action={verwijderKennisDocument}>
-                  <input type="hidden" name="siteId" value={siteId} />
-                  <input type="hidden" name="docId" value={doc.id} />
-                  <button
-                    type="submit"
-                    className="text-stone-400 hover:text-red-600 cursor-pointer"
-                    aria-label={`Verwijder ${doc.naam}`}
-                  >
-                    ✕
-                  </button>
-                </form>
-              </li>
-            ))}
-          </ul>
-        )}
-        <form action={uploadKennisDocument} className="mt-4 flex gap-2 flex-wrap">
-          <input type="hidden" name="siteId" value={siteId} />
-          <input
-            type="file"
-            name="document"
-            accept=".txt,.md,.markdown"
-            required
-            className="flex-1 min-w-0 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-violet-700 file:font-semibold file:cursor-pointer"
-          />
-          <ActieKnop label="Upload" bezigLabel="Uploaden..." klaarLabel="✓ Geüpload" className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />
-        </form>
-      </div>
-      )}
+      {/* Documenten-upload voor de chatbot is bewust weggehaald (25-09): het blok
+          leidde alleen maar af zolang de chatbot er niet is. Komt terug als de
+          chatbot per klant aan of uit gezet kan worden; de uploads en de acties
+          (uploadKennisDocument) bestaan nog gewoon in app/portal/acties.ts. */}
     </div>
   );
 }

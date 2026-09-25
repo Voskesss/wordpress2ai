@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.16 (25 september 2026)
+
+**Het blok "Documenten over je bedrijf" is uit het portaal gehaald.** Het
+hoorde bij de chatbot die er nog niet is, en zolang die er niet is leidt een
+uploadvak met "binnenkort" alleen maar af. Eerder geüploade documenten blijven
+gewoon bewaard. Het blok komt terug zodra de chatbot er is en per klant aan of
+uit gezet kan worden.
+
 ## 1.30.15 (25 september 2026)
 
 **Leads bellen of appen zonder overtypen.** Het telefoonnummer van een lead
