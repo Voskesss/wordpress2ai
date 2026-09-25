@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.13 (25 september 2026)
+
+**De websitedownload is nu een echt vertrekpakket.** De downloadknop in het
+portaal gaf tot nu toe de ruwe bouwbestanden: zette je die ergens anders neer,
+dan misten menu, topbalk en voettekst op elke pagina. Voortaan krijg je de site
+precies zoals hij online staat, met de zoekfunctie erbij en je eigen domein al
+ingevuld. En er zit een handleiding in (VERTREK.md): wat je moet doen om de
+site ergens anders neer te zetten, welke formulier-regel je dan moet aanpassen
+en waarom je de e-mailinstellingen van je domein met rust laat, inclusief een
+kant-en-klaar bericht voor ChatGPT of Claude dat je er stap voor stap doorheen
+helpt. Alles is van jou, ook in de praktijk.
+
 ## 1.30.12 (25 september 2026)
 
 **Zeven lessen uit de Van den Berg-controle zitten nu vast in de bouwregels.**

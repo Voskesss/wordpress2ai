@@ -40,7 +40,9 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
         </a>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-stone-500">
-        De websitebestanden zijn gewone webpagina&apos;s, foto&apos;s en opmaak: je kunt ze bij elke hostingpartij neerzetten.
+        De websitebestanden zijn je site precies zoals hij online staat: gewone webpagina&apos;s, foto&apos;s en opmaak,
+        die je bij elke hostingpartij kunt neerzetten. In de zip zit <strong>VERTREK.md</strong>: een stap-voor-stap
+        handleiding, met een kant-en-klaar bericht voor ChatGPT of Claude dat je er doorheen helpt.
       </p>
       {backups.length > 0 && (
         <div className="mt-4 rounded-xl border border-[#dde7d9] bg-[#f6f9f2] p-4">
