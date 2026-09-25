@@ -197,7 +197,9 @@ export function vergelijkSeo(oud: SeoKenmerken, nieuw: SeoKenmerken): SeoVerschi
  * Diensten van derden die een bezoeker ziet of die meten. Regel Jos 25-09:
  * gelijkenis gaat vóór cookie-vrij. Een Maps-kaart die een link werd maakt de
  * kopie zichtbaar een andere site, en een verdwenen meetcode geeft een gat in
- * de statistieken. Onzichtbare wissels tellen als gelijk: youtube.com mag
+ * de statistieken. Een formulier dat stil wegvalt (Van den Berg: het
+ * ActiveCampaign-boekjeformulier op Gratis, 25-09) is hetzelfde soort verlies.
+ * Onzichtbare wissels tellen als gelijk: youtube.com mag
  * youtube-nocookie.com worden, Vimeo mag ?dnt=1 krijgen.
  */
 export const DERDEN = {
@@ -207,6 +209,8 @@ export const DERDEN = {
   youtube: "YouTube-video",
   vimeo: "Vimeo-video",
   instagram: "Instagram-blok",
+  activecampaign: "ActiveCampaign (tracking of formulier)",
+  formulier: "formulier",
 } as const;
 export type Derde = keyof typeof DERDEN;
 
@@ -218,6 +222,7 @@ export function derdenVan(html: string): Set<Derde> {
       if (/googletagmanager\.com|gtag\(/.test(bron)) uit.add("google-tag");
       if (/connect\.facebook\.net|fbq\(\s*['"]init/.test(bron)) uit.add("meta-pixel");
       if (/instagram\.com\/embed/.test(bron)) uit.add("instagram");
+      if (/diffuser\.js|vgo\(\s*['"]setAccount|activehosted\.com/.test(bron)) uit.add("activecampaign");
     } else if (k.tagName === "iframe") {
       // Lazy-load-plugins zetten de echte bron in een data-attribuut
       const src = ["src", "data-src", "data-wpfc-original-src", "data-lazy-src"].map((a) => attr(k, a) ?? "").join(" ");
@@ -227,6 +232,13 @@ export function derdenVan(html: string): Set<Derde> {
       if (/instagram\.com/.test(src)) uit.add("instagram");
     } else if (k.tagName === "blockquote" && /instagram-media/.test(attr(k, "class") ?? "")) {
       uit.add("instagram");
+    } else if (k.tagName === "form") {
+      // Zoekvakken tellen niet: die bouwen we anders (lib/zoeken.ts)
+      const soort = `${attr(k, "role") ?? ""} ${attr(k, "class") ?? ""}`;
+      if (!/search|zoek/i.test(soort)) uit.add("formulier");
+    } else if (k.tagName === "div" && /(^|\s)_form_\d+(\s|$)/.test(attr(k, "class") ?? "")) {
+      // ActiveCampaign-insluitcode: het formulier verschijnt pas in de browser
+      uit.add("formulier");
     }
   }
   return uit;

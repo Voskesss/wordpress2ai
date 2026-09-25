@@ -81,6 +81,11 @@ const oudeDerden = derdenVan(`<script>(function(w,d,s,l,i){j.src='https://www.go
 assert.deepEqual([...oudeDerden].sort(), ["google-maps", "google-tag", "youtube"], "lazy-load- en cache-varianten gemist");
 assert.ok(derdenVan('<iframe src="https://www.youtube-nocookie.com/embed/KrSRxLRO_fs"></iframe>').has("youtube"), "nocookie telt niet als YouTube");
 assert.ok(!derdenVan('<a href="https://www.google.com/maps/search/?api=1">route</a>').has("google-maps"), "een link is geen kaart");
+// Formulieren en ActiveCampaign (les Van den Berg 25-09: boekjeformulier viel stil weg)
+assert.ok(derdenVan('<form class="_form _form_3" action="https://x.activehosted.com/proc.php"></form>').has("formulier"));
+assert.ok(derdenVan('<div class="_form_3"></div><script src="https://x.activehosted.com/f/embed.php?id=3"></script>').has("formulier"), "AC-insluitcode telt niet als formulier");
+assert.ok(derdenVan("<script>vgo('setAccount', '1');</script>").has("activecampaign"));
+assert.ok(!derdenVan('<form role="search"><input name="s"></form>').has("formulier"), "zoekvak telt als formulier");
 
 // 4. In de poort: fout voor weg, waarschuwing voor anders, pad via de canonical
 const werk = await mkdtemp(path.join(tmpdir(), "seo-overname-"));
