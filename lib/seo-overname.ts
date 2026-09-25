@@ -192,3 +192,42 @@ export function vergelijkSeo(oud: SeoKenmerken, nieuw: SeoKenmerken): SeoVerschi
   }
   return uit;
 }
+
+/**
+ * Diensten van derden die een bezoeker ziet of die meten. Regel Jos 25-09:
+ * gelijkenis gaat vóór cookie-vrij. Een Maps-kaart die een link werd maakt de
+ * kopie zichtbaar een andere site, en een verdwenen meetcode geeft een gat in
+ * de statistieken. Onzichtbare wissels tellen als gelijk: youtube.com mag
+ * youtube-nocookie.com worden, Vimeo mag ?dnt=1 krijgen.
+ */
+export const DERDEN = {
+  "google-tag": "Google Tag Manager/Analytics",
+  "meta-pixel": "Facebook/Meta-pixel",
+  "google-maps": "Google Maps-kaart",
+  youtube: "YouTube-video",
+  vimeo: "Vimeo-video",
+  instagram: "Instagram-blok",
+} as const;
+export type Derde = keyof typeof DERDEN;
+
+export function derdenVan(html: string): Set<Derde> {
+  const uit = new Set<Derde>();
+  for (const k of alle(parse(html) as unknown as Knoop)) {
+    if (k.tagName === "script") {
+      const bron = `${attr(k, "src") ?? ""} ${tekstVan(k)}`;
+      if (/googletagmanager\.com|gtag\(/.test(bron)) uit.add("google-tag");
+      if (/connect\.facebook\.net|fbq\(\s*['"]init/.test(bron)) uit.add("meta-pixel");
+      if (/instagram\.com\/embed/.test(bron)) uit.add("instagram");
+    } else if (k.tagName === "iframe") {
+      // Lazy-load-plugins zetten de echte bron in een data-attribuut
+      const src = ["src", "data-src", "data-wpfc-original-src", "data-lazy-src"].map((a) => attr(k, a) ?? "").join(" ");
+      if (/google\.[a-z.]+\/maps/.test(src)) uit.add("google-maps");
+      if (/youtube(-nocookie)?\.com\/embed|templates\/youtube\.html#/.test(src)) uit.add("youtube");
+      if (/player\.vimeo\.com/.test(src)) uit.add("vimeo");
+      if (/instagram\.com/.test(src)) uit.add("instagram");
+    } else if (k.tagName === "blockquote" && /instagram-media/.test(attr(k, "class") ?? "")) {
+      uit.add("instagram");
+    }
+  }
+  return uit;
+}

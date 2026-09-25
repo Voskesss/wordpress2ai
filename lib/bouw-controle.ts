@@ -30,7 +30,7 @@ export type SeoManifest = unknown;
 type ManifestRegel = { pad: string; title?: string };
 
 import { vergelijkOnderdelen } from "./verlies";
-import { VELDEN, leesSeo, padVan, vergelijkSeo, type SeoKenmerken } from "./seo-overname";
+import { DERDEN, VELDEN, derdenVan, leesSeo, padVan, vergelijkSeo, type Derde, type SeoKenmerken } from "./seo-overname";
 import {
   bedrijfsgegevens,
   dubbeleTeksten,
@@ -499,6 +499,24 @@ export async function controleerSiteMap(
     // 13. Wat vertelde de oude pagina aan Google en aan deelknoppen, en doet
     // de nieuwe dat nog? De oude pagina is de opdracht, niet een manifest.
     // Zie lib/seo-overname.ts.
+    // 14. Diensten van derden per pagina: kaart, video, meetcode. Alleen uit de
+    // bewaarde oude HTML, want de SEO-vastlegging kent geen scripts.
+    for (const [pad, vroeger] of await oudeDerden(opties.bronMap)) {
+      if (!vroeger.size) continue;
+      if (redirects.has(pad) || redirects.has(pad.replace(/\/$/, "") + "/")) continue;
+      const rel = (pad.endsWith("/") ? pad + "index.html" : pad).replace(/^\//, "");
+      const bron = await readFile(path.join(map, rel), "utf8").catch(() => null);
+      if (bron === null) continue;
+      const nieuw = derdenVan(vouwUit(bron, delen));
+      for (const d of vroeger)
+        if (!nieuw.has(d))
+          fout(
+            "derden",
+            rel,
+            `De oude pagina had een ${DERDEN[d]}, deze niet. Gelijkenis gaat voor cookie-vrij: neem hem 1-op-1 over (YouTube mag youtube-nocookie.com worden).`,
+          );
+    }
+
     for (const [pad, oud] of await oudeSeoPaginas(opties.bronMap)) {
       if (oud.noindex) continue;
       if (redirects.has(pad) || redirects.has(pad.replace(/\/$/, "") + "/")) continue;
@@ -572,6 +590,17 @@ async function oudeSeoPaginas(bronMap: string): Promise<Map<string, SeoKenmerken
     const k = leesSeo(await readFile(bestand, "utf8").catch(() => ""));
     const pad = padVan(k.canonical);
     if (pad && !uit.has(pad)) uit.set(pad, k);
+  }
+  return uit;
+}
+
+/** Per oud pad (via de canonical): welke diensten van derden de pagina had. */
+async function oudeDerden(bronMap: string): Promise<Map<string, Set<Derde>>> {
+  const uit = new Map<string, Set<Derde>>();
+  for (const bestand of await htmlBestanden(path.join(bronMap, "oud-ontwerp")).catch(() => [] as string[])) {
+    const html = await readFile(bestand, "utf8").catch(() => "");
+    const pad = padVan(leesSeo(html).canonical);
+    if (pad && !uit.has(pad)) uit.set(pad, derdenVan(html));
   }
   return uit;
 }

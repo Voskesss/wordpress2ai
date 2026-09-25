@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { leesSeo, vergelijkSeo } from "../lib/seo-overname";
+import { derdenVan, leesSeo, vergelijkSeo } from "../lib/seo-overname";
 import { controleerSiteMap } from "../lib/bouw-controle";
 
 /**
@@ -74,6 +74,14 @@ assert.equal(
   "anders",
 );
 
+// 3b. Diensten van derden (regel Jos 25-09: gelijkenis gaat voor cookie-vrij)
+const oudeDerden = derdenVan(`<script>(function(w,d,s,l,i){j.src='https://www.googletagmanager.com/gtm.js?id='+i})(window,document,'script','dataLayer','GTM-X');</script>
+<iframe data-wpfc-original-src="https://www.google.com/maps/embed?pb=1"></iframe>
+<iframe src="https://vandenbergmediation.nl/wp-content/plugins/wp-fastest-cache-premium/pro/templates/youtube.html#KrSRxLRO_fs"></iframe>`);
+assert.deepEqual([...oudeDerden].sort(), ["google-maps", "google-tag", "youtube"], "lazy-load- en cache-varianten gemist");
+assert.ok(derdenVan('<iframe src="https://www.youtube-nocookie.com/embed/KrSRxLRO_fs"></iframe>').has("youtube"), "nocookie telt niet als YouTube");
+assert.ok(!derdenVan('<a href="https://www.google.com/maps/search/?api=1">route</a>').has("google-maps"), "een link is geen kaart");
+
 // 4. In de poort: fout voor weg, waarschuwing voor anders, pad via de canonical
 const werk = await mkdtemp(path.join(tmpdir(), "seo-overname-"));
 try {
@@ -110,8 +118,24 @@ try {
   );
   const c = (await controleerSiteMap(site, { bronMap: bron })).filter((x) => x.regel === "seo-overname");
   assert.equal(c.length, 0, "noindex via header moet de oude pagina overslaan");
+
+  // Derden: kaart werd een link, meetcode weg → fout; nocookie-video is gelijk
+  await writeFile(
+    path.join(bron, "oud-ontwerp", "contact.html"),
+    `<link rel="canonical" href="https://vandenbergmediation.nl/contact/"><script src="https://www.googletagmanager.com/gtm.js?id=GTM-X"></script>
+<iframe src="https://www.google.com/maps/embed?pb=1"></iframe><iframe src="https://www.youtube.com/embed/KrSRxLRO_fs"></iframe>`,
+  );
+  await mkdir(path.join(site, "contact"), { recursive: true });
+  await writeFile(
+    path.join(site, "contact", "index.html"),
+    `<title>Contact</title><a href="https://www.google.com/maps/search/?api=1">Route</a><iframe src="https://www.youtube-nocookie.com/embed/KrSRxLRO_fs"></iframe>`,
+  );
+  const d = (await controleerSiteMap(site, { bronMap: bron })).filter((x) => x.regel === "derden");
+  assert.ok(d.some((x) => x.ernst === "fout" && x.detail.includes("Google Maps")), "kaart die een link werd, geen fout");
+  assert.ok(d.some((x) => x.ernst === "fout" && x.detail.includes("Tag Manager")), "verdwenen meetcode geen fout");
+  assert.ok(!d.some((x) => x.detail.includes("YouTube-video")), "youtube-nocookie ten onrechte gemeld");
 } finally {
   await rm(werk, { recursive: true, force: true });
 }
 
-console.log("✓ seo-overname: oude pagina als opdracht, drie uitkomsten, Yoast-aanhalingstekens");
+console.log("✓ seo-overname: oude pagina als opdracht, drie uitkomsten, Yoast-aanhalingstekens, diensten van derden");
