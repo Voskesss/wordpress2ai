@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { LEAD_STATUSSEN, statusInfo } from "@/lib/leads";
+import { LEAD_STATUSSEN, waLeadLink, statusInfo } from "@/lib/leads";
 import {
   actieAfvinken,
   actieToevoegen,
@@ -237,10 +237,38 @@ function LeadKaart({
   const gedaan = acties.filter((a) => a.gedaan).sort((a, b) => (b.gedaanOp ?? "").localeCompare(a.gedaanOp ?? ""));
   return (
     <div className="border-t border-stone-200 bg-stone-50/60 px-4 pb-5 pt-3">
-      <p className="text-xs text-stone-500">
-        {[lead.email, lead.telefoon].filter(Boolean).join(" · ") || "Nog geen e-mail of telefoon"}
-        {lead.bron && <> · via {lead.bron}</>}
-        {lead.soort === "partner" && <> · partner</>}
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-500">
+        {!lead.email && !lead.telefoon && <span>Nog geen e-mail of telefoon</span>}
+        {lead.email && (
+          <a href={`mailto:${lead.email}`} className="hover:text-violet-700 hover:underline">
+            {lead.email}
+          </a>
+        )}
+        {lead.telefoon && waLeadLink(lead.telefoon, lead.naam, "") ? (
+          <a
+            href={waLeadLink(lead.telefoon, lead.naam, "") ?? undefined}
+            target="_blank"
+            rel="noreferrer"
+            title="Open dit nummer in WhatsApp"
+            className="hover:text-emerald-700 hover:underline"
+          >
+            {lead.telefoon}
+          </a>
+        ) : (
+          lead.telefoon && <span>{lead.telefoon}</span>
+        )}
+        {waLeadLink(lead.telefoon, lead.naam) && (
+          <a
+            href={waLeadLink(lead.telefoon, lead.naam) ?? undefined}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 font-semibold text-emerald-800 hover:bg-emerald-100"
+          >
+            📱 App: net gemaild
+          </a>
+        )}
+        {lead.bron && <span>· via {lead.bron}</span>}
+        {lead.soort === "partner" && <span>· partner</span>}
       </p>
 
       {lead.oordeel && (
@@ -495,7 +523,10 @@ export default function LeadLijst({
                   {l.naam}
                   {l.soort === "partner" && <span className="ml-1.5 text-xs font-normal text-stone-400">partner</span>}
                 </span>
-                <span className="truncate text-stone-600">{l.website ?? "—"}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-stone-600">{l.website ?? "—"}</span>
+                  {l.telefoon && <span className="truncate text-xs text-stone-400">{l.telefoon}</span>}
+                </span>
                 <span>
                   <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${s.kleur}`}>{s.label}</span>
                 </span>

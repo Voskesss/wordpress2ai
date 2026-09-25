@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.15 (25 september 2026)
+
+**Leads bellen of appen zonder overtypen.** Het telefoonnummer van een lead
+(uit het Meta-formulier of zelf ingevuld) staat nu in de leadlijst, en in het
+opengeklapte blok zijn e-mail en nummer klikbaar. Nieuw is de knop "App: net
+gemaild": die opent WhatsApp met dat nummer en een voorgetypt berichtje dat er
+een mail onderweg is, met de voornaam er al in. Even aanpassen en versturen.
+
 ## 1.30.14 (25 september 2026)
 
 **Meekijken als de klant.** Op de klantpagina in het beheer staat nu de knop

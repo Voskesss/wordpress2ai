@@ -38,3 +38,29 @@ export function statusInfo(waarde: string) {
 export function vandaag(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
 }
+
+/**
+ * Telefoonnummer van een lead → wa.me-cijfers, of null als het geen bruikbaar
+ * nummer is. Meta levert "+31612345678", mensen typen "06 12345678"; WhatsApp
+ * wil alleen cijfers met landcode. Nederlands 06 wordt 316..., een nummer dat
+ * al met een landcode begint blijft zoals het is.
+ */
+export function waNummer(telefoon: string | null | undefined): string | null {
+  const cijfers = (telefoon ?? "").replace(/[^\d+]/g, "").replace(/^00/, "+").replace(/(?!^)\+/g, "");
+  const kaal = cijfers.startsWith("+") ? cijfers.slice(1) : cijfers.startsWith("06") ? "31" + cijfers.slice(1) : cijfers.startsWith("0") ? null : cijfers;
+  if (!kaal || kaal.length < 9 || kaal.length > 15) return null;
+  return kaal;
+}
+
+/** WhatsApp-link naar een lead, met voorgetypt bericht dat Jos nog kan aanpassen. */
+export function waLeadLink(telefoon: string | null | undefined, naam: string, bericht?: string): string | null {
+  const nummer = waNummer(telefoon);
+  if (!nummer) return null;
+  const voornaam = naam.trim().split(/\s+/)[0] || "daar";
+  // Leeg bericht = alleen het gesprek openen, zonder voorgetypte tekst
+  if (bericht === "") return `https://wa.me/${nummer}`;
+  const tekst =
+    bericht ??
+    `Hoi ${voornaam}, ik heb je net een mail gestuurd over je website. Zie je hem niet, kijk dan even bij je ongewenste mail. Groet, Jos van WordSwap`;
+  return `https://wa.me/${nummer}?text=${encodeURIComponent(tekst)}`;
+}
