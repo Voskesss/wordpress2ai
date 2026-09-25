@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.18 (25 september 2026)
+
+**De reviewvraag-mail legt nu uit wat een "ja" betekent.** De vraag of we een
+website als voorbeeld mogen noemen was te vaag. De mail noemt voortaan de drie
+plekken (wordswap.nl, Facebook, LinkedIn, steeds met plaatje en link), laat de
+klant per plek kiezen, en benoemt eerlijk het voordeel voor de klant zelf: elke
+vermelding is een extra link naar zijn website en dus goed voor zijn eigen
+vindbaarheid.
+
 ## 1.30.17 (25 september 2026)
 
 **Kleine tekstverbetering in de reviewvraag-mail:** "het helpt mijn kleine

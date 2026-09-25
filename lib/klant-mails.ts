@@ -153,7 +153,14 @@ ${alineas(o.eigenTekst)}
 <p>Fijn dat je website van <strong>${ontsnap(o.siteNaam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn bedrijf enorm.</p>
 <p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren. Daar hebben andere ondernemers echt iets aan.</p>
 ${knop(REVIEW_LINK, "Laat een review achter")}
-<p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg. En zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>
+<p><strong>2. Mogen we je website als voorbeeld laten zien?</strong> Dat doen we op drie plekken, en jij bepaalt welke:</p>
+<ul>
+<li><strong>Op wordswap.nl</strong>, als referentieproject: een plaatje van je homepage met een link naar je site.</li>
+<li><strong>Op Facebook</strong>, in een berichtje dat je bent aangesloten, ook met plaatje en link.</li>
+<li><strong>Op LinkedIn</strong>, hetzelfde berichtje voor het zakelijke publiek.</li>
+</ul>
+<p>Leuk om te weten: dit levert jou ook wat op. Elke vermelding is een extra link naar jouw website en dat helpt je vindbaarheid, plus dat er weer eens mensen langskomen die je werk nog niet kenden.</p>
+<p>Antwoord gewoon op deze mail met wat je goed vindt, bijvoorbeeld "alle drie prima" of "alleen de website". En zeg je liever helemaal nee, dan is dat natuurlijk ook prima.</p>
 <p>Dank je wel alvast! Vragen of wensen? Antwoord op deze mail of bel me op ${TELEFOON}.</p>
 <p>Groet,<br>Jos</p>`),
   };
