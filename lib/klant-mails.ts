@@ -150,7 +150,7 @@ export function bouwReviewVerzoek(o: {
     onderwerp: "Mag ik je twee kleine dingen vragen?",
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
 ${alineas(o.eigenTekst)}
-<p>Fijn dat je website van <strong>${ontsnap(o.siteNaam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn kleine bedrijf enorm.</p>
+<p>Fijn dat je website van <strong>${ontsnap(o.siteNaam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn bedrijf enorm.</p>
 <p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren. Daar hebben andere ondernemers echt iets aan.</p>
 ${knop(REVIEW_LINK, "Laat een review achter")}
 <p><strong>2. Mogen we je website als voorbeeld noemen?</strong> Bijvoorbeeld op wordswap.nl, als referentieproject voor nieuwe klanten. Antwoord gewoon "ja" op deze mail, dan weet ik genoeg. En zeg je liever nee, dan is dat natuurlijk ook helemaal prima.</p>

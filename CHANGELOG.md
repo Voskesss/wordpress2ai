@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.17 (25 september 2026)
+
+**Kleine tekstverbetering in de reviewvraag-mail:** "het helpt mijn kleine
+bedrijf enorm" is nu "het helpt mijn bedrijf enorm".
+
 ## 1.30.16 (25 september 2026)
 
 **Het blok "Documenten over je bedrijf" is uit het portaal gehaald.** Het
