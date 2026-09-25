@@ -289,6 +289,12 @@ export default async function KlantDetail({
             </a>
           )}
           <a
+            href={`/portal?site=${site.id}`}
+            className="rounded-full border border-amber-300 bg-amber-50 px-4 py-2 font-medium text-amber-900 hover:border-amber-500"
+          >
+            👀 Bekijk als klant
+          </a>
+          <a
             href={`https://github.com/wordpress2ai/${site.githubRepo}`}
             target="_blank"
             rel="noreferrer"

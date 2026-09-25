@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.14 (25 september 2026)
+
+**Meekijken als de klant.** Op de klantpagina in het beheer staat nu de knop
+"Bekijk als klant": die opent het gewone klantportaal van die site, precies
+zoals de klant het ziet, met een gele balk erboven zodat je altijd weet dat je
+meekijkt. Zo kun je vóór het koppelen controleren of alles er goed bij staat,
+zonder de site eerst aan jezelf te hangen en later over te dragen. Kijken wel,
+beslissen niet: opzeggen en het opleveringsakkoord werken alleen nog voor de
+eigenaar zelf, zodat een meekijker die knoppen nooit per ongeluk namens de
+klant kan indrukken.
+
 ## 1.30.13 (25 september 2026)
 
 **De websitedownload is nu een echt vertrekpakket.** De downloadknop in het

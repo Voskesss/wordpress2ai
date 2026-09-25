@@ -17,6 +17,16 @@ async function eigenSite(siteId: number) {
   return site;
 }
 
+/** Beslissingen die van de klant zijn (opzeggen, opleveringsakkoord): die neemt
+ * alleen de eigenaar zelf. Een beheerder in de meekijk-modus kan alles zien,
+ * maar deze knoppen doen bij hem bewust niets. */
+async function alleenEigenaar(siteId: number) {
+  const { userId } = await auth();
+  const site = await eigenSite(siteId);
+  if (!site || !userId || site.clerkUserId !== userId) return null;
+  return site;
+}
+
 export async function bewaarNotificatieEmail(formData: FormData) {
   const site = await eigenSite(Number(formData.get("siteId")));
   if (!site) return;
@@ -268,7 +278,7 @@ export async function akkoordVerwerkersovereenkomst() {
  * de klant het weten. Verwijderen van account en gegevens gebeurt daarna door Jos (binnen drie maanden).
  */
 export async function zegAbonnementOp(formData: FormData) {
-  const site = await eigenSite(Number(formData.get("siteId")));
+  const site = await alleenEigenaar(Number(formData.get("siteId")));
   if (!site || formData.get("bevestig") !== "on") return;
   const verwijderen = formData.get("verwijderen") === "on";
   const { abonnementen } = await import("@/db/schema");
@@ -373,7 +383,7 @@ export async function zetMeelezen(formData: FormData) {
 /** Toch blijven: de opzegging intrekken. Kan zolang de website nog niet
  * offline is (tot de einddatum in het portaal). */
 export async function trekOpzeggingIn(formData: FormData) {
-  const site = await eigenSite(Number(formData.get("siteId")));
+  const site = await alleenEigenaar(Number(formData.get("siteId")));
   if (!site) return;
   const { draaiOpzeggingTerug } = await import("@/lib/opzegging-terugdraaien");
   await draaiOpzeggingTerug(site.id, "klant");
@@ -383,7 +393,7 @@ export async function trekOpzeggingIn(formData: FormData) {
 /** Akkoord op de oplevering: "mijn website is goed overgezet". Vastgelegd met account, e-mail en tijd;
  * daarna een bevestiging aan de klant en een seintje aan Jos (tijd voor de betaallink). */
 export async function geefWebsiteAkkoord(formData: FormData) {
-  const site = await eigenSite(Number(formData.get("siteId")));
+  const site = await alleenEigenaar(Number(formData.get("siteId")));
   if (!site) return;
   const { userId } = await auth();
   if (!userId) return;

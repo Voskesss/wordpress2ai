@@ -61,6 +61,21 @@ export default async function Portal({
     (s) => !s.isDemo && s.clerkUserId === userId,
   );
 
+  // Meekijk-modus: een beheerder opent via ?site= elke klantsite precies zoals
+  // de klant hem ziet (gele balk erboven). Zo hoeft een site nooit eerst aan
+  // onszelf gekoppeld en later omgehangen te worden. Kijken wel, beslissen
+  // niet: opzeggen en het opleveringsakkoord weigeren in de acties iedereen
+  // die niet zelf de eigenaar is.
+  let meekijk = false;
+  const meekijkId = Number(gekozenParam);
+  if (Number.isInteger(meekijkId) && !mijnSites.some((s) => s.id === meekijkId) && (await isBeheerder())) {
+    const [extra] = await db.select().from(sites).where(eq(sites.id, meekijkId)).catch(() => []);
+    if (extra && !extra.isDemo) {
+      mijnSites = [extra];
+      meekijk = true;
+    }
+  }
+
   // Klant met een eigen site? Dan eerst één keer akkoord op de verwerkersovereenkomst (AVG).
   if (heeftEigenSite && !(await isBeheerder())) {
     const { akkoorden } = await import("@/db/schema");
@@ -221,6 +236,19 @@ export default async function Portal({
         <DemoWelkom />
       )}
       <Aankondigingen lijst={aankondigingenLijst} />
+      {meekijk && getoondeSite && (
+        <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+          <p className="font-semibold">👀 Meekijk-modus: je ziet {getoondeSite.naam} zoals de klant het ziet.</p>
+          <p className="mt-1 leading-relaxed">
+            De chat werkt echt: het is je eigen gesprek (de klant ziet het niet), maar gevraagde wijzigingen worden
+            echte concepten op de site. Opzeggen en akkoord geven staan hier uit, dat blijven beslissingen van de
+            klant.{" "}
+            <a className="font-semibold underline" href={`/admin/klant/${getoondeSite.id}`}>
+              Terug naar de klantpagina
+            </a>
+          </p>
+        </div>
+      )}
       <h1 className="font-display text-4xl font-semibold tracking-tight">
         {mijnSites.length > 1 ? "Mijn websites" : "Mijn website"}
       </h1>
