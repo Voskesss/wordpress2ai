@@ -20,6 +20,19 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.11 (25 september 2026)
+
+**Een overgezette website blijft nu écht hetzelfde, ook met ingesloten kaarten.**
+Cookie-vrij was een doel op zich geworden: een ingesloten Google Maps-kaart werd
+bij het overzetten vervangen door een linkje, en dan is de kopie zichtbaar een
+andere website. Dat is omgedraaid. Wissels die niemand ziet blijven (YouTube en
+Vimeo in de variant die pas cookies zet bij het afspelen), maar een kaart of
+andere embed zonder zo'n onzichtbare variant komt voortaan één-op-één mee. Ook
+vastgelegd: meetscripts zoals Google Analytics en de Meta Pixel gaan met
+dezelfde meetcodes mee (statistieken lopen zonder gat door), en
+verificatie-tags voor Search Console en Meta verhuizen mee of worden door ons
+opnieuw gezet; de klant hoeft daar niets voor uit te zoeken.
+
 ## 1.30.10 (24 september 2026)
 
 **E-mail staat nu als apart blok in de livegang-checklist.** Bij een overstap
