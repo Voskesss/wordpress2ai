@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.19 (25 september 2026)
+
+**De reviewvraag nodigt nu ook uit om ontevredenheid te melden.** Direct onder
+de reviewknop staat: ben je ergens niet tevreden over, antwoord dan juist ook
+op deze mail, dan lossen we het op. Eerlijker naar de klant, en een klacht
+komt zo eerst bij ons terecht in plaats van meteen in een openbare review.
+
 ## 1.30.18 (25 september 2026)
 
 **De reviewvraag-mail legt nu uit wat een "ja" betekent.** De vraag of we een

@@ -153,6 +153,7 @@ ${alineas(o.eigenTekst)}
 <p>Fijn dat je website van <strong>${ontsnap(o.siteNaam)}</strong> bij ons draait. Mag ik je twee kleine dingen vragen? Het kost je hooguit twee minuten en het helpt mijn bedrijf enorm.</p>
 <p><strong>1. Een Google-review.</strong> Een paar eerlijke zinnen over hoe je de overstap en het beheren via de chat hebt ervaren. Daar hebben andere ondernemers echt iets aan.</p>
 ${knop(REVIEW_LINK, "Laat een review achter")}
+<p>En ben je ergens juist niet tevreden over? Zeg het me dan alsjeblieft ook, gewoon in een antwoord op deze mail. Dan los ik het op; daar heb ik meer aan dan aan een mooi cijfer.</p>
 <p><strong>2. Mogen we je website als voorbeeld laten zien?</strong> Dat doen we op drie plekken, en jij bepaalt welke:</p>
 <ul>
 <li><strong>Op wordswap.nl</strong>, als referentieproject: een plaatje van je homepage met een link naar je site.</li>
