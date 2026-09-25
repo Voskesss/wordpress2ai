@@ -30,6 +30,7 @@ export type SeoManifest = unknown;
 type ManifestRegel = { pad: string; title?: string };
 
 import { vergelijkOnderdelen } from "./verlies";
+import { VELDEN, leesSeo, padVan, vergelijkSeo, type SeoKenmerken } from "./seo-overname";
 import {
   bedrijfsgegevens,
   dubbeleTeksten,
@@ -494,7 +495,86 @@ export async function controleerSiteMap(
         `De vorige versie had een ${v.naam} (${vind}), deze niet: ${v.advies}.`,
       );
     }
+
+    // 13. Wat vertelde de oude pagina aan Google en aan deelknoppen, en doet
+    // de nieuwe dat nog? De oude pagina is de opdracht, niet een manifest.
+    // Zie lib/seo-overname.ts.
+    for (const [pad, oud] of await oudeSeoPaginas(opties.bronMap)) {
+      if (oud.noindex) continue;
+      if (redirects.has(pad) || redirects.has(pad.replace(/\/$/, "") + "/")) continue;
+      const rel = (pad.endsWith("/") ? pad + "index.html" : pad).replace(/^\//, "");
+      const bron = await readFile(path.join(map, rel), "utf8").catch(() => null);
+      if (bron === null) continue; // ontbrekend adres meldt regel 9 al
+      const nieuw = leesSeo(vouwUit(bron, delen));
+      if (nieuw.noindex) continue; // noindex-verlies meldt regel 9 al
+      for (const v of vergelijkSeo(oud, nieuw)) {
+        if (v.soort === "weg")
+          fout("seo-overname", rel, `De oude pagina had een ${VELDEN[v.veld]} ("${kort(v.oud)}"), deze niet.`);
+        else
+          waarschuw(
+            "seo-overname",
+            rel,
+            `${VELDEN[v.veld]} wijkt af van de oude pagina: "${kort(v.nieuw ?? "")}" i.p.v. "${kort(v.oud)}". Bewust? Dan prima.`,
+          );
+      }
+    }
   }
 
   return uit;
 }
+
+const kort = (s: string) => (s.length > 90 ? s.slice(0, 87) + "..." : s);
+
+/**
+ * De oude pagina's per pad. Bij voorkeur de vastlegging van
+ * scripts/seo-vergelijk.mts (seo-baseline.json in de bron-map): die kent ook
+ * de X-Robots-Tag-header en doorverwijzingen. Anders de bewaarde HTML in
+ * oud-ontwerp/, waarbij de canonical vertelt op welk adres de pagina stond
+ * (de bestandsnamen daar zijn slugs, geen paden).
+ */
+async function oudeSeoPaginas(bronMap: string): Promise<Map<string, SeoKenmerken>> {
+  const uit = new Map<string, SeoKenmerken>();
+  try {
+    const basis = JSON.parse(await readFile(path.join(bronMap, "seo-baseline.json"), "utf8")) as {
+      entries?: {
+        path: string;
+        status: number;
+        finalPath: string;
+        title: string;
+        description: string;
+        canonical: string;
+        robots: string;
+        xRobots: string;
+        structured: string[];
+        metadata: Record<string, string>;
+      }[];
+    };
+    for (const e of basis.entries ?? []) {
+      // Alleen pagina's die zelf antwoordden; een doorverwijzing is geen pagina
+      if (e.status !== 200 || e.finalPath !== e.path) continue;
+      const html =
+        `<title>${esc(e.title)}</title>` +
+        Object.entries(e.metadata ?? {})
+          .map(([n, c]) => `<meta ${n.includes(":") ? "property" : "name"}="${esc(n)}" content="${esc(c)}">`)
+          .join("") +
+        (e.canonical ? `<link rel="canonical" href="${esc(e.canonical)}">` : "") +
+        (e.structured ?? []).map((j) => `<script type="application/ld+json">${j}</script>`).join("");
+      const k = leesSeo(html);
+      k.noindex ||= /noindex/i.test(`${e.robots} ${e.xRobots}`);
+      uit.set(e.path, k);
+    }
+    if (uit.size) return uit;
+  } catch {
+    /* geen vastlegging: terugvallen op oud-ontwerp/ */
+  }
+  const oudMap = path.join(bronMap, "oud-ontwerp");
+  for (const bestand of await htmlBestanden(oudMap).catch(() => [] as string[])) {
+    const k = leesSeo(await readFile(bestand, "utf8").catch(() => ""));
+    const pad = padVan(k.canonical);
+    if (pad && !uit.has(pad)) uit.set(pad, k);
+  }
+  return uit;
+}
+
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
