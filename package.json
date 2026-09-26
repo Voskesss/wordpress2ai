@@ -1,6 +1,6 @@
 {
   "name": "wordpress2ai",
-  "version": "1.30.25",
+  "version": "1.30.26",
   "private": true,
   "scripts": {
     "dev": "next dev",

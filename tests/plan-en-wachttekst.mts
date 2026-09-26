@@ -25,4 +25,7 @@ assert.ok(!/minuten rond ik af/.test(chat), "de oude belofte-tekst (x minuten ro
 assert.ok(/een minuut/.test(chat) && /aan het afronden/.test(chat), "de eerlijke afrond-tekst na de bouwgrens ontbreekt");
 assert.ok(/wachtSec < PORTAAL_BEURT_S/.test(chat), "de belofte-tekst stopt niet meer bij de bouwgrens");
 
+// 4. De stopknop zegt "Stop" met een woord, niet alleen een rood vierkantje
+assert.ok(/Stop\n\s*<\/>|<\/svg>\s*Stop/.test(chat), "het woord Stop staat niet meer op de stopknop");
+
 console.log("plan-en-wachttekst: ok");

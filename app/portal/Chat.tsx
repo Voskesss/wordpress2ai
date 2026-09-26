@@ -3931,14 +3931,21 @@ export default function Chat({
                 disabled={nieuwBezig || conceptActie !== null}
                 aria-label={bezig ? "Stop de wijziging" : "Verstuur"}
                 title={bezig ? "Stop de lopende opdracht" : "Verstuur je wijzigingsverzoek"}
-                className={`${smalleBalk ? "ml-auto" : ""} shrink-0 rounded-full h-10 w-10 flex items-center justify-center text-white cursor-pointer ${
-                  bezig ? "bg-red-600 hover:bg-red-500" : "bg-violet-700 hover:bg-violet-600"
+                className={`${smalleBalk ? "ml-auto" : ""} shrink-0 rounded-full h-10 flex items-center justify-center text-white cursor-pointer ${
+                  bezig
+                    ? "gap-1.5 px-4 bg-red-600 hover:bg-red-500 text-sm font-semibold"
+                    : "w-10 bg-violet-700 hover:bg-violet-600"
                 }`}
               >
                 {bezig ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                    <rect x="6" y="6" width="12" height="12" rx="2" />
-                  </svg>
+                  <>
+                    {/* Duidelijk woord op de knop: een kaal rood vierkantje werd
+                        niet herkend als "hier kun je stoppen" (les 26-09). */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    </svg>
+                    Stop
+                  </>
                 ) : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

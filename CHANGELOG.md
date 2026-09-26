@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.26 (26 september 2026)
+
+**De stopknop zegt nu gewoon "Stop".** Tijdens het werken werd de
+verstuurknop een klein rood vierkantje, en dat werd niet herkend als "hier
+kun je stoppen". Nu staat het woord erop, zodat iedereen weet dat een lopende
+opdracht altijd veilig af te breken is; er verandert dan niets aan de site.
+
 ## 1.30.25 (26 september 2026)
 
 **De echte oorzaak van de hangende chat is gevonden en gevangen.** De motor
