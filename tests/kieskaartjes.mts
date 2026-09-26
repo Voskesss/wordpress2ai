@@ -86,7 +86,7 @@ assert.ok(/[Ww]ijzig bij het aanbieden dus nog NIETS/.test(route), "de regel dat
 
 // 8. De publiceer-rem: een pagina met een openstaand keuzeblok gaat niet live
 const pub = await readFile("app/api/publiceer/route.ts", "utf8");
-assert.ok(/wp2ai-keuzeblok/.test(pub), "de publiceer-route kent de keuzeblok-marker niet");
+assert.ok(/if \(inhoud\.includes\("wp2ai-keuzeblok"\)\)/.test(pub), "de publiceer-route toetst de pagina-inhoud niet echt op de keuzeblok-marker");
 assert.ok(/status === "concept"/.test(pub.slice(pub.indexOf("Keuzeblok-bewaking"))), "de rem moet alleen vóór de merge gelden (bij een herkansing zit het al in main)");
 assert.ok(/leesBestand\(rij\.site\.githubRepo, pad, rij\.change\.branch\)/.test(pub), "de rem leest de pagina's niet van de conceptbranch");
 {
