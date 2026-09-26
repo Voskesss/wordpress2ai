@@ -174,11 +174,11 @@ export default async function OntwerpBlok({
                 <MailVoorbeeldKnop klein soort={site.ontwerpZichtbaar ? "ontwerp-terug" : "ontwerp-klaar"} siteId={site.id} />
               </div>
             </div>
-            <MetUitleg tekst="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen haalt het adres direct weg, dus een eerder gedeelde link is meteen dood. Opnieuw tonen maakt een vers adres; de eerste keer kan dat ongeveer een minuut duren.">
+            <MetUitleg tekst="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen geeft het ontwerp direct een nieuw geheim adres: de link die de klant had is meteen dood, maar jij kunt er hierboven altijd bij blijven kijken. Adres maken of verwisselen duurt ongeveer een minuut.">
               <ActieKnop
                 label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal, verbergen (adres vervalt direct)" : "Nog verborgen voor de klant, tonen in portaal"}
-                bezigLabel={site.ontwerpZichtbaar ? "Verbergen..." : "Adres maken en tonen... (±1 min)"}
-                klaarLabel={site.ontwerpZichtbaar ? "✓ Verborgen, adres vervallen" : "✓ Zichtbaar voor de klant"}
+                bezigLabel={site.ontwerpZichtbaar ? "Adres verwisselen en verbergen... (±1 min)" : "Adres maken en tonen... (±1 min)"}
+                klaarLabel={site.ontwerpZichtbaar ? "✓ Verborgen, nieuw geheim adres" : "✓ Zichtbaar voor de klant"}
                 className={`${KNOP} ${site.ontwerpZichtbaar ? "bg-emerald-600 text-white hover:bg-emerald-500" : "border border-stone-300 text-stone-700 hover:bg-stone-50"}`}
               />
             </MetUitleg>

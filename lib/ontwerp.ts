@@ -83,8 +83,51 @@ export async function maakOfVerversOntwerp(site: OntwerpSite) {
  * meteen dood. Bewust GEEN nieuwe deploy hier — dat duurde bij grote sites
  * langer dan een klik mag duren. Opnieuw tonen (of deployen) maakt vanzelf
  * een vers, onraadbaar adres. */
+/** Vriendelijke melding op een vervallen ontwerp-adres, in plaats van een
+ * kale fout. Bewust piepklein en met noindex. */
+async function zetLinkVervallenPagina(naam: string) {
+  const { mkdtemp, writeFile: schrijf, rm } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const pad = await mkdtemp(`${tmpdir()}/vervallen-`);
+  const html = `<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Deze link is vervangen</title></head>
+<body style="font-family:system-ui,sans-serif;max-width:520px;margin:80px auto;padding:0 20px;color:#292524;line-height:1.6">
+<h1 style="font-size:22px">Deze link is vervangen</h1>
+<p>WordSwap heeft het voorbeeld dat hier stond een nieuw adres gegeven. Verwachtte je hier iets te zien? Mail ons dan even op <a href="mailto:jos@wordswap.nl">jos@wordswap.nl</a> of bel of app naar <a href="tel:+31262340122">026 234 0122</a>; dan sturen we je de nieuwe link.</p>
+<p style="color:#78716c;font-size:14px">Je website zelf staat hier los van en draait gewoon door.</p>
+</body></html>`;
+  try {
+    await schrijf(`${pad}/index.html`, html);
+    const { deployMapNaarCloudflare } = await import("./cloudflare");
+    // Subdomein aan laten: de oude link moet deze melding juist kunnen tonen
+    await deployMapNaarCloudflare(pad, naam, { subdomeinAanzetten: true });
+  } finally {
+    await rm(pad, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 export async function verbergOntwerp(site: OntwerpSite) {
-  if (site.ontwerpSlug) await verwijderCloudflareSite(site.ontwerpSlug);
+  // Verbergen verwisselt het adres in plaats van het weg te gooien (wens Jos
+  // 26-09): de gedeelde link van de klant is gegarandeerd dood, maar de
+  // beheerder houdt altijd een werkend geheim adres om mee te kijken. Eerst
+  // het nieuwe adres opzetten en pas daarna het oude vernietigen, zodat een
+  // haperende deploy nooit eindigt zonder enig adres.
+  const oud = site.ontwerpSlug;
+  if (oud && site.siteSlug) {
+    const naam = nieuweOntwerpNaam(site.siteSlug);
+    await deployRepoNaarCloudflareRef(site.githubRepo, naam, ONTWERP_BRANCH);
+    await db
+      .update(sites)
+      .set({ ontwerpSlug: naam, ontwerpZichtbaar: false })
+      .where(eq(sites.id, site.id));
+    // Het oude adres wordt geen kale foutpagina maar een nette melding: wie
+    // een verouderde link heeft, snapt wat er gebeurd is en weet ons te
+    // vinden (wens Jos 26-09).
+    await zetLinkVervallenPagina(oud).catch(async () => verwijderCloudflareSite(oud));
+    return;
+  }
+  if (oud) await verwijderCloudflareSite(oud);
   await db
     .update(sites)
     .set({ ontwerpSlug: null, ontwerpZichtbaar: false })

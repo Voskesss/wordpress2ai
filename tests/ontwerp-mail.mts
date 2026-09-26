@@ -55,4 +55,16 @@ assert.ok(voorbeeld.includes('soort === "ontwerp-terug"'), "de voorbeeldroute ke
 const verbergDeel = fn.split("verbergOntwerp(site)")[1] ?? "";
 assert.ok(verbergDeel.includes("bouwOntwerpTeruggetrokken"), "verbergen stuurt geen mail meer");
 
+// 7. Verbergen verwisselt het adres (nieuw geheim adres eerst, dan pas het
+//    oude weg): de klant-link sterft, de beheerder kan altijd blijven kijken
+const ontwerp = await readFile(new URL("../lib/ontwerp.ts", import.meta.url), "utf8");
+const verbergFn = ontwerp.split("export async function verbergOntwerp")[1].split("export async function")[0];
+assert.ok(verbergFn.includes("nieuweOntwerpNaam"), "verbergen maakt geen nieuw geheim adres meer");
+assert.ok(verbergFn.indexOf("deployRepoNaarCloudflareRef") < verbergFn.indexOf("verwijderCloudflareSite"), "het oude adres wordt weggegooid vóór het nieuwe er staat");
+
+// 8. Het oude adres wordt een nette vervallen-melding, geen kale fout
+assert.ok(/zetLinkVervallenPagina/.test(verbergFn), "verbergen zet geen vervallen-melding meer op het oude adres");
+assert.ok(ontwerp.includes("Deze link is vervangen") && ontwerp.includes("jos@wordswap.nl"), "de vervallen-pagina mist de uitleg of het contactadres");
+assert.ok(ontwerp.includes('name="robots" content="noindex'), "de vervallen-pagina is niet op noindex gezet");
+
 console.log("ontwerp-mail: ok");

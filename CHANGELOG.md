@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.1 (26 september 2026)
+
+**Een verborgen ontwerp blijft voor de beheerder bereikbaar, en een oude
+link legt zichzelf uit.** Verbergen gooide het ontwerp-adres helemaal weg;
+veilig voor de klant-link, maar de beheerder kon er dan zelf ook niet meer
+bij, en wie de oude link nog had zag een kale foutmelding. Voortaan
+verwisselt verbergen het adres: in het beheer staat direct een nieuw geheim
+adres om mee te blijven kijken, en op het oude adres verschijnt een nette
+melding ("deze link is vervangen; onverwacht? mail of bel ons even"), met
+de geruststelling dat de website zelf gewoon doordraait.
+
 ## 1.31.0 (26 september 2026)
 
 Vraag je om icoontjes of kleurvarianten om uit te kiezen, dan krijg je nu
