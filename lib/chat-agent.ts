@@ -4,7 +4,6 @@
 import path from "node:path";
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
-import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { sitePathAllowed } from "./agent-boundary";
 
@@ -139,25 +138,44 @@ export async function draaiChatAgent(opties: {
     "dit pad valt buiten de sitebestanden en is niet toegestaan.",
   );
 
-  const tools = [
-    betaZodTool({
-      name: "lijst_bestanden",
-      description:
+  /**
+   * EIGEN GEREEDSCHAPS-LUS (26-09): de tool-runner van de SDK verloor
+   * reproduceerbaar zijn weksignaal tussen twee beurten (lege wachtrij, geen
+   * fout, eeuwige stilte; 3 van de 4 naspeelritten op de EVC-kopie). Upstream
+   * is de reparatie daarvoor nooit afgemaakt (issue #867/PR #959 gesloten).
+   * Daarom draait de lus nu in eigen hand: stream per beurt, gereedschap
+   * zelf uitvoeren, resultaten terugsturen. De stiltewachter blijft als
+   * vangnet om elke wachtstap heen staan.
+   */
+  type ToolUitvoer = string | { type: "image"; source: { type: "base64"; media_type: "image/png" | "image/jpeg" | "image/gif" | "image/webp"; data: string } }[];
+  type Gereedschap = {
+    naam: string;
+    omschrijving: string;
+    schema: z.ZodTypeAny;
+    jsonSchema: Record<string, unknown>;
+    run: (invoer: never) => Promise<ToolUitvoer>;
+  };
+  const tekstSchema = (omschrijving?: string) => ({ type: "string", ...(omschrijving ? { description: omschrijving } : {}) });
+
+  const tools: Gereedschap[] = [
+    {
+      naam: "lijst_bestanden",
+      omschrijving:
         "Geeft alle bestanden van de website (relatief pad per regel). Gebruik dit als je niet zeker weet waar iets staat.",
-      inputSchema: z.object({}),
+      schema: z.object({}),
+      jsonSchema: { type: "object", properties: {}, additionalProperties: false },
       run: async () => {
         opGebeurtenis({ soort: "tool", naam: "lijst_bestanden", invoer: {} });
         return (await lijstAlleBestanden(werkmap)).join("\n") || "(leeg)";
       },
-    }),
-    betaZodTool({
-      name: "lees_bestand",
-      description:
+    },
+    {
+      naam: "lees_bestand",
+      omschrijving:
         "Leest een bestand van de website. Afbeeldingen worden als beeld getoond; tekstbestanden als tekst.",
-      inputSchema: z.object({
-        pad: z.string().describe("Relatief pad, bijv. index.html"),
-      }),
-      run: async ({ pad }) => {
+      schema: z.object({ pad: z.string() }),
+      jsonSchema: { type: "object", properties: { pad: tekstSchema("Relatief pad, bijv. index.html") }, required: ["pad"] },
+      run: async ({ pad }: { pad: string }) => {
         opGebeurtenis({ soort: "tool", naam: "lees_bestand", invoer: { pad } });
         const abs = await veiligPad(werkmap, pad);
         if (!abs) return buitenSite;
@@ -173,11 +191,7 @@ export async function draaiChatAgent(opties: {
                 type: "image" as const,
                 source: {
                   type: "base64" as const,
-                  media_type: mime as
-                    | "image/png"
-                    | "image/jpeg"
-                    | "image/gif"
-                    | "image/webp",
+                  media_type: mime as "image/png" | "image/jpeg" | "image/gif" | "image/webp",
                   data: data.toString("base64"),
                 },
               },
@@ -196,15 +210,14 @@ export async function draaiChatAgent(opties: {
           return fout(`kan ${pad} niet lezen (bestaat het?).`);
         }
       },
-    }),
-    betaZodTool({
-      name: "zoek_tekst",
-      description:
+    },
+    {
+      naam: "zoek_tekst",
+      omschrijving:
         "Zoekt een letterlijke tekst in alle tekstbestanden van de website; geeft per treffer bestand en regel.",
-      inputSchema: z.object({
-        tekst: z.string().min(2).describe("Letterlijke zoektekst"),
-      }),
-      run: async ({ tekst }) => {
+      schema: z.object({ tekst: z.string().min(2) }),
+      jsonSchema: { type: "object", properties: { tekst: tekstSchema("Letterlijke zoektekst") }, required: ["tekst"] },
+      run: async ({ tekst }: { tekst: string }) => {
         opGebeurtenis({ soort: "tool", naam: "zoek_tekst", invoer: { tekst } });
         const treffers: string[] = [];
         for (const rel of await lijstAlleBestanden(werkmap)) {
@@ -224,18 +237,18 @@ export async function draaiChatAgent(opties: {
         }
         return treffers.join("\n") || "(geen treffers)";
       },
-    }),
-    betaZodTool({
-      name: "bewerk_bestand",
-      description:
+    },
+    {
+      naam: "bewerk_bestand",
+      omschrijving:
         "Vervangt in één bestand een letterlijk tekstfragment door nieuwe tekst. `zoek` moet precies één keer voorkomen (tenzij alles=true, dan alle keren). Neem genoeg omliggende tekst mee om het fragment uniek te maken.",
-      inputSchema: z.object({
-        pad: z.string(),
-        zoek: z.string().min(1),
-        vervang: z.string(),
-        alles: z.boolean().optional(),
-      }),
-      run: async ({ pad, zoek, vervang, alles }) => {
+      schema: z.object({ pad: z.string(), zoek: z.string().min(1), vervang: z.string(), alles: z.boolean().optional() }),
+      jsonSchema: {
+        type: "object",
+        properties: { pad: tekstSchema(), zoek: tekstSchema(), vervang: tekstSchema(), alles: { type: "boolean" } },
+        required: ["pad", "zoek", "vervang"],
+      },
+      run: async ({ pad, zoek, vervang, alles }: { pad: string; zoek: string; vervang: string; alles?: boolean }) => {
         opGebeurtenis({
           soort: "tool",
           naam: "bewerk_bestand",
@@ -254,13 +267,14 @@ export async function draaiChatAgent(opties: {
           `de zoektekst komt ${uitkomst.aantal}× voor. Maak hem uniek met meer omliggende tekst, of zet alles=true om alle voorkomens te vervangen.`,
         );
       },
-    }),
-    betaZodTool({
-      name: "schrijf_bestand",
-      description:
+    },
+    {
+      naam: "schrijf_bestand",
+      omschrijving:
         "Maakt een nieuw bestand aan of overschrijft een bestaand bestand volledig met de gegeven inhoud. Gebruik voor nieuwe pagina's; voor kleine aanpassingen gebruik je bewerk_bestand.",
-      inputSchema: z.object({ pad: z.string(), inhoud: z.string() }),
-      run: async ({ pad, inhoud }) => {
+      schema: z.object({ pad: z.string(), inhoud: z.string() }),
+      jsonSchema: { type: "object", properties: { pad: tekstSchema(), inhoud: tekstSchema() }, required: ["pad", "inhoud"] },
+      run: async ({ pad, inhoud }: { pad: string; inhoud: string }) => {
         opGebeurtenis({
           soort: "tool",
           naam: "schrijf_bestand",
@@ -274,14 +288,10 @@ export async function draaiChatAgent(opties: {
         });
         return "Gelukt.";
       },
-    }),
+    },
   ];
 
-  // Stiltewachter (les EVC 26-09): de runner verloor tussen twee beurten zijn
-  // weksignaal — geen fout, geen lopend verzoek, gewoon eeuwige stilte waar
-  // zelfs een abort niet meer bij kan. Elke wachtstap krijgt daarom een eigen
-  // wekker: blijft het zó lang volledig stil, dan geven we het op, breken we
-  // alles af en leveren we op wat er al staat.
+  // Stiltewachter (les EVC 26-09): geen enkele wachtstap mag eeuwig duren.
   const STILTE_MS = 90_000;
   const stilte = Symbol("stilte");
   const noodstop = new AbortController();
@@ -298,28 +308,11 @@ export async function draaiChatAgent(opties: {
       clearTimeout(wekker);
     }
   }
-  const runner = client.beta.messages.toolRunner(
-    {
-      model: opties.model,
-      max_tokens: 16000,
-      max_iterations: Math.min(opties.maxBeurten ?? MAX_BEURTEN, MAX_BEURTEN),
-      stream: true,
-      system: [
-        {
-          type: "text",
-          text: opties.systeem,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      tools,
-      messages: [{ role: "user", content: opties.opdracht }],
-    },
-    // maxDuurMs was alleen een controle tussen beurten: één hangende aanroep
-    // of traag gereedschap kon er dwars doorheen (EVC, 26-09: de chat bleef
-    // minutenlang op "vaste afspraken nalopen" staan). Nu is het een echte
-    // kap: na maxDuurMs plus marge wordt de lopende aanroep afgebroken.
-    { signal: AbortSignal.any([...(opties.signal ? [opties.signal] : []), noodstop.signal, ...(opties.maxDuurMs ? [AbortSignal.timeout(opties.maxDuurMs + 10_000)] : [])]) },
-  );
+  const kap = AbortSignal.any([
+    ...(opties.signal ? [opties.signal] : []),
+    noodstop.signal,
+    ...(opties.maxDuurMs ? [AbortSignal.timeout(opties.maxDuurMs + 10_000)] : []),
+  ]);
 
   const startMs = Date.now();
   let reply = "";
@@ -328,62 +321,58 @@ export async function draaiChatAgent(opties: {
   let kostenUsd = 0;
   let cacheGelezen = 0;
   let limietBereikt = false;
-  // Stilte is geen limiet maar een storing: de aanroeper hoort dat verschil te kennen
   let stilteGeraakt = false;
   const [prijsIn, prijsUit] = PRIJZEN[opties.model] ?? [2, 10];
 
-  const buiten = runner[Symbol.asyncIterator]();
-  agentLus: while (true) {
-    const buitenStap = await metWekker(buiten.next());
-    if (buitenStap === stilte) {
-      console.error("[chat-agent] stilte tussen twee beurten: runner opgegeven");
-      stilteGeraakt = true;
-      noodstop.abort();
-      limietBereikt = true;
-      break;
-    }
-    if (buitenStap.done) break;
-    const beurtStream = buitenStap.value;
+  const apiTools = tools.map((g) => ({
+    name: g.naam,
+    description: g.omschrijving,
+    input_schema: g.jsonSchema as { type: "object"; [k: string]: unknown },
+  }));
+  const gesprek: Anthropic.Beta.BetaMessageParam[] = [
+    { role: "user", content: opties.opdracht },
+  ];
+  const maxBeurten = Math.min(opties.maxBeurten ?? MAX_BEURTEN, MAX_BEURTEN);
+
+  agentLus: for (let beurt = 0; beurt < maxBeurten; beurt++) {
+    const stream = client.beta.messages.stream(
+      {
+        model: opties.model,
+        max_tokens: 16000,
+        system: [
+          { type: "text", text: opties.systeem, cache_control: { type: "ephemeral" } },
+        ],
+        tools: apiTools,
+        messages: gesprek,
+      },
+      { signal: kap },
+    );
+
     let beurtTekst = "";
-    // Werkstappen die nog worden opgesteld, per blok bijgehouden: zodra het
-    // pad in de binnenkomende gegevens staat, melden we waar het over gaat.
-    const inAanbouw = new Map<
-      number,
-      { naam: string; ruw: string; gemeld: boolean }
-    >();
-    const binnen = beurtStream[Symbol.asyncIterator]();
+    const inAanbouw = new Map<number, { naam: string; ruw: string; gemeld: boolean }>();
+    const events = stream[Symbol.asyncIterator]();
     while (true) {
-      const binnenStap = await metWekker(binnen.next());
-      if (binnenStap === stilte) {
-        console.error("[chat-agent] stilte midden in een beurt: runner opgegeven");
-      stilteGeraakt = true;
+      const stap = await metWekker(events.next());
+      if (stap === stilte) {
+        console.error("[chat-agent] stilte midden in een beurt: opgegeven");
         noodstop.abort();
+        stilteGeraakt = true;
         limietBereikt = true;
         break agentLus;
       }
-      if (binnenStap.done) break;
-      const event = binnenStap.value;
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
+      if (stap.done) break;
+      const event = stap.value;
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
         beurtTekst += event.delta.text;
         opGebeurtenis({ soort: "tekst", delta: event.delta.text });
         continue;
       }
-      if (
-        event.type === "content_block_start" &&
-        event.content_block.type === "tool_use"
-      ) {
-        const naam = event.content_block.name;
-        inAanbouw.set(event.index, { naam, ruw: "", gemeld: false });
-        opGebeurtenis({ soort: "toolStart", naam });
+      if (event.type === "content_block_start" && event.content_block.type === "tool_use") {
+        inAanbouw.set(event.index, { naam: event.content_block.name, ruw: "", gemeld: false });
+        opGebeurtenis({ soort: "toolStart", naam: event.content_block.name });
         continue;
       }
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "input_json_delta"
-      ) {
+      if (event.type === "content_block_delta" && event.delta.type === "input_json_delta") {
         const blok = inAanbouw.get(event.index);
         if (!blok || blok.gemeld) continue;
         blok.ruw += event.delta.partial_json;
@@ -394,21 +383,16 @@ export async function draaiChatAgent(opties: {
         }
       }
     }
-    const berichtOfStilte = await metWekker(beurtStream.finalMessage());
+    const berichtOfStilte = await metWekker(stream.finalMessage());
     if (berichtOfStilte === stilte) {
-      console.error("[chat-agent] stilte bij het afronden van een beurt: runner opgegeven");
-      stilteGeraakt = true;
+      console.error("[chat-agent] stilte bij het afronden van een beurt: opgegeven");
       noodstop.abort();
+      stilteGeraakt = true;
       limietBereikt = true;
       break;
     }
     const bericht = berichtOfStilte;
-    // Gebruikte het model gereedschap? Dan volgt nu een denkronde vóór de
-    // volgende stap — dat melden we, anders lijkt de vorige stap te hangen.
-    if (bericht.content.some((b) => b.type === "tool_use"))
-      opGebeurtenis({ soort: "denkt" });
-    // Alleen de tekst van de laatste beurt is het eindantwoord; tussenteksten
-    // ("Ik ga eerst kijken...") horen bij de voortgang.
+
     if (beurtTekst.trim()) reply = beurtTekst.trim();
     const u = bericht.usage;
     const inTok = (u.input_tokens ?? 0) as number;
@@ -419,11 +403,46 @@ export async function draaiChatAgent(opties: {
     cacheGelezen += cacheLees;
     tokensUit += uitTok;
     kostenUsd +=
-      (inTok * prijsIn +
-        cacheSchrijf * prijsIn * 1.25 +
-        cacheLees * prijsIn * 0.1 +
-        uitTok * prijsUit) /
-      1_000_000;
+      (inTok * prijsIn + cacheSchrijf * prijsIn * 1.25 + cacheLees * prijsIn * 0.1 + uitTok * prijsUit) / 1_000_000;
+
+    if (bericht.stop_reason === "max_tokens") {
+      limietBereikt = true;
+      break;
+    }
+    const toolBlokken = bericht.content.filter((b) => b.type === "tool_use");
+    if (bericht.stop_reason !== "tool_use" || toolBlokken.length === 0) break;
+
+    // Volgende ronde voorbereiden: gereedschap zelf uitvoeren en de
+    // resultaten terugsturen. Gelijktijdig (sneller); het bestandsslot
+    // beschermt bewerkingen op hetzelfde bestand.
+    gesprek.push({ role: "assistant", content: bericht.content });
+    opGebeurtenis({ soort: "denkt" });
+    const resultaten = await Promise.all(
+      toolBlokken.map(async (blok) => {
+        const gereedschap = tools.find((g) => g.naam === blok.name);
+        let uitvoer: ToolUitvoer;
+        if (!gereedschap) uitvoer = fout(`onbekend gereedschap ${blok.name}.`);
+        else {
+          const invoer = gereedschap.schema.safeParse(blok.input);
+          if (!invoer.success) uitvoer = fout(`ongeldige invoer voor ${blok.name}: ${invoer.error.issues[0]?.message ?? "onbekend"}.`);
+          else {
+            try {
+              uitvoer = await gereedschap.run(invoer.data as never);
+            } catch (e) {
+              uitvoer = fout(`${blok.name} mislukte: ${e instanceof Error ? e.message : e}`);
+            }
+          }
+        }
+        return {
+          type: "tool_result" as const,
+          tool_use_id: blok.id,
+          content: typeof uitvoer === "string" ? uitvoer : uitvoer,
+          ...(typeof uitvoer === "string" && uitvoer.startsWith("FOUT:") ? { is_error: true as const } : {}),
+        };
+      }),
+    );
+    gesprek.push({ role: "user", content: resultaten });
+
     if (kostenUsd >= opties.budgetUsd) {
       limietBereikt = true;
       break;
@@ -432,12 +451,9 @@ export async function draaiChatAgent(opties: {
       limietBereikt = true;
       break;
     }
+    // max_iterations bereikt terwijl het model nog verder wilde
+    if (beurt === maxBeurten - 1) limietBereikt = true;
   }
-  const laatsteOfStilte = await metWekker(runner.done().catch(() => null));
-  const laatste = laatsteOfStilte === stilte ? (noodstop.abort(), null) : laatsteOfStilte;
-  if (laatste && laatste.stop_reason === "max_tokens") limietBereikt = true;
-  // max_iterations bereikt terwijl het model nog tools wilde gebruiken
-  if (laatste && laatste.stop_reason === "tool_use") limietBereikt = true;
 
   return { reply, limietBereikt, stilteGeraakt, tokensIn, tokensUit, kostenUsd, cacheGelezen };
 }

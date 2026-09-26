@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.29 (26 september 2026)
+
+**De chat heeft een nieuwe, eigen motor.** De vastloper van vandaag zat in de
+kant-en-klare gereedschaps-lus van het Anthropic-pakket, die af en toe zijn
+weksignaal verliest; de makers hebben hun reparatie daarvoor nooit afgemaakt.
+Die lus is er nu helemaal uit: de chat stuurt zijn stappen voortaan zelf aan,
+met dezelfde gereedschappen en veiligheidsregels, en de stiltewachter blijft
+als extra vangnet staan. In de bewijsronde rondde de nieuwe motor drie van de
+drie ritten netjes af waar de oude er drie van de vier liet hangen. Grote
+opdrachten zoals een nieuwe pagina met menu-aanpassing horen hiermee gewoon
+weer af te komen.
+
 ## 1.30.28 (26 september 2026)
 
 **Een storing heet nu een storing.** Als het vangnet van vanochtend een

@@ -21,7 +21,10 @@ assert.ok(
 );
 
 // 2. Het signaal van de aanroeper blijft altijd meedoen in de bundel
-assert.ok(/AbortSignal\.any\(\[\.\.\.\(opties\.signal \? \[opties\.signal\] : \[\]\)/.test(agent), "het signaal van de aanroeper zit niet meer in de bundel");
+assert.ok(
+  agent.includes("AbortSignal.any([") && agent.includes("...(opties.signal ? [opties.signal] : [])"),
+  "het signaal van de aanroeper zit niet meer in de bundel",
+);
 
 // 3. De zachte controle tussen beurten blijft bestaan (kap is vangnet, geen vervanging)
 assert.ok(

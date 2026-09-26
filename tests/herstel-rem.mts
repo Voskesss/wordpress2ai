@@ -24,8 +24,10 @@ for (const blok of herstelAanroepen) {
 
 // 2. De agent gebruikt die limieten ook echt.
 assert.ok(
-  /max_iterations:\s*Math\.min\(opties\.maxBeurten/.test(agent),
-  "chat-agent geeft maxBeurten niet door aan max_iterations",
+  // Sinds de eigen lus (26-09) is er geen max_iterations meer: de for-lus
+  // zelf is de rem, met dezelfde bovengrens.
+  agent.includes("Math.min(opties.maxBeurten ?? MAX_BEURTEN, MAX_BEURTEN)") && agent.includes("beurt < maxBeurten"),
+  "chat-agent begrenst het aantal beurten niet meer op maxBeurten",
 );
 assert.ok(
   /opties\.maxDuurMs && Date\.now\(\) - startMs >= opties\.maxDuurMs/.test(agent),
