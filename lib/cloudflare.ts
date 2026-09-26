@@ -68,8 +68,14 @@ function hdr(json = true): Record<string, string> {
 
 /** Werkmappen en instructiebestanden die nooit publiek horen te staan.
  * "delen" bevat de bouwstenen die bij deploy al in de pagina's zijn gezet. */
+// Klasse en CSS-variabele erbij (vondst Van den Berg 26-09): een site met een
+// eigen plakkend menu (ook sticky top:0) verdween bij scrollen achter de balk.
+// Site-CSS kan nu generiek zeggen: .kop { top: var(--ws-balk, 0) } — in het
+// ontwerpvoorbeeld schuift de kop dan onder de balk, en live (geen balk, geen
+// variabele) is de uitkomst gewoon 0.
 const ONTWERP_BANNER =
-  '<div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;font:600 13px/1.5 system-ui,sans-serif;text-align:center;padding:9px 14px">Ontwerpvoorstel door WordSwap &mdash; dit is niet je echte website</div>';
+  '<style>:root{--ws-balk:38px}</style>' +
+  '<div class="ws-ontwerpbalk" style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;font:600 13px/1.5 system-ui,sans-serif;text-align:center;padding:9px 14px">Ontwerpvoorstel door WordSwap &mdash; dit is niet je echte website</div>';
 
 const NIET_PUBLIEK_MAPPEN = new Set([".git", ".github", "delen", "wp2ai-controle"]);
 const NIET_PUBLIEK_BESTANDEN = new Set([

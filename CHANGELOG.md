@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.5 (26 september 2026)
+
+**De ontwerpbalk en een plakkend sitemenu zitten elkaar niet meer in de
+weg.** Op een ontwerpvoorbeeld met een menu dat aan de bovenkant plakt,
+verdween dat menu bij het scrollen achter onze "dit is niet je echte
+website"-balk. De balk geeft nu zijn hoogte door als variabele, zodat
+sitemenu's er automatisch onder kunnen schuiven; op de echte site verandert
+er niets. De bouwregels schrijven dit patroon voortaan voor.
+
 ## 1.31.4 (26 september 2026)
 
 **Je eigen opmerking in de ontwerp-mails is nu een herkenbaar kadertje.**

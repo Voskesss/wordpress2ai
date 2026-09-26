@@ -71,4 +71,11 @@ assert.ok(/zetLinkVervallenPagina/.test(verbergFn), "verbergen zet geen vervalle
 assert.ok(ontwerp.includes("Deze link is vervangen") && ontwerp.includes("jos@wordswap.nl"), "de vervallen-pagina mist de uitleg of het contactadres");
 assert.ok(ontwerp.includes('name="robots" content="noindex'), "de vervallen-pagina is niet op noindex gezet");
 
+// 9. De ontwerpbalk zet zijn hoogte als variabele en heeft een vaste klasse,
+//    zodat plakkende sitemenu's er onder kunnen schuiven (vondst VdB 26-09)
+const cf = await readFile(new URL("../lib/cloudflare.ts", import.meta.url), "utf8");
+assert.ok(cf.includes("--ws-balk:38px") && cf.includes('class="ws-ontwerpbalk"'), "de ontwerpbalk mist de variabele of de klasse");
+const skillTekst = await readFile(new URL("../.claude/skills/migreer-klant/SKILL.md", import.meta.url), "utf8");
+assert.ok(skillTekst.includes("var(--ws-balk, 0)"), "de bouwregel voor plakkende koppen ontbreekt");
+
 console.log("ontwerp-mail: ok");
