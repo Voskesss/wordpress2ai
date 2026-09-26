@@ -543,7 +543,7 @@ async function chatBeurt(
       void zetStatus(ids, "mislukt", site.id).catch(() => {});
       void stuurTekst(
         telefoon,
-        "Dit bleek een te grote klus voor Ã©Ã©n keer: ik kreeg hem niet op tijd af, dus er is niets aan je website veranderd. App het in kleinere stappen (bijvoorbeeld één pagina of één kleur tegelijk), dan lukt het wel. Wil je het toch in één keer? Dan pakt WordSwap het voor je op.",
+        "Dit bleek een te grote klus voor één keer: ik kreeg hem niet op tijd af, dus er is niets aan je website veranderd. App het in kleinere stappen (bijvoorbeeld één pagina of één kleur tegelijk), dan lukt het wel. Wil je het toch in één keer? Dan pakt WordSwap het voor je op.",
       ).catch(() => {});
     },
     Math.max(

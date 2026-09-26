@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.33 (26 september 2026)
+
+Reparatie: in het WhatsApp-bericht over een te grote klus stond door een
+tekenfout "Ã©Ã©n" in plaats van "één". Binnen het uur hersteld.
+
 ## 1.30.32 (26 september 2026)
 
 Reparatie in WhatsApp: het webadres van je website staat nu als klikbare
