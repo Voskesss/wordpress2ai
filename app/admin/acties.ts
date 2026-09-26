@@ -1413,6 +1413,27 @@ export async function ontwerpZichtbaarheid(formData: FormData) {
     } else {
       // Verbergen: direct — adres weg, kaart weg, gedeelde link dood.
       await verbergOntwerp(site);
+      // De klant kreeg eerder een mail met een knop die nu dood is: zeg dat
+      // dus even netjes, tenzij Jos het vinkje uitzet.
+      if (formData.get("mailen") === "ja") {
+        const { klantAdres } = await import("@/lib/klant-adres");
+        const adres = await klantAdres(site);
+        if (adres) {
+          const { bouwOntwerpTeruggetrokken } = await import("@/lib/klant-mails");
+          const { mailVanJos } = await import("@/lib/wordswap-mail");
+          const mail = bouwOntwerpTeruggetrokken({
+            siteNaam: site.naam,
+            naam: adres.naam,
+            eigenTekst: String(formData.get("opmerking") ?? "").trim() || null,
+          });
+          const gelukt = await mailVanJos({ naar: adres.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+          mailMelding = gelukt
+            ? "Verborgen, en de klant weet dat de link tijdelijk niet werkt."
+            : "Verborgen, maar het mailtje kon niet worden verstuurd. Stuur het zelf even.";
+        } else {
+          mailMelding = "Verborgen. Mailen kon niet: er is nog geen klant-e-mailadres gekoppeld.";
+        }
+      }
     }
   } catch (e) {
     console.error("Ontwerp-zichtbaarheid:", e);

@@ -38,10 +38,21 @@ assert.ok(fn.indexOf("if (mailMelding)") > fn.indexOf("catch"), "de melding word
 const blok = await readFile(new URL("../app/admin/klant/[id]/OntwerpBlok.tsx", import.meta.url), "utf8");
 assert.ok(/name="mailen" value="ja" defaultChecked/.test(blok), "het mail-vinkje staat niet standaard aan");
 assert.ok(blok.includes('name="opmerking"'), "het opmerking-veld ontbreekt");
-assert.ok(blok.includes('soort="ontwerp-klaar"'), "de voorbeeldknop ontbreekt");
+assert.ok(blok.includes('"ontwerp-klaar"') && blok.includes("MailVoorbeeldKnop"), "de voorbeeldknop ontbreekt");
 
 // 5. De voorbeeldroute kent de soort
 const voorbeeld = await readFile(new URL("../app/api/admin/mail-voorbeeld/route.ts", import.meta.url), "utf8");
 assert.ok(voorbeeld.includes('soort === "ontwerp-klaar"'), "de voorbeeldroute kent ontwerp-klaar niet");
+
+// 6. Ook bij verbergen: eerlijke mail (dode link benoemd), beide richtingen in het formulier
+import { bouwOntwerpTeruggetrokken } from "../lib/klant-mails";
+const terug = bouwOntwerpTeruggetrokken({ siteNaam: "X", naam: "Dirk-Jan", eigenTekst: null });
+assert.ok(terug.html.includes("doet het daardoor tijdelijk niet"), "de dode-link-uitleg ontbreekt in de terugtrek-mail");
+assert.ok(terug.html.includes("draait gewoon door"), "de geruststelling ontbreekt in de terugtrek-mail");
+assert.ok(!terug.html.includes("\u2014"), "lang streepje in de terugtrek-mail");
+assert.ok(blok.includes('"ontwerp-terug"') && blok.includes("even is teruggetrokken"), "de verberg-richting ontbreekt in het formulier");
+assert.ok(voorbeeld.includes('soort === "ontwerp-terug"'), "de voorbeeldroute kent ontwerp-terug niet");
+const verbergDeel = fn.split("verbergOntwerp(site)")[1] ?? "";
+assert.ok(verbergDeel.includes("bouwOntwerpTeruggetrokken"), "verbergen stuurt geen mail meer");
 
 console.log("ontwerp-mail: ok");

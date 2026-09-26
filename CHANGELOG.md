@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.34 (26 september 2026)
+
+**De klant krijgt een mailtje rond zijn nieuwe ontwerp, twee kanten op.**
+Zet je het ontwerpvoorstel zichtbaar, dan gaat er standaard een mail mee
+(uitvinkbaar) met een knop naar het ontwerp, de geruststelling dat er niets
+live staat, en ruimte voor een eigen opmerking bovenaan; met voorbeeldknop.
+Trek je het ontwerp weer terug, dan gaat er net zo'n mailtje uit dat de
+bekijk-link tijdelijk niet werkt en dat de huidige site gewoon doordraait,
+zodat niemand op een dode link stuit zonder uitleg. (Het zichtbaar-deel kwam
+door een samenloop met de WhatsApp-releases al zonder eigen nummer mee met
+1.30.33; bij deze alsnog netjes vermeld.)
+
 ## 1.30.33 (26 september 2026)
 
 Reparatie: in het WhatsApp-bericht over een te grote klus stond door een

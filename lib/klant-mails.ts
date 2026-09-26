@@ -159,6 +159,23 @@ ${knop(o.ontwerpUrl, "Bekijk het nieuwe ontwerp")}
   };
 }
 
+/** Bericht dat het ontwerp tijdelijk is teruggetrokken (adres is dan dood). */
+export function bouwOntwerpTeruggetrokken(o: {
+  siteNaam: string;
+  naam?: string | null;
+  eigenTekst?: string | null;
+}): { onderwerp: string; html: string } {
+  return {
+    onderwerp: "Ik heb het nieuwe ontwerp even teruggetrokken",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+${alineas(o.eigenTekst)}
+<p>Ik heb het nieuwe ontwerp voor <strong>${ontsnap(o.siteNaam)}</strong> even offline gehaald om eraan te werken. De bekijk-link uit mijn eerdere mail doet het daardoor tijdelijk niet; dat hoort zo.</p>
+<p>Je huidige website draait gewoon door en verandert niet. Zodra de nieuwe versie klaarstaat, krijg je vanzelf weer een berichtje met een verse link.</p>
+<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
 /** Review- en referentieverzoek. */
 export function bouwReviewVerzoek(o: {
   siteNaam: string;

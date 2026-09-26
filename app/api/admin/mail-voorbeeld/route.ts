@@ -94,6 +94,9 @@ export async function GET(req: Request) {
       naam: ontvanger?.naam,
       domein: site.domein,
     });
+  } else if (soort === "ontwerp-terug") {
+    const { bouwOntwerpTeruggetrokken } = await import("@/lib/klant-mails");
+    mail = bouwOntwerpTeruggetrokken({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
   } else if (soort === "ontwerp-klaar") {
     const { bouwOntwerpKlaar } = await import("@/lib/klant-mails");
     mail = bouwOntwerpKlaar({
