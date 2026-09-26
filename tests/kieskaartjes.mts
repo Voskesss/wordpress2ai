@@ -75,6 +75,10 @@ assert.ok(/verstuur\(`Ik kies "\$\{kaart\.naam\}"`\)/.test(chat), "een tik op ee
 assert.ok(/dangerouslySetInnerHTML=\{\{ __html: kaart\.svg \}\}/.test(chat), "de gesaneerde svg wordt niet getoond");
 // Het chatvenster blijft open zolang er kaartjes op een antwoord staan
 assert.equal((chat.match(/parseKeuzesBeeld\([^)]*\)\.kaartjes\.length > 0/g) ?? []).length, 3, "niet elke chat-open-check telt de kaartjes mee");
+// Zichtbare ingang achter de drie puntjes (wens Jos 26-09): een knop die de
+// startzin klaarzet zonder al getypte tekst te overschrijven
+assert.ok(/aria-label="Icoontjes laten maken"/.test(chat), "de icoontjes-knop achter de drie puntjes ontbreekt");
+assert.ok(/v\.trim\(\) \? v : "Maak een paar icoontjes waar ik uit kan kiezen voor "/.test(chat), "de startzin ontbreekt of overschrijft getypte tekst");
 
 // 7. De huisregel: kaartjes zijn de standaard, het pagina-keuzeblok de
 // uitzondering mét verplichte marker
