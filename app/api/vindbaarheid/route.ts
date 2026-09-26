@@ -108,12 +108,18 @@ export async function GET(req: Request) {
         "utf8",
       ).catch(() => null);
       if (inhoud === null) continue;
+      const { metaUit } = await import("@/lib/deel-voorbeeld");
       return NextResponse.json({
         bestand: kandidaat,
         titel: titelUit(inhoud),
         omschrijving: omschrijvingUit(inhoud),
         adres:
           "/" + kandidaat.replace(/index\.html$/i, "").replace(/\.html$/i, ""),
+        // Deel-voorbeeld (og-tags): de foto komt terug als pad binnen de
+        // site, zodat het paneel hem als miniatuur kan tonen
+        deelKop: metaUit(inhoud, "og:title"),
+        deelTekst: metaUit(inhoud, "og:description"),
+        deelFoto: metaUit(inhoud, "og:image").replace(/^https?:\/\/[^/]+\//, ""),
       });
     }
     return NextResponse.json(
@@ -136,6 +142,11 @@ export async function POST(req: Request) {
     titel: string;
     omschrijving: string;
     adres?: string;
+    /** Deel-voorbeeld (og-tags). undefined = niet aanraken; lege string =
+     * weghalen (dan vallen deel-apps terug op titel en omschrijving). */
+    deelKop?: string;
+    deelTekst?: string;
+    deelFoto?: string;
   };
   const [site] = await db.select().from(sites).where(eq(sites.id, body.siteId));
   if (
@@ -254,6 +265,44 @@ export async function POST(req: Request) {
               `</title>\n<meta name="description" content="${nieuweOms.replace(/"/g, "&quot;")}">`,
             );
         uitleg.push("de omschrijving voor Google");
+      }
+
+      // Deel-voorbeeld (og-tags): hoe de pagina eruitziet als iemand hem
+      // deelt via WhatsApp/Facebook/LinkedIn. De foto moet een volledig
+      // adres zijn (deel-apps snappen geen relatieve paden).
+      {
+        const { metaUit, zetDeelVoorbeeld, volledigAdres } = await import("@/lib/deel-voorbeeld");
+        const domein =
+          site.domein ??
+          (site.siteSlug
+            ? `${site.siteSlug}.${(await import("@/lib/cloudflare")).CF_SUBDOMEIN}.workers.dev`
+            : null);
+        const fotoPad = (body.deelFoto ?? undefined)?.trim();
+        const fotoOk =
+          fotoPad === undefined || fotoPad === "" || (/^[\w./-]{1,200}$/.test(fotoPad) && !fotoPad.includes(".."));
+        const velden = {
+          kop: body.deelKop?.trim(),
+          tekst: body.deelTekst?.trim(),
+          fotoUrl:
+            fotoOk && fotoPad !== undefined && domein
+              ? fotoPad
+                ? volledigAdres(domein, fotoPad)
+                : ""
+              : undefined,
+          paginaUrl: domein
+            ? volledigAdres(domein, oudPad.replace(/index\.html$/i, ""))
+            : undefined,
+        };
+        const voor = [metaUit(inhoud, "og:title"), metaUit(inhoud, "og:description"), metaUit(inhoud, "og:image")].join("|");
+        const wilDeel = velden.kop !== undefined || velden.tekst !== undefined || velden.fotoUrl !== undefined;
+        if (wilDeel) {
+          const nieuw = zetDeelVoorbeeld(inhoud, velden);
+          const na = [metaUit(nieuw, "og:title"), metaUit(nieuw, "og:description"), metaUit(nieuw, "og:image")].join("|");
+          if (na !== voor) {
+            inhoud = nieuw;
+            uitleg.push("het deel-voorbeeld (WhatsApp/Facebook)");
+          }
+        }
       }
 
       await writeFile(path.join(werkmap, oudPad), inhoud);

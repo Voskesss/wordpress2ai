@@ -3043,6 +3043,14 @@ export default function Chat({
               siteId={siteId}
               pad={huidigePagina}
               domein={liveUrl}
+              previewAccess={previewAccess}
+              beeldBasis={concept ? (werkversieUrl ?? liveUrl) : (liveUrl ?? werkversieUrl)}
+              onOpdracht={(tekst) => {
+                setSeoOpen(false);
+                setInvoer((v) => (v.trim() ? v : tekst));
+                setChatOpen(true);
+                invoerRef.current?.focus();
+              }}
               onSluit={() => setSeoOpen(false)}
               onKlaar={(data) => {
                 setSeoOpen(false);
