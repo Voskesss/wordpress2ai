@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.27 (26 september 2026)
+
+**Anthropic-pakket bijgewerkt van 0.120 naar 0.128, en een eerlijke
+bekentenis.** De update is door de volledige teststraat en de naspeelproef
+gegaan; de vastloper van vanochtend zit ook in de nieuwste versie (de makers
+hebben hun eigen oplossing daarvoor nooit afgemaakt), dus onze stiltewachter
+blijft het vangnet. Daarnaast: versies 1.30.25 en 1.30.26 zijn per ongeluk
+uitgebracht terwijl één test faalde; een koppelteken in het releasedraaiboek
+maskeerde de foutcode. De test is hersteld en het draaiboek controleert
+voortaan de echte uitslag. Aan de sites zelf is niets misgegaan; de falende
+test bewaakte een regel die inmiddels door een betere was vervangen.
+
 ## 1.30.26 (26 september 2026)
 
 **De stopknop zegt nu gewoon "Stop".** Tijdens het werken werd de

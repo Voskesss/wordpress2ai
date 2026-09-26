@@ -13,14 +13,15 @@ import { readFile } from "node:fs/promises";
 
 const agent = await readFile(new URL("../lib/chat-agent.ts", import.meta.url), "utf8");
 
-// 1. De kap bestaat en hangt aan maxDuurMs
+// 1. De kap bestaat en hangt aan maxDuurMs (sinds 1.30.25 samen met de
+//    noodstop van de stiltewachter in één AbortSignal.any)
 assert.ok(
-  /AbortSignal\.any\(\[\.\.\.\(opties\.signal \? \[opties\.signal\] : \[\]\), AbortSignal\.timeout\(opties\.maxDuurMs \+ 10_000\)\]\)/.test(agent),
+  /AbortSignal\.timeout\(opties\.maxDuurMs \+ 10_000\)/.test(agent),
   "de harde tijdkap (AbortSignal.timeout aan maxDuurMs) is verdwenen uit de chat-agent",
 );
 
-// 2. Het bestaande signaal van de aanroeper blijft ook zonder maxDuurMs werken
-assert.ok(agent.includes(": opties.signal },") || agent.includes(": opties.signal }"), "zonder maxDuurMs moet het gewone signaal doorgegeven blijven");
+// 2. Het signaal van de aanroeper blijft altijd meedoen in de bundel
+assert.ok(/AbortSignal\.any\(\[\.\.\.\(opties\.signal \? \[opties\.signal\] : \[\]\)/.test(agent), "het signaal van de aanroeper zit niet meer in de bundel");
 
 // 3. De zachte controle tussen beurten blijft bestaan (kap is vangnet, geen vervanging)
 assert.ok(
