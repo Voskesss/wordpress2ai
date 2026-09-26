@@ -191,7 +191,7 @@ if (!zonderMobiel) {
   // pagina omdat de kop een backdrop-filter had).
   await pagina.goto(`http://localhost:${poort}/`, { waitUntil: "networkidle" }).catch(() => null);
   await pagina.evaluate(() => window.scrollTo(0, 400));
-  const knop = pagina.locator('.hamburger, [class*="menuknop"], button[aria-controls][aria-expanded]:not(.ws-zoek-knop), [aria-label*="enu"]').first();
+  const knop = pagina.locator('button.hamburger:visible, .hamburger:visible, button[class*="menuknop"]:visible, button[aria-controls][aria-expanded]:not(.ws-zoek-knop):visible, button[aria-label*="enu"]:visible, a[aria-label*="enu"]:visible').first();
   if (await knop.count()) {
     await knop.click().catch(() => null);
     await pagina.waitForTimeout(500);
