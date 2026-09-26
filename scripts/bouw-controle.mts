@@ -130,6 +130,17 @@ if (!zonderMobiel) {
     );
     if (overloop > 2)
       bevindingen.push({ ernst: "fout", regel: "mobiel", waar: p, detail: `Horizontale scroll op 375px (${overloop}px te breed).` });
+    // Een telefoon scrollt niet opzij maar zoomt uit als iets breder is dan het
+    // scherm; dan is er geen overloop te meten, wel een te brede pagina
+    // (Summit 26-09: een dichtgeklapt menupaneel naast het scherm maakte 780px).
+    const breedte = await pagina.evaluate(() => window.innerWidth);
+    if (breedte > 380)
+      bevindingen.push({
+        ernst: "fout",
+        regel: "mobiel",
+        waar: p,
+        detail: `De telefoon zoomt uit: de pagina is ${breedte}px breed op een scherm van 375px. Zoek het element dat buiten beeld staat (vaak een dichtgeklapt menu met transform).`,
+      });
     if (gewicht > GEWICHT_GRENS)
       bevindingen.push({
         ernst: "waarschuwing",
@@ -138,18 +149,75 @@ if (!zonderMobiel) {
         detail: `${(gewicht / 1_000_000).toFixed(1)} MB binnenhalen voor één pagina (±${Math.round(gewicht / 500_000)} s op 4G). Kijk naar de zwaarste afbeeldingen.`,
       });
   }
-  // Hamburgermenu: aanwezig, en na een tik zijn de menulinks zichtbaar
+  // Zoeken op mobiel (zoals Van den Berg): het vergrootglas staat in de
+  // kopbalk, niet weggestopt in het uitklapmenu, en het venster ligt bovenop.
   await pagina.goto(`http://localhost:${poort}/`, { waitUntil: "networkidle" }).catch(() => null);
-  const knop = pagina.locator('button[aria-expanded], .hamburger, [class*="menuknop"], [aria-label*="enu"]').first();
+  if (await pagina.locator(".ws-zoek").count()) {
+    const zoekKnop = pagina.locator(".ws-zoek-knop:visible").first();
+    if (!(await zoekKnop.count())) {
+      bevindingen.push({
+        ernst: "waarschuwing",
+        regel: "mobiel",
+        waar: "/",
+        detail: "Zoeken is op 375px alleen via het menu te bereiken. Zet het zoekvak in de kopbalk naast de menuknop, zoals bij Van den Berg.",
+      });
+    } else {
+      await pagina.evaluate(() => window.scrollTo(0, 400));
+      await zoekKnop.click().catch(() => null);
+      await pagina.waitForTimeout(300);
+      const zoekvlak = await pagina.evaluate(() => {
+        const v = document.getElementById("ws-zoekvlak");
+        if (!v || v.hidden) return "dicht";
+        const r = v.getBoundingClientRect();
+        if (r.left < -1 || r.right > window.innerWidth + 1 || r.top < 0 || r.height < 40) return "buiten beeld";
+        const punt = document.elementFromPoint(r.left + r.width / 2, r.top + Math.min(24, r.height / 2));
+        return punt && v.contains(punt) ? "goed" : "bedekt";
+      });
+      if (zoekvlak !== "goed")
+        bevindingen.push({
+          ernst: "fout",
+          regel: "mobiel",
+          waar: "/",
+          detail: zoekvlak === "dicht"
+            ? "Het zoekvenster opent niet na een tik op het vergrootglas."
+            : `Het zoekvenster staat ${zoekvlak === "bedekt" ? "achter iets anders" : "(deels) buiten beeld"} op 375px.`,
+        });
+      await pagina.keyboard.press("Escape");
+    }
+  }
+
+  // Hamburgermenu: aanwezig, na een tik zijn de menulinks zichtbaar, en ze
+  // liggen bovenop (z-index-regel, Summit 26-09: het menu viel achter de
+  // pagina omdat de kop een backdrop-filter had).
+  await pagina.goto(`http://localhost:${poort}/`, { waitUntil: "networkidle" }).catch(() => null);
+  await pagina.evaluate(() => window.scrollTo(0, 400));
+  const knop = pagina.locator('.hamburger, [class*="menuknop"], button[aria-controls][aria-expanded]:not(.ws-zoek-knop), [aria-label*="enu"]').first();
   if (await knop.count()) {
     await knop.click().catch(() => null);
-    await pagina.waitForTimeout(400);
-    const zichtbaar = await pagina.evaluate(() => {
-      const links = [...document.querySelectorAll("nav a, .menu a, .hoofdmenu a")];
-      return links.filter((a) => (a as HTMLElement).offsetParent !== null).length;
+    await pagina.waitForTimeout(500);
+    const menu = await pagina.evaluate(() => {
+      const links = [...document.querySelectorAll("nav a, .menu a, .hoofdmenu a")] as HTMLElement[];
+      const inBeeld = links.filter((a) => {
+        if (a.offsetParent === null) return false;
+        const r = a.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth;
+      });
+      const bedekt = inBeeld.slice(0, 8).filter((a) => {
+        const r = a.getBoundingClientRect();
+        const punt = document.elementFromPoint(r.left + Math.min(20, r.width / 2), r.top + r.height / 2);
+        return !(punt && (a.contains(punt) || punt.contains(a)));
+      });
+      return { zichtbaar: inBeeld.length, bedekt: bedekt.map((a) => a.textContent?.trim() ?? "").slice(0, 3) };
     });
-    if (zichtbaar < 3)
-      bevindingen.push({ ernst: "fout", regel: "mobiel", waar: "/", detail: "Hamburgermenu opent niet (menulinks blijven onzichtbaar)." });
+    if (menu.zichtbaar < 3)
+      bevindingen.push({ ernst: "fout", regel: "mobiel", waar: "/", detail: "Hamburgermenu opent niet goed (na een tik staan er minder dan drie menulinks in beeld)." });
+    else if (menu.bedekt.length)
+      bevindingen.push({
+        ernst: "fout",
+        regel: "mobiel",
+        waar: "/",
+        detail: `Open menu valt achter iets anders (${menu.bedekt.join(", ")}). Geef het menu een z-index boven alles, en zet nooit een fixed menu binnen een kop met backdrop-filter, filter of transform.`,
+      });
   } else {
     bevindingen.push({ ernst: "waarschuwing", regel: "mobiel", waar: "/", detail: "Geen hamburgermenu-knop gevonden op 375px." });
   }

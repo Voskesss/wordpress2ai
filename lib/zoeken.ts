@@ -218,6 +218,9 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
   <label class="ws-zoek-verborgen" for="ws-zoekveld">Zoek op deze website</label>
   <input type="search" id="ws-zoekveld" placeholder="Doorzoek de website" autocomplete="off">
   <svg class="ws-zoek-teken" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+  <button class="ws-zoek-knop ws-zoek-mobielknop" type="button" aria-expanded="false" aria-controls="ws-zoekvlak" aria-label="Zoeken op deze website">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+  </button>
   <div class="ws-zoekvlak" id="ws-zoekvlak" hidden>
     <ul class="ws-zoekuitslag" id="ws-zoekuitslag" aria-live="polite"></ul>
   </div>
@@ -263,7 +266,19 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
 .ws-zoek--veld .ws-zoekvlak { padding: 8px 14px 14px; }
 @media (max-width: 900px) { .ws-zoek--veld input[type=search] { width: 150px; } }
 .ws-zoek-verborgen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 600px) { .ws-zoek .ws-zoekvlak { position: fixed; left: 16px; right: 16px; width: auto; top: auto; } }
+/* Smalle schermen (vondst Van den Berg en Summit, 26-09): het venster hangt
+   dan los in de body, over de volle breedte direct onder de kopbalk. Binnen
+   de kop kan het niet: een kop met backdrop-filter, filter of transform maakt
+   van position:fixed een positie binnen de kop, en dan wordt het venster
+   afgekapt of valt het achter de pagina. Het script zet --ws-zoek-top. */
+.ws-zoek.ws-zoek--los { position: static; display: block !important; }
+.ws-zoek.ws-zoek--los .ws-zoekvlak { position: fixed; left: 12px; right: 12px; top: var(--ws-zoek-top, 72px); width: auto; max-height: calc(100vh - var(--ws-zoek-top, 72px) - 12px); overflow-y: auto; z-index: 100000; }
+.ws-zoek--los .ws-zoekvlak input[type=search] { width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 16px; min-height: 46px; border: 1px solid rgba(0,0,0,.18); border-radius: 3px; }
+.ws-zoek--veld .ws-zoek-mobielknop { display: none; }
+@media (max-width: 760px) {
+  .ws-zoek--veld input[type=search], .ws-zoek--veld .ws-zoek-teken { display: none; }
+  .ws-zoek--veld .ws-zoek-mobielknop { display: block; }
+}
 </style>
 <script>
 (function () {
@@ -272,8 +287,31 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
   var veld = document.getElementById('ws-zoekveld');
   var lijst = document.getElementById('ws-zoekuitslag');
   if (!vlak || !veld || !lijst) return;
-  // Veld-variant heeft geen knop: het veld staat altijd in beeld.
-  var veldModus = !knop;
+  var houder = vlak.parentNode;
+  // Veld-variant: het veld staat in beeld; de knop is er alleen voor smalle schermen.
+  var veldModus = houder.classList.contains('ws-zoek--veld');
+  var veldPlek = veld.nextSibling;
+  var smal = window.matchMedia('(max-width: 760px)');
+  var los = null;
+  function plaats() {
+    if (vlak.hidden) return;
+    if (smal.matches) {
+      if (!los) { los = document.createElement('div'); los.className = 'ws-zoek ws-zoek--los'; document.body.appendChild(los); }
+      if (vlak.parentNode !== los) los.appendChild(vlak);
+      if (veldModus && veld.parentNode !== vlak) vlak.insertBefore(veld, vlak.firstChild);
+      var kop = houder.closest('header, .kop, [class*="kopbalk"], [class*="header"]') || houder;
+      var onder = Math.max(0, Math.round(kop.getBoundingClientRect().bottom));
+      los.style.setProperty('--ws-zoek-top', (onder + 8) + 'px');
+    } else {
+      terug();
+    }
+  }
+  function terug() {
+    if (vlak.parentNode !== houder) houder.appendChild(vlak);
+    if (veldModus && veld.parentNode !== houder) houder.insertBefore(veld, veldPlek);
+  }
+  window.addEventListener('resize', plaats);
+  window.addEventListener('scroll', plaats, { passive: true });
   var index = null;
   var bezig = false;
   function melding(tekst) {
@@ -293,17 +331,19 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
   }
   function sluit() {
     vlak.hidden = true;
+    terug();
     if (knop) knop.setAttribute('aria-expanded', 'false');
   }
   function toon() {
     vlak.hidden = false;
+    plaats();
     if (knop) knop.setAttribute('aria-expanded', 'true');
   }
   if (knop) knop.addEventListener('click', function () {
-    var open = vlak.hidden;
-    vlak.hidden = !open;
-    knop.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) { veld.focus(); haal(); }
+    if (!vlak.hidden) { sluit(); return; }
+    toon();
+    veld.focus();
+    haal();
   });
   function zoek() {
     var vraag = veld.value.trim().toLowerCase();
@@ -360,7 +400,11 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
   }
   if (veldModus) {
     veld.addEventListener('focus', haal);
-    veld.addEventListener('input', function () { if (veld.value.trim().length >= 2) toon(); else sluit(); });
+    veld.addEventListener('input', function () {
+      if (veld.value.trim().length >= 2) toon();
+      // Op een smal scherm opende de knop het venster; dat blijft open bij een leeg veld
+      else if (!smal.matches) sluit();
+    });
   }
   veld.addEventListener('input', zoek);
   // Enter is wat mensen vanzelf doen in een zoekveld. Zonder dit gebeurt er
@@ -373,7 +417,7 @@ export function zoekFragment(variant: "knop" | "veld" = "knop"): string {
     if (!index) { haal(); melding('Even zoeken...'); }
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !vlak.hidden) { sluit(); (knop || veld).focus(); }
+    if (e.key === 'Escape' && !vlak.hidden) { sluit(); (veldModus && !smal.matches ? veld : knop || veld).focus(); }
   });
   document.addEventListener('click', function (e) {
     if (vlak.hidden) return;
