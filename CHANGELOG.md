@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.22 (26 september 2026)
+
+**Een zoekvak dat niets kan vinden wordt nu tegengehouden.** De zoekfunctie op
+een klantsite leest een index die pas bij het publiceren wordt gebouwd, en
+pagina's zonder titel vallen daar stil buiten. De opleveringspoort controleert
+voortaan: heeft de site een zoekvak, dan moet die index ook echt pagina's gaan
+bevatten. Zo kan er nooit een zoekvak online komen waar een bezoeker niets in
+kan vinden.
+
 ## 1.30.21 (26 september 2026)
 
 **De chat benoemt bij een meerdelige opdracht eerst de volgorde.** Vraag je

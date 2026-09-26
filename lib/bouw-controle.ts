@@ -11,7 +11,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { laadDelen, vouwUit } from "./delen";
-import { ZOEKINDEX_PAD, ZOEK_DEEL, vulIngebouwdeDelenAan } from "./zoeken";
+import { ZOEKINDEX_PAD, ZOEK_DEEL, bouwZoekindex, vulIngebouwdeDelenAan } from "./zoeken";
 
 export type Bevinding = {
   ernst: "fout" | "waarschuwing";
@@ -322,6 +322,37 @@ export async function controleerSiteMap(
       fout("mobiel", rel, "Geen viewport-meta.");
     if (/VERVANG\.nl/.test(inhoud))
       waarschuw("livegang", rel, "Placeholder-domein VERVANG.nl — vóór domeinkoppeling vervangen.");
+  }
+
+  // Zoekfunctie: heeft de site het zoekvak (marker op een pagina of in een
+  // deel zoals het menu), dan moet de index die de deploy straks bouwt ook
+  // echt pagina's bevatten. Anders opent een bezoeker een zoekvak dat niets
+  // kan vinden, en dat ziet niemand tot een bezoeker het meldt (eis 26-09).
+  try {
+    const { readdir } = await import("node:fs/promises");
+    const deelBestanden = await readdir(path.join(map, "delen")).catch(() => [] as string[]);
+    let heeftZoekvak = false;
+    for (const d of deelBestanden) {
+      if (!/\.html?$/i.test(d)) continue;
+      if ((await readFile(path.join(map, "delen", d), "utf8")).includes(`<!--invoeg:${ZOEK_DEEL}-->`)) heeftZoekvak = true;
+    }
+    const paginaBestanden: { pad: string; data: string }[] = [];
+    for (const abs of paginas) {
+      const data = await readFile(abs, "utf8");
+      paginaBestanden.push({ pad: relatief(map, abs), data });
+      if (data.includes(`<!--invoeg:${ZOEK_DEEL}-->`)) heeftZoekvak = true;
+    }
+    if (heeftZoekvak) {
+      const { index } = bouwZoekindex(paginaBestanden);
+      if (index.length === 0)
+        fout(
+          "zoeken",
+          map,
+          "De site heeft een zoekvak (invoeg:zoeken), maar geen enkele pagina komt straks in de zoekindex: elke pagina mist een titel of staat op noindex.",
+        );
+    }
+  } catch (e) {
+    waarschuw("zoeken", map, `Zoekindex-controle kon niet draaien: ${e instanceof Error ? e.message : e}`);
   }
 
   // 7. Standaardpagina's en -bestanden
