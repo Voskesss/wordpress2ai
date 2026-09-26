@@ -160,7 +160,13 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
       .where(and(eq(whatsappKoppelingen.telefoon, telefoon), ne(whatsappKoppelingen.id, keus.koppeling.id)));
     keus.koppeling.laatstGebruikt = new Date();
     await zetStatus([rij.id], "klaar", keus.site.id);
-    await stuurTekst(telefoon, `Goed, we werken nu aan ${siteRegel(keus.site)}`);
+    {
+      const adres = siteAdres(keus.site);
+      await stuurTekst(
+        telefoon,
+        `Goed, we werken nu aan ${siteRegel(keus.site)}${adres ? `\n${adres}` : ""}`,
+      );
+    }
     netGekozen = true;
   }
 
@@ -306,14 +312,24 @@ async function geefMakeoverDoor(telefoon: string, site: Site) {
   );
 }
 
-/** Site met adres, zodat in WhatsApp altijd duidelijk is waar je mee bezig bent. */
+/** Sitenaam voor ín een zin, zodat altijd duidelijk is waar je mee bezig
+ * bent. Het adres staat hier bewust niet meer bij: tussen haakjes maakte
+ * WhatsApp er geen klikbare link van en kopiëren ging ook niet (26-09).
+ * Wil je het adres tonen, zet het dan met siteAdres() op een eigen regel. */
 function siteRegel(site: Site) {
+  return `*${site.naam}*`;
+}
+
+/** Volledig webadres van de site, mét https:// zodat WhatsApp hem klikbaar
+ * maakt. Op een eigen regel zetten, nooit midden in een zin (leestekens
+ * erachter plakken anders aan de link vast). */
+function siteAdres(site: Site) {
   const adres = site.domein
     ? site.domein.replace(/^https?:\/\//, "").replace(/\/$/, "")
     : site.siteSlug
       ? `${site.siteSlug}.${CF_SUBDOMEIN}.workers.dev`
       : "";
-  return adres ? `*${site.naam}* (${adres})` : `*${site.naam}*`;
+  return adres ? `https://${adres}` : null;
 }
 
 /** Hangt het nummer aan meerdere websites, dan eerst vragen welke het is. */
@@ -683,9 +699,10 @@ async function stuurAntwoord(
 ) {
   const gesplitst = splitsKeuzes(uitkomst.reply);
   const keuzes = gesplitst.keuzes;
-  // Bij meerdere websites altijd bovenaan welke site het is
+  // Bij meerdere websites altijd bovenaan welke site het is, met het adres
+  // als klikbare link op een eigen regel
   const schoon = meerdere && gesplitst.schoon.trim()
-    ? `${siteRegel(site)}\n\n${gesplitst.schoon}`
+    ? `${siteRegel(site)}${siteAdres(site) ? `\n${siteAdres(site)}` : ""}\n\n${gesplitst.schoon}`
     : gesplitst.schoon;
   if (keuzes.length) {
     await stuurKeuzelijst(
