@@ -241,6 +241,46 @@ export async function meldFormulierMailStoring(
  * mail bij elke verzending. */
 const STORING_HERHAAL_MS = 24 * 60 * 60 * 1000;
 
+/** Mailt WordSwap dat het maandbudget van een klantsite op is. De klant
+ * krijgt zelf de nette melding met het verzoek te mailen, maar doet hij dat
+ * niet, dan wist Jos van niets en bleef de klant de rest van de maand op de
+ * rem staan (26-09). Eén mail per scope per maand: de claim op de
+ * gemeld-kolom is atomair, dus ook bij twee gelijktijdige pogingen gaat er
+ * maar één mail uit. */
+export async function meldBudgetOp(
+  site: { id: number; naam: string; githubRepo: string },
+  scope: string,
+  maand: string,
+  kanaal: "portaal" | "whatsapp",
+) {
+  const { db } = await import("@/db");
+  const { sql } = await import("drizzle-orm");
+  const claim = await db.execute(sql`
+    UPDATE ai_budget_reservations
+    SET budget_op_gemeld_op = now()
+    WHERE scope = ${scope} AND month = ${maand} AND budget_op_gemeld_op IS NULL
+    RETURNING scope
+  `);
+  if (claim.rows.length === 0) return; // al gemeld deze maand
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "WordSwap <no-reply@wordswap.nl>",
+      to: ["info@wordswap.nl"],
+      subject: `Maandbudget op bij ${site.naam}`,
+      text:
+        `Het AI-maandbudget van ${site.naam} (${site.githubRepo}) is op voor ${maand}. ` +
+        `De klant probeerde zojuist via ${kanaal === "whatsapp" ? "WhatsApp" : "het portaal"} een opdracht te geven en kreeg de nette melding met het verzoek even te mailen.\n\n` +
+        `Mailt hij niet zelf, dan weet je het nu toch. In de admin bij deze klant kun je eenmalig extra ruimte geven of het pakket aanpassen; de site zelf blijft gewoon online.\n\n` +
+        `Je krijgt hooguit één melding per site per maand.`,
+    }),
+  }).catch((e) => console.error("Melding budget-op mislukt:", e));
+}
+
 async function noteerSmtpStoring(site: NonNullable<MailSite>, fout: unknown) {
   if (!site.id) return;
   const { leesFout } = await import("./smtp");

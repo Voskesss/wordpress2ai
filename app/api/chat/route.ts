@@ -417,7 +417,7 @@ export async function POST(req: Request) {
         // slot: de app wacht hierop automatisch en verstuurt het bericht daarna
         // vanzelf opnieuw; deze tekst verschijnt alleen als dat te lang duurt.
         slot: true,
-        reply: `Er wordt al aan je website gewerkt. Zodra die bewerking klaar is kun je verder — mocht er iets zijn misgegaan, dan komt het slot binnen ${minuten} ${minuten === 1 ? "minuut" : "minuten"} vanzelf vrij. Je bericht is niet verloren: stuur het daarna gewoon opnieuw.`,
+        reply: `Er wordt al aan je website gewerkt. Zodra die bewerking klaar is kun je verder; mocht er iets zijn misgegaan, dan komt het slot binnen ${minuten} ${minuten === 1 ? "minuut" : "minuten"} vanzelf vrij. Je bericht is niet verloren: stuur het daarna gewoon opnieuw.`,
       },
       { status: 409 },
     );
@@ -504,10 +504,19 @@ export async function POST(req: Request) {
     if (
       !(await reserveAiBudget(scope, requestBudgetUsd, monthlyBudgetUsd, maand))
     ) {
+      // WordSwap zelf ook een seintje geven (één per scope per maand): de
+      // klant wordt gevraagd te mailen, maar doet hij dat niet, dan bleef
+      // dit tot nu toe onzichtbaar tot iemand toevallig in de admin keek.
+      if (!site.isDemo) {
+        const { meldBudgetOp } = await import("@/lib/mail");
+        void meldBudgetOp(site, scope, maand, kanaal).catch((e) =>
+          console.error("Budget-op-melding:", e),
+        );
+      }
       return NextResponse.json(
         {
           reply:
-            "Je hebt deze maand flink wat aan je website gewerkt — meer dan er in het pakket past. Stuur ons even een berichtje (info@wordswap.nl), dan kijken we samen wat passend is; vaak is het zo geregeld. Je website blijft gewoon online, en zelf tekst of een foto aanpassen blijft ook werken.",
+            "Je hebt deze maand flink wat aan je website gewerkt, meer dan er in het pakket past. Stuur ons even een berichtje (info@wordswap.nl), dan kijken we samen wat passend is; vaak is het zo geregeld. Je website blijft gewoon online, en zelf tekst of een foto aanpassen blijft ook werken.",
         },
         { status: 429 },
       );

@@ -270,5 +270,5 @@ export function werkMelding(status: string | null, verzoek: string, siteNaam?: s
     ? stap
     : `Ik ga aan de slag met “${haalAan(verzoek)}”`;
   const metSite = siteNaam ? `Voor ${siteNaam}: ${zin.charAt(0).toLowerCase()}${zin.slice(1)}` : zin;
-  return `${metSite} — je hoort het zodra het klaar is.`;
+  return `${metSite}. Je hoort het zodra het klaar is.`;
 }

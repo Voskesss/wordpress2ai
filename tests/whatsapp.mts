@@ -122,20 +122,20 @@ assert.equal(paginaVoorConcept(["afbeeldingen/x.webp"]), "/");
 // 6b) Concrete werkmelding: wát hij gaat doen, niet alleen "ik ga ermee aan de slag"
 assert.equal(
   werkMelding("Ik pas mijn homepage aan...", "maak de knop blauw"),
-  "Ik pas mijn homepage aan — je hoort het zodra het klaar is.",
+  "Ik pas mijn homepage aan. Je hoort het zodra het klaar is.",
 );
 assert.equal(
   werkMelding("Ik ben mijn contact-pagina aan het schrijven — bij een grote pagina duurt dat even...", "x"),
-  "Ik ben mijn contact-pagina aan het schrijven — je hoort het zodra het klaar is.",
+  "Ik ben mijn contact-pagina aan het schrijven. Je hoort het zodra het klaar is.",
 );
 assert.equal(
   werkMelding(null, "Ok en nu"),
-  "Ik ga aan de slag met “Ok en nu” — je hoort het zodra het klaar is.",
+  "Ik ga aan de slag met “Ok en nu”. Je hoort het zodra het klaar is.",
   "zonder werkstap de opdracht zelf aanhalen",
 );
 assert.equal(
   werkMelding("Ik werk mijn homepage bij...", "x", "*Aimia* (aimia.nl)"),
-  "Voor *Aimia* (aimia.nl): ik werk mijn homepage bij — je hoort het zodra het klaar is.",
+  "Voor *Aimia* (aimia.nl): ik werk mijn homepage bij. Je hoort het zodra het klaar is.",
 );
 assert.equal(haalAan("a".repeat(100)).length, 80);
 assert.equal(haalAan("  zet\n de   tijden  "), "zet de tijden");

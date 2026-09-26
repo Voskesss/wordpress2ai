@@ -424,6 +424,10 @@ export const aiBudgetReservations = pgTable(
     month: text("month").notNull(),
     reservedMicroUsd: bigint("reserved_micro_usd", { mode: "number" }).notNull().default(0),
     requests: integer("requests").notNull().default(0),
+    // Wanneer WordSwap gemaild is dat dit budget op was (één keer per maand
+    // per scope): de klant wordt gevraagd zelf te mailen, maar doet hij dat
+    // niet, dan wist Jos van niets (26-09).
+    budgetOpGemeldOp: timestamp("budget_op_gemeld_op"),
   },
   (t) => [primaryKey({ columns: [t.scope, t.month] })]
 );
