@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   const release = await claimOperation(operationScope(site, userId));
   if (!release)
     return NextResponse.json(
-      { slot: true, melding: "Er wordt al aan je website gewerkt." },
+      { slot: true, melding: "Ik ben nog met je vorige opdracht bezig. Zodra de balk in de chat klaar is, kun je dit meteen opnieuw proberen." },
       { status: 409 },
     );
   try {

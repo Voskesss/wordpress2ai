@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.21 (26 september 2026)
+
+**De chat benoemt bij een meerdelige opdracht eerst de volgorde.** Vraag je
+meerdere dingen in één bericht (een pagina maken én reviews erop én het menu
+aanpassen), dan zegt de chat eerst kort wat hij in welke volgorde doet, en
+maakt hij liever één onderdeel helemaal af dan drie half. Lukt niet alles in
+één keer, dan staat er precies wat er nog openstaat. En wie tijdens een
+lopende opdracht iets anders probeert (zoals foto's ordenen), krijgt nu een
+duidelijke melding: even wachten tot de chat klaar is, dan kan het meteen.
+
 ## 1.30.20 (26 september 2026)
 
 **De chat kan niet meer blijven hangen op een nacontrole.** Bij het testen op
