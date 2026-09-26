@@ -18,6 +18,7 @@ const mail = bouwOntwerpKlaar({
 assert.equal(mail.onderwerp, "Je nieuwe ontwerp staat klaar om te bekijken");
 assert.ok(mail.html.includes("Hoi Dirk-Jan,"), "voornaam ontbreekt");
 assert.ok(mail.html.indexOf("nieuwe kleuren") < mail.html.indexOf("staat voor je klaar"), "de eigen opmerking staat niet bovenaan");
+assert.ok(mail.html.includes("Persoonlijke noot van Jos"), "het persoonlijke-noot-kadertje ontbreekt");
 assert.ok(mail.html.includes("https://ontwerp-abc.wordswap.workers.dev"), "de ontwerp-link ontbreekt");
 assert.ok(mail.html.includes("alleen kijken") && mail.html.includes("blijft precies zoals hij is"), "de geruststelling (niets staat live) ontbreekt");
 assert.ok(mail.html.includes("nog niet zelf via de chat"), "de vaste zin over de ontwerpfase-chat ontbreekt");
@@ -26,6 +27,7 @@ assert.ok(!mail.html.includes("—"), "lang streepje in de klantmail");
 // 2. Zonder opmerking: geen lege alinea-resten
 const kaal = bouwOntwerpKlaar({ siteNaam: "X", ontwerpUrl: "https://o.wordswap.workers.dev" });
 assert.ok(kaal.html.includes("Hoi daar,") || /Hoi [A-Za-z]/.test(kaal.html), "aanhef zonder naam klopt niet");
+assert.ok(!kaal.html.includes("Persoonlijke noot"), "zonder eigen tekst hoort er geen leeg kadertje te staan");
 
 // 3. De actie: mailen standaard aan, melding buiten het vangnet om
 const acties = await readFile(new URL("../app/admin/acties.ts", import.meta.url), "utf8");

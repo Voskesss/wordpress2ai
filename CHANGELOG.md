@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.4 (26 september 2026)
+
+**Je eigen opmerking in de ontwerp-mails is nu een herkenbaar kadertje.**
+Met het kopje "Persoonlijke noot van Jos" en een groen accent, zodat de klant
+in één oogopslag ziet wat persoonlijk voor hem geschreven is en wat de vaste
+uitleg is.
+
 ## 1.31.3 (26 september 2026)
 
 **De ontwerp-mail vertelt standaard dat de chat er nog niet op werkt.** De

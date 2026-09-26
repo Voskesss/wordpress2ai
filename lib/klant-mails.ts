@@ -19,6 +19,17 @@ function alineas(tekst?: string | null): string {
     .join("");
 }
 
+/** Eigen berichtje van Jos als opvallend kadertje, zodat het persoonlijke
+ * deel zich onderscheidt van de standaardtekst (wens Jos 26-09). */
+function persoonlijkeNoot(tekst?: string | null): string {
+  const inhoud = alineas(tekst);
+  if (!inhoud) return "";
+  return `<div style="border-left:3px solid #31956B;background:#f2f7f4;border-radius:8px;padding:10px 14px;margin:0 0 14px">
+<p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#31956B;text-transform:uppercase;letter-spacing:.4px">Persoonlijke noot van Jos</p>
+${inhoud.replace(/<p>/g, '<p style="margin:0 0 6px">')}
+</div>`;
+}
+
 function knop(url: string, label: string): string {
   return `<p><a href="${url}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">${label}</span></a></p>`;
 }
@@ -150,7 +161,7 @@ export function bouwOntwerpKlaar(o: {
   return {
     onderwerp: "Je nieuwe ontwerp staat klaar om te bekijken",
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
-${alineas(o.eigenTekst)}
+${persoonlijkeNoot(o.eigenTekst)}
 <p>Het nieuwe ontwerp voor <strong>${ontsnap(o.siteNaam)}</strong> staat voor je klaar. Je kunt het rustig bekijken via de knop hieronder; de kaart staat ook in je eigen portaal.</p>
 ${knop(o.ontwerpUrl, "Bekijk het nieuwe ontwerp")}
 <p>Belangrijk om te weten: dit is alleen kijken. Er staat niets live en je huidige website blijft precies zoals hij is, totdat jij zegt dat je over wilt.</p>
@@ -168,7 +179,7 @@ export function bouwOntwerpTeruggetrokken(o: {
   return {
     onderwerp: "Ik heb het nieuwe ontwerp even teruggetrokken",
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
-${alineas(o.eigenTekst)}
+${persoonlijkeNoot(o.eigenTekst)}
 <p>Ik heb het nieuwe ontwerp voor <strong>${ontsnap(o.siteNaam)}</strong> even offline gehaald om eraan te werken. De bekijk-link uit mijn eerdere mail doet het daardoor tijdelijk niet; dat hoort zo.</p>
 <p>Je huidige website draait gewoon door en verandert niet. Zodra de nieuwe versie klaarstaat, krijg je vanzelf weer een berichtje met een verse link.</p>
 <p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
