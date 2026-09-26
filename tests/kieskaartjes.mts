@@ -8,8 +8,8 @@
  */
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
-import { parseKeuzesBeeld, saneerSvg, MAX_KAARTJES } from "../lib/keuze-beeld.ts";
-import { splitsKeuzes } from "../lib/whatsapp/berichten.ts";
+import { parseKeuzesBeeld, saneerSvg, MAX_KAARTJES } from "../lib/keuze-beeld";
+import { splitsKeuzes } from "../lib/whatsapp/berichten";
 
 const okSvg = `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#7c3aed" stroke-width="2"/></svg>`;
 
