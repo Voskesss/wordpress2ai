@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.2 (26 september 2026)
+
+**Het mailvoorbeeld bij het ontwerp toont nu ook je eigen opmerking.** De
+voorbeeldknop liet de standaardmail zien zonder de tekst die je in het vak
+had getypt; nu neemt hij die gewoon mee, zodat je precies ziet wat de klant
+krijgt.
+
 ## 1.31.1 (26 september 2026)
 
 **Een verborgen ontwerp blijft voor de beheerder bereikbaar, en een oude

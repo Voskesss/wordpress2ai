@@ -39,6 +39,7 @@ const blok = await readFile(new URL("../app/admin/klant/[id]/OntwerpBlok.tsx", i
 assert.ok(/name="mailen" value="ja" defaultChecked/.test(blok), "het mail-vinkje staat niet standaard aan");
 assert.ok(blok.includes('name="opmerking"'), "het opmerking-veld ontbreekt");
 assert.ok(blok.includes('"ontwerp-klaar"') && blok.includes("MailVoorbeeldKnop"), "de voorbeeldknop ontbreekt");
+assert.ok(/velden=\{\[\["opmerking", "bericht"\]\]\}/.test(blok), "de voorbeeldknop neemt de getypte opmerking niet mee");
 
 // 5. De voorbeeldroute kent de soort
 const voorbeeld = await readFile(new URL("../app/api/admin/mail-voorbeeld/route.ts", import.meta.url), "utf8");

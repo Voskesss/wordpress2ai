@@ -171,7 +171,7 @@ export default async function OntwerpBlok({
                     ? "Stuur de klant een mailtje dat het ontwerp even is teruggetrokken (zijn link is dan dood)"
                     : "Stuur de klant een mailtje dat het ontwerp klaarstaat"}
                 </label>
-                <MailVoorbeeldKnop klein soort={site.ontwerpZichtbaar ? "ontwerp-terug" : "ontwerp-klaar"} siteId={site.id} />
+                <MailVoorbeeldKnop klein soort={site.ontwerpZichtbaar ? "ontwerp-terug" : "ontwerp-klaar"} siteId={site.id} velden={[["opmerking", "bericht"]]} />
               </div>
             </div>
             <MetUitleg tekst="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen geeft het ontwerp direct een nieuw geheim adres: de link die de klant had is meteen dood, maar jij kunt er hierboven altijd bij blijven kijken. Adres maken of verwisselen duurt ongeveer een minuut.">
