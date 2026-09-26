@@ -3855,7 +3855,7 @@ export default function Chat({
                 </Tip>
               )}
               {!meerOpties && (
-                <Tip tekst="Meer gereedschap: kleur kiezen, icoontjes laten maken en vindbaarheid">
+                <Tip tekst="Meer gereedschap: kleur kiezen, icoontjes laten maken, links controleren en vindbaarheid">
                 <button
                   onClick={() => setMeerOpties(true)}
                   aria-label="Meer opties"
@@ -3916,6 +3916,30 @@ export default function Chat({
                   <rect x="13.5" y="4" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="2" />
                   <path d="M7.5 14l3.2 6H4.3l3.2-6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                   <path d="M17 14.5l1.1 2.2 2.4.35-1.75 1.7.4 2.4-2.15-1.15-2.15 1.15.4-2.4-1.75-1.7 2.4-.35L17 14.5z" fill="currentColor" />
+                </svg>
+              </button>
+              </Tip>
+              {/* Dode links controleren (wens Jos 26-09): de werkwijze zat al
+                  in de huisregels en als tip in de carrousel, maar zonder
+                  knopje vond niemand hem. De startzin is een complete
+                  opdracht: één tik op versturen is genoeg. */}
+              <Tip tekst="Laat de AI alle links en verwijzingen op je site nalopen en kapotte meteen repareren">
+              <button
+                onClick={() => {
+                  setInvoer((v) =>
+                    v.trim() ? v : "Controleer mijn hele site op dode links en kapotte verwijzingen, en repareer wat je vindt.",
+                  );
+                  invoerRef.current?.focus();
+                }}
+                disabled={bezig}
+                aria-label="Dode links controleren"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M7.5 11a3.2 3.2 0 0 1 0-4.5l2.3-2.3a3.2 3.2 0 0 1 4.5 4.5l-1 1" />
+                  <path d="M10.8 7.7a3.2 3.2 0 0 1 0 4.5l-2.3 2.3a3.2 3.2 0 0 1-4.5-4.5l1-1" />
+                  <circle cx="16.5" cy="16.5" r="4" />
+                  <path d="M19.5 19.5l2.7 2.7" />
                 </svg>
               </button>
               </Tip>

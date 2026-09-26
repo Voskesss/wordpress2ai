@@ -79,6 +79,10 @@ assert.equal((chat.match(/parseKeuzesBeeld\([^)]*\)\.kaartjes\.length > 0/g) ?? 
 // startzin klaarzet zonder al getypte tekst te overschrijven
 assert.ok(/aria-label="Icoontjes laten maken"/.test(chat), "de icoontjes-knop achter de drie puntjes ontbreekt");
 assert.ok(/v\.trim\(\) \? v : "Maak een paar icoontjes waar ik uit kan kiezen voor "/.test(chat), "de startzin ontbreekt of overschrijft getypte tekst");
+// Zelfde soort ingang voor de dode-links-controle (huisregel bestond al,
+// maar zonder knopje vond niemand hem); de startzin is een complete opdracht
+assert.ok(/aria-label="Dode links controleren"/.test(chat), "de dode-links-knop achter de drie puntjes ontbreekt");
+assert.ok(/v\.trim\(\) \? v : "Controleer mijn hele site op dode links en kapotte verwijzingen, en repareer wat je vindt\."/.test(chat), "de dode-links-startzin ontbreekt of overschrijft getypte tekst");
 
 // 7. De huisregel: kaartjes zijn de standaard, het pagina-keuzeblok de
 // uitzondering mét verplichte marker
