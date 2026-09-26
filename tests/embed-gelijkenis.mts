@@ -78,4 +78,10 @@ for (const [naam, tekst] of [["migreer-skill", skill], ["bouw-pijplijn", bouw]] 
 // 8. Overzichtspagina's tonen alle gemigreerde berichten, ook als het oude raster achterliep
 assert.ok(/OVERZICHTSPAGINA'S TONEN ALLES/.test(skill), "migreer-skill: de overzicht-toont-alles-regel is verdwenen");
 
+// 9. De chat doet nooit alsof hij internet heeft (les 26-09: "kijk of ik op Google wat heb staan")
+assert.ok(
+  /JE HEBT GEEN INTERNET/.test(huisregels) && /verzin NOOIT reviews/.test(huisregels),
+  "de geen-internet-eerlijkheidsregel is verdwenen uit de huisregels",
+);
+
 console.log("embed-gelijkenis: ok");

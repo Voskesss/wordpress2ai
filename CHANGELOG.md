@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.23 (26 september 2026)
+
+**De chat is eerlijk over wat hij niet kan, en zegt zijn plan meteen.** De
+chat heeft geen internet, maar dat stond nergens; op "kijk wat ik op Google
+heb staan" zou hij kunnen doen alsof. Nu zegt hij eerlijk dat hij dat niet
+kan en biedt hij aan wat wél werkt (plak de teksten of een schermafbeelding
+in de chat). En bij een opdracht met meerdere onderdelen verschijnt de
+volgorde-zin nu als allereerste bericht, vóór hij aan het werk gaat, zodat je
+direct ziet wat er gaat gebeuren.
+
 ## 1.30.22 (26 september 2026)
 
 **Een zoekvak dat niets kan vinden wordt nu tegengehouden.** De zoekfunctie op
