@@ -308,7 +308,7 @@ async function geefMakeoverDoor(telefoon: string, site: Site) {
   }
   await stuurTekst(
     telefoon,
-    "Top — ik geef het door aan WordSwap. Je hoort snel van ze over een frissere uitstraling. Ondertussen kun je hier gewoon kleine dingen blijven aanpassen.",
+    "Top, ik geef het door aan WordSwap. Je hoort snel van ze over een frissere uitstraling. Ondertussen kun je hier gewoon kleine dingen blijven aanpassen.",
   );
 }
 
@@ -511,7 +511,7 @@ async function slaOordeelOp(
     telefoon,
     oordeel === "goed"
       ? "Fijn om te horen, dank je!"
-      : "Dank je — dat noteer ik. App gerust wat er niet klopte, dan pas ik het meteen aan.",
+      : "Dank je, dat noteer ik. App gerust wat er niet klopte, dan pas ik het meteen aan.",
   );
 }
 
@@ -543,7 +543,7 @@ async function chatBeurt(
       void zetStatus(ids, "mislukt", site.id).catch(() => {});
       void stuurTekst(
         telefoon,
-        "Dit bleek een te grote klus voor één keer — ik kreeg hem niet op tijd af, dus er is niets aan je website veranderd. App het in kleinere stappen (bijvoorbeeld één pagina of één kleur tegelijk), dan lukt het wel. Wil je het toch in één keer? Dan pakt WordSwap het voor je op.",
+        "Dit bleek een te grote klus voor Ã©Ã©n keer: ik kreeg hem niet op tijd af, dus er is niets aan je website veranderd. App het in kleinere stappen (bijvoorbeeld één pagina of één kleur tegelijk), dan lukt het wel. Wil je het toch in één keer? Dan pakt WordSwap het voor je op.",
       ).catch(() => {});
     },
     Math.max(

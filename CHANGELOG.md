@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.32 (26 september 2026)
+
+Reparatie in WhatsApp: het webadres van je website staat nu als klikbare
+link op een eigen regel, bijvoorbeeld onder "Goed, we werken nu aan Aimia".
+Eerst stond het adres tussen haakjes achter de naam; daar maakte WhatsApp
+geen link van en kopiëren ging ook niet. Verder zijn de laatste lange
+streepjes uit de vaste WhatsApp-teksten gehaald.
+
 ## 1.30.31 (26 september 2026)
 
 **Dode links laten opsporen, en een opgeruimde werkbalk.** In de tips onder
