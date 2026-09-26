@@ -275,6 +275,27 @@ export async function draaiChatAgent(opties: {
     }),
   ];
 
+  // Stiltewachter (les EVC 26-09): de runner verloor tussen twee beurten zijn
+  // weksignaal — geen fout, geen lopend verzoek, gewoon eeuwige stilte waar
+  // zelfs een abort niet meer bij kan. Elke wachtstap krijgt daarom een eigen
+  // wekker: blijft het zó lang volledig stil, dan geven we het op, breken we
+  // alles af en leveren we op wat er al staat.
+  const STILTE_MS = 90_000;
+  const stilte = Symbol("stilte");
+  const noodstop = new AbortController();
+  async function metWekker<T>(p: Promise<T>): Promise<T | typeof stilte> {
+    let wekker: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        p,
+        new Promise<typeof stilte>((res) => {
+          wekker = setTimeout(() => res(stilte), STILTE_MS);
+        }),
+      ]);
+    } finally {
+      clearTimeout(wekker);
+    }
+  }
   const runner = client.beta.messages.toolRunner(
     {
       model: opties.model,
@@ -295,7 +316,7 @@ export async function draaiChatAgent(opties: {
     // of traag gereedschap kon er dwars doorheen (EVC, 26-09: de chat bleef
     // minutenlang op "vaste afspraken nalopen" staan). Nu is het een echte
     // kap: na maxDuurMs plus marge wordt de lopende aanroep afgebroken.
-    { signal: opties.maxDuurMs ? AbortSignal.any([...(opties.signal ? [opties.signal] : []), AbortSignal.timeout(opties.maxDuurMs + 10_000)]) : opties.signal },
+    { signal: AbortSignal.any([...(opties.signal ? [opties.signal] : []), noodstop.signal, ...(opties.maxDuurMs ? [AbortSignal.timeout(opties.maxDuurMs + 10_000)] : [])]) },
   );
 
   const startMs = Date.now();
@@ -307,7 +328,17 @@ export async function draaiChatAgent(opties: {
   let limietBereikt = false;
   const [prijsIn, prijsUit] = PRIJZEN[opties.model] ?? [2, 10];
 
-  for await (const beurtStream of runner) {
+  const buiten = runner[Symbol.asyncIterator]();
+  agentLus: while (true) {
+    const buitenStap = await metWekker(buiten.next());
+    if (buitenStap === stilte) {
+      console.error("[chat-agent] stilte tussen twee beurten: runner opgegeven");
+      noodstop.abort();
+      limietBereikt = true;
+      break;
+    }
+    if (buitenStap.done) break;
+    const beurtStream = buitenStap.value;
     let beurtTekst = "";
     // Werkstappen die nog worden opgesteld, per blok bijgehouden: zodra het
     // pad in de binnenkomende gegevens staat, melden we waar het over gaat.
@@ -315,7 +346,17 @@ export async function draaiChatAgent(opties: {
       number,
       { naam: string; ruw: string; gemeld: boolean }
     >();
-    for await (const event of beurtStream) {
+    const binnen = beurtStream[Symbol.asyncIterator]();
+    while (true) {
+      const binnenStap = await metWekker(binnen.next());
+      if (binnenStap === stilte) {
+        console.error("[chat-agent] stilte midden in een beurt: runner opgegeven");
+        noodstop.abort();
+        limietBereikt = true;
+        break agentLus;
+      }
+      if (binnenStap.done) break;
+      const event = binnenStap.value;
       if (
         event.type === "content_block_delta" &&
         event.delta.type === "text_delta"
@@ -347,7 +388,14 @@ export async function draaiChatAgent(opties: {
         }
       }
     }
-    const bericht = await beurtStream.finalMessage();
+    const berichtOfStilte = await metWekker(beurtStream.finalMessage());
+    if (berichtOfStilte === stilte) {
+      console.error("[chat-agent] stilte bij het afronden van een beurt: runner opgegeven");
+      noodstop.abort();
+      limietBereikt = true;
+      break;
+    }
+    const bericht = berichtOfStilte;
     // Gebruikte het model gereedschap? Dan volgt nu een denkronde vóór de
     // volgende stap — dat melden we, anders lijkt de vorige stap te hangen.
     if (bericht.content.some((b) => b.type === "tool_use"))
@@ -378,7 +426,8 @@ export async function draaiChatAgent(opties: {
       break;
     }
   }
-  const laatste = await runner.done().catch(() => null);
+  const laatsteOfStilte = await metWekker(runner.done().catch(() => null));
+  const laatste = laatsteOfStilte === stilte ? (noodstop.abort(), null) : laatsteOfStilte;
   if (laatste && laatste.stop_reason === "max_tokens") limietBereikt = true;
   // max_iterations bereikt terwijl het model nog tools wilde gebruiken
   if (laatste && laatste.stop_reason === "tool_use") limietBereikt = true;

@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.25 (26 september 2026)
+
+**De echte oorzaak van de hangende chat is gevonden en gevangen.** De motor
+onder de chat verliest heel af en toe tussen twee stappen zijn weksignaal: er
+is dan geen fout en geen lopend verzoek, hij wacht gewoon eeuwig, en geen
+enkele tijdslimiet komt er nog bij. Drie keer nagespeeld op een kopie van EVC
+Autotechniek, drie keer raak. Elke wachtstap heeft nu een eigen wekker: blijft
+het anderhalve minuut volledig stil, dan geeft de chat het op, bewaart hij wat
+er al gebouwd is als concept en zegt hij dat eerlijk. In de naspeelproef kwam
+een beurt die voorheen eeuwig hing nu netjes terug, mét de gebouwde pagina.
+
 ## 1.30.24 (26 september 2026)
 
 **De chat overlegt eerst, belooft eerlijk en kan echt niet meer blijven
