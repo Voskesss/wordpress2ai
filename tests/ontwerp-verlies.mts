@@ -61,4 +61,7 @@ assert.equal(verlies[0].naam, "zoekfunctie");
 // En een ontwerp dat alleen de opmaak verandert meldt niets
 assert.deepEqual(vergelijkOnderdelen(metZoek, [`<!--invoeg:zoeken-->`, `<p class="nieuw">Anders opgemaakt</p>`]), []);
 
+// De veld-variant in een bovenbalk (<!--invoeg:zoekveld-->) is net zo goed een zoekfunctie
+assert.deepEqual(vergelijkOnderdelen(metZoek, [`<div class="topzoek"><!--invoeg:zoekveld--></div>`]), []);
+
 console.log("ontwerp-verlies: ok");

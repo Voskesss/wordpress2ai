@@ -39,10 +39,10 @@ export type Onderdeel = {
 export const ONDERDELEN: Onderdeel[] = [
   {
     naam: "zoekfunctie",
-    sterk: /searchform|type=["']search["']|role=["']search["']|invoeg:zoeken|delen\/zoeken\.html/gi,
+    sterk: /searchform|type=["']search["']|role=["']search["']|invoeg:zoeken|invoeg:zoekveld|delen\/zoeken\.html|delen\/zoekveld\.html/gi,
     zwak: /name=["']s["']/gi,
     drempel: 3,
-    nieuw: /invoeg:zoeken|delen\/zoeken\.html|type=["']search["']|role=["']search["']|id=["']zoek/gi,
+    nieuw: /invoeg:zoeken|invoeg:zoekveld|delen\/zoeken\.html|delen\/zoekveld\.html|type=["']search["']|role=["']search["']|id=["']zoek/gi,
     advies: "zet <!--invoeg:zoeken--> in delen/menu.html",
   },
   {
