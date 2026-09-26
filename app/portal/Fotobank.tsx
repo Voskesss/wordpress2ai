@@ -61,6 +61,9 @@ export default function Fotobank({
   // Standaard álles tonen: wie de bank opent zoekt meestal gewoon een foto.
   // Het filter op oude versies is er voor wie iets wil terugzetten.
   const [alleenOud, setAlleenOud] = useState(false);
+  // Nieuwste eerst is de standaard (vervangen foto's dragen een tijdstempel
+  // in de naam); op naam is er voor wie een specifieke foto zoekt (26-09)
+  const [opNaam, setOpNaam] = useState(false);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
   // Echte afmetingen per foto: zo zie je vóór het plaatsen of iets staand of
   // liggend is (de vakjes zelf snijden niet meer af sinds object-contain).
@@ -143,9 +146,12 @@ export default function Fotobank({
   for (const b of beelden ?? []) {
     stammen.set(b.stam, [...(stammen.get(b.stam) ?? []), b]);
   }
-  const getoond = (beelden ?? []).filter((b) =>
+  const gefilterd = (beelden ?? []).filter((b) =>
     alleenOud ? !b.inGebruik || (stammen.get(b.stam)?.length ?? 0) > 1 : true
   );
+  const getoond = opNaam
+    ? [...gefilterd].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
+    : gefilterd;
 
   return (
     <div className="mb-3 max-h-[70vh] overflow-y-auto rounded-2xl border border-violet-300 bg-white/95 p-4 shadow-2xl backdrop-blur">
@@ -162,10 +168,23 @@ export default function Fotobank({
           ? "Klik een foto aan en hij komt op de plek van de aangewezen foto te staan (als concept — jij publiceert). Liever een nieuw bestand? Gebruik dan de knop \"Vervang deze foto\"."
           : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Klik \"Gebruik in opdracht\" bij elke foto die mee moet (meerdere kan) en vertel daarna in de chat wat ermee moet gebeuren. Een foto op de site vervangen? Wijs hem aan en kies daar \"Kies uit de fotobank\"."}
       </p>
-      <label className="mt-2 flex items-center gap-2 text-xs text-stone-600">
-        <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
-        Alleen foto&apos;s met oude versies tonen
-      </label>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 text-xs text-stone-600">
+          <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
+          Alleen foto&apos;s met oude versies tonen
+        </label>
+        <label className="flex items-center gap-2 text-xs text-stone-600">
+          Volgorde
+          <select
+            value={opNaam ? "naam" : "nieuw"}
+            onChange={(e) => setOpNaam(e.target.value === "naam")}
+            className="rounded-lg border border-stone-200 px-2 py-1 text-xs"
+          >
+            <option value="nieuw">Nieuwste eerst</option>
+            <option value="naam">Op naam (A-Z)</option>
+          </select>
+        </label>
+      </div>
 
       {!beelden && !fout && <p className="mt-3 text-sm text-stone-500">Even ophalen...</p>}
       {fout && <p className="mt-3 text-sm text-red-600">{fout}</p>}

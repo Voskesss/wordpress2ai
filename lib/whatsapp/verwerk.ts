@@ -160,13 +160,10 @@ async function verwerkAfzender(telefoon: string, rijen: Rij[], gestart: number) 
       .where(and(eq(whatsappKoppelingen.telefoon, telefoon), ne(whatsappKoppelingen.id, keus.koppeling.id)));
     keus.koppeling.laatstGebruikt = new Date();
     await zetStatus([rij.id], "klaar", keus.site.id);
-    {
-      const adres = siteAdres(keus.site);
-      await stuurTekst(
-        telefoon,
-        `Goed, we werken nu aan ${siteRegel(keus.site)}${adres ? `\n${adres}` : ""}`,
-      );
-    }
+    // Bewust zonder live-adres: wie hier zit gaat wijzigen, en de live site
+    // toont die wijzigingen nog niet — dat verwarde (26-09). De klikbare
+    // conceptlink komt vanzelf bij het concept, de live-link na publicatie.
+    await stuurTekst(telefoon, `Goed, we werken nu aan ${siteRegel(keus.site)}`);
     netGekozen = true;
   }
 
@@ -468,7 +465,8 @@ async function voerConceptActieUit(
     const res = await roepRouteAan("publiceer", eigenaar, { changeId: concept.id });
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     if (res.ok && data.ok) {
-      const adres = site.domein ? `https://${site.domein.replace(/^https?:\/\//, "")}` : "";
+      // Hét moment voor de live-link: nu klopt wat je daar ziet
+      const adres = siteAdres(site);
       await stuurTekst(telefoon, `Staat live! 🎉${adres ? `\n${adres}` : ""}`);
     } else {
       await stuurTekst(telefoon, foutTekst(res.status, data));
@@ -699,10 +697,10 @@ async function stuurAntwoord(
 ) {
   const gesplitst = splitsKeuzes(uitkomst.reply);
   const keuzes = gesplitst.keuzes;
-  // Bij meerdere websites altijd bovenaan welke site het is, met het adres
-  // als klikbare link op een eigen regel
+  // Bij meerdere websites altijd bovenaan welke site het is. Zonder
+  // live-adres: tijdens het wijzigen wijst dat naar de oude stand (26-09).
   const schoon = meerdere && gesplitst.schoon.trim()
-    ? `${siteRegel(site)}${siteAdres(site) ? `\n${siteAdres(site)}` : ""}\n\n${gesplitst.schoon}`
+    ? `${siteRegel(site)}\n\n${gesplitst.schoon}`
     : gesplitst.schoon;
   if (keuzes.length) {
     await stuurKeuzelijst(

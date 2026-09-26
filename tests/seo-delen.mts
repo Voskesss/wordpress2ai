@@ -57,6 +57,11 @@ assert.ok(/het deel-voorbeeld \(WhatsApp\/Facebook\)/.test(route), "de wijziging
 // per ongeluk bestaande tags)
 const paneel = await readFile("app/portal/Vindbaarheid.tsx", "utf8");
 assert.ok(/Delen via WhatsApp en Facebook/.test(paneel), "het delen-blok ontbreekt in het paneel");
+// Het paneel is een overlay over de hele pagina (26-09: hij groeide uit de
+// chatkolom en de bovenkant was onbereikbaar), scrollbaar binnen het scherm
+assert.ok(/fixed inset-0 z-\[85\]/.test(paneel), "het paneel is geen overlay over de pagina meer");
+assert.ok(/max-h-\[85dvh\][^"]*overflow-y-auto/.test(paneel), "het paneel scrolt niet binnen het scherm (kleine schermen)");
+assert.ok(/e\.stopPropagation\(\)/.test(paneel), "klikken ín de kaart zou hem sluiten (stopPropagation weg)");
 assert.ok(/\/api\/fotobank\?siteId=/.test(paneel), "de fotokiezer haalt de fotobank niet op");
 assert.ok(/\.\.\.\(deelOpen \? \{ deelKop, deelTekst, deelFoto \} : \{\}\)/.test(paneel), "de deel-velden gaan ook mee als het blok dicht is (wist bestaande tags)");
 

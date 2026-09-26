@@ -175,15 +175,17 @@ assert.equal(
   "user_abc",
 );
 
-// Webadressen in WhatsApp-berichten moeten klikbaar zijn: mét https:// en op
-// een eigen regel. Tussen haakjes achter de naam maakte WhatsApp er geen
-// link van en kopiëren ging ook niet (Jos, 26-09).
+// Webadressen in WhatsApp: klikbaar (mét https://, eigen regel) en alleen
+// op het juiste moment. Tijdens het wijzigen GEEN live-adres (dat toont de
+// oude stand en verwarde, 26-09); de live-link hoort bij "Staat live!".
 {
   const verwerk = await readFile("lib/whatsapp/verwerk.ts", "utf8");
   assert.ok(/function siteAdres\(/.test(verwerk), "siteAdres (klikbaar webadres op eigen regel) ontbreekt");
   assert.ok(/return adres \? `https:\/\/\$\{adres\}` : null;/.test(verwerk), "het adres krijgt geen https:// en wordt dus geen link");
   assert.ok(!/\(\$\{adres\}\)|\* \(\$\{/.test(verwerk) && !/`\*\$\{site\.naam\}\* \(/.test(verwerk), "het adres staat weer onklikbaar tussen haakjes achter de naam");
-  assert.ok(/we werken nu aan \$\{siteRegel\(keus\.site\)\}\$\{adres \? `\\n\$\{adres\}` : ""\}/.test(verwerk), "de sitekeuze-bevestiging zet het adres niet als link op een eigen regel");
+  assert.ok(/we werken nu aan \$\{siteRegel\(keus\.site\)\}`\)/.test(verwerk), "de sitekeuze-bevestiging hoort GEEN live-adres mee te sturen");
+  assert.ok(/`\$\{siteRegel\(site\)\}\\n\\n\$\{gesplitst\.schoon\}`/.test(verwerk), "de kop boven antwoorden hoort GEEN live-adres mee te sturen");
+  assert.ok(/const adres = siteAdres\(site\);\s*\n\s*await stuurTekst\(telefoon, `Staat live! 🎉/.test(verwerk), "na publiceren hoort de live-link er juist WEL bij");
 }
 
 console.log("whatsapp: alle tests geslaagd");

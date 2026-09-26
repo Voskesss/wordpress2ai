@@ -108,7 +108,11 @@ export async function GET(req: Request) {
         });
       }
     }
-    videos.sort((a, b) => Number(b.inGebruik) - Number(a.inGebruik) || a.pad.localeCompare(b.pad));
+    // Nieuwste bovenaan (wens Jos 26-09): de media-opslag komt al nieuwste-
+    // eerst binnen; video's die nog ín de site zelf staan zijn per definitie
+    // ouder (nieuwe uploads gaan altijd naar de media-opslag) en komen
+    // daarna. De sort is stabiel, dus binnen die groepen blijft de volgorde.
+    videos.sort((a, b) => Number(a.bron === "site") - Number(b.bron === "site"));
     return NextResponse.json({ videos, gebruikt: site.videoUploads, limiet: site.videoLimiet });
   } catch (e) {
     console.error("Videobank laden:", e);

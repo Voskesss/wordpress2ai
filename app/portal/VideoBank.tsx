@@ -21,6 +21,9 @@ export default function VideoBank({
   onSluit: () => void;
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
+  // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
+  // op naam is er voor wie een specifieke video zoekt (26-09)
+  const [opNaam, setOpNaam] = useState(false);
   // Echte afmetingen per video (uit de metadata van de speler): zo zie je
   // vóór het plaatsen of iets staand, liggend of vierkant is — met
   // object-cover werd elke video in een liggend vakje gesneden (20-09).
@@ -115,8 +118,24 @@ export default function VideoBank({
               daarna zet ik hem op de plek die je noemt.
             </p>
           )}
+          {(videos?.length ?? 0) > 1 && (
+            <label className="mb-3 flex items-center gap-2 text-xs text-stone-600">
+              Volgorde
+              <select
+                value={opNaam ? "naam" : "nieuw"}
+                onChange={(e) => setOpNaam(e.target.value === "naam")}
+                className="rounded-lg border border-stone-200 px-2 py-1 text-xs"
+              >
+                <option value="nieuw">Nieuwste eerst</option>
+                <option value="naam">Op naam (A-Z)</option>
+              </select>
+            </label>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
-            {videos?.map((v) => (
+            {(opNaam && videos
+              ? [...videos].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
+              : videos
+            )?.map((v) => (
               <div key={v.pad} className={`overflow-hidden rounded-2xl border ${v.inGebruik ? "border-emerald-300" : "border-stone-200"}`}>
                 {bron(v) ? (
                   // eslint-disable-next-line jsx-a11y/media-has-caption

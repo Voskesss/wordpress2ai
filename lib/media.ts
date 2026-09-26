@@ -11,7 +11,7 @@
  * bijeffect van een concept weggooien — zelfde principe als de fotobank:
  * meegestuurde bestanden gaan nooit stilletjes verloren.
  */
-import { lijstSleutels, schrijfObject, verwijderObject, zorgBucket } from "./r2";
+import { schrijfObject, verwijderObject, zorgBucket } from "./r2";
 
 export const MAX_AUDIO_BYTES = 150 * 1024 * 1024;
 export const AUDIO_EXTENSIES = /\.(mp3|m4a|aac|ogg|wav)$/i;
@@ -35,12 +35,16 @@ export function schoneAudioNaam(naam: string): string {
 const audioPrefix = (slug: string) => `media/${slug}/audio/`;
 const videoPrefix = (slug: string) => `media/${slug}/video/`;
 
-/** Alle afleveringen van een site, nieuwste bovenaan (op naam is niet te
- * sorteren, dus de aanroeper toont ze zoals R2 ze geeft — alfabetisch). */
+/** Alle afleveringen van een site, nieuwste bovenaan: R2 kent per bestand
+ * de uploaddatum, dus sinds 26-09 sorteren we daar echt op (voorheen kwam
+ * de lijst alfabetisch terug en stond de oudste bovenaan). */
 export async function lijstAudio(slug: string): Promise<string[]> {
-  const sleutels = await lijstSleutels(audioPrefix(slug)).catch(() => []);
-  return sleutels
-    .map((s) => s.slice(audioPrefix(slug).length))
+  const { lijstObjecten } = await import("./r2");
+  const prefix = audioPrefix(slug);
+  const rijen = await lijstObjecten(prefix).catch(() => []);
+  return rijen
+    .sort((a, b) => b.uploaded.localeCompare(a.uploaded))
+    .map((r) => r.key.slice(prefix.length))
     .filter((n) => n && AUDIO_EXTENSIES.test(n));
 }
 
@@ -75,6 +79,7 @@ export async function lijstMediaVideo(slug: string): Promise<{ naam: string; byt
   const prefix = videoPrefix(slug);
   const rijen = await lijstObjecten(prefix).catch(() => []);
   return rijen
+    .sort((a, b) => b.uploaded.localeCompare(a.uploaded))
     .map((r) => ({ naam: r.key.slice(prefix.length), bytes: r.size }))
     .filter((r) => r.naam && VIDEO_EXTENSIES.test(r.naam));
 }

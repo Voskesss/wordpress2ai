@@ -16,6 +16,9 @@ export default function AudioBank({
   onSluit: () => void;
 }) {
   const [audio, setAudio] = useState<string[] | null>(null);
+  // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
+  // op naam is er voor wie een specifieke aflevering zoekt (26-09)
+  const [opNaam, setOpNaam] = useState(false);
   const [limiet, setLimiet] = useState<number | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [wisBezig, setWisBezig] = useState<string | null>(null);
@@ -84,7 +87,20 @@ export default function AudioBank({
               Nog geen audio. Stuur via de 📎 een mp3 of m4a mee (bijvoorbeeld een podcastaflevering), dan verschijnt hij hier en kun je hem op een pagina laten zetten.
             </p>
           )}
-          {audio?.map((naam) => (
+          {(audio?.length ?? 0) > 1 && (
+            <label className="flex items-center gap-2 text-xs text-stone-600">
+              Volgorde
+              <select
+                value={opNaam ? "naam" : "nieuw"}
+                onChange={(e) => setOpNaam(e.target.value === "naam")}
+                className="rounded-lg border border-stone-200 px-2 py-1 text-xs"
+              >
+                <option value="nieuw">Nieuwste eerst</option>
+                <option value="naam">Op naam (A-Z)</option>
+              </select>
+            </label>
+          )}
+          {(opNaam && audio ? [...audio].sort((a, b) => a.localeCompare(b)) : audio)?.map((naam) => (
             <div key={naam} className="rounded-2xl border border-stone-200 p-3">
               <p className="mb-2 truncate text-sm font-medium text-stone-800" title={naam}>{naam}</p>
               <audio

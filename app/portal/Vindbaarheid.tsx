@@ -123,7 +123,21 @@ export default function Vindbaarheid({
   const isHome = gegevens?.bestand === "index.html";
 
   return (
-    <div className="mb-3 rounded-2xl border border-violet-300 bg-white/95 p-4 shadow-2xl backdrop-blur">
+    // Overlay over de hele pagina (wens Jos 26-09): het paneel groeide met
+    // het delen-blok uit zijn vak in de chatkolom en de bovenkant was dan
+    // niet meer bereikbaar. Scrollen gebeurt bínnen de kaart, dus dit werkt
+    // ook op een klein scherm. Onder de aankondigingen (z-90), boven de
+    // schermvullende chat (z-80).
+    <div
+      className="fixed inset-0 z-[85] flex items-center justify-center bg-stone-900/40 p-4"
+      role="dialog"
+      aria-label="Vindbaarheid van deze pagina"
+      onClick={onSluit}
+    >
+    <div
+      className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-2xl border border-violet-300 bg-white p-4 shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold text-sm">🔍 Vindbaarheid van deze pagina</h3>
         <button
@@ -341,6 +355,7 @@ export default function Vindbaarheid({
           </div>
         </>
       )}
+    </div>
     </div>
   );
 }

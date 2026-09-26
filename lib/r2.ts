@@ -171,8 +171,8 @@ export async function lijstSleutels(prefix: string): Promise<string[]> {
 /** Voert taken parallel uit met een maximum aantal tegelijk. */
 
 /** Sleutels mét grootte onder een voorvoegsel (voor bankweergaves). */
-export async function lijstObjecten(prefix: string): Promise<{ key: string; size: number }[]> {
-  const uit: { key: string; size: number }[] = [];
+export async function lijstObjecten(prefix: string): Promise<{ key: string; size: number; uploaded: string }[]> {
+  const uit: { key: string; size: number; uploaded: string }[] = [];
   let cursor: string | undefined;
   for (let i = 0; i < 100; i++) {
     const params = new URLSearchParams({ prefix, per_page: "1000" });
@@ -183,10 +183,10 @@ export async function lijstObjecten(prefix: string): Promise<{ key: string; size
     );
     if (!res.ok) throw new Error(`R2 lijsten mislukt (${prefix}, HTTP ${res.status})`);
     const data = (await res.json()) as {
-      result?: { key: string; size?: number }[];
+      result?: { key: string; size?: number; uploaded?: string }[];
       result_info?: { cursor?: string; is_truncated?: boolean };
     };
-    for (const o of data.result ?? []) uit.push({ key: o.key, size: o.size ?? 0 });
+    for (const o of data.result ?? []) uit.push({ key: o.key, size: o.size ?? 0, uploaded: o.uploaded ?? "" });
     if (!data.result_info?.is_truncated || !data.result_info.cursor) break;
     cursor = data.result_info.cursor;
   }
