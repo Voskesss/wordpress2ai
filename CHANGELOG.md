@@ -20,6 +20,30 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.0 (26 september 2026)
+
+Vraag je om icoontjes of kleurvarianten om uit te kiezen, dan krijg je nu
+kieskaartjes in de chat: kleine plaatjes met een naam eronder, een tik en
+hij wordt geplaatst. Achter de drie puntjes zitten er twee knoppen bij:
+icoontjes laten maken en je hele site laten nakijken op dode links.
+
+Bij de SEO-knop kun je nu ook instellen hoe je pagina eruitziet als iemand
+hem deelt via WhatsApp of Facebook: eigen kop, tekst en een foto uit je
+fotobank, met een voorbeeldkaartje erbij. Nieuwe knoppen zetten je
+bedrijfsgegevens klaar voor Google en laten alle alt-teksten nakijken.
+Het paneel opent nu midden over de pagina en scrolt netjes op kleine
+schermen.
+
+De foto-, video- en audiobank tonen de nieuwste bovenaan, met een
+volgorde-keuze. Uit de fotobank kon je al meerdere foto's tegelijk
+meesturen met een opdracht.
+
+In WhatsApp krijg je de link naar je live site niet meer tijdens het
+wijzigen (die toonde nog de oude stand) maar precies bij "Staat live!".
+En loopt een website tegen zijn maandbudget aan, dan krijgt WordSwap daar
+nu zelf ook een seintje van, zodat je geholpen wordt ook als je vergeet
+te mailen.
+
 ## 1.30.35 (26 september 2026)
 
 **De betaalmail zegt niet meer dat je website al bij ons draait.** Op het
