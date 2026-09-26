@@ -3,6 +3,8 @@
  * zodat ze los te testen zijn: tests/whatsapp.mts.
  */
 
+import { parseKeuzesBeeld } from "@/lib/keuze-beeld";
+
 export type Soort =
   | "tekst"
   | "foto"
@@ -136,14 +138,21 @@ export function toonNummer(telefoon: string | null | undefined) {
  * portaalchat). Keuzes met ✏️ openen daar alleen het typveld; die hebben in
  * WhatsApp geen zin — typen kan altijd. */
 export function splitsKeuzes(tekst: string) {
-  const m = tekst.match(/\n?\s*KEUZES:\s*(.+)\s*$/);
-  if (!m) return { schoon: tekst, keuzes: [] as string[] };
-  const keuzes = m[1]
-    .split("|")
-    .map((k) => k.trim())
-    .filter((k) => k && !k.startsWith("✏️"))
-    .slice(0, 4);
-  return { schoon: tekst.slice(0, m.index).trimEnd(), keuzes };
+  // Kieskaartjes met beeld (KEUZES-BEELD) kan WhatsApp niet tonen: de svg
+  // vervalt en de namen worden gewone keuzes in de keuzelijst.
+  const beeld = parseKeuzesBeeld(tekst);
+  const m = beeld.schoon.match(/\n?\s*KEUZES:\s*(.+)\s*$/);
+  const keuzes = [
+    ...beeld.kaartjes.map((k) => k.naam),
+    ...(m
+      ? m[1]
+          .split("|")
+          .map((k) => k.trim())
+          .filter((k) => k && !k.startsWith("✏️"))
+      : []),
+  ].slice(0, 10);
+  const schoon = m ? beeld.schoon.slice(0, m.index).trimEnd() : beeld.schoon;
+  return { schoon, keuzes };
 }
 
 export const KNOP_PUBLICEER = "pub:";

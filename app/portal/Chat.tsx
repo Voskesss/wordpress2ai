@@ -11,6 +11,7 @@ import DemoOpdrachten from "./DemoOpdrachten";
 import ConceptStripMobiel from "./ConceptStripMobiel";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
+import { parseKeuzesBeeld } from "@/lib/keuze-beeld";
 import { VIDEO_MAX_SECONDEN } from "@/lib/video-grens";
 import { PORTAAL_BEURT_S } from "@/lib/chat-tijd";
 import Vindbaarheid from "./Vindbaarheid";
@@ -1551,7 +1552,7 @@ export default function Chat({
         // Gesprek inklappen zodat de "wijziging staat klaar"-kaart vrij zicht
         // heeft — maar NIET als er nog een vraag met keuzeknoppen open staat
         // (zoals de vangnet-vraag "Overal doorvoeren?"), die moet juist opvallen
-        setChatOpen(parseKeuzes(eindTekst).keuzes.length > 0);
+        setChatOpen(parseKeuzes(eindTekst).keuzes.length > 0 || parseKeuzesBeeld(eindTekst).kaartjes.length > 0);
       }
     } catch (error) {
       mislukteOpdracht.current = opdracht;
@@ -1632,7 +1633,7 @@ export default function Chat({
         setOplevering({ paden: paginas.length > 0 ? paginas : ["index.html"] });
         // Staat er een vraag met keuzeknoppen in het antwoord (tekst staat óók
         // op andere pagina's), dan moet die zichtbaar blijven — anders inklappen
-        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0);
+        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0 || parseKeuzesBeeld(data.reply ?? "").kaartjes.length > 0);
       } else if (data.fallback) {
         setLaderTekst(null);
         // Tekst niet eenduidig terug te vinden — de AI lost het veilig op
@@ -1773,7 +1774,7 @@ export default function Chat({
         });
         // Vraagt het antwoord nog iets (foto staat óók elders — knoppen)?
         // Dan moet de chat open blijven, anders inklappen voor de kaart.
-        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0);
+        setChatOpen(parseKeuzes(data.reply ?? "").keuzes.length > 0 || parseKeuzesBeeld(data.reply ?? "").kaartjes.length > 0);
       } else if (data.fallback) {
         setLaderTekst(null);
         setBerichten((b) => [
@@ -2674,10 +2675,18 @@ export default function Chat({
                   </div>
                 )}
                 {berichten.map((m, i) => {
+                  // Eerst de kieskaartjes met beeld eruit halen, dan de
+                  // gewone KEUZES-regel: beide kunnen in één bericht zitten
+                  // ("hier zijn twaalf icoontjes" + "✏️ Ik wil iets anders").
+                  const beeld =
+                    m.rol === "assistent"
+                      ? parseKeuzesBeeld(m.tekst)
+                      : { schoon: m.tekst, kaartjes: [] };
                   const { schoon, keuzes } =
                     m.rol === "assistent"
-                      ? parseKeuzes(m.tekst)
+                      ? parseKeuzes(beeld.schoon)
                       : { schoon: m.tekst, keuzes: [] as string[] };
+                  const kaartjes = beeld.kaartjes;
                   return (
                   <div key={i}>
                     <div
@@ -2763,6 +2772,34 @@ export default function Chat({
                         </div>
                       </div>
                     )}
+                    {/* Kieskaartjes met beeld: zelfgetekende icoontjes of
+                        kleurstalen als aanklikbare kaartjes. Eén tik stuurt
+                        de keuze als gewoon bericht terug; de svg is door
+                        parseKeuzesBeeld gesaneerd vóór hij hier belandt. */}
+                    {i === berichten.length - 1 &&
+                      m.rol === "assistent" &&
+                      kaartjes.length > 0 &&
+                      !bezig && (
+                        <div className="mt-2 grid max-w-[90%] grid-cols-3 gap-2 sm:grid-cols-4">
+                          {kaartjes.map((kaart) => (
+                            <button
+                              key={kaart.naam}
+                              onClick={() => verstuur(`Ik kies "${kaart.naam}"`)}
+                              title={kaart.naam}
+                              className="cursor-pointer rounded-2xl border border-violet-200 bg-white p-3 text-center hover:border-violet-400 hover:bg-violet-50"
+                            >
+                              <span
+                                aria-hidden
+                                className="mx-auto block h-12 w-12 [&_svg]:h-full [&_svg]:w-full"
+                                dangerouslySetInnerHTML={{ __html: kaart.svg }}
+                              />
+                              <span className="mt-1.5 block truncate text-xs font-medium text-stone-600">
+                                {kaart.naam}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     {i === berichten.length - 1 &&
                       m.rol === "assistent" &&
                       keuzes.length > 0 &&

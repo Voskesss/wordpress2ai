@@ -78,6 +78,32 @@ export async function POST(req: Request) {
       !(await isBeheerder())
     )
       return NextResponse.json({ error: "Site niet actief" }, { status: 403 });
+    // Keuzeblok-bewaking: zet de chat varianten om uit te kiezen tijdelijk op
+    // een pagina (class wp2ai-keuzeblok), dan hoort dat blok nooit live te
+    // gaan — anders staat er "kies maar" op de echte site. Alleen bij een
+    // vers concept (bij een herkansing na publicatie_mislukt is de merge al
+    // gebeurd; dan zou weigeren de eigenaar klem zetten). Best effort: een
+    // GitHub-hik in deze controle mag publiceren niet blokkeren.
+    if (rij.change.status === "concept") {
+      try {
+        const { leesBestand } = await import("@/lib/github");
+        const paginas = (Array.isArray(rij.change.bestanden) ? rij.change.bestanden : [])
+          .filter((p): p is string => typeof p === "string" && /\.html?$/i.test(p))
+          .slice(0, 20);
+        for (const pad of paginas) {
+          const inhoud = await leesBestand(rij.site.githubRepo, pad, rij.change.branch).catch(() => "");
+          if (inhoud.includes("wp2ai-keuzeblok"))
+            return NextResponse.json(
+              {
+                melding: `Er staat nog een keuzeblok open op ${pad} — daar wacht een keuze uit varianten. Maak eerst je keuze in de chat (of vraag om het blok weg te halen), dan kun je publiceren.`,
+              },
+              { status: 409 },
+            );
+        }
+      } catch (e) {
+        console.error("Keuzeblok-controle bij publicatie:", e);
+      }
+    }
     if (rij.site.isDemo) {
       // In de demo rolden we hier een tweede worker uit (wvl-...), puur zodat
       // "Open live site" ergens heen kon wijzen. De bezoeker zag zijn
