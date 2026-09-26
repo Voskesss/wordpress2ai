@@ -84,4 +84,7 @@ assert.ok(
   "de geen-internet-eerlijkheidsregel is verdwenen uit de huisregels",
 );
 
+// 10. Iconen tekent de chat zelf als SVG (les 26-09: silhouet-icoontjes)
+assert.ok(/TEKEN JE ZELF/.test(huisregels) && /als SVG/.test(huisregels), "de teken-zelf-iconen-regel is verdwenen");
+
 console.log("embed-gelijkenis: ok");

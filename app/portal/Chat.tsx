@@ -2821,14 +2821,18 @@ export default function Chat({
                       <button
                         onClick={() => verstuur("Dit klopt niet. Kijk zelf even naar wat ik nu zie.", undefined, undefined, { controle: true })}
                         disabled={bezig || conceptActie !== null}
-                        className="mt-1.5 flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-500 hover:border-violet-400 hover:text-violet-700 disabled:opacity-50 cursor-pointer"
-                        title="De AI maakt een schermafbeelding van precies wat jij nu ziet en beoordeelt zijn eigen werk"
+                        className="mt-2 flex flex-col items-start gap-0.5 rounded-2xl border border-violet-200 bg-violet-50/60 px-3.5 py-2 text-left hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 cursor-pointer"
                       >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-                          <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                        </svg>
-                        Klopt het niet? Laat de AI zelf kijken
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-violet-800">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                          Klopt er iets niet? Laat mij zelf kijken
+                        </span>
+                        <span className="text-xs text-stone-500">
+                          Ik maak een schermafbeelding van precies wat jij nu ziet en beoordeel mijn eigen werk.
+                        </span>
                       </button>
                     )}
                   </div>

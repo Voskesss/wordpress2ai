@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.30 (26 september 2026)
+
+**"Laat mij zelf kijken" is nu een echte knop, en de chat tekent zelf
+iconen.** De controleknop onder een antwoord (de AI maakt een schermafbeelding
+van wat jij ziet en beoordeelt zijn eigen werk) was een klein grijs regeltje
+dat je zo overkeek, terwijl het een van de nuttigste functies is. Hij valt nu
+op en legt zichtbaar uit wat hij doet. Daarnaast weet de chat voortaan dat hij
+icoontjes, silhouetten en simpele illustraties gewoon zelf kan tekenen, in de
+stijl van de site; hij zegt dus nooit meer dat hij dat niet kan.
+
 ## 1.30.29 (26 september 2026)
 
 **De chat heeft een nieuwe, eigen motor.** De vastloper van vandaag zat in de

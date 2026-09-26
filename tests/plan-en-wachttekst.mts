@@ -28,4 +28,7 @@ assert.ok(/wachtSec < PORTAAL_BEURT_S/.test(chat), "de belofte-tekst stopt niet 
 // 4. De stopknop zegt "Stop" met een woord, niet alleen een rood vierkantje
 assert.ok(/Stop\n\s*<\/>|<\/svg>\s*Stop/.test(chat), "het woord Stop staat niet meer op de stopknop");
 
+// 5. De laat-mij-zelf-kijken-knop legt zichtbaar uit wat hij doet (26-09)
+assert.ok(/Laat mij zelf kijken/.test(chat) && /beoordeel mijn eigen werk/.test(chat), "de meekijk-knop of zijn zichtbare uitleg is verdwenen");
+
 console.log("plan-en-wachttekst: ok");
