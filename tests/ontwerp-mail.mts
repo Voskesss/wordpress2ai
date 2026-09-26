@@ -20,6 +20,7 @@ assert.ok(mail.html.includes("Hoi Dirk-Jan,"), "voornaam ontbreekt");
 assert.ok(mail.html.indexOf("nieuwe kleuren") < mail.html.indexOf("staat voor je klaar"), "de eigen opmerking staat niet bovenaan");
 assert.ok(mail.html.includes("https://ontwerp-abc.wordswap.workers.dev"), "de ontwerp-link ontbreekt");
 assert.ok(mail.html.includes("alleen kijken") && mail.html.includes("blijft precies zoals hij is"), "de geruststelling (niets staat live) ontbreekt");
+assert.ok(mail.html.includes("nog niet zelf via de chat"), "de vaste zin over de ontwerpfase-chat ontbreekt");
 assert.ok(!mail.html.includes("—"), "lang streepje in de klantmail");
 
 // 2. Zonder opmerking: geen lege alinea-resten

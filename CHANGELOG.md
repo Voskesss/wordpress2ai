@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.3 (26 september 2026)
+
+**De ontwerp-mail vertelt standaard dat de chat er nog niet op werkt.** De
+klant weet nu vanzelf dat hij het ontwerpvoorstel in deze fase niet zelf via
+de chat aanpast, en dat een antwoord op de mail genoeg is om iets te laten
+wijzigen.
+
 ## 1.31.2 (26 september 2026)
 
 **Het mailvoorbeeld bij het ontwerp toont nu ook je eigen opmerking.** De

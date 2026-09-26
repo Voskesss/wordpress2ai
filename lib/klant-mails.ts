@@ -154,7 +154,7 @@ ${alineas(o.eigenTekst)}
 <p>Het nieuwe ontwerp voor <strong>${ontsnap(o.siteNaam)}</strong> staat voor je klaar. Je kunt het rustig bekijken via de knop hieronder; de kaart staat ook in je eigen portaal.</p>
 ${knop(o.ontwerpUrl, "Bekijk het nieuwe ontwerp")}
 <p>Belangrijk om te weten: dit is alleen kijken. Er staat niets live en je huidige website blijft precies zoals hij is, totdat jij zegt dat je over wilt.</p>
-<p>Wil je dingen anders? Antwoord gewoon op deze mail met wat je opvalt, groot of klein; dan pas ik het aan. Bellen mag ook: ${TELEFOON}.</p>
+<p>Goed om te weten: zolang het ontwerp in deze fase zit, pas je het nog niet zelf via de chat aan. Wil je iets anders zien, groot of klein? Antwoord gewoon op deze mail met wat je opvalt, dan pas ik het aan. Bellen mag ook: ${TELEFOON}.</p>
 <p>Groet,<br>Jos</p>`),
   };
 }
