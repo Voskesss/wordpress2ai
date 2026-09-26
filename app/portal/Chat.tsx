@@ -144,6 +144,7 @@ const TIPS = [
   "Weet je niet hoe iets heet? Klik op “Wijs aan” en tik het onderdeel op je site aan; dan weet ik precies wat je bedoelt.",
   "Twijfel je over een tekst? Vraag “schrijf dit wat wervender”, “maak het korter” of “mag dit wat persoonlijker?”",
   "Je kunt foto’s, een pdf, een video of een podcast meesturen met de 📎 — ik zet ze op de juiste plek.",
+  "Grote schoonmaak? Vraag “controleer mijn site op dode links”, dan loop ik al je pagina’s na en repareer ik wat kapot is.",
   "Alles wat ik maak is eerst een concept: pas als jíj op Publiceer klikt, ziet een bezoeker het.",
   "Bevalt een wijziging niet? Zeg “doe maar terug”, of gooi het concept weg — je site blijft dan precies zoals hij was.",
 ];
@@ -3853,25 +3854,8 @@ export default function Chat({
                 />
               </button>
               </Tip>
-              <Tip tekst="Fotobank: alle foto's die ooit op je site stonden — oude versies terugzetten">
-              <button
-                onClick={() => {
-                  setFotobankDoel(null);
-                  setFotobankOpen((v) => !v);
-                }}
-                disabled={bezig}
-                aria-label="Fotobank"
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50 cursor-pointer ${
-                  fotobankOpen ? "bg-violet-700 text-white" : "text-stone-500 hover:bg-stone-100"
-                }`}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="9" cy="10" r="1.6" fill="currentColor" />
-                  <path d="M5 17l4.5-4.5 3 3L17 11l2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              </Tip>
+              {/* Fotobank-knop hier weggehaald (26-09): hij zit al in het
+                  paperclipmenu en twee ingangen was dubbelop. */}
               {/* Vindbaarheid is niets voor een demo: die site wordt elk uur
                   teruggezet en staat op noindex. Alleen ruis in de balk. */}
               {!isDemo && (<>

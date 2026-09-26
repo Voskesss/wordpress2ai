@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.31 (26 september 2026)
+
+**Dode links laten opsporen, en een opgeruimde werkbalk.** In de tips onder
+de chat staat nu dat je gewoon kunt vragen "controleer mijn site op dode
+links": de chat loopt dan alle pagina's na, meldt per pagina wat er kapot is
+en repareert het op verzoek meteen (met de eerlijke kanttekening dat hij
+adressen buiten je site niet kan bezoeken). En de losse fotobank-knop achter
+de drie puntjes is weg: de Fotobank zit al achter de paperclip, twee ingangen
+was dubbelop.
+
 ## 1.30.30 (26 september 2026)
 
 **"Laat mij zelf kijken" is nu een echte knop, en de chat tekent zelf

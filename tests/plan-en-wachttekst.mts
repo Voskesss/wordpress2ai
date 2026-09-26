@@ -31,4 +31,9 @@ assert.ok(/Stop\n\s*<\/>|<\/svg>\s*Stop/.test(chat), "het woord Stop staat niet 
 // 5. De laat-mij-zelf-kijken-knop legt zichtbaar uit wat hij doet (26-09)
 assert.ok(/Laat mij zelf kijken/.test(chat) && /beoordeel mijn eigen werk/.test(chat), "de meekijk-knop of zijn zichtbare uitleg is verdwenen");
 
+// 6. Fotobank heeft één ingang (paperclip); de losse knop is weg (26-09).
+//    En de dode-links-tip staat in de carrousel.
+assert.ok(!chat.includes('aria-label="Fotobank"'), "de dubbele fotobank-knop is terug in het drie-puntjes-menu");
+assert.ok(chat.includes("controleer mijn site op dode links"), "de dode-links-tip is verdwenen uit de carrousel");
+
 console.log("plan-en-wachttekst: ok");

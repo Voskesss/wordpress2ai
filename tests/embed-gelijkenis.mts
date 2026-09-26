@@ -87,4 +87,8 @@ assert.ok(
 // 10. Iconen tekent de chat zelf als SVG (les 26-09: silhouet-icoontjes)
 assert.ok(/TEKEN JE ZELF/.test(huisregels) && /als SVG/.test(huisregels), "de teken-zelf-iconen-regel is verdwenen");
 
+// 11. De dode-links-werkwijze staat in de huisregels, met de eerlijkheid
+//     dat externe adressen niet te bezoeken zijn
+assert.ok(/DODE LINKS CONTROLEREN KAN/.test(huisregels) && /Externe adressen kun je niet bezoeken/.test(huisregels), "de dode-links-werkwijze is verdwenen");
+
 console.log("embed-gelijkenis: ok");
