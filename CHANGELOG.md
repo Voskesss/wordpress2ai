@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.0 (26 september 2026)
+
+**Nieuw: het gezondheidsdashboard.** Elke nacht raakt WordSwap al zijn stille
+afhankelijkheden echt aan: de database, mail versturen én de mailbox,
+Cloudflare, GitHub, Mollie, de Meta-leadkoppeling, de AI-verbinding, de
+UptimeRobot-bewaking en elke live klantsite (antwoordt hij, en staat onze
+uitrol er echt op?). De uitslag staat als stoplichtjes op één pagina in het
+beheer, met daaronder de versie-waakhond die laat zien welke van onze
+bouwpakketten achterlopen. Wordt iets rood dat gisteren groen was, dan krijgt
+Jos automatisch één mailtje; geen dagelijkse "alles is oké"-post. Met een
+"Nu controleren"-knop voor een verse meting op elk moment.
+
 ## 1.31.6 (26 september 2026)
 
 **Elke landingspagina beantwoordt nu zijn eigen vragen.** Twaalf pagina's
