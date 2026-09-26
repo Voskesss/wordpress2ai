@@ -19,6 +19,12 @@ export function trackMarketing(
     analytics.dataLayer!.push(arguments);
   };
   analytics.gtag("event", name, fields);
+  // Dezelfde aanmelding ook naar Meta, zodat de advertentie die hem opleverde
+  // herkend wordt. Alleen de gebeurtenis zelf, nooit ingevulde veldwaarden.
+  if (name === "generate_lead") {
+    const meta = window as Window & { fbq?: (...args: unknown[]) => void };
+    meta.fbq?.("track", "Lead");
+  }
 }
 export default function MarketingEvents() {
   useEffect(() => {

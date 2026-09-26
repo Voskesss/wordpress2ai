@@ -15,6 +15,12 @@ import { magBewaren } from "@/lib/formulier-privacy";
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// Onze eigen leadformulieren op wordswap.nl: die versturen met fetch en
+// verwachten JSON terug, zodat ze een fout kunnen tonen zonder de ingevulde
+// gegevens kwijt te raken. Staat een formulier hier niet bij, dan krijgt het
+// een 303 naar de bedankpagina — waar fetch geen JSON in kan lezen.
+const EIGEN_LEADFORMULIEREN = new Set(["kennismaken", "appen", "check"]);
+
 // Bijlagen (bv. cv bij een sollicitatie): alleen veilige documenttypen,
 // max 5 MB per bestand en max 2 bestanden per inzending.
 const BIJLAGE_EXTENSIES = /\.(pdf|docx?|odt|rtf|txt|jpe?g|png)$/i;
@@ -65,10 +71,11 @@ export async function POST(req: Request) {
 
   const siteRepo = (velden._site ?? "").slice(0, 100);
   const honeypot = velden._extra ?? "";
-  // The first-party websitecheck requests JSON so it can show errors without losing input.
+  // The first-party lead forms request JSON so they can show errors without
+  // losing input. All of them use <LeadForm> and send naam/email/website.
   const websitecheckJson =
     siteRepo === "wordswap" &&
-    velden._formulier === "kennismaken" &&
+    EIGEN_LEADFORMULIEREN.has(velden._formulier ?? "") &&
     (req.headers.get("accept") ?? "").includes("application/json");
   if (
     websitecheckJson &&

@@ -85,13 +85,17 @@ export default function Privacy() {
           volledige bankgegevens buiten wat Mollie ons daarover meldt.
         </p>
         <p>
-          We verzamelen géén advertentie- of trackingprofielen en plaatsen geen
-          marketingcookies. Standaard gebruiken we alleen functionele cookies
-          (voor het inloggen op het klantportaal). Alleen als je daar op deze
-          site uitdrukkelijk &quot;ja&quot; op zegt, meten we bezoek anoniem met
-          Google Analytics (met afgeschermd IP-adres); zeg je niets of
-          &quot;nee&quot;, dan wordt er niets gemeten. Je keuze bewaren we in je
-          eigen browser en kun je wissen via je browserinstellingen.
+          Standaard gebruiken we alleen functionele cookies (voor het inloggen
+          op het klantportaal). Alleen als je op deze site uitdrukkelijk
+          &quot;ja&quot; zegt, meten we bezoek met Google Analytics (met
+          afgeschermd IP-adres) en plaatsen we het meetpunt van Meta (de
+          Meta-pixel). Dat meetpunt laat ons zien welke advertentie iemand
+          hierheen bracht en of daar een aanmelding uit kwam; Meta kan die
+          gegevens ook gebruiken om advertenties te richten. We sturen daarbij
+          nooit door wat je in een formulier invult. Zeg je niets of
+          &quot;nee&quot;, dan wordt er niets gemeten en staat er geen enkele
+          meet- of advertentiecookie. Je keuze bewaren we in je eigen browser en
+          kun je wissen via je browserinstellingen.
         </p>
       </Blok>
 
