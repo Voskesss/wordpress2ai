@@ -16,9 +16,9 @@ export function bouwBetaallinkMail(o: {
 <p>Daarna wordt alleen het maandbedrag van ${euroTekst(o.maandbedragCent)} (${euroTekst(inclBtwCent(o.maandbedragCent))} inclusief btw) automatisch afgeschreven.</p>`
       : `<p>Via de knop hieronder start je je maandbedrag van <strong>${euroTekst(o.maandbedragCent)} per maand</strong> (${euroTekst(eersteIncl)} inclusief btw) voor hosting, beheer en het AI-portaal.</p>`;
   return {
-    onderwerp: "Je betaling voor WordSwap — opdrachtbevestiging bijgesloten",
+    onderwerp: "Je betaling voor WordSwap, opdrachtbevestiging bijgesloten",
     html: `<p>Beste ${ontsnap(o.naam.split(" ")[0])},</p>
-<p>Fijn dat je website bij WordSwap draait!</p>
+<p>Fijn dat je gebruik wilt maken van WordSwap!</p>
 ${uitleg}
 <p><a href="${o.betaallink}" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Betalen via iDEAL</span></a></p>
 <p>In de bijlage vind je de opdrachtbevestiging: wat we leveren, wat het kost en welke afspraken erbij horen. Door te betalen ga je daarmee akkoord, en met de <a href="https://wordswap.nl/voorwaarden">algemene voorwaarden</a> en de <a href="https://wordswap.nl/verwerkersovereenkomst">verwerkersovereenkomst</a>.</p>

@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.35 (26 september 2026)
+
+**De betaalmail zegt niet meer dat je website al bij ons draait.** Op het
+moment van betalen is de overstap nog niet gebeurd; de mail begint nu met
+"Fijn dat je gebruik wilt maken van WordSwap!". En het lange streepje in de
+onderwerpregel is vervangen door een komma.
+
 ## 1.30.34 (26 september 2026)
 
 **De klant krijgt een mailtje rond zijn nieuwe ontwerp, twee kanten op.**
