@@ -1378,12 +1378,38 @@ export async function ontwerpZichtbaarheid(formData: FormData) {
   const { siteVoorOntwerp, maakOfVerversOntwerp, verbergOntwerp } = await import("@/lib/ontwerp");
   const site = await siteVoorOntwerp(siteId);
   if (!site?.siteSlug) return;
+  // Uitkomst van het klant-mailtje; ná het foutvangnet doorgestuurd, want een
+  // redirect gooit intern een uitzondering die het vangnet anders opslokt
+  let mailMelding: string | null = null;
   try {
     if (aan) {
       // Tonen: zo nodig eerst een (nieuw) adres maken — dat is de trage stap,
       // en pas als die slaagt gaat de kaart bij de klant aan.
       if (!site.ontwerpSlug) await maakOfVerversOntwerp(site);
       await db.update(sites).set({ ontwerpZichtbaar: true }).where(eq(sites.id, siteId));
+      // De klant hoort het niet toevallig te ontdekken: standaard gaat er een
+      // mailtje mee (uit te vinken), met een eigen opmerking van Jos bovenaan.
+      if (formData.get("mailen") === "ja") {
+        const [vers] = await db.select().from(sites).where(eq(sites.id, siteId));
+        const { klantAdres } = await import("@/lib/klant-adres");
+        const adres = vers ? await klantAdres(vers) : null;
+        if (adres && vers?.ontwerpSlug) {
+          const { bouwOntwerpKlaar } = await import("@/lib/klant-mails");
+          const { mailVanJos } = await import("@/lib/wordswap-mail");
+          const mail = bouwOntwerpKlaar({
+            siteNaam: vers.naam,
+            naam: adres.naam,
+            ontwerpUrl: `https://${vers.ontwerpSlug}.wordswap.workers.dev`,
+            eigenTekst: String(formData.get("opmerking") ?? "").trim() || null,
+          });
+          const gelukt = await mailVanJos({ naar: adres.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+          mailMelding = gelukt
+            ? "Zichtbaar gezet en de klant heeft het mailtje gekregen."
+            : "Zichtbaar gezet, maar het mailtje kon niet worden verstuurd. Stuur het zelf even.";
+        } else {
+          mailMelding = "Zichtbaar gezet. Mailen kon niet: er is nog geen klant-e-mailadres gekoppeld.";
+        }
+      }
     } else {
       // Verbergen: direct — adres weg, kaart weg, gedeelde link dood.
       await verbergOntwerp(site);
@@ -1396,6 +1422,10 @@ export async function ontwerpZichtbaarheid(formData: FormData) {
   }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/portal");
+  if (mailMelding) {
+    const { redirect } = await import("next/navigation");
+    redirect(`/admin/klant/${siteId}?ontwerp=${encodeURIComponent(mailMelding)}`);
+  }
 }
 
 export async function ontwerpVerwijderen(formData: FormData) {

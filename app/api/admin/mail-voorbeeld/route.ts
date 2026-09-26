@@ -94,6 +94,15 @@ export async function GET(req: Request) {
       naam: ontvanger?.naam,
       domein: site.domein,
     });
+  } else if (soort === "ontwerp-klaar") {
+    const { bouwOntwerpKlaar } = await import("@/lib/klant-mails");
+    mail = bouwOntwerpKlaar({
+      siteNaam: site.naam,
+      naam: ontvanger?.naam,
+      ontwerpUrl: site.ontwerpSlug ? `https://${site.ontwerpSlug}.wordswap.workers.dev` : "https://voorbeeld-adres-volgt.wordswap.workers.dev",
+      eigenTekst: bericht,
+    });
+    bijlageNoot = "Jouw eigen opmerking uit het tekstvak komt in de echte mail bovenaan te staan.";
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

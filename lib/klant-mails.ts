@@ -140,6 +140,25 @@ export function bouwAfspraakAfzegging(o: {
   };
 }
 
+/** Aankondiging dat het nieuwe ontwerp klaarstaat om te bekijken. */
+export function bouwOntwerpKlaar(o: {
+  siteNaam: string;
+  naam?: string | null;
+  ontwerpUrl: string;
+  eigenTekst?: string | null;
+}): { onderwerp: string; html: string } {
+  return {
+    onderwerp: "Je nieuwe ontwerp staat klaar om te bekijken",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+${alineas(o.eigenTekst)}
+<p>Het nieuwe ontwerp voor <strong>${ontsnap(o.siteNaam)}</strong> staat voor je klaar. Je kunt het rustig bekijken via de knop hieronder; de kaart staat ook in je eigen portaal.</p>
+${knop(o.ontwerpUrl, "Bekijk het nieuwe ontwerp")}
+<p>Belangrijk om te weten: dit is alleen kijken. Er staat niets live en je huidige website blijft precies zoals hij is, totdat jij zegt dat je over wilt.</p>
+<p>Wil je dingen anders? Antwoord gewoon op deze mail met wat je opvalt, groot of klein; dan pas ik het aan. Bellen mag ook: ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
 /** Review- en referentieverzoek. */
 export function bouwReviewVerzoek(o: {
   siteNaam: string;
