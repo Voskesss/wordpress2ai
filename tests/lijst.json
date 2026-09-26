@@ -1,5 +1,6 @@
 {
  "_uitleg": "Welke tests wanneer draaien. Eén bestand per regel: zo kunnen twee sessies tegelijk een test toevoegen zonder botsing in package.json. Een test toevoegen = hier één regel erbij.",
+  "foto-dubbel.mts",
  "test": [
   "aankondiging-in-chat.mts",
   "aanwijzen-overleg.mts",

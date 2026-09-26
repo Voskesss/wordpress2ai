@@ -240,7 +240,10 @@ export async function controleerSiteMap(
     // (-800, -klein, -v…) zijn dezelfde foto; duimnagels (≤ 120px) tellen niet.
     {
       const perFoto = new Map<string, number>();
-      for (const img of inhoud.matchAll(/<img\b[^>]*>/gi)) {
+      // Wat verborgen is voor de bezoeker telt niet: een lopende logostrook
+      // heeft een tweede kopie in aria-hidden="true" nodig om rond te lopen.
+      const zichtbaar = inhoud.replace(/<(\w+)\b[^>]*\baria-hidden=["']true["'][^>]*>[\s\S]*?<\/\1>/gi, "");
+      for (const img of zichtbaar.matchAll(/<img\b[^>]*>/gi)) {
         const breedte = Number(img[0].match(/\bwidth=["']?(\d+)/i)?.[1] ?? 0);
         if (breedte && breedte <= 120) continue;
         const src = img[0].match(/\bsrc=["']([^"']+)["']/i)?.[1];
