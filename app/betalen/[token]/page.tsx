@@ -77,7 +77,7 @@ export default async function Betalen({
           )}
           <form action={`/api/betalen/${token}`} method="post" className="mt-6">
             <button type="submit" className="button-primary w-full justify-center cursor-pointer">
-              {v.soort === "eerste" ? "Betalen via iDEAL" : "Betalen"} →
+              {v.soort === "eerste" ? "Betalen via iDEAL / Wero" : "Betalen"} →
             </button>
           </form>
           <p className="mt-3 text-center text-xs text-stone-400">Je betaalt veilig via Mollie. Na je betaling krijg je de factuur per mail.</p>

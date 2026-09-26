@@ -528,7 +528,7 @@ export async function maakOpdrachtbevestigingPdf(o: {
   alinea("De prijs", { vet: true, kleur: GROEN });
   if (o.eenmaligCent > 0) alinea(`Eenmalige omzetting: ${euroTekst(o.eenmaligCent)} excl. btw.`);
   alinea(
-    `Maandbedrag voor hosting, beheer en het AI-portaal: ${euroTekst(o.maandbedragCent)} excl. btw per maand, maandelijks opzegbaar. De eerste betaling gaat via iDEAL${o.eenmaligCent > 0 ? " (omzetting en eerste maand samen)" : ""}; daarna wordt het maandbedrag automatisch afgeschreven. Bij elke betaling ontvang je automatisch een factuur. Alle bedragen zijn exclusief 21% btw.`,
+    `Maandbedrag voor hosting, beheer en het AI-portaal: ${euroTekst(o.maandbedragCent)} excl. btw per maand, maandelijks opzegbaar. De eerste betaling gaat via iDEAL / Wero${o.eenmaligCent > 0 ? " (omzetting en eerste maand samen)" : ""}; daarna wordt het maandbedrag automatisch afgeschreven. Bij elke betaling ontvang je automatisch een factuur. Alle bedragen zijn exclusief 21% btw.`,
   );
   y -= 4;
   alinea("Wat jij zelf draagt", { vet: true, kleur: GROEN });

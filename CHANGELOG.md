@@ -44,6 +44,13 @@ En loopt een website tegen zijn maandbudget aan, dan krijgt WordSwap daar
 nu zelf ook een seintje van, zodat je geholpen wordt ook als je vergeet
 te mailen.
 
+## 1.30.36 (26 september 2026)
+
+**iDEAL heet op alle betaalplekken nu "iDEAL / Wero".** iDEAL gaat op in het
+Europese Wero; klanten zien bij hun bank steeds vaker die naam. De betaalknop
+in de mail, de betaalpagina, de opdrachtbevestiging en de admin-uitleg noemen
+voortaan beide namen, zodat niemand schrikt van een onbekend woord.
+
 ## 1.30.35 (26 september 2026)
 
 **De betaalmail zegt niet meer dat je website al bij ons draait.** Op het
