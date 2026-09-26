@@ -10,6 +10,7 @@
   "afspraken.mts",
   "afzender.mts",
   "agent-boundary.cjs",
+  "agent-tijdkap.mts",
   "ai-budget.mts",
   "appen.mts",
   "audiobank.mts",

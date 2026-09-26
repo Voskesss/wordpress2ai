@@ -291,7 +291,11 @@ export async function draaiChatAgent(opties: {
       tools,
       messages: [{ role: "user", content: opties.opdracht }],
     },
-    { signal: opties.signal },
+    // maxDuurMs was alleen een controle tussen beurten: één hangende aanroep
+    // of traag gereedschap kon er dwars doorheen (EVC, 26-09: de chat bleef
+    // minutenlang op "vaste afspraken nalopen" staan). Nu is het een echte
+    // kap: na maxDuurMs plus marge wordt de lopende aanroep afgebroken.
+    { signal: opties.maxDuurMs ? AbortSignal.any([...(opties.signal ? [opties.signal] : []), AbortSignal.timeout(opties.maxDuurMs + 10_000)]) : opties.signal },
   );
 
   const startMs = Date.now();

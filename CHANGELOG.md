@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.20 (26 september 2026)
+
+**De chat kan niet meer blijven hangen op een nacontrole.** Bij het testen op
+EVC Autotechniek bleef de chat minutenlang staan op "Ik loop de vaste
+afspraken na...", en zolang die vastzat was ook de terugzetknop geblokkeerd.
+De tijdgrens van zo'n ronde werd alleen tussen stappen gecontroleerd; één
+hangende stap kon er dwars doorheen. Voortaan wordt de ronde na zijn
+tijdslimiet echt afgebroken en gaat de beurt gewoon verder met opslaan en
+publiceren.
+
 ## 1.30.19 (25 september 2026)
 
 **De reviewvraag nodigt nu ook uit om ontevredenheid te melden.** Direct onder
