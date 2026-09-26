@@ -2,6 +2,7 @@
  * keuzes, bundelen en de handtekeningcontrole.
  * Draaien: node --import tsx tests/whatsapp.mts — geen database of netwerk nodig. */
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { createHmac } from "node:crypto";
 import {
   conceptCommando,
@@ -173,5 +174,16 @@ assert.equal(
   await gebruikerVanVerzoek(new Request("http://x/api/chat", { method: "POST", headers: { [INTERN_KOP]: maakInternLabel("user_abc") } })),
   "user_abc",
 );
+
+// Webadressen in WhatsApp-berichten moeten klikbaar zijn: mét https:// en op
+// een eigen regel. Tussen haakjes achter de naam maakte WhatsApp er geen
+// link van en kopiëren ging ook niet (Jos, 26-09).
+{
+  const verwerk = await readFile("lib/whatsapp/verwerk.ts", "utf8");
+  assert.ok(/function siteAdres\(/.test(verwerk), "siteAdres (klikbaar webadres op eigen regel) ontbreekt");
+  assert.ok(/return adres \? `https:\/\/\$\{adres\}` : null;/.test(verwerk), "het adres krijgt geen https:// en wordt dus geen link");
+  assert.ok(!/\(\$\{adres\}\)|\* \(\$\{/.test(verwerk) && !/`\*\$\{site\.naam\}\* \(/.test(verwerk), "het adres staat weer onklikbaar tussen haakjes achter de naam");
+  assert.ok(/we werken nu aan \$\{siteRegel\(keus\.site\)\}\$\{adres \? `\\n\$\{adres\}` : ""\}/.test(verwerk), "de sitekeuze-bevestiging zet het adres niet als link op een eigen regel");
+}
 
 console.log("whatsapp: alle tests geslaagd");
