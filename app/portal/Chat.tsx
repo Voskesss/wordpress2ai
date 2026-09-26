@@ -2883,12 +2883,20 @@ export default function Chat({
                 {/* Duurt het echt lang, zeg dat dan eerlijk mét een einde eraan:
                     onzeker wachten voelt veel langer dan wachten met zicht op
                     een afronding (grote klus van 20-09 duurde negen minuten). */}
-                {bezig && wachtSec >= 120 && (
+                {bezig && wachtSec >= 120 && wachtSec < PORTAAL_BEURT_S && (
                   <p className="mt-1 max-w-[90%] text-xs text-amber-700">
-                    Dit is een grote klus — ik ben nog bezig. Uiterlijk over{" "}
-                    {Math.max(1, Math.ceil((PORTAAL_BEURT_S - wachtSec) / 60))} minuten rond ik af en laat ik zien wat
-                    er af is; wat er dan nog mist, vraag je daarna gewoon in een nieuw berichtje. Stoppen kan ook met de
-                    rode knop.
+                    Dit is een grote klus — ik ben nog bezig. Over hooguit{" "}
+                    {Math.max(1, Math.ceil((PORTAAL_BEURT_S - wachtSec) / 60)) === 1
+                      ? "een minuut"
+                      : `${Math.ceil((PORTAAL_BEURT_S - wachtSec) / 60)} minuten`}{" "}
+                    stop ik met bouwen en rond ik af; wat er dan nog mist, vraag je daarna gewoon in een nieuw
+                    berichtje. Stoppen kan ook met de rode knop.
+                  </p>
+                )}
+                {bezig && wachtSec >= PORTAAL_BEURT_S && (
+                  <p className="mt-1 max-w-[90%] text-xs text-amber-700">
+                    Het bouwen zit erop; ik ben nu aan het afronden: controleren, opslaan en het voorbeeld klaarzetten.
+                    Dat kan nog een paar minuten duren. Stoppen kan ook met de rode knop.
                   </p>
                 )}
               </div>

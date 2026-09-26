@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.24 (26 september 2026)
+
+**De chat overlegt eerst, belooft eerlijk en kan echt niet meer blijven
+hangen.** Bij elke opdracht die meer is dan een kleine tekstaanpassing zegt de
+chat nu éérst in één zin wat hij gaat doen, en bouwt hij daarna; zo kun je
+bijsturen terwijl hij werkt. De wachtmelding bij grote klussen zei "over 1
+minuten rond ik af" en bleef dat zeggen; nu telt hij netjes af en vertelt hij
+na de bouwgrens eerlijk dat hij aan het afronden is. En de harde tijdkap die
+de nacontroles al hadden, zit nu ook op het hoofdwerk zelf. De zin waarmee de
+chat uitlegt dat hij niet op internet kan zoeken is bovendien vriendelijker:
+"daar is deze chat niet voor bedoeld" in plaats van "ik heb geen internet".
+
 ## 1.30.23 (26 september 2026)
 
 **De chat is eerlijk over wat hij niet kan, en zegt zijn plan meteen.** De

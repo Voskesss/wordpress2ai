@@ -80,7 +80,7 @@ assert.ok(/OVERZICHTSPAGINA'S TONEN ALLES/.test(skill), "migreer-skill: de overz
 
 // 9. De chat doet nooit alsof hij internet heeft (les 26-09: "kijk of ik op Google wat heb staan")
 assert.ok(
-  /JE HEBT GEEN INTERNET/.test(huisregels) && /verzin NOOIT reviews/.test(huisregels),
+  /JE HEBT GEEN INTERNET/.test(huisregels) && /verzin NOOIT reviews/.test(huisregels) && /niet voor je op internet zoeken, daar is deze chat niet voor bedoeld/.test(huisregels),
   "de geen-internet-eerlijkheidsregel is verdwenen uit de huisregels",
 );
 
