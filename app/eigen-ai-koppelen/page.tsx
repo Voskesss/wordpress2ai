@@ -29,6 +29,21 @@ const routes = [
   },
 ];
 
+const faq: [string, string][] = [
+  [
+    "Kan mijn eigen ChatGPT of Claude nu al rechtstreeks wijzigingen doorvoeren?",
+    "Nog niet rechtstreeks: die koppeling staat op de planning. Wat vandaag al prima werkt: laat je eigen assistent de wijziging of tekst bedenken, plak het resultaat in de portaal-chat, en onze AI voert het uit met het gewone voorbeeld-eerst-vangnet.",
+  ],
+  [
+    "Is rechtstreekse toegang tot mijn bestanden niet gevaarlijk?",
+    "Je kiest het zelf, en er is altijd een achtervang: de complete geschiedenis van je site blijft bewaard, dus elke stap is terug te draaien. De expert-route werkt wel buiten het voorbeeld-eerst-vangnet om; dat zeggen we er eerlijk bij, want dat is precies de vrijheid die je op die route krijgt.",
+  ],
+  [
+    "Betaal ik extra voor het gebruik van AI?",
+    "Nee. De ingebouwde AI zit bij je maandbedrag in, met een ruime maandelijkse gebruiksruimte die voor normaal beheer ruim voldoende is. Gebruik je je eigen assistent om teksten te bedenken, dan loopt dat via je eigen abonnement daar.",
+  ],
+];
+
 export default function EigenAiKoppelen() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -87,6 +102,29 @@ export default function EigenAiKoppelen() {
             Eerst de chat proberen
           </Link>
         </div>
+      </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faq.map(([v, a]) => ({
+              "@type": "Question",
+              name: v,
+              acceptedAnswer: { "@type": "Answer", text: a },
+            })),
+          }),
+        }}
+      />
+      <h2 className="mt-14 font-display text-2xl font-semibold">Veelgestelde vragen</h2>
+      <div className="mt-4 space-y-3">
+        {faq.map(([v, a]) => (
+          <details key={v} className="rounded-2xl border border-stone-200 bg-white p-5">
+            <summary className="cursor-pointer font-semibold">{v}</summary>
+            <p className="mt-2 text-stone-600 leading-relaxed">{a}</p>
+          </details>
+        ))}
       </div>
     </div>
   );

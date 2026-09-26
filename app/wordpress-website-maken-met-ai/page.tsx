@@ -59,7 +59,12 @@ export default function Pagina() {
             antwoord: aanbod.geschikt,
           },
           {
-            vraag: "Welke extra kosten zijn er?",
+            vraag: "Ik heb al een website. Betaal ik dan ook voor een nieuw ontwerp?",
+      antwoord:
+        "Nee, dat hoeft niet. Een bestaande site één-op-één overzetten kan al vanaf €150; je houdt dan precies dezelfde site, maar zonder WordPress en mét de chat. Een nieuw AI-ontwerp (vanaf €250) is een keuze die je ook later nog kunt maken.",
+    },
+    {
+      vraag: "Welke extra kosten zijn er?",
             antwoord: aanbod.aanvullingen,
           },
         ],

@@ -27,16 +27,20 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "wordpress-website-traag",
   "faq": [
     {
+      "vraag": "Waarom is een WordPress-site vaak traag?",
+      "antwoord": "Bij elk bezoek moet WordPress de pagina eerst nog bouwen: database raadplegen, thema en plugins laden, en dan pas versturen. Elke plugin doet daar een schepje bovenop. Cache-plugins verzachten dat, maar blijven een pleister op een systeem dat per bezoek werk doet."
+    },
+    {
+      "vraag": "Hoeveel sneller wordt mijn site bij WordSwap?",
+      "antwoord": "Je pagina's staan bij ons kant-en-klaar op een wereldwijd netwerk, dus de bouwtijd per bezoek vervalt helemaal, en je foto's krijgen automatisch snelle formaten voor telefoons. We meten het eerlijk: vóór de overstap en erna, met dezelfde meetlat (Google Lighthouse), en je ziet beide cijfers. Harde beloftes vooraf doen we niet, want elke site is anders."
+    },
+    {
+      "vraag": "Helpt een snellere site ook voor Google?",
+      "antwoord": "Ja. Snelheid telt mee in de ranglijst van Google, vooral op telefoons. En belangrijker: bezoekers haken af bij trage pagina's, dus elke seconde winst is ook gewoon meer mensen die je verhaal echt lezen."
+    },
+    {
       "vraag": "Wat kost de overstap?",
       "antwoord": aanbod.prijs
-    },
-    {
-      "vraag": "Kan mijn website overgezet worden?",
-      "antwoord": aanbod.geschikt
-    },
-    {
-      "vraag": "Kan ik mijn eigen AI gebruiken?",
-      "antwoord": aanbod.eigenAi
     }
   ]
 }} />; }

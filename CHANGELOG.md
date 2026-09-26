@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.31.6 (26 september 2026)
+
+**Elke landingspagina beantwoordt nu zijn eigen vragen.** Twaalf pagina's
+over WordPress en AI herhaalden deels dezelfde standaardantwoorden; nu heeft
+elke pagina vragen over zijn éigen onderwerp (onderhoud en veiligheid,
+snelheid, het overstapproces, andere platformen dan WordPress, je eigen AI
+gebruiken), en bewaakt een test dat een vraag nooit op twee pagina's tegelijk
+staat. Ook nieuw: de overstap-pagina's en de nieuw-ontwerp-pagina's verwijzen
+naar elkaar met de juiste prijzen (overstap vanaf €150, nieuw ontwerp vanaf
+€250), zodat die twee nooit meer door elkaar gehaald worden.
+
 ## 1.31.5 (26 september 2026)
 
 **De ontwerpbalk en een plakkend sitemenu zitten elkaar niet meer in de

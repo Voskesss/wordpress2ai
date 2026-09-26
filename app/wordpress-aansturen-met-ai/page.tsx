@@ -50,8 +50,9 @@ export default function Pagina() {
               "Nee. Je site wordt opnieuw opgebouwd zonder WordPress. Ontwerp, inhoud en bestaande pagina-adressen nemen we zo nauwkeurig mogelijk over. Bijzondere functies bespreken we vooraf.",
           },
           {
-            vraag: "Wat kan ik allemaal aanpassen via de chat? Kan ik ook zelf pagina’s maken?",
-            antwoord: aanbod.wijzigen,
+            vraag: "Hoe snel staat een wijziging op mijn site?",
+            antwoord:
+        "Je typt wat er anders moet en de AI bouwt het meestal binnen een paar minuten als voorbeeld. Jij bekijkt het, en met één klik op Publiceer staat het live. Niets gaat live zonder dat jij het gezien hebt, en terugdraaien kan altijd.",
           },
           {
             vraag: "Wat als een wijziging verkeerd is?",

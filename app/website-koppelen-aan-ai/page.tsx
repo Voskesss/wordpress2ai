@@ -49,8 +49,9 @@ export default function Pagina() {
             antwoord: aanbod.eigenAi,
           },
           {
-            vraag: "Kan elke website worden gekoppeld?",
-            antwoord: aanbod.geschikt,
+            vraag: "Werkt dit ook als mijn site niet op WordPress draait?",
+            antwoord:
+        "Ja. We bouwen de kopie vanaf je live site, dus het maakt niet uit waar hij nu staat: WordPress, Wix, Squarespace, Joomla of ooit door een bureau op maat gemaakt. Als je site online staat, kunnen wij hem overzetten en aan de chat koppelen.",
           },
           { vraag: "Wat kost het?", antwoord: aanbod.prijs },
         ],

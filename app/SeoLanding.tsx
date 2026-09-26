@@ -46,7 +46,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           </p>
           <p className="mt-4 text-sm text-stone-500">
             {data.nieuweWebsite
-              ? "Nieuw AI-ontwerp vanaf €250; daarna vanaf €19 per maand. Excl. btw. Domein, e-mail en maatwerk apart."
+              ? "Nieuw AI-ontwerp vanaf €250; daarna vanaf €19 per maand. Excl. btw. Domein, e-mail en maatwerk apart. Heb je al een website? Die overzetten kan al vanaf €150."
               : aanbod.prijs}
           </p>
           <p className="landing-explanation">

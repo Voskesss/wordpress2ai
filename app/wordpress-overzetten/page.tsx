@@ -27,16 +27,20 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "wordpress-overzetten",
   "faq": [
     {
+      "vraag": "Hoe lang duurt de overstap?",
+      "antwoord": "Een gemiddelde bedrijfssite staat meestal binnen enkele dagen als kopie klaar, inclusief onze controles op links, formulieren en vindbaarheid. Jij bekijkt de kopie rustig naast je huidige site; pas na jouw akkoord koppelen we je domein. Grote sites spreken we vooraf door, dan weet je precies waar je aan toe bent."
+    },
+    {
+      "vraag": "Wat moet ik zelf aanleveren?",
+      "antwoord": "Alleen je websiteadres. We bouwen de kopie rechtstreeks vanaf je live site, dus je hoeft geen inloggegevens te delen en niets te exporteren. Heb je wel een WordPress-export, dan mag die mee, maar nodig is hij niet."
+    },
+    {
+      "vraag": "Ik wil eigenlijk ook een nieuw ontwerp. Kan dat?",
+      "antwoord": "Zeker. Veel klanten stappen eerst één-op-één over (zelfde site, geen risico voor Google) en laten daarna een nieuw AI-ontwerp maken, vanaf €250. Je bekijkt dat ontwerp dan naast je site en beslist zelf of en wanneer je overstapt."
+    },
+    {
       "vraag": "Wat kost de overstap?",
       "antwoord": aanbod.prijs
-    },
-    {
-      "vraag": "Kan mijn website overgezet worden?",
-      "antwoord": aanbod.geschikt
-    },
-    {
-      "vraag": "Kan ik mijn eigen AI gebruiken?",
-      "antwoord": aanbod.eigenAi
     }
   ]
 }} />; }
