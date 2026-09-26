@@ -3855,7 +3855,7 @@ export default function Chat({
                 </Tip>
               )}
               {!meerOpties && (
-                <Tip tekst="Meer gereedschap: kleur kiezen, fotobank en vindbaarheid">
+                <Tip tekst="Meer gereedschap: kleur kiezen, icoontjes laten maken en vindbaarheid">
                 <button
                   onClick={() => setMeerOpties(true)}
                   aria-label="Meer opties"
@@ -3893,6 +3893,32 @@ export default function Chat({
               </Tip>
               {/* Fotobank-knop hier weggehaald (26-09): hij zit al in het
                   paperclipmenu en twee ingangen was dubbelop. */}
+              {/* Icoontjes laten maken (wens Jos 26-09): een zichtbare ingang
+                  voor de kieskaartjes, zodat je niet hoeft te wéten dat je
+                  erom kunt vragen. De knop zet een startzin klaar die de AI
+                  richting de KEUZES-BEELD-huisregel stuurt; de eigenaar maakt
+                  hem zelf af ("...voor de lespakketten"). Getypte tekst
+                  blijft staan, net als bij de banken. */}
+              <Tip tekst="Laat de AI icoontjes tekenen waar je uit kunt kiezen">
+              <button
+                onClick={() => {
+                  setInvoer((v) =>
+                    v.trim() ? v : "Maak een paar icoontjes waar ik uit kan kiezen voor ",
+                  );
+                  invoerRef.current?.focus();
+                }}
+                disabled={bezig}
+                aria-label="Icoontjes laten maken"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="7.5" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="2" />
+                  <rect x="13.5" y="4" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="2" />
+                  <path d="M7.5 14l3.2 6H4.3l3.2-6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  <path d="M17 14.5l1.1 2.2 2.4.35-1.75 1.7.4 2.4-2.15-1.15-2.15 1.15.4-2.4-1.75-1.7 2.4-.35L17 14.5z" fill="currentColor" />
+                </svg>
+              </button>
+              </Tip>
               {/* Vindbaarheid is niets voor een demo: die site wordt elk uur
                   teruggezet en staat op noindex. Alleen ruis in de balk. */}
               {!isDemo && (<>
