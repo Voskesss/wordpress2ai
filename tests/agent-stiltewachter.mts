@@ -31,4 +31,14 @@ assert.ok(/noodstop\.signal/.test(agent) && (agent.match(/noodstop\.abort\(\)/g)
 const stiltes = agent.split("=== stilte").length - 1;
 assert.ok(stiltes >= 3, "de stilte-uitkomsten zetten niet overal limietBereikt");
 
+// 5. Stilte is een storing, geen te grote opdracht: de agent geeft het apart
+//    terug en de chat zegt dan eerlijk "er ging bij ons iets mis" in plaats
+//    van de eigenaar te laten opknippen (les 26-09: "maak een referentie-
+//    pagina" kreeg onterecht "dit verzoek is te groot").
+assert.ok(/stilteGeraakt\?: boolean/.test(agent) && (agent.match(/stilteGeraakt = true;/g) ?? []).length >= 3, "de agent geeft stilte niet meer apart terug");
+const route = await readFile(new URL("../app/api/chat/route.ts", import.meta.url), "utf8");
+assert.ok(/Er ging bij ons iets mis waardoor ik mijn werk niet kon afmaken/.test(route), "de eerlijke storingstekst zonder gebouwd werk is verdwenen");
+assert.ok(/staat als concept voor je klaar/.test(route), "de eerlijke storingstekst mét gebouwd werk is verdwenen");
+assert.ok(!/te groot voor één keer\. Knip het op in kleinere stappen — /.test(route), "het lange streepje zit weer in de te-groot-tekst");
+
 console.log("agent-stiltewachter: ok");

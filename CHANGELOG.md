@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.30.28 (26 september 2026)
+
+**Een storing heet nu een storing.** Als het vangnet van vanochtend een
+vastgelopen beurt afbrak, kreeg je soms "dit verzoek is te groot, knip het
+op", ook bij een simpele vraag als "maak een referentiepagina". Dat was niet
+waar en het legde de schuld bij jou. Voortaan zegt de chat dan eerlijk: er
+ging bij ons iets mis, er is niets veranderd (of: wat af is staat als concept
+klaar), probeer het gewoon opnieuw. "Te groot, knip op" verschijnt alleen nog
+als de opdracht echt te groot was.
+
 ## 1.30.27 (26 september 2026)
 
 **Anthropic-pakket bijgewerkt van 0.120 naar 0.128, en een eerlijke

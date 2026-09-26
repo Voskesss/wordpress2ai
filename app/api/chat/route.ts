@@ -1108,6 +1108,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
           // meegestuurde foto's kwijt. Daarom stoppen we de agent zelf ruim
           // op tijd, leveren we op wat er al staat, en zeggen we dat eerlijk.
           let tijdOp = false;
+          let stilteGeraakt = false;
           // DEMOWACHTER: de demo wordt elk uur teruggezet. Zat er iemand
           // midden in een opdracht, dan werkte die door aan een tak die niet
           // meer bestond en bleef bij hem "De AI is bezig" eeuwig staan. Juist
@@ -1256,6 +1257,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             });
             reply = uitkomst.reply;
             limietBereikt = uitkomst.limietBereikt;
+            stilteGeraakt = Boolean(uitkomst.stilteGeraakt);
             cacheGelezen = uitkomst.cacheGelezen;
             await settleAiBudget(
               scope,
@@ -1541,10 +1543,18 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             gewijzigd = [];
           }
           if (limietBereikt) {
+            // Stilte is een storing bij ons, geen te grote opdracht: zeg dat
+            // dan ook eerlijk in plaats van de eigenaar te laten opknippen
+            // ("maak een referentiepagina" kreeg onterecht "te groot", 26-09).
+            const storing = stilteGeraakt;
             reply =
               gewijzigd.length > 0
-                ? "Dit was een flinke klus — ik ben zover gekomen als in één keer kan. Bekijk het concept; wat er nog mist, kun je gewoon in een volgend bericht vragen (het concept blijft open, ik werk er dan op verder)."
-                : "Dit verzoek is te groot voor één keer. Knip het op in kleinere stappen — bijvoorbeeld per pagina — dan pak ik ze één voor één op.";
+                ? storing
+                  ? "Er ging bij ons iets mis waardoor ik niet verder kon; wat ik al gebouwd had staat als concept voor je klaar. Bekijk het, en vraag in een nieuw berichtje gewoon om de rest."
+                  : "Dit was een flinke klus; ik ben zover gekomen als in één keer kan. Bekijk het concept; wat er nog mist, kun je gewoon in een volgend bericht vragen (het concept blijft open, ik werk er dan op verder)."
+                : storing
+                  ? "Er ging bij ons iets mis waardoor ik mijn werk niet kon afmaken; er is niets aan je site veranderd. Probeer het gewoon opnieuw, meestal lukt het dan direct."
+                  : "Dit verzoek is te groot voor één keer. Knip het op in kleinere stappen, bijvoorbeeld per pagina, dan pak ik ze één voor één op.";
           }
           let previewUrl: string | null = null;
           let changeRowId: number | null = null;

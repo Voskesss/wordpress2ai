@@ -31,6 +31,8 @@ export type AgentGebeurtenis =
 export type AgentUitkomst = {
   reply: string;
   limietBereikt: boolean;
+  /** De stiltewachter greep in: een storing bij ons, geen te grote opdracht. */
+  stilteGeraakt?: boolean;
   tokensIn: number;
   tokensUit: number;
   kostenUsd: number;
@@ -326,6 +328,8 @@ export async function draaiChatAgent(opties: {
   let kostenUsd = 0;
   let cacheGelezen = 0;
   let limietBereikt = false;
+  // Stilte is geen limiet maar een storing: de aanroeper hoort dat verschil te kennen
+  let stilteGeraakt = false;
   const [prijsIn, prijsUit] = PRIJZEN[opties.model] ?? [2, 10];
 
   const buiten = runner[Symbol.asyncIterator]();
@@ -333,6 +337,7 @@ export async function draaiChatAgent(opties: {
     const buitenStap = await metWekker(buiten.next());
     if (buitenStap === stilte) {
       console.error("[chat-agent] stilte tussen twee beurten: runner opgegeven");
+      stilteGeraakt = true;
       noodstop.abort();
       limietBereikt = true;
       break;
@@ -351,6 +356,7 @@ export async function draaiChatAgent(opties: {
       const binnenStap = await metWekker(binnen.next());
       if (binnenStap === stilte) {
         console.error("[chat-agent] stilte midden in een beurt: runner opgegeven");
+      stilteGeraakt = true;
         noodstop.abort();
         limietBereikt = true;
         break agentLus;
@@ -391,6 +397,7 @@ export async function draaiChatAgent(opties: {
     const berichtOfStilte = await metWekker(beurtStream.finalMessage());
     if (berichtOfStilte === stilte) {
       console.error("[chat-agent] stilte bij het afronden van een beurt: runner opgegeven");
+      stilteGeraakt = true;
       noodstop.abort();
       limietBereikt = true;
       break;
@@ -432,5 +439,5 @@ export async function draaiChatAgent(opties: {
   // max_iterations bereikt terwijl het model nog tools wilde gebruiken
   if (laatste && laatste.stop_reason === "tool_use") limietBereikt = true;
 
-  return { reply, limietBereikt, tokensIn, tokensUit, kostenUsd, cacheGelezen };
+  return { reply, limietBereikt, stilteGeraakt, tokensIn, tokensUit, kostenUsd, cacheGelezen };
 }
