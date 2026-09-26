@@ -291,7 +291,7 @@ export default async function IncassoBlok({
               <ActieKnop label="✉️ Betaallink aanmaken en meteen mailen" bezigLabel="Aanmaken en mailen..." className={knopGroen} />
               <p className="mt-2 text-xs text-stone-500">
                 Eén klik doet alles: de klant krijgt een mail met de betaallink én de opdrachtbevestiging (pdf) als bijlage; jij krijgt een kopie.
-                Hij betaalt via iDEAL in één keer de omzetting en de eerste maand (met 21% btw erbij) en geeft daarmee de machtiging — betalen is akkoord.
+                Hij betaalt via iDEAL / Wero in één keer de omzetting en de eerste maand (met 21% btw erbij) en geeft daarmee de machtiging — betalen is akkoord.
                 Daarna wordt alleen het maandbedrag automatisch afgeschreven, en bij elke betaling gaat er vanzelf een factuur naar de klant.
               </p>
             </div>
