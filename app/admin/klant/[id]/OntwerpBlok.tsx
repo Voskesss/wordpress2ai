@@ -9,6 +9,7 @@ import { ontwerpStatus } from "@/lib/ontwerp";
 import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
 import MetUitleg from "./MetUitleg";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 
 const KNOP =
   "rounded-full px-4 py-2 text-sm font-semibold cursor-pointer disabled:opacity-70";
@@ -150,9 +151,29 @@ export default async function OntwerpBlok({
               </MetUitleg>
             </form>
           </div>
-          <form action={ontwerpZichtbaarheid} className="mt-4 flex items-center gap-3">
+          <form action={ontwerpZichtbaarheid} className="mt-4 space-y-3">
             <input type="hidden" name="siteId" value={site.id} />
             <input type="hidden" name="aan" value={site.ontwerpZichtbaar ? "nee" : "ja"} />
+            <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+              <label className="block text-sm font-semibold text-stone-700">
+                Eigen opmerking bovenaan het mailtje (mag leeg)
+                <textarea
+                  name="opmerking"
+                  rows={2}
+                  placeholder={site.ontwerpZichtbaar ? "Bijv.: Ik pas nog twee dingen aan, je hoort snel van me!" : "Bijv.: Ik ben benieuwd wat je van de nieuwe kleuren vindt!"}
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-normal focus:border-violet-600 focus:outline-none"
+                />
+              </label>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-stone-700">
+                  <input type="checkbox" name="mailen" value="ja" defaultChecked className="accent-emerald-700" />
+                  {site.ontwerpZichtbaar
+                    ? "Stuur de klant een mailtje dat het ontwerp even is teruggetrokken (zijn link is dan dood)"
+                    : "Stuur de klant een mailtje dat het ontwerp klaarstaat"}
+                </label>
+                <MailVoorbeeldKnop klein soort={site.ontwerpZichtbaar ? "ontwerp-terug" : "ontwerp-klaar"} siteId={site.id} />
+              </div>
+            </div>
             <MetUitleg tekst="Bepaalt of de klant het ontwerpvoorstel in zijn eigen portaal ziet, met een bekijk-knop. Standaard uit, zodat je rustig kunt bouwen. Verbergen haalt het adres direct weg, dus een eerder gedeelde link is meteen dood. Opnieuw tonen maakt een vers adres; de eerste keer kan dat ongeveer een minuut duren.">
               <ActieKnop
                 label={site.ontwerpZichtbaar ? "Zichtbaar in klantportaal, verbergen (adres vervalt direct)" : "Nog verborgen voor de klant, tonen in portaal"}
