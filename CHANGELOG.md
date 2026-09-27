@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.2 (27 september 2026)
+
+**De livegang-checklist controleert nu ook de Google-aanmelding.** Een vers
+domein met perfecte techniek kan maandenlang buiten Google blijven als
+niemand hem bij Search Console aanmeldt. De checklist kijkt voortaan of er
+een Google-verificatie op het domein staat (als DNS-regel of als meta-tag,
+van wie dan ook) en legt uit wat er moet gebeuren als die ontbreekt, met de
+eerlijke kanttekening dat een klant ook via een andere weg geverifieerd kan
+zijn.
+
 ## 1.32.1 (27 september 2026)
 
 **Outreach: afbeeldingen doen het nu echt, en je kunt eerst kijken en

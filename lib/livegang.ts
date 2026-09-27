@@ -68,14 +68,22 @@ async function bewaakteUrls(): Promise<string[] | null> {
   }
 }
 
-/** Antwoordt het domein met onze site? (de deploy zet in elke pagina het meldscript wp2ai-pagina) */
-async function domeinToontNieuweSite(domein: string): Promise<boolean> {
+/** Homepage ophalen; null als het domein niet (goed) antwoordt. */
+async function haalHomepage(domein: string): Promise<string | null> {
   try {
     const res = await fetch(`https://${domein}/`, { redirect: "follow", signal: AbortSignal.timeout(6000) });
-    return res.ok && (await res.text()).includes("wp2ai-pagina");
+    return res.ok ? await res.text() : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** Google-verificatie zichtbaar? Als TXT-record op het domein of als meta-tag
+ * op de homepage. Verificatie kan óók via een geüpload bestand of Analytics;
+ * die zien we hier niet, dus afwezigheid is een waarschuwing, geen fout. */
+export function heeftGoogleVerificatie(txt: string[], html: string | null): boolean {
+  if (txt.some((r) => r.includes("google-site-verification="))) return true;
+  return Boolean(html && /<meta[^>]+name=["']google-site-verification["']/i.test(html));
 }
 
 /**
@@ -193,7 +201,20 @@ export async function livegangChecks(
       });
       const domein = site.domein.replace(/^www\./, "").toLowerCase();
       const inCloudflare = gekoppeld === null ? null : gekoppeld.includes(domein);
-      const online = await domeinToontNieuweSite(site.domein);
+      const homepage = await haalHomepage(site.domein);
+      const online = Boolean(homepage?.includes("wp2ai-pagina"));
+      // Zoekconsole: zonder aanmelding kan een VERS domein maandenlang
+      // onvindbaar blijven terwijl de techniek perfect is (les RoelArt 27-09).
+      const domeinTxt = await dns.resolveTxt(domein).then((r) => r.map((x) => x.join(""))).catch(() => [] as string[]);
+      const verificatie = heeftGoogleVerificatie(domeinTxt, homepage);
+      checks.push({
+        sleutel: "zoekconsole",
+        label: "Google Search Console (verificatie op het domein)",
+        ok: verificatie,
+        uitleg: verificatie
+          ? ""
+          : "Geen Google-verificatie gevonden (TXT-record of meta-tag). Meld het domein aan in Search Console en dien de sitemap in; zeker een nieuw domein blijft anders maandenlang onvindbaar. Let op: is de site al via een bestand of Analytics geverifieerd (door de klant zelf bijvoorbeeld), dan zien wij dat niet en mag je dit negeren.",
+      });
       checks.push({
         sleutel: "online",
         label: "Domein toont de nieuwe site",
