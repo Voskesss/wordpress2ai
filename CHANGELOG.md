@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.5 (27 september 2026)
+
+- Verzendrem op outreach-mails. Het bewerkformulier had versturen als standaardactie, waardoor een Enter in het onderwerpveld de mail zonder vraag verstuurde (echt gebeurd: mail 1 aan Schildersbedrijf Willemsen ging onbedoeld de deur uit). Opslaan is nu de standaardactie en elke verstuurknop stelt eerst een bevestigingsvraag met het e-mailadres erin.
+- Het groene vinkje na een actie verschijnt alleen nog op de knop die echt is ingedrukt. Voorheen toonden bij twee knoppen in één formulier beide hun klaarlabel ("Verstuurd" naast "Opgeslagen" terwijl er alleen opgeslagen was).
+- Nieuwe bewakingstest outreach-verzendrem (met drievoudige bijt-controle).
+
 ## 1.32.4 (27 september 2026)
 
 **De AI-verbeterknop laat afbeeldingen in outreach-mails met rust.** De
