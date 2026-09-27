@@ -68,6 +68,50 @@ async function bewaakteUrls(): Promise<string[] | null> {
   }
 }
 
+export type HostMeting = { status: number; location: string | null };
+
+/** Kloppen www, doorverwijzing en canonical met elkaar? Eén variant hoort de
+ * site te tonen, de ander hoort er met een 301 naartoe te sturen, en de
+ * canonical hoort naar de tonende variant te wijzen. Staat dit scheef, dan
+ * verdeelt Google de posities over twee adressen (les Van den Berg-controle
+ * 27-09: daar stond het gelukkig al goed). */
+export function beoordeelWwwEnCanonical(
+  domein: string,
+  kaal: HostMeting | null,
+  www: HostMeting | null,
+  canonical: string | null,
+  sitemapVoorbeeld: string | null,
+): { ok: boolean; uitleg: string } {
+  const doel = domein.replace(/^www\./, "").toLowerCase();
+  const problemen: string[] = [];
+  if (!kaal || kaal.status < 200 || kaal.status >= 400) problemen.push(`https://${doel} antwoordt niet goed`);
+  else if (kaal.status >= 300) problemen.push(`https://${doel} verwijst door (${kaal.status}) in plaats van de site te tonen`);
+  if (!www || www.status < 200 || www.status >= 400) problemen.push(`https://www.${doel} antwoordt niet`);
+  else if (www.status < 300) problemen.push(`www toont de site ook zelf (hoort met 301 naar ${doel} te sturen, anders staat de site dubbel in Google)`);
+  else if (!(www.location ?? "").includes(`://${doel}`)) problemen.push(`www verwijst door naar ${www.location ?? "onbekend"} in plaats van naar https://${doel}`);
+  if (!canonical) problemen.push("de homepage heeft geen canonical");
+  else {
+    try {
+      const c = new URL(canonical);
+      if (c.protocol !== "https:") problemen.push("de canonical is geen https");
+      if (c.hostname.toLowerCase() !== doel) problemen.push(`de canonical wijst naar ${c.hostname} in plaats van ${doel}`);
+    } catch {
+      problemen.push(`de canonical is geen geldig adres (${canonical})`);
+    }
+  }
+  if (sitemapVoorbeeld) {
+    try {
+      const s = new URL(sitemapVoorbeeld);
+      if (s.hostname.toLowerCase() !== doel) problemen.push(`de sitemap gebruikt ${s.hostname} in plaats van ${doel}`);
+    } catch {
+      /* geen geldig sitemap-adres: laat de sitemap-controle elders het zeggen */
+    }
+  }
+  return problemen.length === 0
+    ? { ok: true, uitleg: "" }
+    : { ok: false, uitleg: `${problemen.join("; ")}.` };
+}
+
 /** Homepage ophalen; null als het domein niet (goed) antwoordt. */
 async function haalHomepage(domein: string): Promise<string | null> {
   try {
@@ -214,6 +258,26 @@ export async function livegangChecks(
         uitleg: verificatie
           ? ""
           : "Geen Google-verificatie gevonden (TXT-record of meta-tag). Meld het domein aan in Search Console en dien de sitemap in; zeker een nieuw domein blijft anders maandenlang onvindbaar. Let op: is de site al via een bestand of Analytics geverifieerd (door de klant zelf bijvoorbeeld), dan zien wij dat niet en mag je dit negeren.",
+      });
+      const meet = async (adres: string): Promise<HostMeting | null> => {
+        try {
+          const res = await fetch(adres, { redirect: "manual", signal: AbortSignal.timeout(6000) });
+          return { status: res.status, location: res.headers.get("location") };
+        } catch {
+          return null;
+        }
+      };
+      const [kaalM, wwwM] = await Promise.all([meet(`https://${domein}/`), meet(`https://www.${domein}/`)]);
+      const canonical = homepage?.match(/<link[^>]+rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)?.[1] ?? homepage?.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["']canonical["']/i)?.[1] ?? null;
+      const sitemapVoorbeeld = await fetch(`https://${domein}/sitemap.xml`, { signal: AbortSignal.timeout(6000) })
+        .then(async (r) => (r.ok ? ((await r.text()).match(/<loc>([^<]+)<\/loc>/)?.[1] ?? null) : null))
+        .catch(() => null);
+      const canoniek = beoordeelWwwEnCanonical(domein, kaalM, wwwM, canonical, sitemapVoorbeeld);
+      checks.push({
+        sleutel: "canoniek",
+        label: "Eén adres voor Google (www, doorverwijzing en canonical)",
+        ok: canoniek.ok,
+        uitleg: canoniek.uitleg,
       });
       checks.push({
         sleutel: "online",

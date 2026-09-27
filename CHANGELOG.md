@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.3 (27 september 2026)
+
+**De livegang-checklist bewaakt nu ook "één adres voor Google".** Bij elke
+live klantsite wordt gecontroleerd dat www netjes doorverwijst naar het kale
+domein, dat de canonical van de homepage naar datzelfde adres wijst en dat
+de sitemap dezelfde huisstijl gebruikt. Staat dat scheef, dan verdeelt
+Google de posities over twee adressen; nu zie je het als rode regel met
+precies wat er mis is. Aanleiding: de controle voor Van den Berg Mediation,
+waar het gelukkig al perfect stond.
+
 ## 1.32.2 (27 september 2026)
 
 **De livegang-checklist controleert nu ook de Google-aanmelding.** Een vers
