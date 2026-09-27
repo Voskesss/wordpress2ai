@@ -60,6 +60,33 @@ export default function MailBewerker({
     }
   }
 
+  /** Voorbeeld of proefmail van precies wat er nu in de vakken staat. */
+  function openVoorbeeld(verstuur: boolean) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/api/admin/outreach-voorbeeld";
+    form.target = "_blank";
+    const velden: Record<string, string> = {
+      onderwerp,
+      tekst,
+      bedrijf: bedrijf ?? "",
+      website: website ?? "",
+      observatie: observatie ?? "",
+      los: los ? "ja" : "nee",
+      verstuur: verstuur ? "ja" : "nee",
+    };
+    for (const [naam, waarde] of Object.entries(velden)) {
+      const invoer = document.createElement("input");
+      invoer.type = "hidden";
+      invoer.name = naam;
+      invoer.value = waarde;
+      form.appendChild(invoer);
+    }
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+  }
+
   async function verbeter() {
     if (!aanwijzing.trim() || bezig) return;
     setBezig(true);
@@ -132,8 +159,24 @@ export default function MailBewerker({
         >
           {uploadt ? "Bezig met uploaden..." : "🖼 Afbeelding toevoegen"}
         </button>
+        <button
+          type="button"
+          onClick={() => openVoorbeeld(false)}
+          className="ml-2 rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-600 cursor-pointer"
+          title="Opent in een nieuw tabblad hoe deze mail er voor de ontvanger uitziet, met voorbeeldgegevens ingevuld"
+        >
+          👁 Bekijk hoe hij eruitgaat
+        </button>
+        <button
+          type="button"
+          onClick={() => openVoorbeeld(true)}
+          className="ml-2 rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-emerald-600 cursor-pointer"
+          title="Stuurt precies deze tekst als proefmail naar jos@wordswap.nl, via het echte verzendpad"
+        >
+          ✉️ Proef naar mijzelf
+        </button>
         <span className="ml-2 text-[11px] text-stone-400">
-          komt op de plek van je cursor, met 👁 zie je hoe hij aankomt
+          de afbeelding komt op de plek van je cursor
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50/50 p-2.5">

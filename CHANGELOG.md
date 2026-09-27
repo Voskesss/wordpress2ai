@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.1 (27 september 2026)
+
+**Outreach: afbeeldingen doen het nu echt, en je kunt eerst kijken en
+proeven.** De afbeelding-knop in de mailbewerker zette een markering neer die
+het outreach-verzendpad niet kende, waardoor er kale codetekst in de mail
+belandde; dat is gerepareerd. En naast de afbeelding-knop staan nu twee
+nieuwe: "Bekijk hoe hij eruitgaat" (opent precies jouw bewerkte tekst zoals
+de ontvanger hem ziet, met voorbeeldgegevens ingevuld) en "Proef naar
+mijzelf" (stuurt hem echt, via het outreach-verzendpad, alleen naar je eigen
+adres). Zo test je een mail volledig voordat er ook maar iets naar een
+prospect gaat.
+
 ## 1.32.0 (26 september 2026)
 
 **Nieuw: het gezondheidsdashboard.** Elke nacht raakt WordSwap al zijn stille

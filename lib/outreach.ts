@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-import { HANDTEKENING } from "./mailer";
+import { BEELD_PATROON, HANDTEKENING } from "./mailer";
 
 export type Prospect = {
   id: number;
@@ -180,6 +180,13 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
     .map((a) => a.trim())
     .filter(Boolean)
     .map((a) => {
+      // Een alinea die alleen uit een afbeeldingsmarkering bestaat wordt het
+      // beeld zelf; voorheen kende alleen de vrije Mailer deze markering en
+      // stond hij hier als kale tekst in de mail (vondst Jos 27-09).
+      const beeld = BEELD_PATROON.exec(a);
+      if (beeld) {
+        return `<img src="${ontsnap(beeld[1])}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:8px;margin:20px 0">`;
+      }
       // Getypte links klikbaar maken (https://... of wordswap.nl/...)
       const met = ontsnap(a)
         .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#245747">$1</a>')

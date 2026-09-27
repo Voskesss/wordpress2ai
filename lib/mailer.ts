@@ -36,7 +36,7 @@ export const HANDTEKENING = handtekening(true);
 /** Breedte waarop mailafbeeldingen worden opgeslagen (2× de toonbreedte, scherp op retina). */
 export const MAIL_BEELD_BREEDTE = 1120;
 /** Markering die de Mailer in de tekst zet op de plek van een afbeelding. */
-const BEELD_PATROON = /^\[afbeelding:\s*(https?:\/\/[^\s\]]+)\s*\]$/i;
+export const BEELD_PATROON = /^\[afbeelding:\s*(https?:\/\/[^\s\]]+)\s*\]$/i;
 
 export function losseMailNaarHtml(tekst: string, metDemo = true): string {
   const alineas = tekst
