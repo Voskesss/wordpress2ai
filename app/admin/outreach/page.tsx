@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { mailSjablonen, prospectMails, prospects } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
+import BevestigKnop from "../klant/[id]/BevestigKnop";
 import { outreachTestmail, prospectBijwerken, prospectMailOpslaan, prospectToevoegen, prospectVerwijderen, verstuurOutreach } from "../acties";
 import { kiesMail, vulIn } from "@/lib/outreach";
 import MailBewerker from "./MailBewerker";
@@ -335,7 +336,8 @@ export default async function Outreach({
                 {mailBaar && (
                   <form action={verstuurOutreach}>
                     <input type="hidden" name="id" value={p.id} />
-                    <ActieKnop
+                    <BevestigKnop
+                      vraag={`Nu echt mail ${volgende} versturen naar ${p.email}? De bewaarde versie gaat de deur uit.`}
                       label={`Verstuur mail ${volgende}${teVroeg ? ` (liever na ${aanbevolenNa} dg)` : ""}`}
                       bezigLabel="Versturen..."
                       className={`rounded-full px-4 py-1.5 text-sm font-semibold cursor-pointer ${
@@ -360,7 +362,11 @@ export default async function Outreach({
                         naar {p.email}
                       </span>
                     </summary>
-                    <form action={verstuurOutreach} className="grid gap-3 px-4 pb-4">
+                    {/* Opslaan is bewust de standaardactie: een Enter in het
+                        onderwerpveld verstuurde anders de mail zonder vraag
+                        (echt gebeurd, Willemsen 27-09). Versturen kan alleen
+                        nog via de knop mét bevestigingsvraag. */}
+                    <form action={prospectMailOpslaan} className="grid gap-3 px-4 pb-4">
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="prospectId" value={p.id} />
                       <input type="hidden" name="nummer" value={volgende} />
@@ -372,14 +378,14 @@ export default async function Outreach({
                         observatie={p.observatie}
                       />
                       <div className="flex flex-wrap gap-2">
-                        <ActieKnop
+                        <BevestigKnop
+                          formAction={verstuurOutreach}
+                          vraag={`Nu echt mail ${volgende} versturen naar ${p.email}? Wat hierboven staat wordt eerst opgeslagen en gaat dan de deur uit.`}
                           label={`Verstuur mail ${volgende} naar ${p.email}`}
                           bezigLabel="Versturen..."
-                          klaarLabel="✓ Verstuurd"
                           className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
                         />
                         <ActieKnop
-                          formAction={prospectMailOpslaan}
                           label="Alleen opslaan"
                           bezigLabel="Opslaan..."
                           className="rounded-full border border-violet-300 px-5 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"

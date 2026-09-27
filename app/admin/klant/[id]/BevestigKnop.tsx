@@ -8,16 +8,20 @@ export default function BevestigKnop({
   bezigLabel,
   vraag,
   className,
+  formAction,
 }: {
   label: string;
   bezigLabel: string;
   vraag: string;
   className?: string;
+  /** Andere serveractie dan die van het formulier (tweede knop in één form). */
+  formAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
+      formAction={formAction}
       disabled={pending}
       onClick={(e) => {
         if (!window.confirm(vraag)) e.preventDefault();

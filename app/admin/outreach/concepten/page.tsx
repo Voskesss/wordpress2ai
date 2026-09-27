@@ -8,6 +8,7 @@ import ActieKnop from "../../klant/[id]/ActieKnop";
 import { prospectMailOpslaan, verstuurOutreach } from "../../acties";
 import ConceptenKnop from "../ConceptenKnop";
 import MailBewerker from "../MailBewerker";
+import BevestigKnop from "../../klant/[id]/BevestigKnop";
 
 export const metadata: Metadata = {
   title: "Concepten",
@@ -105,7 +106,8 @@ export default async function Concepten() {
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3">
                 <form action={verstuurOutreach}>
                   <input type="hidden" name="id" value={p.id} />
-                  <ActieKnop
+                  <BevestigKnop
+                    vraag={`Nu echt mail 1 versturen naar ${p.email}? De bewaarde versie gaat de deur uit.`}
                     label="📤 Verstuur mail 1"
                     bezigLabel="Versturen..."
                     className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"

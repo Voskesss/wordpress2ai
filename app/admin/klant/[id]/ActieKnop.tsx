@@ -25,9 +25,15 @@ export default function ActieKnop({
 }) {
   const { pending } = useFormStatus();
   const wasPending = useRef(false);
+  // useFormStatus geldt voor het hele formulier: zonder dit vinkje-op-de-
+  // gedrukte-knop toonden bij twee knoppen in één form BEIDE hun klaarlabel
+  // ("✓ Verstuurd" naast "✓ Opgeslagen" terwijl er alleen opgeslagen was;
+  // verwarring Jos 27-09).
+  const zelfGedrukt = useRef(false);
   const [klaar, setKlaar] = useState(false);
   useEffect(() => {
-    if (wasPending.current && !pending) {
+    if (wasPending.current && !pending && zelfGedrukt.current) {
+      zelfGedrukt.current = false;
       setKlaar(true);
       const t = setTimeout(() => setKlaar(false), 2500);
       return () => clearTimeout(t);
@@ -40,6 +46,9 @@ export default function ActieKnop({
   return (
     <button
       type="submit"
+      onClick={() => {
+        zelfGedrukt.current = true;
+      }}
       formAction={formAction}
       title={title}
       disabled={pending}
