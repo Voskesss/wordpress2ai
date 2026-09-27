@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.4 (27 september 2026)
+
+**De AI-verbeterknop laat afbeeldingen in outreach-mails met rust.** De
+herschrijf-AI kende de afbeelding-markering niet en kon hem bij "maak het
+korter" per ongeluk omschrijven tot een kale link; nu weet hij dat zo'n
+regel exact moet blijven staan, netjes op een eigen regel.
+
 ## 1.32.3 (27 september 2026)
 
 **De livegang-checklist bewaakt nu ook "één adres voor Google".** Bij elke

@@ -38,4 +38,8 @@ const bewerker = await readFile("app/admin/outreach/MailBewerker.tsx", "utf8");
 assert.ok(bewerker.includes("Bekijk hoe hij eruitgaat") && bewerker.includes("Proef naar mijzelf"), "de knoppen ontbreken");
 assert.ok(bewerker.includes('form.action = "/api/admin/outreach-voorbeeld"'), "de knoppen wijzen niet naar de voorbeeldroute");
 
+// 5. De AI-verbeterknop weet dat de markering heilig is
+const verbeter = await readFile("app/api/admin/mail-verbeter/route.ts", "utf8");
+assert.ok((verbeter.match(/Laat zo'n regel EXACT staan/g) ?? []).length === 2, "de markering-regel ontbreekt in een van de twee verbeter-prompts");
+
 console.log("outreach-beeld: ok");
