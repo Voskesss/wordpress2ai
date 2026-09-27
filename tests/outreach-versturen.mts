@@ -22,9 +22,12 @@ assert.equal(
   "meer dan één bewerkvak op de outreachpagina: dan gaan twee versies uit elkaar lopen"
 );
 
-// 2. Dat vak zit in het formulier dat ook verstuurt
+// 2. Dat vak zit in een formulier dat kan versturen, maar via de knop
+//    (formAction), niet als standaardactie: Enter mag nooit versturen
+//    (echt gebeurd 27-09, zie tests/outreach-verzendrem.mts)
 const vak = pagina.slice(pagina.indexOf("lezen, aanpassen en versturen"));
-assert.ok(vak.includes("action={verstuurOutreach}"), "het bewerkvak verstuurt niet zelf");
+assert.ok(vak.includes("formAction={verstuurOutreach}"), "het bewerkvak kan niet meer versturen");
+assert.ok(!vak.includes("action={verstuurOutreach} className"), "versturen is weer de standaardactie van het bewerkvak");
 assert.ok(vak.includes("<MailBewerker"), "het verstuurformulier bevat geen bewerkvak");
 assert.ok(/name="nummer"/.test(vak), "het verstuurformulier geeft geen mailnummer mee");
 
