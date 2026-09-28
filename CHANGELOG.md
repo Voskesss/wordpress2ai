@@ -20,6 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.3 (28 september 2026)
+
+Twee dingen in je portaal die verwarrend waren. De knop om een testmail
+van je bevestigingsmail te sturen zegt nu naar welk adres hij gaat, en
+daarna "verstuurd naar ...". Eerst stond er alleen "naar mij", en dan
+verwacht je hem misschien op een ander adres dan waarmee je inlogt.
+
+En een logo dat we op je site vonden maar dat je nog niet gekozen hebt,
+staat nu half doorzichtig met "nog niet gekozen" erbij. Het leek al in
+je mails te staan, terwijl je het eerst nog moet kiezen.
+
 ## 1.34.2 (28 september 2026)
 
 Inhaalslag: zeven wijzigingen van 26 en 28 september die alleen op de werkcomputer stonden en nooit waren uitgerold (het versienummer dat ze droegen, 1.31.6, was al bezet).
