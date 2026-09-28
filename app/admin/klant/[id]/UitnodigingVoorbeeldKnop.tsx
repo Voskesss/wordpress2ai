@@ -16,6 +16,10 @@ export default function UitnodigingVoorbeeldKnop({ siteId }: { siteId: number })
           const w = String(fd.get(veld) ?? "").trim();
           if (w) q.set(param, w);
         }
+        // Het rapport zelf kan niet mee in een voorbeeld-link; de naam wel,
+        // zodat je de bijlage en de bijlage-zin terugziet
+        const rapport = fd.get("rapport");
+        if (rapport instanceof File && rapport.size > 0) q.set("rapport", rapport.name);
         window.open(`/api/admin/uitnodiging-voorbeeld?${q.toString()}`, "_blank", "noopener");
       }}
       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-stone-300 text-base font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-700 cursor-pointer"

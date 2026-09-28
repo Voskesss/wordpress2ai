@@ -38,7 +38,15 @@ assert.ok(koppel.includes("10 * 1024 * 1024"), "de maat-rem van 10 MB ontbreekt"
 assert.ok(koppel.includes("bijlagen: [rapport]"), "het rapport gaat niet als bijlage mee in de mail");
 assert.ok(koppel.includes("bijlageNaam: rapport"), "de mailtekst weet niet dat er een bijlage meegaat");
 
-// 4. De server-action-limiet is verhoogd (standaard 1 MB, dan faalt elke echte pdf)
+// 4. Het ⓘ-voorbeeld toont de bijlage: de knop geeft de bestandsnaam door
+//    en de route zet hem in de mail én als bijlage-regel in het kopje
+const knop = await readFile("app/admin/klant/[id]/UitnodigingVoorbeeldKnop.tsx", "utf8");
+assert.ok(knop.includes('fd.get("rapport")') && knop.includes('q.set("rapport", rapport.name)'), "de voorbeeldknop geeft de rapportnaam niet door");
+const route = await readFile("app/api/admin/uitnodiging-voorbeeld/route.ts", "utf8");
+assert.ok(route.includes('bijlageNaam: q.get("rapport")'), "het voorbeeld bouwt de mail zonder bijlage-zin");
+assert.ok(route.includes("Bijlage:"), "het voorbeeld toont de bijlage-regel niet in het kopje");
+
+// 5. De server-action-limiet is verhoogd (standaard 1 MB, dan faalt elke echte pdf)
 const config = await readFile("next.config.ts", "utf8");
 assert.ok(/bodySizeLimit:\s*"12mb"/.test(config), "de bodySizeLimit voor server actions is niet verhoogd");
 
