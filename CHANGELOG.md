@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.1 (28 september 2026)
+
+- Handtekening onder formuliermails: de bedrijfsnaam onder het logo kan uit (keuze in het handtekeningformulier in portaal en admin). Handig als de naam al in het logo staat. Zonder logo blijft de naam altijd staan.
+- Vereist de kolom mail_naam_verbergen (db/migrations/20260928-mail-naam-verbergen.sql) op de database vóór de uitrol.
+
 ## 1.34.0 (28 september 2026)
 
 Een nieuw bericht, project of dienst maakt de chat nu op basis van een
