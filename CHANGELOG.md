@@ -20,6 +20,22 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.2 (28 september 2026)
+
+Inhaalslag: zeven wijzigingen van 26 en 28 september die alleen op de werkcomputer stonden en nooit waren uitgerold (het versienummer dat ze droegen, 1.31.6, was al bezet).
+
+**Zoeken op de telefoon werkt overal hetzelfde, zoals bij Van den Berg.** Het vergrootglas staat op een smal scherm in de kopbalk naast de menuknop, en het zoekvenster klapt over de volle breedte direct onder de kop open, altijd bovenop de pagina. Een zoekveld dat op een groot scherm gewoon zichtbaar is, wordt op de telefoon vanzelf een vergrootglas.
+
+**Het mobiele menu valt niet meer achter de pagina.** De controle voor oplevering opent het menu nu op telefoonformaat en kijkt of alle menulinks echt bovenop liggen. Ook ziet hij het als een telefoon de pagina uitzoomt omdat er iets buiten beeld staat.
+
+**De ontwerpbalk blijft op de telefoon één regel.** Op een smal scherm liep de tekst over twee regels en schoof hij over het logo van de site heen.
+
+- De verdwenen-check herkent ook het zoekveld in de bovenbalk.
+- De dubbele-foto-check slaat beelden over die voor de bezoeker verborgen zijn (tweede kopie in een lopende logostrook).
+- Migratierapport als pdf in WordSwap-huisstijl (scripts/migratie-rapport.mts), vaste stap na elke migratie. Past bij het rapportveld in de koppelmail.
+- Poortregel link-tekst: een link met alleen een beeld zonder beschrijving is een fout.
+- Leerpunten van de migraties Summit Group (YOOtheme) en UNDSQVRD (Webflow) in de skill.
+
 ## 1.34.1 (28 september 2026)
 
 - Handtekening onder formuliermails: de bedrijfsnaam onder het logo kan uit (keuze in het handtekeningformulier in portaal en admin). Handig als de naam al in het logo staat. Zonder logo blijft de naam altijd staan.
