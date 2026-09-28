@@ -25,12 +25,14 @@ export async function GET(req: Request) {
     inlogUrl: "https://www.wordswap.nl/portal",
     naam: q.get("naam")?.trim() || null,
     eigenTekst: q.get("bericht")?.trim() || null,
+    bijlageNaam: q.get("rapport")?.trim() || null,
   });
+  const rapportNaam = q.get("rapport")?.trim() || "";
   const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voorbeeld: uitnodigingsmail</title></head>
 <body style="margin:0;background:#e9ece4;font-family:-apple-system,'Segoe UI',sans-serif">
 <div style="max-width:640px;margin:0 auto;padding:20px 12px">
 <p style="margin:0 0 10px;font-size:13px;color:#57534e">Voorbeeld, er is niets verstuurd. Deze mail gaat naar <strong>${ontsnap(email)}</strong> zodra je op <em>Koppel / nodig uit</em> klikt.</p>
-<p style="margin:0 0 14px;font-size:14px;background:#fff;border-radius:10px;padding:10px 14px"><span style="color:#78716c">Onderwerp:</span> <strong>${ontsnap(mail.onderwerp)}</strong><br><span style="color:#78716c">Van:</span> Jos van WordSwap</p>
+<p style="margin:0 0 14px;font-size:14px;background:#fff;border-radius:10px;padding:10px 14px"><span style="color:#78716c">Onderwerp:</span> <strong>${ontsnap(mail.onderwerp)}</strong><br><span style="color:#78716c">Van:</span> Jos van WordSwap${rapportNaam ? `<br><span style="color:#78716c">Bijlage:</span> 📎 ${ontsnap(rapportNaam)}` : ""}</p>
 ${mail.html}
 </div></body></html>`;
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
