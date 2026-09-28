@@ -327,6 +327,28 @@ export default function Chat({
   // Aandachttrekker voor nieuwe gebruikers; verdwijnt zodra er getypt wordt.
   const [hintWeg, setHintWeg] = useState(false);
   const toonHint = !hintWeg && berichten.length === 0 && !bezig && !chatOpen && !concept;
+  // Voorbeeld in de hint uit de ÉCHTE pagina van de klant (28-09): een vast
+  // openingstijden-voorbeeld sloeg nergens op bij een site zonder
+  // openingstijden. We lezen de huidige pagina via dezelfde route als de
+  // fotobank-miniaturen; lukt dat niet, dan blijft de vaste zin staan.
+  const [hintVoorbeeld, setHintVoorbeeld] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toonHint || !previewAccess || hintVoorbeeld) return;
+    let weg = false;
+    (async () => {
+      try {
+        const pad = huidigeRef.current === "/" ? "" : huidigeRef.current.replace(/^\//, "");
+        const res = await fetch(`/site-weergave/${previewAccess}/${pad}`);
+        if (!res.ok) return;
+        const { voorbeeldOpdracht } = await import("@/lib/voorbeeld-opdracht");
+        const v = voorbeeldOpdracht(await res.text());
+        if (!weg) setHintVoorbeeld(v);
+      } catch {}
+    })();
+    return () => {
+      weg = true;
+    };
+  }, [toonHint, previewAccess, hintVoorbeeld]);
   const [reloadTeller, setReloadTeller] = useState(0);
   // Live-adres kan na publiceren wijzigen (demo: van de gedeelde demo naar de eigen live-site)
   const [liveUrl, setLiveUrl] = useState<string | null | undefined>(liveUrlProp);
@@ -3215,8 +3237,8 @@ export default function Chat({
                   Wat wil je op je website veranderen?
                 </p>
                 <p className="mt-0.5 text-sm text-violet-100">
-                  Typ wat je veranderd wilt hebben — bijvoorbeeld:
-                  &ldquo;zet de openingstijden op zaterdag tot 17:00&rdquo;
+                  Typ wat je veranderd wilt hebben, bijvoorbeeld:
+                  &ldquo;{hintVoorbeeld ?? "zet de openingstijden op zaterdag tot 17:00"}&rdquo;
                 </p>
               </div>
               <svg
