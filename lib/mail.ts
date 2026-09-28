@@ -35,6 +35,7 @@ export type MailSite = {
   mailHandtekening?: string | null;
   mailLogoUrl?: string | null;
   mailKleur?: string | null;
+  mailNaamVerbergen?: boolean | null;
   smtpHost: string | null;
   smtpPoort: number | null;
   smtpGebruiker: string | null;
@@ -67,14 +68,16 @@ export function metKlantOpmaak(site: MailSite, html: string): string {
   const logo = site?.mailLogoUrl && /^https?:\/\//.test(site.mailLogoUrl)
     ? `<img src="${ontsnapHtml(site.mailLogoUrl)}" alt="${naam}" style="max-height:56px;max-width:220px;display:block;margin:0 0 12px">`
     : "";
+  // De naam mag alleen weg als er een logo staat: anders is de mail naamloos
+  const naamRegel = logo && site?.mailNaamVerbergen ? "" : `<p style="margin:0;font-weight:700;color:${kleur}">${naam}</p>`;
   const website = toonDomein
     ? `<a href="https://${ontsnapHtml(toonDomein)}" style="color:${kleur};font-weight:600;text-decoration:none">${ontsnapHtml(toonDomein)}</a>`
     : "";
   return `<div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px">
 ${html}
 <div style="margin-top:28px;padding-top:18px;border-top:2px solid ${kleur}">
-${logo}<p style="margin:0;font-weight:700;color:${kleur}">${naam}</p>
-${regels.length ? `<p style="margin:4px 0 0;color:#57534e">${regels.join("<br>")}</p>` : ""}
+${logo}${naamRegel}
+${regels.length ? `<p style="margin:${naamRegel ? "4px" : "0"} 0 0;color:#57534e">${regels.join("<br>")}</p>` : ""}
 ${website ? `<p style="margin:6px 0 0">${website}</p>` : ""}
 </div>
 ${toonDomein ? `<p style="margin:18px 0 0;font-size:12px;color:#a8a29e">Deze e-mail is automatisch verstuurd via het formulier op ${ontsnapHtml(toonDomein)}.</p>` : ""}

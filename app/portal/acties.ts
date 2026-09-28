@@ -53,6 +53,7 @@ export async function bewaarMailHandtekening(formData: FormData) {
       mailHandtekening: handtekening || null,
       mailLogoUrl: logoUrl || null,
       mailKleur: /^#[0-9a-fA-F]{6}$/.test(kleur) ? kleur : null,
+      mailNaamVerbergen: formData.get("naamTonen") !== "ja",
     })
     .where(eq(sites.id, site.id));
   revalidatePath("/portal");

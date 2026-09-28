@@ -51,6 +51,7 @@ export default async function SiteExtra({
   mailHandtekening,
   mailLogoUrl,
   mailKleur,
+  mailNaamVerbergen,
   online = true,
 }: {
   siteId: number;
@@ -61,6 +62,7 @@ export default async function SiteExtra({
   mailHandtekening?: string | null;
   mailLogoUrl?: string | null;
   mailKleur?: string | null;
+  mailNaamVerbergen?: boolean | null;
   /** Staat de site online (worker bestaat)? Anders kan er geen logo geladen of geüpload worden. */
   online?: boolean;
 }) {
@@ -284,6 +286,21 @@ export default async function SiteExtra({
                 <input name="kleur" type="color" defaultValue={mailKleur ?? "#292524"} className="h-10 w-14 cursor-pointer rounded-lg border border-stone-300 bg-white p-1" />
                 <span className="text-xs text-stone-500">Kies de hoofdkleur van je site</span>
               </div>
+            </label>
+            <label className="flex items-start gap-2 text-sm sm:col-span-2">
+              <input
+                name="naamTonen"
+                type="checkbox"
+                value="ja"
+                defaultChecked={!mailNaamVerbergen}
+                className="mt-1 h-4 w-4 cursor-pointer accent-violet-700"
+              />
+              <span>
+                <span className="font-semibold">Bedrijfsnaam onder het logo tonen</span>
+                <span className="block text-stone-500">
+                  Staat je naam al in het logo? Zet dit dan uit, anders staat hij er twee keer. Zonder logo blijft de naam altijd staan.
+                </span>
+              </span>
             </label>
           </div>
           <ActieKnop label="Handtekening opslaan" bezigLabel="Opslaan..." className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" />

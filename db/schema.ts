@@ -56,6 +56,9 @@ export const sites = pgTable("sites", {
   mailHandtekening: text("mail_handtekening"),
   mailLogoUrl: text("mail_logo_url"),
   mailKleur: text("mail_kleur"),
+  // Naam onder het logo weglaten (het logo bevat de naam vaak al). Werkt alleen
+  // mét logo: zonder logo blijft de naam altijd staan.
+  mailNaamVerbergen: boolean("mail_naam_verbergen").notNull().default(false),
   // Uitgenodigde klant die nog geen account heeft; gekoppeld zodra hij inlogt
   uitnodigingEmail: text("uitnodiging_email"),
   // Witlabel-mail: formulier-mails via de eigen mailserver van de klant (SMTP).

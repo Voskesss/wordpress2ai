@@ -428,6 +428,7 @@ export default async function Portal({
                     mailHandtekening={site.mailHandtekening}
                     mailLogoUrl={site.mailLogoUrl}
                     mailKleur={site.mailKleur}
+                    mailNaamVerbergen={site.mailNaamVerbergen}
                     online={Boolean(site.siteSlug)}
                     notificatieEmail={site.notificatieEmail}
                   />
