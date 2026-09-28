@@ -20,6 +20,18 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.0 (28 september 2026)
+
+Een nieuw bericht, project of dienst maakt de chat nu op basis van een
+bestaande pagina: hij kopieert een vergelijkbare pagina en past alleen aan
+wat anders is (titel, datum, tekst, foto). Eerst typte hij de hele pagina
+opnieuw uit. Dat scheelt ongeveer een derde van de kosten van zo'n klus,
+en de opmaak is gegarandeerd gelijk aan je andere berichten.
+
+Reparatie: een automatische nabewerking zette bij sommige afbeeldingen
+een instelling twee keer in de code. Onzichtbaar voor bezoekers, maar
+slordig; dat gebeurt niet meer.
+
 ## 1.33.0 (28 september 2026)
 
 De chat werkt nu ongeveer twee keer zo zuinig. Bij een klus met meerdere
