@@ -20,6 +20,27 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.33.0 (28 september 2026)
+
+De chat werkt nu ongeveer twee keer zo zuinig. Bij een klus met meerdere
+stappen stuurde hij elke stap alles wat hij al gelezen had opnieuw mee
+tegen de volle prijs; dat komt nu grotendeels uit het geheugen. Op een
+grote site kostte een nieuw bericht zo'n 50 cent en werd het halverwege
+afgekapt; nu kost dezelfde klus de helft en wordt hij afgemaakt. Dat
+betekent ook dat je maandbudget verder reikt.
+
+Vraag je om een nieuw bericht "bij actueel", dan zet de chat het nu ook
+echt in het Actueel-blok op je homepage, in plaats van eerst te vragen
+waar het moet komen. Heeft dat blok een vast aantal tegels, dan valt het
+oudste bericht eraf en hoor je welk. En hij doet eerst het zichtbare
+werk, zodat er nooit een half bericht zonder vermelding blijft staan.
+
+Het voorbeeld in de paarse hint van de chat komt nu uit je eigen pagina:
+een echte knop, prijs of kop, in plaats van altijd de openingstijden.
+
+Op wordswap.nl zelf: een Meta-pixel achter de cookiekeuze, met de
+cookiebalk en het privacybeleid daarop aangepast.
+
 ## 1.32.7 (28 september 2026)
 
 - Het ⓘ-voorbeeld van de koppelmail toont nu ook het opleverrapport: een bijlage-regel in het kopje en de bijlage-zin in de mail, op basis van het gekozen bestand.
