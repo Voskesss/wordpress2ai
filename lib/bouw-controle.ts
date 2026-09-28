@@ -220,6 +220,20 @@ export async function controleerSiteMap(
       if (!/\balt=/.test(img[0]))
         fout("alt-teksten", rel, `img zonder alt (regel ${eersteRegelNummer(inhoud, img.index ?? 0)}).`);
 
+    // 4a. Een link moet een naam hebben. Een link met alleen een beeld met
+    // lege alt ("<a href=…><img alt=""></a>") is voor een schermlezer en een
+    // AI-agent een link zonder bestemming; Lighthouse ("Agentisch browsen")
+    // keurt hem af. Les Van den Berg 28-09: 522 kaartlinks in artikelkaarten.
+    for (const a of inhoud.matchAll(/<a\b([^>]*)>\s*(<img\b[^>]*>)\s*<\/a>/gi)) {
+      if (/\baria-label(ledby)?=/i.test(a[1])) continue;
+      if (/\balt=(["'])\s*\1/i.test(a[2]))
+        fout(
+          "link-tekst",
+          rel,
+          `Link met alleen een beeld zonder alt-tekst (regel ${eersteRegelNummer(inhoud, a.index ?? 0)}): geef het beeld een alt die zegt waar de link heen gaat, of de link een aria-label.`,
+        );
+    }
+
     // 4b. Dezelfde foto niet twee keer groot op één pagina (bv. een
     // dienst-tegel en een projectkaart met hetzelfde beeld onder elkaar).
     // Zoals de bezoeker hem ziet: mét ingevoegde blokken. Formaatvarianten
