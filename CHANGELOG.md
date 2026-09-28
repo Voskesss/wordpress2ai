@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.7 (28 september 2026)
+
+- Het ⓘ-voorbeeld van de koppelmail toont nu ook het opleverrapport: een bijlage-regel in het kopje en de bijlage-zin in de mail, op basis van het gekozen bestand.
+
 ## 1.32.6 (28 september 2026)
 
 - Opleverrapport bijvoegen bij het koppelen van een klantaccount: een pdf (max 10 MB) gaat als bijlage mee in de koppelmail, met een zin in de mail die de bijlage aankondigt. Het veld zit in het hoofdformulier en bij het opnieuw sturen van de mail. Een fout bestand wordt geweigerd vóór er iets wordt aangemaakt.
