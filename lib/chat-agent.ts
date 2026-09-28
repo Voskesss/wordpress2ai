@@ -339,6 +339,13 @@ export async function draaiChatAgent(opties: {
       {
         model: opties.model,
         max_tokens: 16000,
+        // Automatische caching op het groeiende gesprek: de API zet de
+        // markering zelf op het laatste blok en schuift hem elke stap mee.
+        // Zonder dit ging alles na de systeemprompt (opdracht, plattegrond,
+        // alles wat al gelezen was) élke stap opnieuw tegen de volle prijs
+        // mee; een kleine klus op een grote site (EVC 28-09: nieuw bericht
+        // bij Actueel) kostte zo 53 cent en liep tegen het plafond.
+        cache_control: { type: "ephemeral" },
         system: [
           { type: "text", text: opties.systeem, cache_control: { type: "ephemeral" } },
         ],
