@@ -72,6 +72,17 @@ assert.match(html, /<img loading="lazy" decoding="async" src="twee\.webp"/, "twe
 assert.ok(/drie\.webp"[^>]*/.test(html) && html.match(/<img[^>]*drie[^>]*>/)![0].includes('loading="eager"'), "bestaande keuze blijft staan");
 assert.equal(fixes.filter((f) => f.includes("lazy")).length, 1);
 
+// Staat decoding er al, dan niet nóg een keer toevoegen (dubbel attribuut, EVC 28-09)
+map = await site({
+  "index.html": `<html><body><img src="hero.webp" alt="Hero"><img src="icoon.webp" width="120" alt="" decoding="async"></body></html>`,
+});
+await herstelAfspraken(map, ["index.html"], "x");
+{
+  const tag = (await lees(map, "index.html")).match(/<img[^>]*icoon[^>]*>/)![0];
+  assert.equal((tag.match(/decoding=/g) ?? []).length, 1, "decoding staat dubbel in dezelfde tag");
+  assert.ok(tag.includes('loading="lazy"'), "de afbeelding wordt niet meer lui geladen");
+}
+
 // ── Meldingen voor wat niet te verzinnen valt ──────────────────────────────
 map = await site({
   "team/index.html": `<html><body><!--invoeg:menu--><img src="jan.webp"><form action="/api/formulier"><input name="naam"></form></body></html>`,

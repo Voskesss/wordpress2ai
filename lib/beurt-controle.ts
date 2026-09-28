@@ -85,7 +85,10 @@ export async function herstelAfspraken(
       eersteGezien = true;
       if (isEerste || /\bloading=/.test(tag)) return tag;
       gedaan.push(`lazy loading toegevoegd op ${rel}`);
-      return tag.replace(/^<img/i, '<img loading="lazy" decoding="async"');
+      // decoding alleen als hij er nog niet staat: anders kreeg een tag hem
+      // twee keer (EVC-homepage 28-09, vijf icoontjes met dubbel attribuut)
+      const extra = /\bdecoding=/.test(tag) ? 'loading="lazy"' : 'loading="lazy" decoding="async"';
+      return tag.replace(/^<img/i, `<img ${extra}`);
     });
 
     if (html !== voor) await writeFile(abs, html);
