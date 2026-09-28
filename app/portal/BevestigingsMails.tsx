@@ -1,3 +1,4 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierBevestigingen, sites } from "@/db/schema";
@@ -29,6 +30,9 @@ const leesbaar = (naam: string) => (naam.charAt(0).toUpperCase() + naam.slice(1)
  * in de admin bij de klant (WordSwap); wie het laatst wijzigde is zichtbaar.
  */
 export default async function BevestigingsMails({ siteId }: { siteId: number }) {
+  // Laten zien wáár de testmail heen gaat: Jos verwachtte zijn werkadres,
+  // hij ging naar zijn inlogadres (28-09). Zelfde bron als testBevestiging.
+  const testAdres = (await currentUser())?.emailAddresses?.[0]?.emailAddress ?? null;
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return null;
   const rijen = await db
@@ -140,9 +144,9 @@ export default async function BevestigingsMails({ siteId }: { siteId: number }) 
                       <form action={testBevestiging}>
                         {velden(r.formulier)}
                         <ActieKnop
-                          label="Stuur test naar mij"
+                          label={testAdres ? `Stuur test naar ${testAdres}` : "Stuur test naar mij"}
                           bezigLabel="Versturen..."
-                          klaarLabel="✓ Verstuurd"
+                          klaarLabel={testAdres ? `✓ Verstuurd naar ${testAdres}` : "✓ Verstuurd"}
                           className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:border-emerald-600 hover:text-emerald-800 cursor-pointer"
                         />
                       </form>

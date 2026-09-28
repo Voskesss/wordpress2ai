@@ -309,12 +309,24 @@ export default async function SiteExtra({
         {/* Logo: voorbeeld + uploaden */}
         <form action={uploadMailLogo} className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
           <input type="hidden" name="siteId" value={siteId} />
-          <div className="flex h-16 w-40 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white p-2">
+          {/* Een gevonden maar nog niet gekozen logo mag er niet uitzien alsof
+              hij al in de mails staat (Jos 28-09 dacht dat hij meeging):
+              half doorzichtig, met een label eronder. */}
+          <div className="relative flex h-16 w-40 shrink-0 items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white p-2">
             {mailLogoUrl || gevondenLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mailLogoUrl ?? gevondenLogo ?? ""} alt="Logo" className="max-h-12 max-w-full object-contain" />
+              <img
+                src={mailLogoUrl ?? gevondenLogo ?? ""}
+                alt="Logo"
+                className={`max-h-12 max-w-full object-contain ${mailLogoUrl ? "" : "opacity-50"}`}
+              />
             ) : (
               <span className="text-xs text-stone-400">{online ? "geen logo gevonden" : "site nog niet online"}</span>
+            )}
+            {!mailLogoUrl && gevondenLogo && (
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                nog niet gekozen
+              </span>
             )}
           </div>
           <div className="min-w-0 flex-1">
@@ -323,7 +335,7 @@ export default async function SiteExtra({
               {mailLogoUrl
                 ? "Dit logo staat nu in je mails."
                 : gevondenLogo
-                  ? "Dit logo vonden we op je site. Gebruiken, of een ander bestand kiezen."
+                  ? "Dit logo vonden we op je site, maar het staat nog niet in je mails. Klik op \"Gebruik dit logo\" of kies een ander bestand."
                   : online
                     ? "Kies een afbeelding (png, jpg, webp, svg); hij komt op je site en in je mails."
                     : "Zet de site eerst online; dan kan het logo geladen worden in de mails."}
