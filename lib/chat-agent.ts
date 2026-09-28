@@ -269,9 +269,35 @@ export async function draaiChatAgent(opties: {
       },
     },
     {
+      // Nieuwe pagina in het stramien van een bestaande (bericht, project,
+      // dienst): kopiëren en dan alleen de verschillen bewerken is veel
+      // goedkoper dan de hele pagina opnieuw uittypen (uitvoer kost vijf
+      // keer zoveel als invoer), en de opmaak blijft gegarandeerd gelijk.
+      naam: "kopieer_bestand",
+      omschrijving:
+        "Kopieert een bestaand bestand naar een nieuw pad (mappen worden aangemaakt). Gebruik dit om een nieuwe pagina te maken in hetzelfde stramien als een bestaande (nieuw bericht, project of dienst): kopieer een vergelijkbare pagina en pas daarna met bewerk_bestand alleen aan wat anders moet (titel, datum, tekst, foto, links). Overschrijft nooit een bestaand bestand.",
+      schema: z.object({ van: z.string(), naar: z.string() }),
+      jsonSchema: { type: "object", properties: { van: tekstSchema(), naar: tekstSchema() }, required: ["van", "naar"] },
+      run: async ({ van, naar }: { van: string; naar: string }) => {
+        opGebeurtenis({ soort: "tool", naam: "kopieer_bestand", invoer: { pad: naar, van } });
+        const bron = await veiligPad(werkmap, van);
+        const doel = await veiligPad(werkmap, naar);
+        if (!bron || !doel) return buitenSite;
+        const inhoud = await readFile(bron).catch(() => null);
+        if (inhoud === null) return fout(`kan ${van} niet lezen.`);
+        const bestaatAl = await stat(doel).then(() => true, () => false);
+        if (bestaatAl) return fout(`${naar} bestaat al; kies een ander pad of bewerk dat bestand met bewerk_bestand.`);
+        await opBestand(doel, async () => {
+          await mkdir(path.dirname(doel), { recursive: true });
+          await writeFile(doel, inhoud);
+        });
+        return `Gekopieerd naar ${naar}. Pas nu met bewerk_bestand aan wat anders moet; alles wat je niet aanpast blijft gelijk aan ${van}.`;
+      },
+    },
+    {
       naam: "schrijf_bestand",
       omschrijving:
-        "Maakt een nieuw bestand aan of overschrijft een bestaand bestand volledig met de gegeven inhoud. Gebruik voor nieuwe pagina's; voor kleine aanpassingen gebruik je bewerk_bestand.",
+        "Maakt een nieuw bestand aan of overschrijft een bestaand bestand volledig met de gegeven inhoud. Gebruik voor nieuwe pagina's zonder bestaand voorbeeld; lijkt de nieuwe pagina op een bestaande, gebruik dan kopieer_bestand. Voor kleine aanpassingen gebruik je bewerk_bestand.",
       schema: z.object({ pad: z.string(), inhoud: z.string() }),
       jsonSchema: { type: "object", properties: { pad: tekstSchema(), inhoud: tekstSchema() }, required: ["pad", "inhoud"] },
       run: async ({ pad, inhoud }: { pad: string; inhoud: string }) => {

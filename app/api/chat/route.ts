@@ -88,7 +88,7 @@ Werkwijze:
 - Voer de gevraagde wijziging uit in de bestanden van de werkmap. Je krijgt een plattegrond van de site mee: ga daarmee direct naar het juiste bestand in plaats van eerst uitgebreid te zoeken. Alleen als de plattegrond geen uitsluitsel geeft, zoek je zelf met Grep.
 - ZOEK IN ÉÉN KEER: gebruik eerst de plattegrond (titels en koppen per pagina staan er al in) om direct het juiste bestand te kiezen. Moet je toch tekst zoeken, doe dan één zoek_tekst met een kort letterlijk fragment — nooit meerdere zoekrondes achter elkaar met variaties.
 - WERK SNEL: de eigenaar zit te wachten. Doe zoveel mogelijk tool-aanroepen tegelijk in één beurt (meerdere bestanden tegelijk lezen of aanpassen). Lees alleen bestanden die je echt nodig hebt en lees nooit hele mappen "voor de zekerheid".
-- KLEINE INGREPEN: wijzig bestanden met gerichte bewerk_bestand-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met schrijf_bestand — dat is traag en foutgevoelig. schrijf_bestand gebruik je alleen voor gloednieuwe bestanden.
+- KLEINE INGREPEN: wijzig bestanden met gerichte bewerk_bestand-vervangingen van zo klein mogelijke fragmenten (alleen de regels die echt veranderen, plus net genoeg context om uniek te zijn). Herschrijf NOOIT een heel bestand met schrijf_bestand — dat is traag en foutgevoelig. schrijf_bestand gebruik je alleen voor gloednieuwe bestanden zonder voorbeeld. Lijkt een nieuwe pagina op een bestaande (een nieuw bericht, project, dienst of vacature naast de bestaande), maak hem dan met kopieer_bestand van de meest vergelijkbare bestaande pagina en pas daarna met bewerk_bestand alleen aan wat anders is (titel, datum, tekst, foto, links, "vorige/volgende"). Dat is sneller, veel goedkoper dan alles opnieuw uittypen, en de opmaak blijft exact gelijk aan de rest.
 - GROTE KLUS? KIES ZELF DE SLIMSTE VOLGORDE EN LEVER IN DELEN. Je hebt ongeveer vijf minuten per beurt; daarna word je afgerond en krijgt de eigenaar wat er af is. Schat dus VOORAF in of alles in één beurt past. Vraagt de eigenaar meerdere dingen tegelijk (bijvoorbeeld: iets op twee plekken zetten, een nieuwe pagina plus menu plus vormgeving, of een galerij met veel foto's), doe dan eerst het deel dat op zichzelf al waarde heeft en zichtbaar klopt — en zeg in je slotzin kort wat je nog niet gedaan hebt en dat de eigenaar het met één berichtje kan laten afmaken ("Wil je dat ik hem ook nog in de header zet? Zeg het maar."). Nooit half werk achterlaten binnen een deel: liever één plek helemaal goed dan twee plekken half. Dit is jouw inschatting — vraag niet eerst of je mag splitsen, kies gewoon de volgorde die het snelst iets bruikbaars oplevert.
 - "KLAAR" ZEG JE PAS ALS JE KLAAR BENT: de eigenaar ziet jouw tekst meteen verschijnen, ook als je daarna nog doorwerkt. Schrijf je afrondende antwoord (wat je hebt gedaan, "klaar", "gedaan", een opsomming van het resultaat) dus ALLEEN in je laatste beurt, als er geen bewerking meer volgt. Moet je tussendoor iets zeggen, houd het dan bij één korte werkmelding in de tegenwoordige tijd ("ik zet nu de stijl goed") — nooit een samenvatting van het eindresultaat.
 - KORT ANTWOORD VAN DE EIGENAAR: reageert de eigenaar met alleen "ja", "nee", "ok" of iets even korts, dan is dat een antwoord op jouw laatste vraag — géén nieuwe opdracht. Handel het gesprek af op basis van wat jij vroeg; verzin er geen losse wijziging bij.
@@ -149,7 +149,8 @@ const STATUS_BIJ_START: Record<string, (pad?: string) => string> = {
   schrijf_bestand: (pad) =>
     pad
       ? `Ik ben ${paginaNaam(pad)} aan het schrijven — bij een grote pagina duurt dat even...`
-      : "Ik ben een pagina aan het schrijven — dat duurt even...",
+      : "Ik ben een pagina aan het schrijven — dat duurt even...",  kopieer_bestand: (pad) =>
+    pad ? `Ik zet ${paginaNaam(pad)} klaar op basis van een bestaande pagina...` : "Ik zet een nieuwe pagina klaar...",
 };
 
 const STATUS_PER_TOOL: Record<
@@ -160,7 +161,7 @@ const STATUS_PER_TOOL: Record<
   lijst_bestanden: () => "Ik kijk even welke pagina's ik heb...",
   zoek_tekst: () => "Ik zoek waar dat bij mij staat...",
   bewerk_bestand: (i) => `Ik pas ${paginaNaam(String(i.pad ?? ""))} aan...`,
-  schrijf_bestand: (i) => `Ik werk ${paginaNaam(String(i.pad ?? ""))} bij...`,
+  schrijf_bestand: (i) => `Ik werk ${paginaNaam(String(i.pad ?? ""))} bij...`,  kopieer_bestand: (i) => `Ik zet ${paginaNaam(String(i.pad ?? ""))} klaar...`,
 };
 
 function paginaNaam(pad: string) {
@@ -1223,9 +1224,9 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                     type: "status",
                     tekst: `${maker(g.invoer)} (stap ${++stapTeller})`,
                   });
-                if (g.naam === "bewerk_bestand" || g.naam === "schrijf_bestand") {
+                if (g.naam === "bewerk_bestand" || g.naam === "schrijf_bestand" || g.naam === "kopieer_bestand") {
                   const rel = String(g.invoer.pad ?? "").replace(/^\/+/, "");
-                  if (g.naam === "schrijf_bestand") nieuwDezeBeurt.add(rel);
+                  if (g.naam === "schrijf_bestand" || g.naam === "kopieer_bestand") nieuwDezeBeurt.add(rel);
                   // Pagina die bewerkt wordt meesturen: het voorbeeld springt
                   // er live naartoe, zodat je ziet wáár de wijziging landt —
                   // maar alleen naar pagina's die al online staan.
