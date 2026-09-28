@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.32.6 (28 september 2026)
+
+- Opleverrapport bijvoegen bij het koppelen van een klantaccount: een pdf (max 10 MB) gaat als bijlage mee in de koppelmail, met een zin in de mail die de bijlage aankondigt. Het veld zit in het hoofdformulier en bij het opnieuw sturen van de mail. Een fout bestand wordt geweigerd vóór er iets wordt aangemaakt.
+- Server-action-limiet van 1 naar 12 MB, anders strandde elke echte pdf-upload.
+- Nieuwe bewakingstest koppel-rapport (met drievoudige bijt-controle).
+
 ## 1.32.5 (27 september 2026)
 
 - Verzendrem op outreach-mails. Het bewerkformulier had versturen als standaardactie, waardoor een Enter in het onderwerpveld de mail zonder vraag verstuurde (echt gebeurd: mail 1 aan Schildersbedrijf Willemsen ging onbedoeld de deur uit). Opslaan is nu de standaardactie en elke verstuurknop stelt eerst een bevestigingsvraag met het e-mailadres erin.
