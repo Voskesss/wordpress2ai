@@ -516,7 +516,9 @@ export default async function KlantDetail({
                     ? "Intrekken kan niet meer: dit account heeft het portaal al gebruikt (of is een beheerder), dus het wordt niet verwijderd. Gebruik 'Site overdragen' als de site naar een ander account moet."
                     : koppelMelding === "mail-mislukt"
                   ? "Gekoppeld, maar de mail kon niet worden verstuurd. Probeer het opnieuw."
-                  : "Het account kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
+                  : koppelMelding === "rapport-geweigerd"
+                    ? "Niets gedaan: het opleverrapport moet een pdf van maximaal 10 MB zijn. Kies een ander bestand en probeer het opnieuw."
+                    : "Het account kon niet worden aangemaakt bij Clerk. Probeer het opnieuw of kijk in de logs."}
           </p>
         )}
         {vraagtOpleveringsAkkoord(site) || oplevering ? (
@@ -569,6 +571,13 @@ export default async function KlantDetail({
                   type="url"
                   defaultValue={bekijkLink}
                   className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-800 focus:border-violet-600 focus:outline-none"
+                />
+                <span className="mt-2 block">Opleverrapport bijvoegen (pdf, mag leeg)</span>
+                <input
+                  name="rapport"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-full file:border file:border-stone-300 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-stone-700 hover:file:border-violet-400 hover:file:text-violet-700 file:cursor-pointer"
                 />
               </label>
               <UitnodigingVoorbeeldKnop siteId={site.id} />
@@ -655,6 +664,15 @@ export default async function KlantDetail({
                   defaultValue={bekijkLink}
                   placeholder="https://..."
                   className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-800 focus:border-violet-600 focus:outline-none"
+                />
+              </label>
+              <label className="block text-xs text-stone-500">
+                Opleverrapport bijvoegen (pdf, mag leeg; max 10 MB)
+                <input
+                  name="rapport"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-full file:border file:border-stone-300 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-stone-700 hover:file:border-violet-400 hover:file:text-violet-700 file:cursor-pointer"
                 />
               </label>
             </form>

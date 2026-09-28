@@ -107,6 +107,19 @@ export async function koppelKlant(formData: FormData): Promise<void> {
   const bekijkUrl = isVeiligeLink(opgegevenLink) ? opgegevenLink : standaardBekijkLink(site);
   const mailSturen = formData.get("mail") !== "nee";
 
+  // Opleverrapport als bijlage (mag leeg). Alleen pdf en met een maat-rem;
+  // keuren VÓÓR er iets wordt aangemaakt of verstuurd, zodat een fout rapport
+  // nooit tot een halve koppeling leidt.
+  const rapportRuw = formData.get("rapport");
+  let rapport: { bestandsnaam: string; inhoud: Buffer } | null = null;
+  if (rapportRuw instanceof File && rapportRuw.size > 0) {
+    const isPdf = /\.pdf$/i.test(rapportRuw.name) || rapportRuw.type === "application/pdf";
+    if (!isPdf || rapportRuw.size > 10 * 1024 * 1024) {
+      redirect(`/admin/klant/${siteId}?koppel=rapport-geweigerd`);
+    }
+    rapport = { bestandsnaam: rapportRuw.name || "opleverrapport.pdf", inhoud: Buffer.from(await rapportRuw.arrayBuffer()) };
+  }
+
   const secret = process.env.CLERK_SECRET_KEY;
   const res = await fetch(
     `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(email)}`,
@@ -166,8 +179,8 @@ export async function koppelKlant(formData: FormData): Promise<void> {
 
   if (mailSturen) {
     const { mailVanJos } = await import("@/lib/wordswap-mail");
-    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst, domein: site.domein });
-    const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+    const mail = bouwKoppelMail(site, { bekijkUrl, inlogUrl, naam, eigenTekst, domein: site.domein, bijlageNaam: rapport?.bestandsnaam ?? null });
+    const gelukt = await mailVanJos({ naar: email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html, ...(rapport ? { bijlagen: [rapport] } : {}) });
     if (!gelukt) redirect(`/admin/klant/${siteId}?koppel=mail-mislukt`);
   }
   revalidatePath(`/admin/klant/${siteId}`);

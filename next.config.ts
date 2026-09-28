@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@anthropic-ai/claude-agent-sdk"],
+  experimental: {
+    // Standaard 1 MB; het opleverrapport (pdf) bij het koppelen moet mee kunnen
+    serverActions: { bodySizeLimit: "12mb" },
+  },
   async headers() {
     return [
       {
