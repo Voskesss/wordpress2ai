@@ -11,12 +11,13 @@
  *  - _redirects (301's; houdt oude adressen en Google-posities intact)
  *  - _headers (beveiligingsheaders uit de site zelf)
  *  - noindex op workers.dev-adressen, www → kaal domein (301)
+ *  - http → https (301); samen met www in één doorverwijzing
  *  - ETag/If-None-Match (304), Range-verzoeken (video seeken), mime-types
  *
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "6";
+export const R2_SCRIPT_VERSIE = "7";
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -80,9 +81,13 @@ export const R2_WORKER_SCRIPT = [
   "export default {",
   "  async fetch(request, env) {",
   "    const url = new URL(request.url);",
-  "    // www → kaal domein (één canoniek adres, geen dubbele inhoud voor Google)",
-  '    if (url.hostname.startsWith("www.")) {',
-  "      url.hostname = url.hostname.slice(4);",
+  "    // http → https en www → kaal domein, samen in één doorverwijzing",
+  "    // (één canoniek adres voor Google, en nooit een pagina zonder slotje).",
+  '    const onveilig = url.protocol === "http:";',
+  '    const metWww = url.hostname.startsWith("www.");',
+  "    if (onveilig || metWww) {",
+  '      if (onveilig) url.protocol = "https:";',
+  "      if (metWww) url.hostname = url.hostname.slice(4);",
   "      return Response.redirect(url.toString(), 301);",
   "    }",
   '    if (request.method !== "GET" && request.method !== "HEAD") {',

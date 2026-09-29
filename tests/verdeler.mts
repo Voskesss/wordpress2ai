@@ -59,6 +59,16 @@ const www = await haal("https://www.beta.nl/pad?x=1");
 assert.equal(www.status, 301);
 assert.equal(www.headers.get("location"), "https://beta.nl/pad?x=1");
 
+// 3b. Nooit een pagina zonder slotje: http gaat naar https, en samen met
+//     www in ÉÉN doorverwijzing (gevonden 29-09 op aimia.nl en roelart.nl:
+//     het onbeveiligde adres toonde gewoon de site)
+const onveilig = await haal("http://alfa.nl/contact/?a=1");
+assert.equal(onveilig.status, 301, "het onbeveiligde adres toont de site in plaats van door te sturen");
+assert.equal(onveilig.headers.get("location"), "https://alfa.nl/contact/?a=1");
+const beide = await haal("http://www.alfa.nl/");
+assert.equal(beide.headers.get("location"), "https://alfa.nl/", "http en www kosten twee doorverwijzingen in plaats van één");
+assert.equal((await haal("https://alfa.nl/contact/")).status, 200, "het beveiligde adres wordt ook doorgestuurd: eindeloze lus");
+
 // 4. Onbekend domein: 404, en er wordt niets uit de opslag van een site gelezen
 gelezen = [];
 const vreemd = await haal("https://vreemd.nl/");
