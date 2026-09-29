@@ -1,6 +1,7 @@
 import VerhaalBeeld from "./VerhaalBeeld";
 import Link from "next/link";
 import ProductPreview from "./ProductPreview";
+import DemoVideo from "./DemoVideo";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
@@ -282,6 +283,19 @@ export default async function Home({
             </p>
           </div>
         </div>
+      </section>
+      <section className="shell demo-video-section" id="bekijk-de-video">
+        <div className="demo-video-tekst">
+          <p className="eyebrow">BEKIJK HET IN 40 SECONDEN</p>
+          <h2>Vier klussen, gewoon door het te vragen.</h2>
+          <p>
+            Een foto vervangen, een pagina toevoegen, een nieuwsbericht
+            plaatsen en de kleur aanpassen. Je ziet elke wijziging eerst als
+            concept. Pas als jij op Publiceer klikt, staat het live.
+          </p>
+          <p className="demo-video-noot">Zonder geluid · 46 seconden</p>
+        </div>
+        <DemoVideo />
       </section>
       <section className="shell decision-section">
         <div className="fit-yes">

@@ -1823,3 +1823,16 @@ main p {
   object-fit: cover;
   aspect-ratio: 1;
 }
+
+/* Demovideo lager op de homepage */
+.demo-video-section { display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; gap: 56px; padding-block: 64px; }
+.demo-video-tekst h2 { margin: 0 0 14px; }
+.demo-video-tekst p:not(.eyebrow) { max-width: 46ch; }
+.demo-video-noot { margin-top: 14px; font-size: 13px; opacity: 0.65; }
+.demo-video video { display: block; width: 100%; height: auto; border-radius: 18px; background: #16302b; box-shadow: 0 18px 50px rgba(22, 48, 43, 0.18); }
+.demo-video-staand { display: none !important; }
+@media (max-width: 760px) {
+  .demo-video-section { grid-template-columns: 1fr; gap: 22px; padding-block: 38px; }
+  .demo-video-vierkant { display: none !important; }
+  .demo-video-staand { display: block !important; max-width: 340px; margin-inline: auto; }
+}
