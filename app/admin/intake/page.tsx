@@ -10,8 +10,15 @@ export const metadata: Metadata = {
 
 /** Live check tijdens een klantgesprek: domein, DNS en mail van de prospect,
  * met kort AI-advies volgens de vaste beslisboom. */
-export default async function IntakePagina() {
+export default async function IntakePagina({ searchParams }: { searchParams: Promise<{ domein?: string }> }) {
   await requireAdmin();
+  const startDomein = String((await searchParams).domein ?? "")
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .replace(/[^a-z0-9.-]/g, "")
+    .slice(0, 120);
   return (
     <main className="mx-auto max-w-3xl px-5 py-10">
       <div className="mb-6 flex items-center justify-between">
@@ -26,7 +33,7 @@ export default async function IntakePagina() {
           ← Admin
         </Link>
       </div>
-      <IntakeCheck />
+      <IntakeCheck startDomein={startDomein} />
     </main>
   );
 }

@@ -257,6 +257,17 @@ function LeadKaart({
         ) : (
           lead.telefoon && <span>{lead.telefoon}</span>
         )}
+        {lead.website && (
+          <a
+            href={`/admin/intake?domein=${encodeURIComponent(lead.website)}`}
+            target="_blank"
+            rel="noreferrer"
+            title="Waar staan domein, DNS en mail van deze lead, en wat kost de mail bij de overstap?"
+            className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 font-semibold text-violet-800 hover:bg-violet-100"
+          >
+            🧭 Mailcheck
+          </a>
+        )}
         {waLeadLink(lead.telefoon, lead.naam) && (
           <a
             href={waLeadLink(lead.telefoon, lead.naam) ?? undefined}

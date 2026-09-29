@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { MAIL_VERHUIZEN_EERSTE, MAIL_VERHUIZEN_EXTRA, mailScenario, mailSituatie } from "@/lib/mail-situatie";
 
 export const maxDuration = 60;
 
@@ -121,17 +122,6 @@ async function hostingVanIp(ip: string | undefined) {
   return { ip, server: ptr, netwerk: ripe, bedrijf };
 }
 
-function mailSituatie(mx: string[]): { code: string; label: string } {
-  const alles = mx.join(" ").toLowerCase();
-  if (mx.length === 0) return { code: "geen", label: "Geen mail op dit domein" };
-  if (alles.includes("google.com")) return { code: "google", label: "Google Workspace" };
-  if (alles.includes("outlook.com")) return { code: "microsoft", label: "Microsoft 365" };
-  if (alles.includes("soverin")) return { code: "soverin", label: "Al bij Soverin" };
-  if (alles.includes("improvmx") || alles.includes("mx.cloudflare.net") || alles.includes("forwardemail"))
-    return { code: "doorsturen", label: "Alleen doorsturen (geen echte mailbox)" };
-  return { code: "hoster", label: `Mail bij een hoster (${mx[0]})` };
-}
-
 export async function POST(req: Request) {
   const user = await currentUser();
   if (user?.publicMetadata?.role !== "admin") {
@@ -178,6 +168,11 @@ export async function POST(req: Request) {
   const subdomeinen = subs.filter(Boolean) as { sub: string; data: string }[];
   const mail = mailSituatie(mx);
   const hosting = await hostingVanIp(aRoot[0]?.data);
+  // Staat de mail op dezelfde machine als de website? Dan is hosting opzeggen = mail kwijt.
+  const mailIps = (
+    await Promise.all(mx.slice(0, 3).map((h) => doh(h, "A").then((a) => a.filter((x) => x.type === 1).map((x) => x.data))))
+  ).flat();
+  const scenario = mailScenario({ code: mail.code, mailIps, siteIps: aRoot.map((a) => a.data) });
 
   const feiten = {
     domein,
@@ -193,6 +188,7 @@ export async function POST(req: Request) {
     subdomeinen,
     hosting,
     website: site,
+    mailScenario: scenario,
   };
 
   // Kort AI-advies volgens de vaste beslisboom
@@ -205,7 +201,7 @@ export async function POST(req: Request) {
       max_tokens: 4000,
       system: `Je adviseert Jos (WordSwap: zet WordPress-sites om naar statische sites op eigen Cloudflare-infra; mail verkoopt hij via Soverin, €10/jr inkoop per mailbox) tijdens een líve klantgesprek. Hij plakt DNS/registrar-feiten van het domein van de prospect.
 
-Vaste werkwijze: (1) domein blijft bij losse registrar, alleen nameservers naar Jos' Cloudflare-account; zit domein gebundeld bij de WordPress-hoster, dan eerst losmaken/verhuizen vóór opzegging. (2) Bij DNS-verhuizing alle records één-op-één meenemen, inclusief subdomeinen. (3) Mail: bij de hoster = moet mee naar Soverin (mailbox aanmaken → imapsync → dan pas MX om); Google/Microsoft actief = laten staan, alleen records meenemen, eventueel besparingsgesprek; alleen doorsturen = gratis via Cloudflare Email Routing of upsell Soverin-mailbox; geen mail = upsell. (4) Nooit iets opzeggen voor domein+mail veilig zijn; één SPF-record per domein.
+Vaste werkwijze: (1) domein blijft bij losse registrar, alleen nameservers naar Jos' Cloudflare-account; zit domein gebundeld bij de WordPress-hoster, dan eerst losmaken/verhuizen vóór opzegging. (2) Bij DNS-verhuizing alle records één-op-één meenemen, inclusief subdomeinen. (3) Mail: bij de hoster = moet mee naar Soverin (mailbox aanmaken → imapsync → dan pas MX om); Google/Microsoft actief = laten staan, alleen records meenemen, eventueel besparingsgesprek; alleen doorsturen = gratis via Cloudflare Email Routing of upsell Soverin-mailbox; geen mail = upsell. (4) Nooit iets opzeggen voor domein+mail veilig zijn; één SPF-record per domein. (5) Prijs mail verhuizen: €${MAIL_VERHUIZEN_EERSTE} eenmalig inclusief de eerste postbus, €${MAIL_VERHUIZEN_EXTRA} per extra postbus; mailregels overnemen zonder verhuizing is inbegrepen. (6) De klant licht zijn huidige leverancier zelf in voordat Jos contact opneemt, en aan de oude omgeving wordt niets veranderd. Staat in de feiten mailScenario.zelfdeServer = true, noem dan uitdrukkelijk dat mail en website op dezelfde server staan.
 
 Let bij "website" op: adressenOpSite = mailadressen die op hun website staan. Gebruikt de klant een gmail/hotmail-adres op de site terwijl er wél een domein is, dan is dat het beste gespreksopeninkje voor het mailaanbod ("info@eigendomein oogt professioneler"). formulieren > 0 = er is een contactformulier dat mee moet in de migratie.
 

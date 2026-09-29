@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MAIL_REGELS, MAIL_VERHUIZEN_EERSTE, MAIL_VERHUIZEN_EXTRA, leverancierMail, type MailScenario } from "@/lib/mail-situatie";
 
 type Resultaat = {
   domein: string;
@@ -29,6 +30,7 @@ type Resultaat = {
     formulieren: number;
   };
   advies: string;
+  mailScenario?: MailScenario;
 };
 
 const MAIL_KLEUR: Record<string, string> = {
@@ -49,8 +51,15 @@ function Kaart({ titel, children }: { titel: string; children: React.ReactNode }
   );
 }
 
-export default function IntakeCheck() {
-  const [domein, setDomein] = useState("");
+export default function IntakeCheck({ startDomein = "" }: { startDomein?: string }) {
+  const [domein, setDomein] = useState(startDomein);
+  const [gekopieerd, setGekopieerd] = useState(false);
+  const formulier = useRef<HTMLFormElement>(null);
+  // Vanaf een leadkaart geopend (?domein=...): meteen checken
+  useEffect(() => {
+    if (startDomein) formulier.current?.requestSubmit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [res, setRes] = useState<Resultaat | null>(null);
@@ -79,7 +88,7 @@ export default function IntakeCheck() {
 
   return (
     <div className="space-y-5">
-      <form onSubmit={check} className="flex gap-3">
+      <form ref={formulier} onSubmit={check} className="flex gap-3">
         <input
           value={domein}
           onChange={(e) => setDomein(e.target.value)}
@@ -121,6 +130,56 @@ export default function IntakeCheck() {
                   )
                 )}
               </div>
+            </div>
+          )}
+
+          {res.mailScenario && (
+            <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-5 text-sm text-stone-800">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-700">Mail bij deze overstap</h2>
+              <p className="mt-2 text-base font-bold text-emerald-900">{res.mailScenario.titel}</p>
+              <p className="mt-1">{res.mailScenario.watJeDoet}</p>
+              <p className="mt-2">
+                <b>Prijs:</b> {res.mailScenario.prijs}
+              </p>
+              {res.mailScenario.waarschuwing && (
+                <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 font-semibold text-amber-900">
+                  ⚠️ {res.mailScenario.waarschuwing}
+                </p>
+              )}
+              {res.mailScenario.situatie === "bij-hoster" && (
+                <>
+                  <p className="mt-4 text-xs font-bold uppercase tracking-wider text-emerald-700">Vaste regels</p>
+                  <ol className="mt-1 list-decimal space-y-0.5 pl-5">
+                    {MAIL_REGELS.map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ol>
+                  <details className="mt-4 rounded-lg border border-emerald-200 bg-white p-3">
+                    <summary className="cursor-pointer font-semibold text-emerald-900">
+                      Mail die de klant aan zijn huidige leverancier stuurt
+                    </summary>
+                    <p className="mt-2 text-xs text-stone-500">
+                      Onderwerp: <b>{leverancierMail({ domein: res.domein }).onderwerp}</b>
+                    </p>
+                    <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                      {leverancierMail({ domein: res.domein }).tekst}
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const m = leverancierMail({ domein: res.domein });
+                        void navigator.clipboard.writeText(`Onderwerp: ${m.onderwerp}\n\n${m.tekst}`).then(() => {
+                          setGekopieerd(true);
+                          setTimeout(() => setGekopieerd(false), 2500);
+                        });
+                      }}
+                      className="mt-2 cursor-pointer rounded-full border border-emerald-400 px-4 py-1.5 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
+                    >
+                      {gekopieerd ? "✓ Gekopieerd" : "Kopieer de mail"}
+                    </button>
+                  </details>
+                </>
+              )}
             </div>
           )}
 
@@ -209,7 +268,8 @@ export default function IntakeCheck() {
             <Kaart titel="4 · Prijzen (inkoop → richtprijs)">
               <ul className="space-y-1 font-mono text-xs">
                 <li>Mailbox Soverin: €10/jr → €2,50–3/mnd</li>
-                <li>Mailmigratie: eenmalig €75–150</li>
+                <li>Mail verhuizen: €{MAIL_VERHUIZEN_EERSTE} incl. eerste postbus, €{MAIL_VERHUIZEN_EXTRA} per extra</li>
+                <li>Mailregels overnemen: inbegrepen</li>
                 <li>Domein + DNS-beheer: €10–15/jr → €25/jr</li>
                 <li>Alleen doorsturen: gratis bij de site</li>
               </ul>
