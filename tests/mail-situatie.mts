@@ -22,7 +22,7 @@ assert.ok(vdbScenario.prijs.includes("€75") && vdbScenario.prijs.includes("€
 const evcp = mailScenario({ code: mailSituatie(["mx10.antispam.mailspamprotection.com"]).code, mailIps: ["35.214.1.1"], siteIps: ["35.214.190.219"] });
 assert.equal(evcp.situatie, "bij-hoster");
 assert.equal(evcp.zelfdeServer, false, "andere machine wordt ten onrechte als dezelfde server gezien");
-assert.equal(evcp.waarschuwing, null);
+assert.ok(evcp.waarschuwing?.includes("Vraag het na"), "zonder zichtbare overlap hoort er toch een waarschuwing te staan: de mail kan achter een spamfilter bij hetzelfde pakket horen");
 
 // 3. EVC Autotechniek: Microsoft 365, niets te verhuizen en geen meerprijs
 const evca = mailSituatie(["evcautotechniek-nl0i.mail.protection.outlook.com"]);

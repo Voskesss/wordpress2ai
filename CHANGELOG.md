@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.7 (29 september 2026)
+
+**De mail hoort bij de eerste check.** Op elke leadkaart staat een knop Mailcheck. Eén klik laat zien waar domein, DNS en mail staan, in welke situatie de klant zit en wat het kost: mail die al los staat (niets verhuizen, inbegrepen), mail bij de hoster (blijven of verhuizen naar Soverin voor €75 inclusief de eerste postbus en €25 per extra postbus), alleen doorsturen, of geen mail.
+
+- De check ziet of mail en website op dezelfde server staan en waarschuwt dan dat de hosting nog niet opgezegd mag worden.
+- Vijf vaste regels op het scherm, waaronder: de klant licht zijn huidige leverancier zelf in, en aan de oude omgeving wordt niets veranderd.
+- Kant-en-klare mail die de klant aan zijn huidige leverancier stuurt, met kopieerknop.
+
 ## 1.34.6 (29 september 2026)
 
 **De demovideo staat nu bovenaan de homepage**, met een afspeelknop in het midden. Het klikbare voorbeeld werd nauwelijks gebruikt en is naar de plek lager op de pagina verhuisd ("Probeer het zelf"). De link bovenaan heet nu "Bekijk de video". De video laadt nog steeds pas na een druk op de knop.

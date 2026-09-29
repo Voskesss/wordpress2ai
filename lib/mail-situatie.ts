@@ -28,6 +28,7 @@ export type MailScenario = {
   prijs: string;
   /** Mail en website op dezelfde machine: hosting opzeggen = mail kwijt */
   zelfdeServer: boolean;
+  /** Bij mail bij de hoster altijd gevuld: opzeggen is daar het risico */
   waarschuwing: string | null;
 };
 
@@ -72,7 +73,7 @@ export function mailScenario(o: { code: MailCode; mailIps: string[]; siteIps: st
     zelfdeServer,
     waarschuwing: zelfdeServer
       ? "Mail en website staan op dezelfde server. De hosting mag pas worden opgezegd als de mail aantoonbaar elders werkt."
-      : null,
+      : "Van buitenaf is niet te zien of de mail bij het hostingpakket hoort (bijvoorbeeld achter een spamfilter). Vraag het na voordat er iets wordt opgezegd.",
   };
 }
 
