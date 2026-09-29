@@ -165,13 +165,13 @@ export async function echtDomeinVoor(naam: string): Promise<string | null> {
     const { sites } = await import("../db/schema");
     const { eq, or } = await import("drizzle-orm");
     const [site] = await db
-      .select({ domein: sites.domein })
+      .select({ domein: sites.domein, hoofdadresWww: sites.hoofdadresWww })
       .from(sites)
       .where(or(eq(sites.githubRepo, repo), eq(sites.siteSlug, naam)))
       .limit(1);
-    const d = (site?.domein ?? "").trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "").toLowerCase();
-    if (!d || !d.includes(".") || /\.workers\.dev$/.test(d)) return null;
-    return d;
+    const { publiekAdres } = await import("./hoofdadres");
+    // Mét www als dat het hoofdadres is: dit adres komt in canonical, sitemap en robots
+    return site ? publiekAdres(site) : null;
   } catch {
     return null;
   }
@@ -386,6 +386,9 @@ async function deployMapZonderSlot(
 async function zorgWorkerR2(naam: string, prefix: string, subdomeinAanzetten: boolean) {
   const { R2_SCRIPT_VERSIE, R2_WORKER_SCRIPT } = await import("./worker-r2");
   const { R2_BUCKET } = await import("./r2");
+  // Hoofdadres van deze site (www of kaal); de werkversie draait alleen op
+  // workers.dev en blijft dus altijd kaal
+  const hoofd = naam.startsWith("wv-") ? "kaal" : (await echtDomeinVoor(naam))?.startsWith("www.") ? "www" : "kaal";
   try {
     const huidig = (await fetch(`${API}/accounts/${ACCOUNT}/workers/scripts/${naam}/settings`, {
       headers: hdr(),
@@ -395,7 +398,8 @@ async function zorgWorkerR2(naam: string, prefix: string, subdomeinAanzetten: bo
     const b = huidig?.result?.bindings ?? [];
     const versie = b.find((x) => x.type === "plain_text" && x.name === "VERSIE")?.text;
     const pre = b.find((x) => x.type === "plain_text" && x.name === "PREFIX")?.text;
-    if (versie === R2_SCRIPT_VERSIE && pre === prefix) return; // al goed
+    const hoofdNu = b.find((x) => x.type === "plain_text" && x.name === "HOOFD")?.text ?? "kaal";
+    if (versie === R2_SCRIPT_VERSIE && pre === prefix && hoofdNu === hoofd) return; // al goed
   } catch {
     // bij twijfel gewoon (opnieuw) publiceren
   }
@@ -406,6 +410,7 @@ async function zorgWorkerR2(naam: string, prefix: string, subdomeinAanzetten: bo
       { type: "r2_bucket", name: "SITES", bucket_name: R2_BUCKET },
       { type: "plain_text", name: "PREFIX", text: prefix },
       { type: "plain_text", name: "VERSIE", text: R2_SCRIPT_VERSIE },
+      { type: "plain_text", name: "HOOFD", text: hoofd },
     ],
   };
   const form = new FormData();

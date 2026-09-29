@@ -78,11 +78,21 @@ export async function zorgOntvangstadres(): Promise<string> {
   return j.result.status ?? "onbekend";
 }
 
-export async function leesDomeinkaart(): Promise<Record<string, string>> {
+export type KaartRegel = string | { slug: string; hoofd?: "www" | "kaal" };
+export const slugVan = (r: KaartRegel | undefined): string | null => (!r ? null : typeof r === "string" ? r : r.slug);
+
+export async function leesDomeinkaart(): Promise<Record<string, KaartRegel>> {
   const ruw = await leesObject(DOMEINKAART_SLEUTEL);
   if (!ruw) return {};
-  const kaart = JSON.parse(ruw.toString("utf8")) as Record<string, string>;
+  const kaart = JSON.parse(ruw.toString("utf8")) as Record<string, KaartRegel>;
   return kaart && typeof kaart === "object" ? kaart : {};
+}
+
+/** De domeinen die via route B aan deze site hangen (kaal + www). */
+export async function routeBDomeinenVan(slug: string | null): Promise<string[]> {
+  if (!slug) return [];
+  const kaart = await leesDomeinkaart().catch(() => ({}) as Record<string, KaartRegel>);
+  return Object.entries(kaart).filter(([, r]) => slugVan(r) === slug).flatMap(([d]) => adressenVan(d));
 }
 
 export type DomeinStatus = {
@@ -138,7 +148,7 @@ export async function statusVan(ruw: string): Promise<DomeinStatus[]> {
 
 /** Meldt een klantdomein aan: bij Cloudflare (kaal + www), als route naar de
  * verdeler, en in de domeinkaart. Veilig om te herhalen. */
-export async function meldDomeinAan(ruw: string, slug: string): Promise<DomeinStatus[]> {
+export async function meldDomeinAan(ruw: string, slug: string, hoofd: "www" | "kaal" = "kaal"): Promise<DomeinStatus[]> {
   const domein = kaartDomein(ruw);
   if (!domein) throw new Error(`Geen geldige domeinnaam: ${ruw}`);
   if (domein === SAAS_ZONE || domein.endsWith(`.${SAAS_ZONE}`)) throw new Error("Een adres van wordswap.nl zelf mag nooit via de verdeler lopen.");
@@ -148,8 +158,9 @@ export async function meldDomeinAan(ruw: string, slug: string): Promise<DomeinSt
   await zorgOntvangstadres();
 
   const kaart = await leesDomeinkaart();
-  if (kaart[domein] && kaart[domein] !== slug) throw new Error(`${domein} hoort al bij site ${kaart[domein]}. Eerst afmelden.`);
-  kaart[domein] = slug;
+  const nu = slugVan(kaart[domein]);
+  if (nu && nu !== slug) throw new Error(`${domein} hoort al bij site ${nu}. Eerst afmelden.`);
+  kaart[domein] = hoofd === "www" ? { slug, hoofd } : slug;
   await schrijfObject(DOMEINKAART_SLEUTEL, JSON.stringify(kaart, null, 1), "application/json");
 
   const routes = await cf<{ id: string; pattern: string; script?: string }[]>(`/zones/${zone}/workers/routes`);
@@ -187,13 +198,23 @@ export async function meldDomeinAf(ruw: string): Promise<void> {
   }
 }
 
-/** De regels die de hoster in zijn DNS zet. Het kale adres kan alleen als
- * zijn DNS een verwijzing op het hoofddomein toestaat (Cloudflare: ja). */
-export function regelsVoorHoster(ruw: string): { soort: string; naam: string; waarde: string; uitleg: string }[] {
+/** De regels die de hoster in zijn DNS zet. Een verwijzing op het adres
+ * zonder www kan alleen als zijn DNS dat toestaat (Cloudflare en beheerders
+ * met ALIAS: ja). Kan het niet en is www het hoofdadres, dan stuurt de
+ * hoster het kale adres zelf door naar www. */
+export function regelsVoorHoster(ruw: string, hoofd: "www" | "kaal" = "kaal"): { soort: string; naam: string; waarde: string; uitleg: string }[] {
   const domein = kaartDomein(ruw);
   if (!domein) return [];
   return [
-    { soort: "CNAME", naam: domein, waarde: ONTVANGSTADRES, uitleg: "Het adres zonder www. Bij Cloudflare: gewoon een CNAME op het hoofddomein, wolkje grijs (alleen DNS)." },
-    { soort: "CNAME", naam: `www.${domein}`, waarde: ONTVANGSTADRES, uitleg: "Het adres met www, wolkje grijs (alleen DNS)." },
+    { soort: "CNAME", naam: `www.${domein}`, waarde: ONTVANGSTADRES, uitleg: "Het adres met www. Bestaat er al een A-regel voor www, haal die dan eerst weg. Bij Cloudflare: wolkje grijs (alleen DNS)." },
+    {
+      soort: "CNAME of ALIAS",
+      naam: domein,
+      waarde: ONTVANGSTADRES,
+      uitleg:
+        hoofd === "www"
+          ? "Het adres zonder www. Staat de DNS dit niet toe op het hoofddomein, stuur dit adres dan zelf door naar https://www." + domein + " (301)."
+          : "Het adres zonder www: dit is het hoofdadres van de site. Haal eerst de bestaande A-regel weg. Staat de DNS geen verwijzing toe op het hoofddomein, dan werkt deze route hier niet en gaan de nameservers naar ons.",
+    },
   ];
 }

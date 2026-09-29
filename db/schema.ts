@@ -50,6 +50,9 @@ export const sites = pgTable("sites", {
   // YYYY-MM-DD: vanaf wanneer de website offline mag na een opzegging
   // (betaalde periode plus één maand). Leeg = gewoon klant.
   offlineNa: text("offline_na"),
+  // Hoofdadres: standaard zonder www. Aan = de site toont zich op www en
+  // het kale adres stuurt door (site stond zo in Google). Zie lib/hoofdadres.ts.
+  hoofdadresWww: boolean("hoofdadres_www").notNull().default(false),
   notificatieEmail: text("notificatie_email"),
   // Handtekening onder formuliermails (bevestiging aan de invuller): regels
   // met adres/telefoon, logo-adres en accentkleur. Leeg = naam + website.

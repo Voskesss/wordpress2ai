@@ -439,6 +439,19 @@ export default async function KlantDetail({
               placeholder="klant.nl of naam.wordswap.workers.dev"
               className={invoerStijl}
             />
+            <span className="mt-1.5 flex items-start gap-2 text-xs font-normal text-stone-600">
+              <input
+                type="checkbox"
+                name="hoofdadresWww"
+                value="ja"
+                defaultChecked={site.hoofdadresWww}
+                className="mt-0.5 h-4 w-4 cursor-pointer accent-violet-700"
+              />
+              <span>
+                <b>Hoofdadres met www.</b> Alleen aanzetten als de oude site met www in Google staat. De site toont zich
+                dan op www en het adres zonder www stuurt door. Het domein hierboven vul je altijd zonder www in.
+              </span>
+            </span>
           </label>
           <label className="block text-sm font-semibold">
             Hosting-naam (Cloudflare)

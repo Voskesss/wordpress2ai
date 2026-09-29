@@ -10,6 +10,7 @@
  * verdeler exact zoals via zijn eigen worker (redirects, headers, 404, www).
  *  1. het voorvoegsel komt niet uit een vaste binding maar uit de
  *     domeinkaart (intern/domeinen.json in R2): { "klant.nl": "klant-slug" }
+ *     of, met www als hoofdadres: { "klant.nl": { slug, hoofd: "www" } }
  *  2. het geheugen voor redirects/headers is per site, niet één voor alles
  *
  * Bestaande sites (eigen worker, domein in ons account) komen hier nooit
@@ -21,7 +22,7 @@ export const DOMEINKAART_SLEUTEL = "intern/domeinen.json";
 export const VERDELER_NAAM = "ws-verdeler";
 /** Eigen teller + die van het site-script: verandert een van beide, dan
  * wordt de verdeler opnieuw gepubliceerd. */
-export const VERDELER_VERSIE = `1-r2v${R2_SCRIPT_VERSIE}`;
+export const VERDELER_VERSIE = `2-r2v${R2_SCRIPT_VERSIE}`;
 
 function vervang(bron: string, oud: string, nieuw: string, aantal: number): string {
   const gevonden = bron.split(oud).length - 1;
@@ -69,11 +70,13 @@ export function bouwVerdelerScript(): string {
       "    const host = new URL(request.url).hostname.toLowerCase();",
       '    const kaal = host.startsWith("www.") ? host.slice(4) : host;',
       "    const kaart = await domeinKaart(env);",
-      "    const prefix = Object.prototype.hasOwnProperty.call(kaart, kaal) ? kaart[kaal] : null;",
+      "    const regel = Object.prototype.hasOwnProperty.call(kaart, kaal) ? kaart[kaal] : null;",
+      '    const prefix = regel && typeof regel === "object" ? regel.slug : regel;',
+      '    const hoofd = regel && typeof regel === "object" && regel.hoofd === "www" ? "www" : "kaal";',
       '    if (typeof prefix !== "string" || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(prefix) || prefix.startsWith("wv-") || prefix === "intern" || prefix === "media") {',
       '      return new Response("Dit domein is niet bij ons bekend.", { status: 404, headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": "noindex" } });',
       "    }",
-      "    return site.fetch(request, { SITES: env.SITES, PREFIX: prefix });",
+      "    return site.fetch(request, { SITES: env.SITES, PREFIX: prefix, HOOFD: hoofd });",
       "  },",
       "};",
       "",

@@ -54,12 +54,14 @@ export async function bewaarSite(formData: FormData) {
   const plan = String(formData.get("plan") ?? "via_ons");
   const status = String(formData.get("status") ?? "migratie");
   if (!naam) return;
-  const [vorige] = await db.select({ domein: sites.domein, siteSlug: sites.siteSlug, githubRepo: sites.githubRepo }).from(sites).where(eq(sites.id, siteId));
+  const hoofdadresWww = formData.get("hoofdadresWww") === "ja";
+  const [vorige] = await db.select({ domein: sites.domein, siteSlug: sites.siteSlug, githubRepo: sites.githubRepo, hoofdadresWww: sites.hoofdadresWww }).from(sites).where(eq(sites.id, siteId));
   await db
     .update(sites)
     .set({
       naam,
       domein: domein || null,
+      hoofdadresWww,
       siteSlug: siteSlug || null,
       plan: plan === "eigen_key" ? "eigen_key" : "via_ons",
       status: (["migratie", "actief", "gepauzeerd", "opgezegd"].includes(status)
@@ -78,7 +80,16 @@ export async function bewaarSite(formData: FormData) {
       await db.update(sites).set({ mailLogoUrl: rij.logo.replace(/^https:\/\/[^/]+\//, `https://${nieuwDomein.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`) }).where(eq(sites.id, siteId));
     }
   }
-  if (vorige && nieuwDomein !== vorige.domein && vorige.siteSlug) {
+  const hoofdGewijzigd = Boolean(vorige) && vorige.hoofdadresWww !== hoofdadresWww;
+  if (hoofdGewijzigd && nieuwDomein && vorige?.siteSlug) {
+    // Loopt dit domein via de verdeler (DNS bij de hoster), dan moet die het nieuwe hoofdadres ook kennen
+    const { leesDomeinkaart, meldDomeinAan, slugVan } = await import("@/lib/route-b");
+    const kaart = await leesDomeinkaart().catch(() => ({}) as Awaited<ReturnType<typeof leesDomeinkaart>>);
+    if (slugVan(kaart[nieuwDomein]) === vorige.siteSlug) {
+      await meldDomeinAan(nieuwDomein, vorige.siteSlug, hoofdadresWww ? "www" : "kaal").catch((e) => console.error("Hoofdadres doorgeven aan de verdeler mislukt:", e));
+    }
+  }
+  if (vorige && (nieuwDomein !== vorige.domein || hoofdGewijzigd) && vorige.siteSlug) {
     const { deployRepoNaarCloudflare } = await import("@/lib/cloudflare");
     await deployRepoNaarCloudflare(vorige.githubRepo, vorige.siteSlug).catch((e) =>
       console.error("Herdeploy na domeinwijziging mislukt:", e)

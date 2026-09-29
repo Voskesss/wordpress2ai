@@ -38,7 +38,10 @@ async function gekoppeldeDomeinen(siteSlug: string | null): Promise<string[] | n
     );
     const data = (await res.json()) as { success?: boolean; result?: { hostname: string; service: string }[] };
     if (!data.success) return null;
-    return (data.result ?? []).filter((d) => d.service === siteSlug).map((d) => d.hostname.toLowerCase());
+    // Ook domeinen die via route B binnenkomen (DNS bij de hoster) tellen als gekoppeld
+    const { routeBDomeinenVan } = await import("@/lib/route-b");
+    const viaHoster = await routeBDomeinenVan(siteSlug).catch(() => [] as string[]);
+    return [...(data.result ?? []).filter((d) => d.service === siteSlug).map((d) => d.hostname.toLowerCase()), ...viaHoster];
   } catch {
     return null;
   }
@@ -81,14 +84,19 @@ export function beoordeelWwwEnCanonical(
   www: HostMeting | null,
   canonical: string | null,
   sitemapVoorbeeld: string | null,
+  /** Hoofdadres met www (zie lib/hoofdadres.ts); standaard zonder */
+  hoofdWww = false,
 ): { ok: boolean; uitleg: string } {
-  const doel = domein.replace(/^www\./, "").toLowerCase();
+  const kaalDomein = domein.replace(/^www\./, "").toLowerCase();
+  const doel = hoofdWww ? `www.${kaalDomein}` : kaalDomein;
+  const ander = hoofdWww ? kaalDomein : `www.${kaalDomein}`;
+  const [toont, stuurt] = hoofdWww ? [www, kaal] : [kaal, www];
   const problemen: string[] = [];
-  if (!kaal || kaal.status < 200 || kaal.status >= 400) problemen.push(`https://${doel} antwoordt niet goed`);
-  else if (kaal.status >= 300) problemen.push(`https://${doel} verwijst door (${kaal.status}) in plaats van de site te tonen`);
-  if (!www || www.status < 200 || www.status >= 400) problemen.push(`https://www.${doel} antwoordt niet`);
-  else if (www.status < 300) problemen.push(`www toont de site ook zelf (hoort met 301 naar ${doel} te sturen, anders staat de site dubbel in Google)`);
-  else if (!(www.location ?? "").includes(`://${doel}`)) problemen.push(`www verwijst door naar ${www.location ?? "onbekend"} in plaats van naar https://${doel}`);
+  if (!toont || toont.status < 200 || toont.status >= 400) problemen.push(`https://${doel} antwoordt niet goed`);
+  else if (toont.status >= 300) problemen.push(`https://${doel} verwijst door (${toont.status}) in plaats van de site te tonen`);
+  if (!stuurt || stuurt.status < 200 || stuurt.status >= 400) problemen.push(`https://${ander} antwoordt niet`);
+  else if (stuurt.status < 300) problemen.push(`${ander} toont de site ook zelf (hoort met 301 naar ${doel} te sturen, anders staat de site dubbel in Google)`);
+  else if (!(stuurt.location ?? "").includes(`://${doel}`)) problemen.push(`${ander} verwijst door naar ${stuurt.location ?? "onbekend"} in plaats van naar https://${doel}`);
   if (!canonical) problemen.push("de homepage heeft geen canonical");
   else {
     try {
@@ -213,7 +221,7 @@ export async function livegangChecks(
       sleutel: "domein",
       label: "Domein ingevuld",
       ok: domeinIngevuld,
-      uitleg: "Vul bij Instellingen het eigen domein in (zonder https en zonder www), bijv. roelart.nl.",
+      uitleg: "Vul bij Instellingen het eigen domein in (zonder https en zonder www), bijv. roelart.nl. Stond de oude site met www in Google? Zet dan het vinkje Hoofdadres met www aan.",
     },
   ];
 
@@ -272,7 +280,7 @@ export async function livegangChecks(
       const sitemapVoorbeeld = await fetch(`https://${domein}/sitemap.xml`, { signal: AbortSignal.timeout(6000) })
         .then(async (r) => (r.ok ? ((await r.text()).match(/<loc>([^<]+)<\/loc>/)?.[1] ?? null) : null))
         .catch(() => null);
-      const canoniek = beoordeelWwwEnCanonical(domein, kaalM, wwwM, canonical, sitemapVoorbeeld);
+      const canoniek = beoordeelWwwEnCanonical(domein, kaalM, wwwM, canonical, sitemapVoorbeeld, Boolean(site.hoofdadresWww));
       checks.push({
         sleutel: "canoniek",
         label: "Eén adres voor Google (www, doorverwijzing en canonical)",
@@ -286,7 +294,7 @@ export async function livegangChecks(
         uitleg: online
           ? ""
           : inCloudflare === false
-            ? `${domein} is nog niet als Custom Domain aan de worker gekoppeld in Cloudflare.`
+            ? `${domein} is nog niet gekoppeld. Komt het domein in ons Cloudflare: koppel het als Custom Domain aan de worker. Blijft de DNS bij de hoster: meld het aan bij Domein blijft bij de hoster.`
             : `${domein} toont (nog) niet de nieuwe site. Staan de nameservers al op Cloudflare? Het kan tot een paar uur duren.`,
       });
     }

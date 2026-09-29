@@ -19,7 +19,7 @@ await writeFile(pad, bouwVerdelerScript());
 const verdeler = (await import(pathToFileURL(pad).href)).default as { fetch(r: Request, env: unknown): Promise<Response> };
 
 const opslag = new Map<string, string>([
-  [DOMEINKAART_SLEUTEL, JSON.stringify({ "alfa.nl": "alfa", "beta.nl": "beta", "fout.nl": "wv-alfa", "stiekem.nl": "intern" })],
+  [DOMEINKAART_SLEUTEL, JSON.stringify({ "alfa.nl": "alfa", "beta.nl": "beta", "fout.nl": "wv-alfa", "stiekem.nl": "intern", "gamma.nl": { slug: "beta", hoofd: "www" }, "scheef.nl": { slug: "wv-alfa", hoofd: "www" } })],
   ["alfa/index.html", "<h1>ALFA</h1>"],
   ["alfa/contact/index.html", "<h1>ALFA contact</h1>"],
   ["alfa/_redirects", "/oud /contact/ 301\n"],
@@ -68,6 +68,17 @@ assert.equal(onveilig.headers.get("location"), "https://alfa.nl/contact/?a=1");
 const beide = await haal("http://www.alfa.nl/");
 assert.equal(beide.headers.get("location"), "https://alfa.nl/", "http en www kosten twee doorverwijzingen in plaats van één");
 assert.equal((await haal("https://alfa.nl/contact/")).status, 200, "het beveiligde adres wordt ook doorgestuurd: eindeloze lus");
+
+// 3c. Hoofdadres met www (site stond zo in Google): de site toont zich op
+//     www en het kale adres stuurt door. De andere sites merken daar niets van.
+assert.equal(await (await haal("https://www.gamma.nl/")).text(), "<h1>BETA</h1>", "het www-hoofdadres toont de site niet");
+const naarWww = await haal("https://gamma.nl/pad?x=1");
+assert.equal(naarWww.status, 301);
+assert.equal(naarWww.headers.get("location"), "https://www.gamma.nl/pad?x=1");
+assert.equal((await haal("http://gamma.nl/")).headers.get("location"), "https://www.gamma.nl/", "http en hoofdadres kosten twee doorverwijzingen");
+assert.equal((await haal("http://www.gamma.nl/")).headers.get("location"), "https://www.gamma.nl/");
+assert.equal((await haal("https://www.alfa.nl/")).headers.get("location"), "https://alfa.nl/", "een gewone site stuurt www niet meer door naar kaal");
+assert.equal((await haal("https://scheef.nl/")).status, 404, "een concept (wv-) is via een kaartregel met hoofdadres bereikbaar");
 
 // 4. Onbekend domein: 404, en er wordt niets uit de opslag van een site gelezen
 gelezen = [];

@@ -1,6 +1,7 @@
 /**
  * Het vaste Worker-script dat een klantsite uit R2 serveert. Voor élke site
- * identiek; alleen de bindings verschillen (SITES = de bucket, PREFIX = het
+ * identiek; alleen de bindings verschillen (SITES = de bucket, HOOFD = www of
+ * kaal, PREFIX = het
  * voorvoegsel van deze site). Het script verandert dus niet bij een wijziging
  * van de site — daarom is een wijziging direct overal zichtbaar.
  *
@@ -10,14 +11,15 @@
  *  - 404.html met status 404
  *  - _redirects (301's; houdt oude adressen en Google-posities intact)
  *  - _headers (beveiligingsheaders uit de site zelf)
- *  - noindex op workers.dev-adressen, www → kaal domein (301)
+ *  - noindex op workers.dev-adressen, doorsturen naar het hoofdadres (301):
+ *    standaard www → kaal, met binding HOOFD=www juist kaal → www
  *  - http → https (301); samen met www in één doorverwijzing
  *  - ETag/If-None-Match (304), Range-verzoeken (video seeken), mime-types
  *
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "7";
+export const R2_SCRIPT_VERSIE = "8";
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -81,13 +83,17 @@ export const R2_WORKER_SCRIPT = [
   "export default {",
   "  async fetch(request, env) {",
   "    const url = new URL(request.url);",
-  "    // http → https en www → kaal domein, samen in één doorverwijzing",
+  "    // http → https en naar het hoofdadres, samen in één doorverwijzing",
   "    // (één canoniek adres voor Google, en nooit een pagina zonder slotje).",
+  "    // Hoofdadres is standaard zonder www; met HOOFD=www juist mét. Een",
+  "    // tijdelijk workers.dev-adres krijgt nooit www.",
   '    const onveilig = url.protocol === "http:";',
   '    const metWww = url.hostname.startsWith("www.");',
-  "    if (onveilig || metWww) {",
+  '    const wilWww = env.HOOFD === "www" && !url.hostname.endsWith(".workers.dev");',
+  "    const verkeerd = wilWww ? !metWww : metWww;",
+  "    if (onveilig || verkeerd) {",
   '      if (onveilig) url.protocol = "https:";',
-  "      if (metWww) url.hostname = url.hostname.slice(4);",
+  '      if (verkeerd) url.hostname = wilWww ? "www." + url.hostname : url.hostname.slice(4);',
   "      return Response.redirect(url.toString(), 301);",
   "    }",
   '    if (request.method !== "GET" && request.method !== "HEAD") {',

@@ -45,4 +45,15 @@ assert.equal(metWww.ok, true);
 const lg = await readFile("lib/livegang.ts", "utf8");
 assert.ok(lg.includes('sleutel: "canoniek"'), "de canoniek-regel zit niet in de checklist");
 
+
+// Hoofdadres met www (29-09, aanleiding joostmarchal.nl): de rollen draaien om
+const wwwGoed = beoordeelWwwEnCanonical("joostmarchal.nl", { status: 301, location: "https://www.joostmarchal.nl/" }, { status: 200, location: null }, "https://www.joostmarchal.nl/", "https://www.joostmarchal.nl/projecten/", true);
+assert.ok(wwwGoed.ok, "een site met www als hoofdadres wordt afgekeurd: " + wwwGoed.uitleg);
+const wwwMaarKaalIngesteld = beoordeelWwwEnCanonical("joostmarchal.nl", { status: 301, location: "https://www.joostmarchal.nl/" }, { status: 200, location: null }, "https://www.joostmarchal.nl/", null, false);
+assert.ok(!wwwMaarKaalIngesteld.ok, "de site draait op www terwijl kaal is ingesteld, en dat valt niet op");
+const wwwCanonicalKaal = beoordeelWwwEnCanonical("joostmarchal.nl", { status: 301, location: "https://www.joostmarchal.nl/" }, { status: 200, location: null }, "https://joostmarchal.nl/", null, true);
+assert.ok(!wwwCanonicalKaal.ok && wwwCanonicalKaal.uitleg.includes("canonical"), "canonical op het kale adres bij een www-site valt niet op");
+const wwwDubbel = beoordeelWwwEnCanonical("joostmarchal.nl", { status: 200, location: null }, { status: 200, location: null }, "https://www.joostmarchal.nl/", null, true);
+assert.ok(!wwwDubbel.ok && wwwDubbel.uitleg.includes("dubbel"), "kaal en www tonen allebei de site en dat valt niet op");
+
 console.log("canoniek: ok");

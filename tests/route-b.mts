@@ -20,7 +20,9 @@ await assert.rejects(() => meldDomeinAan("klant.nl", "../intern"), /Ongeldige si
 // 3. Kaal en www horen bij elkaar, en de hoster krijgt precies die twee regels
 assert.deepEqual(adressenVan("klant.nl"), ["klant.nl", "www.klant.nl"]);
 const regels = regelsVoorHoster("https://www.Klant.nl/");
-assert.deepEqual(regels.map((r) => `${r.soort} ${r.naam} ${r.waarde}`), [`CNAME klant.nl ${ONTVANGSTADRES}`, `CNAME www.klant.nl ${ONTVANGSTADRES}`]);
+// www eerst: dat is de volgorde die bij aimia.nl werkte, en de veilige stap
+assert.deepEqual(regels.map((r) => `${r.soort} ${r.naam} ${r.waarde}`), [`CNAME www.klant.nl ${ONTVANGSTADRES}`, `CNAME of ALIAS klant.nl ${ONTVANGSTADRES}`]);
+assert.ok(regels.every((r) => r.uitleg.includes("A-regel")), "de les van aimia.nl (eerst de A-regel weg) staat niet in de uitleg");
 assert.ok(ONTVANGSTADRES.endsWith(`.${SAAS_ZONE}`));
 
 // 4. Nooit een vangnet-route: alleen routes per aangemeld adres
