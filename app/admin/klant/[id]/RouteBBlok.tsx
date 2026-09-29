@@ -32,7 +32,27 @@ export default async function RouteBBlok({
   melding?: string;
 }) {
   const domein = kaalDomein(site);
-  if (!domein || !site.siteSlug) return null;
+  // Altijd zichtbaar, ook zonder domein: anders weet je niet dat deze route
+  // bestaat (Jos zocht het blok op dev, waar sites alleen een tijdelijk adres hebben)
+  if (!domein || !site.siteSlug) {
+    return (
+      <details id="route-b" className="mt-6 scroll-mt-24 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
+        <summary className="cursor-pointer list-none">
+          <span className="font-display text-xl font-semibold">Domein blijft bij de hoster</span>
+          <span className="ml-2 text-sm text-stone-600">alleen nodig als de hoster de DNS wil houden</span>
+        </summary>
+        <p className="mt-3 text-sm text-stone-600">
+          Normaal komt het domein in ons Cloudflare-account. Wil de hoster de DNS en de mail zelf houden, dan meld je het
+          domein hier aan en zet de hoster twee regels in zijn DNS. Aan de mailregels verandert niets.
+        </p>
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
+          {!site.siteSlug
+            ? "Deze site heeft nog geen hosting-naam. Rol hem eerst uit."
+            : "Vul eerst bij Instellingen het eigen domein in (zonder www). Daarna verschijnt hier de knop om het aan te melden."}
+        </p>
+      </details>
+    );
+  }
   let aangemeld = false;
   let status: DomeinStatus[] = [];
   let storing = false;

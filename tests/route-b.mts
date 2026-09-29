@@ -42,6 +42,7 @@ assert.ok(blok.includes("<BevestigKnop") && blok.includes("afmelden?"), "afmelde
 assert.ok(blok.includes("Alles voor de mail blijft staan"), "de geruststelling over de mail ontbreekt bij de regels");
 const pagina = await readFile("app/admin/klant/[id]/page.tsx", "utf8");
 assert.ok(pagina.includes("<RouteBBlok site={site}"), "het blok staat niet op de klantpagina");
+assert.ok(!/if \(!domein \|\| !site\.siteSlug\) return null;/.test(blok) && blok.includes("Vul eerst bij Instellingen het eigen domein in"), "zonder domein is het blok onzichtbaar: dan weet niemand dat de route bestaat");
 
 // 6. Livegang telt een domein via route B als gekoppeld, en het dashboard bewaakt het
 const livegang = await readFile("lib/livegang.ts", "utf8");
