@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.8 (29 september 2026)
+
+**Tweede route voor de livegang: het domein blijft bij de hoster.** Wil een hoster de DNS en de mail zelf houden, dan kan de website nu toch bij ons draaien. De hoster zet twee regels in zijn DNS die het websiteverkeer naar sites.wordswap.nl sturen; één verdeler kijkt naar de domeinnaam en serveert de juiste site. Wij raken de mailregels dan niet aan.
+
+- Bewezen met een eigen testadres: aangemeld, certificaat binnen twee minuten, site bereikbaar, www stuurt door.
+- Bestaande sites merken hier niets van: zij houden hun eigen koppeling.
+- Nog alleen via de opdrachtregel (scripts/route-b.mts); de knop in de admin volgt.
+- Nog niet getest voor een adres zonder www bij een externe hoster.
+
 ## 1.34.7 (29 september 2026)
 
 **De mail hoort bij de eerste check.** Op elke leadkaart staat een knop Mailcheck. Eén klik laat zien waar domein, DNS en mail staan, in welke situatie de klant zit en wat het kost: mail die al los staat (niets verhuizen, inbegrepen), mail bij de hoster (blijven of verhuizen naar Soverin voor €75 inclusief de eerste postbus en €25 per extra postbus), alleen doorsturen, of geen mail.
