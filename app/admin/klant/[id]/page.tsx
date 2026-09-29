@@ -24,6 +24,7 @@ import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
 import LivegangChecklist from "./LivegangChecklist";
+import RouteBBlok from "./RouteBBlok";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import BevestigingsMails from "@/app/portal/BevestigingsMails";
@@ -92,11 +93,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string; routeb?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding, routeb: routeBMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -418,6 +419,8 @@ export default async function KlantDetail({
           <LivegangChecklist checks={livegang} />
         </div>
       )}
+
+      {heeftLivegang(site) && <RouteBBlok site={site} melding={routeBMelding} />}
 
       {/* Instellingen */}
       <form

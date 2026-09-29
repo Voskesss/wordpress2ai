@@ -109,6 +109,35 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
+    await meet("route-b", "Domeinen bij de hoster (route B)", async () => {
+      const { leesDomeinkaart, statusVan } = await import("./route-b");
+      const domeinen = Object.keys(await leesDomeinkaart());
+      if (domeinen.length === 0) return "Geen domeinen aangemeld.";
+      const mis: string[] = [];
+      for (const d of domeinen) {
+        for (const s of await statusVan(d)) {
+          if (s.adresStatus !== "active") mis.push(`${s.adres}: verwijzing ${s.adresStatus} (heeft de hoster een regel weggehaald?)`);
+          else if (s.certificaatStatus !== "active") mis.push(`${s.adres}: certificaat ${s.certificaatStatus}`);
+        }
+      }
+      return mis.length ? { status: "fout", detail: mis.join("; ") } : `${domeinen.length} domein(en), verwijzing en certificaat actief.`;
+    }),
+  );
+
+  checks.push(
+    await meet("eigen-dns", "Eigen adressen van wordswap.nl buiten de verdeler", async () => {
+      // De verdeler staat op de zone wordswap.nl. Zolang onze eigen adressen op
+      // "alleen DNS" staan komen ze niet langs Cloudflare en kan er niets gekaapt worden.
+      const { eigenAdressenViaCloudflare } = await import("./route-b");
+      const oranje = await eigenAdressenViaCloudflare();
+      if (oranje === null) return { status: "waarschuwing", detail: "Kon de DNS van wordswap.nl niet lezen (sleutel mist het recht DNS lezen)." };
+      return oranje.length
+        ? { status: "fout", detail: `Deze adressen lopen via Cloudflare en horen op alleen DNS te staan: ${oranje.join(", ")}.` }
+        : "Alle eigen adressen staan op alleen DNS.";
+    }),
+  );
+
+  checks.push(
     await meet("soverin", "Mailbox lezen (Soverin)", async () => {
       const { haalLeadPost } = await import("./soverin");
       await haalLeadPost(["jos@wordswap.nl"], new Date(Date.now() - 60 * 60_000));

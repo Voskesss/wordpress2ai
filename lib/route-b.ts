@@ -218,3 +218,15 @@ export function regelsVoorHoster(ruw: string, hoofd: "www" | "kaal" = "kaal"): {
     },
   ];
 }
+
+/** Adressen van wordswap.nl zelf die via Cloudflare lopen (oranje wolkje),
+ * behalve het ontvangstadres. Hoort leeg te zijn. Null = niet te lezen. */
+export async function eigenAdressenViaCloudflare(): Promise<string[] | null> {
+  const zone = await saasZoneId();
+  for (const token of [process.env.CLOUDFLARE_API_TOKEN, process.env.CLOUDFLARE_DNS_TOKEN]) {
+    if (!token) continue;
+    const j = await cf<{ name: string; proxied?: boolean }[]>(`/zones/${zone}/dns_records?per_page=200`, {}, token);
+    if (j.success) return j.result.filter((r) => r.proxied && r.name !== ONTVANGSTADRES).map((r) => r.name);
+  }
+  return null;
+}

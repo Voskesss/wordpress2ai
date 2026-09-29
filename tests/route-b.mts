@@ -30,4 +30,23 @@ const bron = await readFile("lib/route-b.ts", "utf8");
 assert.ok(!/pattern:\s*["'`]\*/.test(bron) && !bron.includes('"*/*"'), "er staat een vangnet-route in: die kan wordswap.nl zelf kapen");
 assert.ok(bron.includes("const patroon = `${adres}/*`"), "de route per adres ontbreekt");
 
+
+// 5. De knop in de admin: aanmelden en afmelden alleen voor beheerders, en
+//    afmelden raakt alleen een domein dat echt bij DEZE site hoort
+const acties = await readFile("app/admin/acties-route-b.ts", "utf8");
+assert.equal((acties.match(/await requireAdmin\(\);/g) ?? []).length, 2, "een actie van route B mist de beheerderscontrole");
+assert.ok(acties.includes("slugVan((await leesDomeinkaart())[domein]) === site.siteSlug"), "afmelden kan het domein van een andere site weghalen");
+assert.ok(acties.includes("hoofdBinding(site)"), "aanmelden geeft het hoofdadres niet door");
+const blok = await readFile("app/admin/klant/[id]/RouteBBlok.tsx", "utf8");
+assert.ok(blok.includes("<BevestigKnop") && blok.includes("afmelden?"), "afmelden vraagt geen bevestiging");
+assert.ok(blok.includes("Alles voor de mail blijft staan"), "de geruststelling over de mail ontbreekt bij de regels");
+const pagina = await readFile("app/admin/klant/[id]/page.tsx", "utf8");
+assert.ok(pagina.includes("<RouteBBlok site={site}"), "het blok staat niet op de klantpagina");
+
+// 6. Livegang telt een domein via route B als gekoppeld, en het dashboard bewaakt het
+const livegang = await readFile("lib/livegang.ts", "utf8");
+assert.ok(livegang.includes("routeBDomeinenVan(siteSlug)"), "de livegang-controle kent route B niet en blijft klagen dat het domein niet gekoppeld is");
+const gezondheid = await readFile("lib/gezondheid.ts", "utf8");
+assert.ok(gezondheid.includes('meet("route-b"') && gezondheid.includes('meet("eigen-dns"'), "het gezondheidsdashboard bewaakt route B of de eigen adressen niet");
+
 console.log("route-b: ok");

@@ -77,6 +77,27 @@ async function vindPaden(): Promise<string[]> {
   return paden;
 }
 
+/** Toont de oude site zich met of zonder www? Dat adres staat in Google en
+ * nemen we over (vinkje Hoofdadres met www in de admin). */
+async function meetHoofdadres(): Promise<{ keuze: "www" | "kaal" | "onbekend"; uitleg: string }> {
+  const kaal = new URL(BASIS).hostname.replace(/^www\./, "");
+  const meet = async (host: string) => {
+    try {
+      const r = await fetch("https://" + host + "/", { redirect: "manual", signal: AbortSignal.timeout(10000) });
+      return { status: r.status, naar: r.headers.get("location") ?? "" };
+    } catch {
+      return null;
+    }
+  };
+  const [k, w] = await Promise.all([meet(kaal), meet("www." + kaal)]);
+  const toont = (m: typeof k) => Boolean(m && m.status >= 200 && m.status < 300);
+  const stuurtNaar = (m: typeof k, host: string) => Boolean(m && m.status >= 300 && m.status < 400 && m.naar.includes("://" + host));
+  if (toont(w) && stuurtNaar(k, "www." + kaal)) return { keuze: "www", uitleg: "zonder www stuurt door naar www: zet in de admin het vinkje Hoofdadres met www AAN" };
+  if (toont(k) && stuurtNaar(w, kaal)) return { keuze: "kaal", uitleg: "www stuurt door naar zonder www: vinkje uit laten" };
+  if (toont(k) && toont(w)) return { keuze: "onbekend", uitleg: "beide adressen tonen de site: kijk naar de canonical en kies met Jos" };
+  return { keuze: "onbekend", uitleg: "niet te bepalen (kaal: " + (k?.status ?? "geen antwoord") + ", www: " + (w?.status ?? "geen antwoord") + ")" };
+}
+
 // Alles als string aan evaluate geven (tsx/__name-valkuil)
 const EXTRACT = `(() => {
   const abs = (u) => { try { return new URL(u, location.href).href.split("?")[0]; } catch { return null; } };
@@ -126,7 +147,8 @@ const SCROLL = `new Promise((klaar) => { let y = 0; const t = setInterval(() => 
 (async () => {
   const paden = await vindPaden();
   const browser = await chromium.launch();
-  const seoManifest: any = { bron: BASIS, paginas: [] };
+  const seoManifest: any = { bron: BASIS, hoofdadres: await meetHoofdadres(), paginas: [] };
+  console.log("Hoofdadres van de oude site: " + seoManifest.hoofdadres.keuze + " (" + seoManifest.hoofdadres.uitleg + ")");
   const afbeeldingen: any = {}, embedsAlles: any = {};
 
   const ctxD = await browser.newContext({ viewport: { width: 1440, height: 900 }, userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36" });
