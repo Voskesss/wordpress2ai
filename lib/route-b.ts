@@ -62,6 +62,12 @@ export async function zorgVerdeler(): Promise<"ongewijzigd" | "gepubliceerd"> {
  * er al; die is eenmalig met de DNS-sleutel aangemaakt). */
 export async function zorgOntvangstadres(): Promise<string> {
   const zone = await saasZoneId();
+  // Wie het ontvangstadres zelf opent krijgt de nette "niet bekend"-pagina
+  // van de verdeler in plaats van een Cloudflare-storing (522).
+  const routes = await cf<{ pattern: string }[]>(`/zones/${zone}/workers/routes`);
+  if (routes.success && !routes.result.some((r) => r.pattern === `${ONTVANGSTADRES}/*`)) {
+    await cf(`/zones/${zone}/workers/routes`, { method: "POST", body: JSON.stringify({ pattern: `${ONTVANGSTADRES}/*`, script: VERDELER_NAAM }) });
+  }
   const nu = await cf<{ origin?: string; status?: string }>(`/zones/${zone}/custom_hostnames/fallback_origin`);
   if (nu.success && nu.result?.origin === ONTVANGSTADRES) return nu.result.status ?? "onbekend";
   const j = await cf<{ status?: string }>(`/zones/${zone}/custom_hostnames/fallback_origin`, {
