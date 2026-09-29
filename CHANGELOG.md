@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.4 (29 september 2026)
+
+Reparatie: bij een lastige ontwerpvraag kon de chat halverwege stoppen met
+"er ging bij ons iets mis", terwijl er niets mis was: hij zat nog na te
+denken. Omdat dat nadenken geen enkel teken van leven gaf, dacht onze
+bewaking dat hij vastzat. Nu geeft hij tijdens het nadenken gewoon
+tekenen van leven en werkt hij rustig door. Je ziet daar zelf niets van.
+
 ## 1.34.3 (28 september 2026)
 
 Twee dingen in je portaal die verwarrend waren. De knop om een testmail
