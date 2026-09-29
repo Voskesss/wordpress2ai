@@ -20,6 +20,20 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.0 (29 september 2026)
+
+**Hoofdadres per site: met of zonder www.** Een site die met www in Google staat, houdt www. Bij Instellingen staat een vinkje "Hoofdadres met www"; de site toont zich dan op www en het adres zonder www stuurt door. Standaard staat het uit, dus bestaande sites merken niets. Het domeinveld zelf blijft altijd zonder www, zodat een per ongeluk geplakte www nooit een site omgooit.
+
+- Het oogst-script meet bij een migratie welk adres de oude site gebruikt en zegt of het vinkje aan moet.
+- De livegang-controle keurt goed wat bij het gekozen hoofdadres hoort.
+
+**Het domein blijft bij de hoster, nu ook in de admin.** Op de klantpagina staat een blok "Domein blijft bij de hoster": aanmelden met één knop, de regels voor de hoster in gewone taal, en de stand van verwijzing en certificaat per adres.
+
+- De livegang-controle telt zo'n domein als gekoppeld.
+- Het gezondheidsdashboard bewaakt dagelijks of de verwijzing en het certificaat nog actief zijn, en of geen eigen adres van wordswap.nl via Cloudflare loopt.
+
+Vereist de kolom hoofdadres_www (db/migrations/20260929-hoofdadres-www.sql) vóór de uitrol.
+
 ## 1.34.9 (29 september 2026)
 
 **Nooit meer een pagina zonder slotje.** Wie het onbeveiligde adres (http) van een site opent, wordt nu doorgestuurd naar het beveiligde adres (https). Tot nu toe toonde de site zich gewoon op beide. Samen met www gaat het in één doorverwijzing. Gevonden bij de livegang van aimia.nl; het gold voor alle sites.
