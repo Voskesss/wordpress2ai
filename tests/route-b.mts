@@ -5,7 +5,7 @@
  */
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { ONTVANGSTADRES, SAAS_ZONE, adressenVan, meldDomeinAan, regelsVoorHoster } from "../lib/route-b";
+import { ONTVANGSTADRES, SAAS_ZONE, adressenVan, meldDomeinAan, naamInPaneel, regelsVoorHoster } from "../lib/route-b";
 
 // 1. Een adres van wordswap.nl zelf mag nooit via de verdeler lopen
 for (const d of ["wordswap.nl", "www.wordswap.nl", "clerk.wordswap.nl", "sites.wordswap.nl"]) {
@@ -49,5 +49,19 @@ const livegang = await readFile("lib/livegang.ts", "utf8");
 assert.ok(livegang.includes("routeBDomeinenVan(siteSlug)"), "de livegang-controle kent route B niet en blijft klagen dat het domein niet gekoppeld is");
 const gezondheid = await readFile("lib/gezondheid.ts", "utf8");
 assert.ok(gezondheid.includes('meet("route-b"') && gezondheid.includes('meet("eigen-dns"'), "het gezondheidsdashboard bewaakt route B of de eigen adressen niet");
+
+
+// 7. Overstap zonder onderbreking (bewezen 29-09 op proef.aimia.nl, DNS bij
+//    Domeinwinkel): controle vooraf via TXT, en die manier is de eerste keuze
+assert.ok(bron.includes('const methode = opties.vooraf ? "txt" : "http";'), "aanmelden kent de controle vooraf niet");
+assert.ok(bron.includes('al.ssl?.status !== "active"'), "een werkend certificaat kan door opnieuw aanmelden worden omgegooid");
+assert.ok(acties.includes('{ vooraf: formData.get("vooraf") === "ja" }'), "de knop geeft de keuze niet door");
+assert.ok(blok.indexOf("(zonder onderbreking)") < blok.indexOf("Snel aanmelden") && blok.indexOf("(zonder onderbreking)") > 0, "zonder onderbreking hoort de eerste en opvallende knop te zijn");
+assert.ok(blok.includes("nog niet doen") && blok.includes("nu mag de hoster de verwijzing omzetten"), "het blok zegt niet wanneer de verwijzing om mag");
+assert.ok(blok.includes("moeten er allemaal in"), "de waarschuwing over regels met dezelfde naam ontbreekt (er zijn er twee per adres)");
+// wat de hoster in zijn paneel typt
+assert.equal(naamInPaneel("_acme-challenge.proef.aimia.nl", "aimia.nl"), "_acme-challenge.proef");
+assert.equal(naamInPaneel("_cf-custom-hostname.www.klant.nl.", "www.klant.nl"), "_cf-custom-hostname.www");
+assert.equal(naamInPaneel("klant.nl", "klant.nl"), "@");
 
 console.log("route-b: ok");

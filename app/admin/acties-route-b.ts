@@ -19,7 +19,7 @@ export async function routeBAanmelden(formData: FormData) {
   let uitkomst = "aangemeld";
   try {
     const { meldDomeinAan } = await import("@/lib/route-b");
-    await meldDomeinAan(domein, site.siteSlug, hoofdBinding(site));
+    await meldDomeinAan(domein, site.siteSlug, hoofdBinding(site), { vooraf: formData.get("vooraf") === "ja" });
   } catch (e) {
     console.error("Route B aanmelden mislukt:", e);
     uitkomst = "mislukt";

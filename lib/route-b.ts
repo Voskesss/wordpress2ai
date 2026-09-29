@@ -98,6 +98,8 @@ export async function routeBDomeinenVan(slug: string | null): Promise<string[]> 
 export type DomeinStatus = {
   adres: string;
   id: string | null;
+  /** "txt" = controle vooraf (overstap zonder onderbreking), "http" = direct */
+  methode: string;
   /** Herkent Cloudflare het adres als van ons (de hoster heeft doorverwezen)? */
   adresStatus: string;
   certificaatStatus: string;
@@ -113,7 +115,7 @@ type Hostnaam = {
   status: string;
   verification_errors?: string[];
   ownership_verification?: { type: string; name: string; value: string };
-  ssl?: { status?: string; validation_errors?: { message: string }[]; validation_records?: { txt_name?: string; txt_value?: string }[] };
+  ssl?: { method?: string; status?: string; validation_errors?: { message: string }[]; validation_records?: { txt_name?: string; txt_value?: string }[] };
 };
 
 function naarStatus(h: Hostnaam): DomeinStatus {
@@ -123,6 +125,7 @@ function naarStatus(h: Hostnaam): DomeinStatus {
   return {
     adres: h.hostname,
     id: h.id,
+    methode: h.ssl?.method ?? "http",
     adresStatus: h.status,
     certificaatStatus: h.ssl?.status ?? "onbekend",
     controleRegels: regels,
@@ -141,14 +144,23 @@ export async function statusVan(ruw: string): Promise<DomeinStatus[]> {
   for (const adres of adressenVan(domein)) {
     const j = await cf<Hostnaam[]>(`/zones/${zone}/custom_hostnames?hostname=${encodeURIComponent(adres)}`);
     const h = j.success ? j.result.find((x) => x.hostname === adres) : null;
-    uit.push(h ? naarStatus(h) : { adres, id: null, adresStatus: "niet aangemeld", certificaatStatus: "geen", controleRegels: [], fouten: j.success ? [] : [fout(j)] });
+    uit.push(h ? naarStatus(h) : { adres, id: null, methode: "geen", adresStatus: "niet aangemeld", certificaatStatus: "geen", controleRegels: [], fouten: j.success ? [] : [fout(j)] });
   }
   return uit;
 }
 
 /** Meldt een klantdomein aan: bij Cloudflare (kaal + www), als route naar de
  * verdeler, en in de domeinkaart. Veilig om te herhalen. */
-export async function meldDomeinAan(ruw: string, slug: string, hoofd: "www" | "kaal" = "kaal"): Promise<DomeinStatus[]> {
+export async function meldDomeinAan(
+  ruw: string,
+  slug: string,
+  hoofd: "www" | "kaal" = "kaal",
+  /** vooraf = de hoster zet eerst controleregels, het certificaat staat klaar
+   * vóór de verwijzing omgaat. Voor sites met bezoekers (bewezen 29-09 op
+   * proef.aimia.nl: geen moment zonder geldig certificaat). */
+  opties: { vooraf?: boolean } = {},
+): Promise<DomeinStatus[]> {
+  const methode = opties.vooraf ? "txt" : "http";
   const domein = kaartDomein(ruw);
   if (!domein) throw new Error(`Geen geldige domeinnaam: ${ruw}`);
   if (domein === SAAS_ZONE || domein.endsWith(`.${SAAS_ZONE}`)) throw new Error("Een adres van wordswap.nl zelf mag nooit via de verdeler lopen.");
@@ -166,12 +178,21 @@ export async function meldDomeinAan(ruw: string, slug: string, hoofd: "www" | "k
   const routes = await cf<{ id: string; pattern: string; script?: string }[]>(`/zones/${zone}/workers/routes`);
   for (const adres of adressenVan(domein)) {
     const bestaand = await cf<Hostnaam[]>(`/zones/${zone}/custom_hostnames?hostname=${encodeURIComponent(adres)}`);
-    if (!bestaand.result?.some((x) => x.hostname === adres)) {
+    const al = bestaand.result?.find((x) => x.hostname === adres);
+    if (!al) {
       const j = await cf<Hostnaam>(`/zones/${zone}/custom_hostnames`, {
         method: "POST",
-        body: JSON.stringify({ hostname: adres, ssl: { method: "http", type: "dv", settings: { min_tls_version: "1.2" } } }),
+        body: JSON.stringify({ hostname: adres, ssl: { method: methode, type: "dv", settings: { min_tls_version: "1.2" } } }),
       });
       if (!j.success) throw new Error(`Aanmelden van ${adres} mislukt: ${fout(j)}`);
+    } else if (al.ssl?.status !== "active" && (al.ssl?.method ?? "http") !== methode) {
+      // Nog geen certificaat en een andere manier gekozen: omzetten. Een
+      // werkend certificaat blijft altijd met rust.
+      const j = await cf<Hostnaam>(`/zones/${zone}/custom_hostnames/${al.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ ssl: { method: methode, type: "dv", settings: { min_tls_version: "1.2" } } }),
+      });
+      if (!j.success) throw new Error(`Omzetten van ${adres} mislukt: ${fout(j)}`);
     }
     const patroon = `${adres}/*`;
     if (!routes.result?.some((r) => r.pattern === patroon)) {
@@ -229,4 +250,24 @@ export async function eigenAdressenViaCloudflare(): Promise<string[] | null> {
     if (j.success) return j.result.filter((r) => r.proxied && r.name !== ONTVANGSTADRES).map((r) => r.name);
   }
   return null;
+}
+
+/** Wijst dit adres in de DNS al naar ons? Vergelijkt de nummers met die van
+ * het ontvangstadres. Null = niet te bepalen. */
+export async function wijstNaarOns(adres: string): Promise<boolean | null> {
+  const { promises: dns } = await import("node:dns");
+  try {
+    const [zij, wij] = await Promise.all([dns.resolve4(adres), dns.resolve4(ONTVANGSTADRES)]);
+    return zij.some((ip) => wij.includes(ip));
+  } catch {
+    return null;
+  }
+}
+
+/** Het stuk van de naam dat de hoster in zijn paneel typt (zonder het domein erachter). */
+export function naamInPaneel(volledig: string, domein: string): string {
+  const d = domein.replace(/^www\./, "").toLowerCase();
+  const n = volledig.toLowerCase().replace(/\.$/, "");
+  if (n === d) return "@";
+  return n.endsWith(`.${d}`) ? n.slice(0, -d.length - 1) : n;
 }

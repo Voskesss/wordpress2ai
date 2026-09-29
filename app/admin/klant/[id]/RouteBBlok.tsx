@@ -2,7 +2,7 @@ import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
 import { routeBAanmelden, routeBAfmelden } from "../../acties-route-b";
 import { hoofdBinding, kaalDomein, publiekAdres } from "@/lib/hoofdadres";
-import { ONTVANGSTADRES, leesDomeinkaart, regelsVoorHoster, slugVan, statusVan, type DomeinStatus } from "@/lib/route-b";
+import { ONTVANGSTADRES, leesDomeinkaart, naamInPaneel, regelsVoorHoster, slugVan, statusVan, wijstNaarOns, type DomeinStatus } from "@/lib/route-b";
 
 const MELDING: Record<string, { tekst: string; goed: boolean }> = {
   aangemeld: { tekst: "✓ Aangemeld. Stuur de regels hieronder naar de hoster; het certificaat volgt vanzelf zodra ze erin staan.", goed: true },
@@ -55,16 +55,24 @@ export default async function RouteBBlok({
   }
   let aangemeld = false;
   let status: DomeinStatus[] = [];
+  let naarOns: Record<string, boolean | null> = {};
   let storing = false;
   try {
     aangemeld = slugVan((await leesDomeinkaart())[domein]) === site.siteSlug;
-    if (aangemeld) status = await statusVan(domein);
+    if (aangemeld) {
+      status = await statusVan(domein);
+      naarOns = Object.fromEntries(await Promise.all(status.map(async (s) => [s.adres, await wijstNaarOns(s.adres)] as const)));
+    }
   } catch {
     storing = true;
   }
+  const vooraf = status.some((s) => s.methode === "txt");
+  const certificatenKlaar = status.length > 0 && status.every((s) => s.adresStatus === "active" && s.certificaatStatus === "active");
+  const controleRegels = status.flatMap((s) => s.controleRegels);
+  const omgezet = status.length > 0 && status.every((s) => naarOns[s.adres] === true);
   const hoofd = hoofdBinding(site);
   const regels = regelsVoorHoster(domein, hoofd);
-  const allesActief = aangemeld && status.length > 0 && status.every((s) => s.adresStatus === "active" && s.certificaatStatus === "active");
+  const allesActief = aangemeld && certificatenKlaar && omgezet;
   const m = melding ? MELDING[melding] : null;
   return (
     <details
@@ -77,7 +85,15 @@ export default async function RouteBBlok({
           {allesActief ? "✅ " : aangemeld ? "⏳ " : ""}Domein blijft bij de hoster
         </span>
         <span className="ml-2 text-sm text-stone-600">
-          {aangemeld ? (allesActief ? `${publiekAdres(site)} loopt via ons` : "aangemeld, wacht op de hoster") : "alleen nodig als de hoster de DNS wil houden"}
+          {aangemeld
+            ? allesActief
+              ? `${publiekAdres(site)} loopt via ons`
+              : certificatenKlaar
+                ? "certificaat klaar, de hoster kan de verwijzing omzetten"
+                : vooraf
+                  ? "aangemeld, wacht op de controleregels van de hoster"
+                  : "aangemeld, wacht op de hoster"
+            : "alleen nodig als de hoster de DNS wil houden"}
         </span>
       </summary>
       {m && (
@@ -97,8 +113,9 @@ export default async function RouteBBlok({
           <thead className="text-xs uppercase tracking-wider text-stone-400">
             <tr>
               <th className="py-1 pr-3 font-semibold">Adres</th>
-              <th className="py-1 pr-3 font-semibold">Verwijzing</th>
-              <th className="py-1 font-semibold">Certificaat</th>
+              <th className="py-1 pr-3 font-semibold">Herkend</th>
+              <th className="py-1 pr-3 font-semibold">Certificaat</th>
+              <th className="py-1 font-semibold">Wijst naar ons</th>
             </tr>
           </thead>
           <tbody>
@@ -106,20 +123,50 @@ export default async function RouteBBlok({
               <tr key={s.adres} className="border-t border-stone-100 align-top">
                 <td className="py-1.5 pr-3 font-mono text-xs">{s.adres}</td>
                 <td className="py-1.5 pr-3">{s.adresStatus === "active" ? "✅ " : "⏳ "}{nl(s.adresStatus)}</td>
-                <td className="py-1.5">
+                <td className="py-1.5 pr-3">
                   {s.certificaatStatus === "active" ? "✅ " : "⏳ "}{nl(s.certificaatStatus)}
                   {s.fouten.map((f) => (
                     <span key={f} className="block text-xs text-amber-800">{f}</span>
                   ))}
                 </td>
+                <td className="py-1.5">{naarOns[s.adres] === true ? "✅ ja" : naarOns[s.adres] === false ? "⬜ nog niet" : "niet te bepalen"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
 
+      {aangemeld && vooraf && controleRegels.length > 0 && (
+        <div className={`mt-4 rounded-2xl border p-4 text-sm ${certificatenKlaar ? "border-emerald-200 bg-emerald-50/60" : "border-amber-200 bg-amber-50/60"}`}>
+          <p className="font-semibold text-stone-900">
+            {certificatenKlaar ? "✅ Stap 1 klaar: controleregels" : "Stap 1: de hoster zet eerst deze controleregels"}
+          </p>
+          <p className="mt-1 text-stone-600">
+            Hiermee maakt Cloudflare het certificaat alvast aan, terwijl de oude site gewoon blijft draaien. Regels met
+            dezelfde naam moeten er allemaal in. Laat ze ook na de overstap staan: ze zijn nodig voor het verlengen.
+          </p>
+          <table className="mt-2 w-full text-left">
+            <tbody>
+              {controleRegels.map((r) => (
+                <tr key={r.naam + r.waarde} className="border-t border-stone-200/70 align-top">
+                  <td className="py-1.5 pr-3 font-mono text-xs">TXT</td>
+                  <td className="break-all py-1.5 pr-3 font-mono text-xs">{naamInPaneel(r.naam, domein)}</td>
+                  <td className="break-all py-1.5 font-mono text-xs">{r.waarde}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-2 text-xs text-stone-500">
+            De naam is het stuk vóór {domein}; de meeste panelen zetten het domein er zelf achter. De codes zijn ongeveer
+            een week geldig.
+          </p>
+        </div>
+      )}
+
       <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm">
-        <p className="font-semibold text-stone-900">Regels voor de hoster</p>
+        <p className="font-semibold text-stone-900">
+          {aangemeld && vooraf ? (certificatenKlaar ? "Stap 2: nu mag de hoster de verwijzing omzetten" : "Stap 2: pas daarna de verwijzing (nog niet doen)") : "Regels voor de hoster"}
+        </p>
         <p className="mt-1 text-stone-600">
           Hoofdadres van deze site: <b>{publiekAdres(site)}</b>. Alles voor de mail blijft staan.
         </p>
@@ -137,14 +184,30 @@ export default async function RouteBBlok({
 
       <div className="mt-4 flex flex-wrap gap-3">
         {!aangemeld ? (
-          <form action={routeBAanmelden}>
-            <input type="hidden" name="siteId" value={site.id} />
-            <ActieKnop
-              label={`Meld ${domein} aan`}
-              bezigLabel="Aanmelden..."
-              className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
-            />
-          </form>
+          <>
+            <form action={routeBAanmelden}>
+              <input type="hidden" name="siteId" value={site.id} />
+              <input type="hidden" name="vooraf" value="ja" />
+              <ActieKnop
+                label={`Meld ${domein} aan (zonder onderbreking)`}
+                bezigLabel="Aanmelden..."
+                className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
+              />
+            </form>
+            <form action={routeBAanmelden}>
+              <input type="hidden" name="siteId" value={site.id} />
+              <ActieKnop
+                label="Snel aanmelden"
+                bezigLabel="Aanmelden..."
+                className="cursor-pointer rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+              />
+            </form>
+            <p className="w-full text-xs text-stone-500">
+              <b>Zonder onderbreking</b>: voor een site met bezoekers. De hoster zet eerst controleregels, het certificaat
+              staat klaar voordat er iets omgaat. <b>Snel</b>: alleen voor een domein waar nu niets op draait; tussen
+              omzetten en certificaat zit een paar minuten met een waarschuwing in de browser.
+            </p>
+          </>
         ) : (
           <form action={routeBAfmelden}>
             <input type="hidden" name="siteId" value={site.id} />
