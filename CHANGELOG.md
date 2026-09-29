@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.9 (29 september 2026)
+
+**Nooit meer een pagina zonder slotje.** Wie het onbeveiligde adres (http) van een site opent, wordt nu doorgestuurd naar het beveiligde adres (https). Tot nu toe toonde de site zich gewoon op beide. Samen met www gaat het in één doorverwijzing. Gevonden bij de livegang van aimia.nl; het gold voor alle sites.
+
+- Sites op de nieuwe route (het domein blijft bij de hoster) hebben dit direct. Sites met een eigen koppeling krijgen het bij hun eerstvolgende publicatie.
+- aimia.nl is de eerste site die live staat via de nieuwe route, met en zonder www.
+
 ## 1.34.8 (29 september 2026)
 
 **Tweede route voor de livegang: het domein blijft bij de hoster.** Wil een hoster de DNS en de mail zelf houden, dan kan de website nu toch bij ons draaien. De hoster zet twee regels in zijn DNS die het websiteverkeer naar sites.wordswap.nl sturen; één verdeler kijkt naar de domeinnaam en serveert de juiste site. Wij raken de mailregels dan niet aan.
