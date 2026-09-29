@@ -293,7 +293,7 @@ export default async function Home({
             plaatsen en de kleur aanpassen. Je ziet elke wijziging eerst als
             concept. Pas als jij op Publiceer klikt, staat het live.
           </p>
-          <p className="demo-video-noot">Zonder geluid · 46 seconden</p>
+          <p className="demo-video-noot">Zonder geluid · start als jij op afspelen drukt</p>
         </div>
         <DemoVideo />
       </section>
