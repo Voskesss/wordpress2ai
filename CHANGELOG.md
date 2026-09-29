@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.34.6 (29 september 2026)
+
+**De demovideo staat nu bovenaan de homepage**, met een afspeelknop in het midden. Het klikbare voorbeeld werd nauwelijks gebruikt en is naar de plek lager op de pagina verhuisd ("Probeer het zelf"). De link bovenaan heet nu "Bekijk de video". De video laadt nog steeds pas na een druk op de knop.
+
 ## 1.34.5 (29 september 2026)
 
 **Demovideo op de homepage.** Lager op de pagina staat nu een video van ruim 40 seconden met vier echte klussen in het portaal: foto vervangen, pagina toevoegen, nieuwsbericht plaatsen en kleur aanpassen. Het klikbare voorbeeld bovenaan blijft staan. Op de telefoon speelt de staande versie, op een breed scherm de vierkante. De video laadt pas als iemand op afspelen drukt, dus de pagina wordt er niet trager van.
