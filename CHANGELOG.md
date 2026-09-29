@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.1 (29 september 2026)
+
+**Overstap zonder onderbreking.** Blijft het domein bij de hoster en heeft de site bezoekers, dan zet de hoster eerst controleregels in zijn DNS. Het certificaat staat dan klaar terwijl de oude site nog draait. Pas daarna gaat de verwijzing om. Bewezen op een testadres bij Domeinwinkel: de eerste meting na het omzetten gaf de site met een geldig certificaat.
+
+- Het blok "Domein blijft bij de hoster" toont de twee stappen in volgorde, en zegt wanneer de verwijzing om mag.
+- Het blok is altijd zichtbaar, ook als er nog geen domein is ingevuld.
+- De admin ziet per adres of het al via ons loopt.
+- "Snel aanmelden" blijft bestaan voor een domein waar nu niets op draait.
+
 ## 1.35.0 (29 september 2026)
 
 **Hoofdadres per site: met of zonder www.** Een site die met www in Google staat, houdt www. Bij Instellingen staat een vinkje "Hoofdadres met www"; de site toont zich dan op www en het adres zonder www stuurt door. Standaard staat het uit, dus bestaande sites merken niets. Het domeinveld zelf blijft altijd zonder www, zodat een per ongeluk geplakte www nooit een site omgooit.
