@@ -1826,6 +1826,8 @@ main p {
 
 /* Demovideo bovenaan de homepage, klikbaar voorbeeld lager */
 .demo-video-section { display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; gap: 56px; padding-block: 64px; }
+.demo-video-section > * { min-width: 0; }
+.demo-video-section .product-demo { transform: none; }
 .demo-video-tekst h2 { margin: 0 0 14px; }
 .demo-video-tekst p:not(.eyebrow) { max-width: 46ch; }
 .demo-video-kader { position: relative; }
