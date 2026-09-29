@@ -96,8 +96,8 @@ export default async function Home({
             <Link className="button-primary" href={checkLink}>
               Kan mijn website overgezet worden? <span>↗</span>
             </Link>
-            <Link className="button-text" href="#zo-werkt-aanpassen">
-              Probeer het voorbeeld <span>→</span>
+            <Link className="button-text" href="#bekijk-de-video">
+              Bekijk de video <span>→</span>
             </Link>
           </div>
           <p className="hero-assurance">
@@ -116,9 +116,9 @@ export default async function Home({
             </small>
           </div>
         </div>
-        <div className="hero-example" id="zo-werkt-aanpassen">
-          <p className="eyebrow">ZO HOUD JE HEM STRAKS BIJ · KLIK EN PROBEER</p>
-          <ProductPreview />
+        <div className="hero-example" id="bekijk-de-video">
+          <p className="eyebrow">ZO HOUD JE HEM STRAKS BIJ · BEKIJK HET IN 40 SECONDEN</p>
+          <DemoVideo />
         </div>
       </section>
       <div className="trust-strip">
@@ -284,18 +284,16 @@ export default async function Home({
           </div>
         </div>
       </section>
-      <section className="shell demo-video-section" id="bekijk-de-video">
+      <section className="shell demo-video-section" id="zo-werkt-aanpassen">
         <div className="demo-video-tekst">
-          <p className="eyebrow">BEKIJK HET IN 40 SECONDEN</p>
-          <h2>Vier klussen, gewoon door het te vragen.</h2>
+          <p className="eyebrow">PROBEER HET ZELF</p>
+          <h2>Kies een vraag en kijk wat er gebeurt.</h2>
           <p>
-            Een foto vervangen, een pagina toevoegen, een nieuwsbericht
-            plaatsen en de kleur aanpassen. Je ziet elke wijziging eerst als
-            concept. Pas als jij op Publiceer klikt, staat het live.
+            Zo voelt het om je website bij te houden. Je stelt een vraag, je
+            ziet het voorstel en je beslist zelf of het live gaat.
           </p>
-          <p className="demo-video-noot">Zonder geluid · start als jij op afspelen drukt</p>
         </div>
-        <DemoVideo />
+        <ProductPreview />
       </section>
       <section className="shell decision-section">
         <div className="fit-yes">
