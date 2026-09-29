@@ -14,7 +14,7 @@ assert.ok(aanroep.length > 0, "de stream-aanroep van de chat-motor is niet gevon
 
 // 1. Automatische caching op het gesprek zelf (top-level, schuift elke stap mee)
 assert.ok(
-  /\n\s*cache_control: \{ type: "ephemeral" \},\n\s*system:/.test(aanroep),
+  /\n\s*cache_control: \{ type: "ephemeral" \},\n/.test(aanroep.slice(0, aanroep.indexOf("system:"))),
   "de automatische caching op het groeiende gesprek ontbreekt (elke stap betaalt dan weer de volle prijs)",
 );
 // 2. De vaste systeemprompt houdt zijn eigen, gegarandeerde leespunt

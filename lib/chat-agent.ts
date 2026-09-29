@@ -372,6 +372,13 @@ export async function draaiChatAgent(opties: {
         // mee; een kleine klus op een grote site (EVC 28-09: nieuw bericht
         // bij Actueel) kostte zo 53 cent en liep tegen het plafond.
         cache_control: { type: "ephemeral" },
+        // Nadenken laten doorsijpelen (summarized) in plaats van als één stil
+        // blok (omitted, de standaard). Anders is lang nadenken voor de
+        // stiltewachter niet te onderscheiden van een hapering: Aimia 29-09
+        // brak een ontwerpklus af na 90 s denken. Proef: grootste stilte van
+        // 17 s naar 4 s. Kost niets extra (denkwerk wordt hoe dan ook
+        // betaald) en de eigenaar ziet deze tekst niet.
+        thinking: { type: "adaptive", display: "summarized" },
         system: [
           { type: "text", text: opties.systeem, cache_control: { type: "ephemeral" } },
         ],
