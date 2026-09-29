@@ -80,6 +80,13 @@ assert.equal((await haal("http://www.gamma.nl/")).headers.get("location"), "http
 assert.equal((await haal("https://www.alfa.nl/")).headers.get("location"), "https://alfa.nl/", "een gewone site stuurt www niet meer door naar kaal");
 assert.equal((await haal("https://scheef.nl/")).status, 404, "een concept (wv-) is via een kaartregel met hoofdadres bereikbaar");
 
+// 3d. Herkenningsteken op elk antwoord van een bekende site, ook op een
+//     doorverwijzing: daaraan ziet de admin of de hoster al heeft omgezet
+assert.equal((await haal("https://alfa.nl/")).headers.get("x-ws-verdeler"), "1");
+assert.equal((await haal("http://alfa.nl/")).headers.get("x-ws-verdeler"), "1", "de doorverwijzing mist het herkenningsteken: vóór het certificaat is er dan niets te zien");
+assert.equal((await haal("http://alfa.nl/")).status, 301, "het herkenningsteken heeft de doorverwijzing stukgemaakt");
+assert.equal((await haal("https://alfa.nl/bestaat-niet")).status, 404);
+
 // 4. Onbekend domein: 404, en er wordt niets uit de opslag van een site gelezen
 gelezen = [];
 const vreemd = await haal("https://vreemd.nl/");

@@ -252,9 +252,17 @@ export async function eigenAdressenViaCloudflare(): Promise<string[] | null> {
   return null;
 }
 
-/** Wijst dit adres in de DNS al naar ons? Vergelijkt de nummers met die van
- * het ontvangstadres. Null = niet te bepalen. */
+/** Loopt dit adres al via ons? De verdeler zet een herkenningsteken op elk
+ * antwoord. We vragen het onbeveiligde adres op: dat antwoordt ook als het
+ * certificaat er nog niet is. Lukt dat niet, dan vergelijken we de nummers
+ * in de DNS. Null = niet te bepalen. */
 export async function wijstNaarOns(adres: string): Promise<boolean | null> {
+  try {
+    const res = await fetch(`http://${adres}/`, { redirect: "manual", signal: AbortSignal.timeout(6000) });
+    return res.headers.get("x-ws-verdeler") === "1";
+  } catch {
+    /* geen antwoord: val terug op de DNS */
+  }
   const { promises: dns } = await import("node:dns");
   try {
     const [zij, wij] = await Promise.all([dns.resolve4(adres), dns.resolve4(ONTVANGSTADRES)]);

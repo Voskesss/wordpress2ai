@@ -22,7 +22,7 @@ export const DOMEINKAART_SLEUTEL = "intern/domeinen.json";
 export const VERDELER_NAAM = "ws-verdeler";
 /** Eigen teller + die van het site-script: verandert een van beide, dan
  * wordt de verdeler opnieuw gepubliceerd. */
-export const VERDELER_VERSIE = `2-r2v${R2_SCRIPT_VERSIE}`;
+export const VERDELER_VERSIE = `3-r2v${R2_SCRIPT_VERSIE}`;
 
 function vervang(bron: string, oud: string, nieuw: string, aantal: number): string {
   const gevonden = bron.split(oud).length - 1;
@@ -76,7 +76,11 @@ export function bouwVerdelerScript(): string {
       '    if (typeof prefix !== "string" || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(prefix) || prefix.startsWith("wv-") || prefix === "intern" || prefix === "media") {',
       '      return new Response("Dit domein is niet bij ons bekend.", { status: 404, headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": "noindex" } });',
       "    }",
-      "    return site.fetch(request, { SITES: env.SITES, PREFIX: prefix, HOOFD: hoofd });",
+      "    const antwoord = await site.fetch(request, { SITES: env.SITES, PREFIX: prefix, HOOFD: hoofd });",
+      "    // Herkenningsteken: zo ziet de admin dat een adres echt via ons loopt",
+      "    const kop = new Headers(antwoord.headers);",
+      `    kop.set(${JSON.stringify("x-ws-verdeler")}, "1");`,
+      "    return new Response(antwoord.body, { status: antwoord.status, statusText: antwoord.statusText, headers: kop });",
       "  },",
       "};",
       "",
