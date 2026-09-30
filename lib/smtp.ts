@@ -18,10 +18,28 @@ export type SmtpGegevens = {
 
 /** Eén plek waar de verbinding gemaakt wordt, zodat testen en versturen
  * gegarandeerd dezelfde instellingen gebruiken. */
+/**
+ * Maakt een ingevoerde servernaam bruikbaar. Mensen plakken hem uit een
+ * DNS-weergave (punt erachter), uit een handleiding (smtp:// ervoor, :465 of
+ * een pad erachter) of met hoofdletters. Nodemailer neemt de naam letterlijk
+ * en dan matcht het certificaat niet (Van den Berg: "mail.domein.nl." gaf
+ * "certificaat wordt niet vertrouwd" terwijl de server prima was).
+ */
+export function schoneSmtpHost(ruw: string | null | undefined): string {
+  return String(ruw ?? "")
+    .trim()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/:\d+$/, "")
+    .replace(/\.+$/, "")
+    .trim()
+    .toLowerCase();
+}
+
 export async function maakTransport(g: SmtpGegevens) {
   const nodemailer = (await import("nodemailer")).default;
   return nodemailer.createTransport({
-    host: g.host,
+    host: schoneSmtpHost(g.host),
     port: g.poort,
     secure: g.poort === 465,
     auth: { user: g.gebruiker, pass: g.wachtwoord },

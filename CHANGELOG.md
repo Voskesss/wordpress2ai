@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.4 (30 september 2026)
+
+- E-mail vanaf je eigen adres: een servernaam met een punt erachter, met smtp:// ervoor of met :poort erachter werkt nu gewoon. De naam wordt schoongemaakt bij het opslaan en bij het versturen, dus ook al ingevulde waarden. Een punt achter mail.vandenbergmediation.nl gaf "certificaat wordt niet vertrouwd" terwijl de server in orde was.
+
 ## 1.36.3 (30 september 2026)
 
 - Opleveringspoort: oude documentadressen (pdf's en andere downloads onder /wp-content/uploads/) moeten na een migratie blijven werken, op hetzelfde pad of via een 301. Mails en Google linken ernaar. Aanleiding: het boekje van Van den Berg Mediation gaf een 404 vanuit de welkomstmail.

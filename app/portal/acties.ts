@@ -477,7 +477,8 @@ export async function meldWebsiteOpmerking(formData: FormData) {
 export async function bewaarEigenMailserver(formData: FormData) {
   const site = await eigenSite(Number(formData.get("siteId")));
   if (!site) return;
-  const host = String(formData.get("host") ?? "").trim();
+  const { schoneSmtpHost } = await import("@/lib/smtp");
+  const host = schoneSmtpHost(formData.get("host") as string | null);
   const poort = Number(formData.get("poort") || 465);
   const gebruiker = String(formData.get("gebruiker") ?? "").trim();
   const wachtwoord = String(formData.get("wachtwoord") ?? "");

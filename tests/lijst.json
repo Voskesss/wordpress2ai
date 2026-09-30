@@ -122,6 +122,7 @@
   "slot-bovengrens.mts",
   "slot-wacht.mts",
   "smtp.mts",
+  "smtp-host.mts",
   "snelmenu.mts",
   "spraak-stoppen.mts",
   "tokenbudget.mts",

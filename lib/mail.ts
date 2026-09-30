@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { handtekening } from "./mailer";
+import { schoneSmtpHost } from "./smtp";
 
 /** Sleutel voor het versleutelen van SMTP-wachtwoorden (afgeleid van CRON_SECRET). */
 function sleutel(): Buffer {
@@ -127,7 +128,7 @@ export async function verstuurSiteMail(opties: {
       try {
         const nodemailer = (await import("nodemailer")).default;
         const transport = nodemailer.createTransport({
-          host: site.smtpHost,
+          host: schoneSmtpHost(site.smtpHost),
           port: site.smtpPoort ?? 465,
           secure: (site.smtpPoort ?? 465) === 465,
           auth: { user: site.smtpGebruiker, pass: wachtwoord },

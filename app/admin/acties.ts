@@ -447,7 +447,8 @@ export async function bewaarSmtp(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   if (!Number.isInteger(siteId)) return;
-  const host = String(formData.get("host") ?? "").trim();
+  const { schoneSmtpHost } = await import("@/lib/smtp");
+  const host = schoneSmtpHost(formData.get("host") as string | null);
   const poort = Number(formData.get("poort") || 465);
   const gebruiker = String(formData.get("gebruiker") ?? "").trim();
   const wachtwoord = String(formData.get("wachtwoord") ?? "");
