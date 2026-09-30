@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.2 (30 september 2026)
+
+**Aanmelden bij de hoster staat los van het veld Domein.** Het blok "Domein blijft bij de hoster" heeft een eigen invoerveld. Het veld bij Instellingen blijft leeg tot de overstap, want dat veld rolt de site opnieuw uit en stuurt formulieren en het maillogo naar het nieuwe adres. Zodra het certificaat klaar is, zegt het blok dat het moment van de overstap er is en wat er dan in welke volgorde moet.
+
+**De werkversie wordt niet meer overschreven bij een domeinwijziging** zolang de klant een open concept heeft. Dezelfde controle als in het uitrolscript, nu ook in de admin.
+
 ## 1.35.1 (29 september 2026)
 
 **Overstap zonder onderbreking.** Blijft het domein bij de hoster en heeft de site bezoekers, dan zet de hoster eerst controleregels in zijn DNS. Het certificaat staat dan klaar terwijl de oude site nog draait. Pas daarna gaat de verwijzing om. Bewezen op een testadres bij Domeinwinkel: de eerste meting na het omzetten gaf de site met een geldig certificaat.
