@@ -221,34 +221,24 @@ export async function verwijderKennisDocument(formData: FormData) {
 export async function inzendingVerwerken(formData: FormData) {
   const { userId } = await auth();
   if (!userId) return;
-  const id = Number(formData.get("id"));
+  // Eén id, of meerdere (bulk) als "ids" met komma's
+  const ids = [String(formData.get("id") ?? ""), ...String(formData.get("ids") ?? "").split(",")]
+    .map((x) => Number(x.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0);
   const siteId = Number(formData.get("siteId"));
-  if (!Number.isInteger(id) || !Number.isInteger(siteId)) return;
+  if (!ids.length || !Number.isInteger(siteId)) return;
   const site = await eigenSite(siteId);
   if (!site) return;
 
   const { formulierInzendingen } = await import("@/db/schema");
-  const { and } = await import("drizzle-orm");
+  const { and, inArray } = await import("drizzle-orm");
   const actie = String(formData.get("actie") ?? "archiveer");
+  // Altijd óók op de site filteren: een id van een andere klant doet niets
+  const vanDezeSite = and(inArray(formulierInzendingen.id, ids), eq(formulierInzendingen.siteRepo, site.githubRepo));
   if (actie === "verwijder") {
-    await db
-      .delete(formulierInzendingen)
-      .where(
-        and(
-          eq(formulierInzendingen.id, id),
-          eq(formulierInzendingen.siteRepo, site.githubRepo)
-        )
-      );
+    await db.delete(formulierInzendingen).where(vanDezeSite);
   } else {
-    await db
-      .update(formulierInzendingen)
-      .set({ gearchiveerd: actie !== "terug" })
-      .where(
-        and(
-          eq(formulierInzendingen.id, id),
-          eq(formulierInzendingen.siteRepo, site.githubRepo)
-        )
-      );
+    await db.update(formulierInzendingen).set({ gearchiveerd: actie !== "terug" }).where(vanDezeSite);
   }
   revalidatePath("/portal");
   revalidatePath(`/admin/klant/${siteId}`);

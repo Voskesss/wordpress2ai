@@ -2,7 +2,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, kennisDocumenten, sites } from "@/db/schema";
 import { UITLEG, klantZietBerichten, magMeelezen, stand } from "@/lib/formulier-privacy";
-import InzendingKnop from "./InzendingKnop";
+import InzendingenLijst from "./InzendingenLijst";
+import type { InzendingRij } from "@/lib/inzendingen";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import LogoUploadKnop from "./LogoUploadKnop";
 import WhatsappBlok from "./WhatsappBlok";
@@ -14,33 +15,7 @@ import {
   chatbotInteresse,
   gebruikGevondenLogo,
   uploadMailLogo,
-  inzendingVerwerken,
 } from "./acties";
-
-/** Meegestuurde bestanden bij een inzending. Het opslagadres blijft geheim:
- * de link gaat via onze eigen route, die eerst controleert of je bij deze
- * site hoort. */
-function Bijlagen({ id, bijlagen }: { id: number; bijlagen: unknown }) {
-  const lijst = (Array.isArray(bijlagen) ? bijlagen : []) as {
-    naam: string;
-    bytes?: number;
-  }[];
-  if (!lijst.length) return null;
-  return (
-    <div className="mt-1.5 flex flex-wrap gap-2">
-      {lijst.map((b, i) => (
-        <a
-          key={`${b.naam}-${i}`}
-          href={`/api/inzending-bijlage?id=${id}&n=${i}`}
-          className="inline-flex items-center gap-1 rounded-full border border-violet-300 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50"
-        >
-          📎 {b.naam}
-          {b.bytes ? ` (${Math.round(b.bytes / 1024)} kB)` : ""}
-        </a>
-      ))}
-    </div>
-  );
-}
 
 export default async function SiteExtra({
   siteId,
@@ -90,11 +65,24 @@ export default async function SiteExtra({
         .from(formulierInzendingen)
         .where(eq(formulierInzendingen.siteRepo, siteRepo))
         .orderBy(desc(formulierInzendingen.id));
-  const inzendingen = alle.filter((i) => !i.gearchiveerd && i.inhoudBewaard).slice(0, 30);
-  const gearchiveerd = alle.filter((i) => i.gearchiveerd && i.inhoudBewaard).slice(0, 50);
+  // Alles wat bewaard is, in één lijst voor de client: die filtert, zoekt en
+  // klapt uit. Datums als ISO-tekst, want een Date komt niet als Date aan.
+  const rijen: InzendingRij[] = alle
+    .filter((i) => i.inhoudBewaard)
+    .slice(0, 500)
+    .map((i) => ({
+      id: i.id,
+      formulier: i.formulier,
+      velden: (i.velden ?? {}) as Record<string, string>,
+      bijlagen: (Array.isArray(i.bijlagen) ? i.bijlagen : []) as InzendingRij["bijlagen"],
+      aangemaakt: i.aangemaakt.toISOString(),
+      gearchiveerd: i.gearchiveerd,
+    }));
 
   return (
-    <div data-site-extra className="mt-6 grid gap-6 lg:grid-cols-2">
+    // Eén kolom over de volle breedte: de berichtenlijst is een tabel en heeft
+    // die ruimte nodig, in het portaal én in de admin.
+    <div data-site-extra className="mt-6 grid gap-6">
       <WhatsappBlok siteId={siteId} />
       {/* Formulier-inzendingen */}
       <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
@@ -125,90 +113,8 @@ export default async function SiteExtra({
             nergens opgeslagen, bijlagen ook niet. Daarom staat er hier geen
             overzicht. Komt een mail niet aan, dan ziet de bezoeker dat meteen.
           </p>
-        ) : inzendingen.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-500">
-            Nog geen berichten ontvangen.
-          </p>
         ) : (
-          <div className="mt-4 space-y-3 max-h-96 overflow-y-auto">
-            {inzendingen.map((inz) => (
-              <div
-                key={inz.id}
-                className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm"
-              >
-                <p className="flex items-center justify-between gap-2 text-xs text-stone-400">
-                  {inz.aangemaakt.toLocaleString("nl-NL")}
-                  <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 font-medium capitalize text-violet-700">
-                    {inz.formulier}
-                  </span>
-                </p>
-                <dl className="mt-1 space-y-0.5">
-                  {Object.entries(inz.velden as Record<string, string>).map(
-                    ([k, v]) => (
-                      <div key={k} className="flex gap-2">
-                        <dt className="font-semibold text-stone-700 shrink-0 capitalize">
-                          {k}:
-                        </dt>
-                        <dd className="text-stone-600 break-words min-w-0">{v}</dd>
-                      </div>
-                    )
-                  )}
-                </dl>
-                <Bijlagen id={inz.id} bijlagen={inz.bijlagen} />
-                <div className="mt-2 flex gap-3">
-                  <form action={inzendingVerwerken}>
-                    <input type="hidden" name="id" value={inz.id} />
-                    <input type="hidden" name="siteId" value={siteId} />
-                    <input type="hidden" name="actie" value="archiveer" />
-                    <InzendingKnop label="Markeer als afgehandeld" bezigLabel="Bezig..." className="text-xs font-medium text-stone-500 hover:text-violet-700 cursor-pointer" />
-                  </form>
-                  <form action={inzendingVerwerken}>
-                    <input type="hidden" name="id" value={inz.id} />
-                    <input type="hidden" name="siteId" value={siteId} />
-                    <input type="hidden" name="actie" value="verwijder" />
-                    <InzendingKnop label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Deze inzending definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className="text-xs text-stone-400 hover:text-red-600 cursor-pointer" />
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {gearchiveerd.length > 0 && (
-          <details className="mt-3">
-            <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600">
-              Afgehandeld ({gearchiveerd.length})
-            </summary>
-            <div className="mt-2 space-y-2 max-h-72 overflow-y-auto">
-              {gearchiveerd.map((inz) => (
-                <div key={inz.id} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-500">
-                  <p className="flex flex-wrap items-center gap-2">
-                    <span>{inz.aangemaakt.toLocaleDateString("nl-NL")}</span>
-                    <span className="font-medium capitalize text-stone-600">{inz.formulier}</span>
-                    <span className="truncate">
-                      {Object.entries(inz.velden as Record<string, string>)
-                        .map(([k, v]) => `${k}: ${v}`)
-                        .join(" · ")}
-                    </span>
-                  </p>
-                  <Bijlagen id={inz.id} bijlagen={inz.bijlagen} />
-                  <div className="mt-1 flex gap-3">
-                    <form action={inzendingVerwerken}>
-                      <input type="hidden" name="id" value={inz.id} />
-                      <input type="hidden" name="siteId" value={siteId} />
-                      <input type="hidden" name="actie" value="terug" />
-                      <InzendingKnop label="↩ Terugzetten" bezigLabel="Bezig..." className="hover:text-violet-700 cursor-pointer" />
-                    </form>
-                    <form action={inzendingVerwerken}>
-                      <input type="hidden" name="id" value={inz.id} />
-                      <input type="hidden" name="siteId" value={siteId} />
-                      <input type="hidden" name="actie" value="verwijder" />
-                      <InzendingKnop label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Deze inzending definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className="hover:text-red-600 cursor-pointer" />
-                    </form>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </details>
+          <InzendingenLijst siteId={siteId} rijen={rijen} />
         )}
         <form action={bewaarNotificatieEmail} className="mt-5 border-t border-stone-100 pt-4">
           <input type="hidden" name="siteId" value={siteId} />

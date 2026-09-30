@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.0 (30 september 2026)
+
+**Berichten via je formulieren, nu als echt overzicht.** Het blok staat over de volle breedte, in het portaal en in de admin. Elke rij toont datum, formulier, van wie en waar het over gaat; klik om het hele bericht met bijlagen te zien. Je filtert per formulier, zoekt in alle berichten, schakelt tussen open en afgehandeld, en handelt meerdere berichten in één keer af, zet ze terug of verwijdert ze. Alle bewaarde berichten staan erin, niet meer alleen de laatste dertig.
+
 ## 1.37.1 (30 september 2026)
 
 - De verzendknop zegt "Bezig met versturen" in de taal van de pagina (Nederlands, Engels, Duits, Frans, Spaans, Italiaans, Portugees, Pools, Turks; anders Engels). Een site kan een eigen tekst meegeven met data-bezig op het formulier. Site-script versie 14.
