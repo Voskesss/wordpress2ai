@@ -94,7 +94,11 @@ export async function bewaarSite(formData: FormData) {
     await deployRepoNaarCloudflare(vorige.githubRepo, vorige.siteSlug).catch((e) =>
       console.error("Herdeploy na domeinwijziging mislukt:", e)
     );
-    await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.siteSlug}`).catch(() => {});
+    // De werkversie draagt een open concept van de klant: die nooit overschrijven
+    const { openConcept } = await import("@/lib/open-concept");
+    const open = await openConcept(siteId).catch(() => null);
+    if (open) console.log(`Werkversie wv-${vorige.siteSlug} overgeslagen: open concept #${open.id}`);
+    else await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.siteSlug}`).catch(() => {});
   }
   revalidatePath(`/admin/klant/${siteId}`);
   revalidatePath("/admin");

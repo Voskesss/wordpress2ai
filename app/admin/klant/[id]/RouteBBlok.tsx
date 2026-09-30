@@ -1,8 +1,9 @@
 import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
-import { routeBAanmelden, routeBAfmelden } from "../../acties-route-b";
-import { hoofdBinding, kaalDomein, publiekAdres } from "@/lib/hoofdadres";
+import { routeBAanmelden, routeBAanmeldenSnel, routeBAfmelden } from "../../acties-route-b";
+import { hoofdBinding, kaalDomein } from "@/lib/hoofdadres";
 import { ONTVANGSTADRES, leesDomeinkaart, naamInPaneel, regelsVoorHoster, slugVan, statusVan, wijstNaarOns, type DomeinStatus } from "@/lib/route-b";
+import { invoerStijl } from "./stijl";
 
 const MELDING: Record<string, { tekst: string; goed: boolean }> = {
   aangemeld: { tekst: "✓ Aangemeld. Stuur de regels hieronder naar de hoster; het certificaat volgt vanzelf zodra ze erin staan.", goed: true },
@@ -31,35 +32,35 @@ export default async function RouteBBlok({
   site: { id: number; domein: string | null; siteSlug: string | null; hoofdadresWww: boolean };
   melding?: string;
 }) {
-  const domein = kaalDomein(site);
-  // Altijd zichtbaar, ook zonder domein: anders weet je niet dat deze route
-  // bestaat (Jos zocht het blok op dev, waar sites alleen een tijdelijk adres hebben)
-  if (!domein || !site.siteSlug) {
+  // Het domein dat via ons loopt komt uit de domeinkaart, niet uit het veld
+  // bij Instellingen: dat veld wordt pas bij de overstap ingevuld
+  let domein: string | null = null;
+  let aangemeld = false;
+  let kaartStoring = false;
+  try {
+    const kaart = await leesDomeinkaart();
+    domein = Object.keys(kaart).find((d) => slugVan(kaart[d]) === site.siteSlug) ?? null;
+    aangemeld = domein !== null;
+  } catch {
+    kaartStoring = true;
+  }
+  const ingevuld = kaalDomein(site);
+  if (!site.siteSlug) {
     return (
       <details id="route-b" className="mt-6 scroll-mt-24 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
         <summary className="cursor-pointer list-none">
           <span className="font-display text-xl font-semibold">Domein blijft bij de hoster</span>
           <span className="ml-2 text-sm text-stone-600">alleen nodig als de hoster de DNS wil houden</span>
         </summary>
-        <p className="mt-3 text-sm text-stone-600">
-          Normaal komt het domein in ons Cloudflare-account. Wil de hoster de DNS en de mail zelf houden, dan meld je het
-          domein hier aan en zet de hoster twee regels in zijn DNS. Aan de mailregels verandert niets.
-        </p>
-        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">
-          {!site.siteSlug
-            ? "Deze site heeft nog geen hosting-naam. Rol hem eerst uit."
-            : "Vul eerst bij Instellingen het eigen domein in (zonder www). Daarna verschijnt hier de knop om het aan te melden."}
-        </p>
+        <p className="mt-3 text-sm text-stone-600">Deze site heeft nog geen hosting-naam. Rol hem eerst uit.</p>
       </details>
     );
   }
-  let aangemeld = false;
   let status: DomeinStatus[] = [];
   let naarOns: Record<string, boolean | null> = {};
-  let storing = false;
+  let storing = kaartStoring;
   try {
-    aangemeld = slugVan((await leesDomeinkaart())[domein]) === site.siteSlug;
-    if (aangemeld) {
+    if (aangemeld && domein) {
       status = await statusVan(domein);
       naarOns = Object.fromEntries(await Promise.all(status.map(async (s) => [s.adres, await wijstNaarOns(s.adres)] as const)));
     }
@@ -71,7 +72,10 @@ export default async function RouteBBlok({
   const controleRegels = status.flatMap((s) => s.controleRegels);
   const omgezet = status.length > 0 && status.every((s) => naarOns[s.adres] === true);
   const hoofd = hoofdBinding(site);
-  const regels = regelsVoorHoster(domein, hoofd);
+  const regels = domein ? regelsVoorHoster(domein, hoofd) : [];
+  const publiek = domein ? (hoofd === "www" ? `www.${domein}` : domein) : null;
+  // Bij de overstap: certificaat klaar, maar het veld bij Instellingen wijst nog naar workers.dev
+  const veldNogLeeg = certificatenKlaar && !omgezet && (!ingevuld || ingevuld !== domein);
   const allesActief = aangemeld && certificatenKlaar && omgezet;
   const m = melding ? MELDING[melding] : null;
   return (
@@ -87,7 +91,7 @@ export default async function RouteBBlok({
         <span className="ml-2 text-sm text-stone-600">
           {aangemeld
             ? allesActief
-              ? `${publiekAdres(site)} loopt via ons`
+              ? `${publiek} loopt via ons`
               : certificatenKlaar
                 ? "certificaat klaar, de hoster kan de verwijzing omzetten"
                 : vooraf
@@ -103,10 +107,17 @@ export default async function RouteBBlok({
       )}
       <p className="mt-3 text-sm text-stone-600">
         Normaal komt het domein in ons Cloudflare-account. Wil de hoster de DNS en de mail zelf houden, dan meld je het
-        domein hier aan. De hoster zet twee regels in zijn DNS en de website draait bij ons. Aan de mailregels verandert
-        niets.
+        domein hier aan. De hoster zet een paar regels in zijn DNS en de website draait bij ons. Aan de mailregels
+        verandert niets. Het veld Domein bij Instellingen laat je leeg tot de overstap: dat veld rolt de site opnieuw
+        uit en stuurt formulieren en het maillogo naar het nieuwe adres.
       </p>
       {storing && <p className="mt-3 text-sm text-red-700">De stand kon niet worden opgehaald bij Cloudflare. Ververs de pagina.</p>}
+      {veldNogLeeg && (
+        <p className="mt-3 rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3.5 py-2.5 text-sm font-semibold text-emerald-900">
+          Certificaat klaar. Dit is het moment van de overstap: kijk eerst of de klant een open concept heeft, vul dan bij
+          Instellingen het domein <span className="font-mono">{domein}</span> in{hoofd === "www" ? " met het vinkje Hoofdadres met www" : ""} en sla op. Laat daarna pas de verwijzing omzetten.
+        </p>
+      )}
 
       {aangemeld && (
         <table className="mt-4 w-full text-left text-sm">
@@ -150,7 +161,7 @@ export default async function RouteBBlok({
               {controleRegels.map((r) => (
                 <tr key={r.naam + r.waarde} className="border-t border-stone-200/70 align-top">
                   <td className="py-1.5 pr-3 font-mono text-xs">TXT</td>
-                  <td className="break-all py-1.5 pr-3 font-mono text-xs">{naamInPaneel(r.naam, domein)}</td>
+                  <td className="break-all py-1.5 pr-3 font-mono text-xs">{naamInPaneel(r.naam, domein ?? "")}</td>
                   <td className="break-all py-1.5 font-mono text-xs">{r.waarde}</td>
                 </tr>
               ))}
@@ -163,12 +174,13 @@ export default async function RouteBBlok({
         </div>
       )}
 
+      {domein && (
       <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm">
         <p className="font-semibold text-stone-900">
           {aangemeld && vooraf ? (certificatenKlaar ? "Stap 2: nu mag de hoster de verwijzing omzetten" : "Stap 2: pas daarna de verwijzing (nog niet doen)") : "Regels voor de hoster"}
         </p>
         <p className="mt-1 text-stone-600">
-          Hoofdadres van deze site: <b>{publiekAdres(site)}</b>. Alles voor de mail blijft staan.
+          {publiek ? <>Hoofdadres van deze site: <b>{publiek}</b>. </> : null}Alles voor de mail blijft staan.
         </p>
         <ol className="mt-2 list-decimal space-y-2 pl-5">
           {regels.map((r) => (
@@ -181,22 +193,34 @@ export default async function RouteBBlok({
           ))}
         </ol>
       </div>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-3">
         {!aangemeld ? (
           <>
-            <form action={routeBAanmelden}>
+            <form action={routeBAanmelden} className="flex w-full flex-wrap items-end gap-3">
               <input type="hidden" name="siteId" value={site.id} />
+              <label className="block flex-1 text-sm font-semibold">
+                Domein van de klant
+                <input
+                  name="domein"
+                  required
+                  defaultValue={ingevuld ?? ""}
+                  placeholder="klant.nl (zonder www)"
+                  className={invoerStijl}
+                />
+                <span className="mt-1 block text-xs font-normal text-stone-500">
+                  Hoofdadres: {hoofd === "www" ? "met www" : "zonder www"} (vinkje bij Instellingen)
+                </span>
+              </label>
               <input type="hidden" name="vooraf" value="ja" />
               <ActieKnop
-                label={`Meld ${domein} aan (zonder onderbreking)`}
+                label="Meld aan (zonder onderbreking)"
                 bezigLabel="Aanmelden..."
                 className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
               />
-            </form>
-            <form action={routeBAanmelden}>
-              <input type="hidden" name="siteId" value={site.id} />
               <ActieKnop
+                formAction={routeBAanmeldenSnel}
                 label="Snel aanmelden"
                 bezigLabel="Aanmelden..."
                 className="cursor-pointer rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
@@ -211,6 +235,7 @@ export default async function RouteBBlok({
         ) : (
           <form action={routeBAfmelden}>
             <input type="hidden" name="siteId" value={site.id} />
+            <input type="hidden" name="domein" value={domein ?? ""} />
             <BevestigKnop
               vraag={`${domein} afmelden? Bezoekers van dat adres krijgen dan een foutpagina, tot de hoster de regels terugzet of het domein op een andere manier gekoppeld is.`}
               label="Afmelden"

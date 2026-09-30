@@ -42,7 +42,23 @@ assert.ok(blok.includes("<BevestigKnop") && blok.includes("afmelden?"), "afmelde
 assert.ok(blok.includes("Alles voor de mail blijft staan"), "de geruststelling over de mail ontbreekt bij de regels");
 const pagina = await readFile("app/admin/klant/[id]/page.tsx", "utf8");
 assert.ok(pagina.includes("<RouteBBlok site={site}"), "het blok staat niet op de klantpagina");
-assert.ok(!/if \(!domein \|\| !site\.siteSlug\) return null;/.test(blok) && blok.includes("Vul eerst bij Instellingen het eigen domein in"), "zonder domein is het blok onzichtbaar: dan weet niemand dat de route bestaat");
+assert.ok(!/if \(!domein \|\| !site\.siteSlug\) return null;/.test(blok), "zonder domein is het blok onzichtbaar: dan weet niemand dat de route bestaat");
+// 5b. Aanmelden staat LOS van het veld Domein bij Instellingen (dat veld rolt
+//     de site opnieuw uit en stuurt formulieren en maillogo naar het nieuwe
+//     adres: te vroeg zolang de oude site nog draait)
+assert.ok(blok.includes('name="domein"') && blok.includes("laat je leeg tot de overstap"), "het blok heeft geen eigen domeinveld, of legt niet uit waarom het veld bij Instellingen leeg blijft");
+assert.ok(acties.includes('kaalDomein({ domein: String(formData.get("domein") ?? "") })'), "aanmelden leest het domein niet uit het eigen veld");
+assert.ok(blok.includes("Dit is het moment van de overstap") && blok.includes("open concept"), "het blok zegt niet wanneer het veld bij Instellingen ingevuld moet worden, of waarschuwt niet voor het open concept");
+assert.ok(blok.includes("Object.keys(kaart).find((d) => slugVan(kaart[d]) === site.siteSlug)"), "het blok zoekt het aangemelde domein niet in de kaart");
+
+// 5c. Werkversie nooit overschrijven bij een open concept (ook vanuit de admin)
+const bewaar = await readFile("app/admin/acties.ts", "utf8");
+const bewaarSite = bewaar.slice(bewaar.indexOf("export async function bewaarSite"), bewaar.indexOf("\nexport async function", bewaar.indexOf("export async function bewaarSite") + 10));
+assert.ok(bewaarSite.includes("openConcept(siteId)") && bewaarSite.includes("else await deployRepoNaarCloudflare(vorige.githubRepo, `wv-${vorige.siteSlug}`)"), "bewaarSite rolt de werkversie uit zonder naar een open concept te kijken");
+const deployKlant = await readFile("scripts/deploy-klant.mts", "utf8");
+assert.ok(deployKlant.includes("openConcept(site.id)"), "deploy-klant gebruikt de gedeelde controle niet meer");
+const openLib = await readFile("lib/open-concept.ts", "utf8");
+assert.ok(openLib.includes('"concept", "publicatie_mislukt"'), "een mislukte publicatie telt niet als open concept");
 
 // 6. Livegang telt een domein via route B als gekoppeld, en het dashboard bewaakt het
 const livegang = await readFile("lib/livegang.ts", "utf8");

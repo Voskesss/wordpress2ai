@@ -14,7 +14,10 @@ export async function routeBAanmelden(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  const domein = site ? kaalDomein(site) : null;
+  // Het domein komt uit het eigen veld van het blok; het veld bij Instellingen
+  // blijft leeg tot de overstap (dat veld rolt de site opnieuw uit en stuurt
+  // formulieren en het maillogo naar het nieuwe adres, te vroeg dus)
+  const domein = kaalDomein({ domein: String(formData.get("domein") ?? "") }) ?? (site ? kaalDomein(site) : null);
   if (!site || !site.siteSlug || !domein) redirect(`/admin/klant/${siteId}?routeb=geen-domein#route-b`);
   let uitkomst = "aangemeld";
   try {
@@ -28,12 +31,19 @@ export async function routeBAanmelden(formData: FormData) {
   redirect(`/admin/klant/${siteId}?routeb=${uitkomst}#route-b`);
 }
 
+/** Zelfde als routeBAanmelden, maar zonder controle vooraf: alleen voor een
+ * domein waar nu niets op draait. */
+export async function routeBAanmeldenSnel(formData: FormData) {
+  formData.delete("vooraf");
+  return routeBAanmelden(formData);
+}
+
 /** Haalt het domein weer bij de verdeler weg. De site zelf blijft staan. */
 export async function routeBAfmelden(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  const domein = site ? kaalDomein(site) : null;
+  const domein = kaalDomein({ domein: String(formData.get("domein") ?? "") });
   if (!site || !domein) redirect(`/admin/klant/${siteId}?routeb=geen-domein#route-b`);
   let uitkomst = "afgemeld";
   try {
