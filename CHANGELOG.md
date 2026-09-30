@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.8 (30 september 2026)
+
+- Het feestje bij de eerste blik op de live site duurt nu ruim zes seconden met meer confetti, en de balk zegt erbij: vanaf nu werk je je website bij via de WordSwap-chat in je portaal.
+
 ## 1.35.7 (30 september 2026)
 
 - Het feest-script uit 1.35.6 deed niets: een aanhalingsteken brak het af. Hersteld, en de test controleert nu of het script geldige JavaScript is.
