@@ -13,6 +13,21 @@ import { pathToFileURL } from "node:url";
 import { DOMEINKAART_SLEUTEL, bouwVerdelerScript, kaartDomein } from "../lib/worker-verdeler";
 import { R2_WORKER_SCRIPT } from "../lib/worker-r2";
 
+// Workers hebben HTMLRewriter ingebouwd; Node niet. Een kleine nabootsing die
+// alleen 'append op body' kent, genoeg om het feestje te controleren.
+class NepRewriter {
+  handlers: [string, { element(el: { append(html: string, o?: unknown): void }): void }][] = [];
+  on(sel: string, h: { element(el: { append(html: string, o?: unknown): void }): void }) { this.handlers.push([sel, h]); return this; }
+  transform(r: Response) {
+    return (async () => {
+      let tekst = await r.text();
+      for (const [sel, h] of this.handlers) if (sel === "body") { let extra = ""; h.element({ append: (html) => { extra += html; } }); tekst = /<\/body>/i.test(tekst) ? tekst.replace(/<\/body>/i, extra + "</body>") : tekst + extra; }
+      return new Response(tekst, { status: r.status, headers: r.headers });
+    })();
+  }
+}
+(globalThis as unknown as { HTMLRewriter: unknown }).HTMLRewriter = NepRewriter;
+
 const map = await mkdtemp(join(tmpdir(), "verdeler-"));
 const pad = join(map, "verdeler.mjs");
 await writeFile(pad, bouwVerdelerScript());
@@ -86,6 +101,19 @@ assert.equal((await haal("https://alfa.nl/")).headers.get("x-ws-verdeler"), "1")
 assert.equal((await haal("http://alfa.nl/")).headers.get("x-ws-verdeler"), "1", "de doorverwijzing mist het herkenningsteken: vóór het certificaat is er dan niets te zien");
 assert.equal((await haal("http://alfa.nl/")).status, 301, "het herkenningsteken heeft de doorverwijzing stukgemaakt");
 assert.equal((await haal("https://alfa.nl/bestaat-niet")).status, 404);
+
+// 3e. Feestje uit de livemail: alleen met het toevoegsel, alleen op een gewone
+//     pagina, en het toevoegsel wordt in de browser weer weggehaald
+const feest = await haal("https://alfa.nl/?wordswap-feest=1");
+const feestTekst = await feest.text();
+assert.equal(feest.status, 200);
+assert.ok(feestTekst.includes("Gefeliciteerd, je website staat live") && feestTekst.includes("Dit feestje ziet alleen jij"), "het feestje ontbreekt bij het toevoegsel");
+assert.ok(feestTekst.includes('u.searchParams.delete("wordswap-feest")') && feestTekst.includes("history.replaceState"), "het toevoegsel blijft in de adresbalk hangen");
+assert.ok(feestTekst.startsWith("<h1>ALFA</h1>"), "de pagina zelf is aangetast");
+assert.equal(feest.headers.get("content-length"), null, "content-length staat nog op de oude lengte: browsers knippen de pagina dan af");
+assert.ok(!(await (await haal("https://alfa.nl/")).text()).includes("Gefeliciteerd"), "gewone bezoekers zien het feestje");
+assert.ok(!(await (await haal("https://beta.nl/bestaat-niet?wordswap-feest=1")).text()).includes("Gefeliciteerd"), "het feestje staat op een 404-pagina");
+assert.ok(!(await (await haal("https://alfa.nl/_headers?wordswap-feest=1")).text()).includes("Gefeliciteerd"), "het feestje wordt in een niet-HTML-bestand gezet");
 
 // 4. Onbekend domein: 404, en er wordt niets uit de opslag van een site gelezen
 gelezen = [];

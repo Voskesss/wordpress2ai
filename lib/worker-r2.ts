@@ -14,12 +14,21 @@
  *  - noindex op workers.dev-adressen, doorsturen naar het hoofdadres (301):
  *    standaard www → kaal, met binding HOOFD=www juist kaal → www
  *  - http → https (301); samen met www in één doorverwijzing
+ *  - confetti, alleen met ?wordswap-feest in het adres (knop uit de livemail)
  *  - ETag/If-None-Match (304), Range-verzoeken (video seeken), mime-types
  *
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "8";
+export const R2_SCRIPT_VERSIE = "9";
+
+/** Het toevoegsel in de link uit de livemail. Alleen wie via die knop
+ * binnenkomt ziet het feestje; gewone bezoekers en Google nooit. */
+export const FEEST_PARAM = "wordswap-feest";
+
+/** Confetti plus één regel, drie seconden, daarna weg. Haalt het toevoegsel
+ * meteen uit de adresbalk zodat het niet blijft hangen of gedeeld wordt. */
+const FEEST_HTML = `<script>(function(){try{var u=new URL(location.href);if(!u.searchParams.has(${JSON.stringify(FEEST_PARAM)}))return;u.searchParams.delete(${JSON.stringify(FEEST_PARAM)});history.replaceState(null,"",u.pathname+u.search+u.hash);var c=document.createElement("canvas");c.setAttribute("aria-hidden","true");c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2147483647";document.body.appendChild(c);var x=c.getContext("2d");var W=c.width=innerWidth,H=c.height=innerHeight;var kl=["#31956B","#F5B84B","#E8604C","#4A90E2","#9B59B6","#ffffff"];var p=[];for(var i=0;i<180;i++)p.push({x:Math.random()*W,y:-20-Math.random()*H*0.6,r:4+Math.random()*6,k:kl[i%kl.length],vy:2+Math.random()*3,vx:-1+Math.random()*2,a:Math.random()*6.28,va:-0.1+Math.random()*0.2});var b=document.createElement("div");b.setAttribute("role","status");b.innerHTML="\uD83C\uDF89 Gefeliciteerd, je website staat live!<br><span style=\"font-weight:400;font-size:13px;opacity:.85\">Dit feestje ziet alleen jij, via de knop in de mail. Je bezoekers zien gewoon je website.</span>";b.style.cssText="position:fixed;left:50%;top:24px;transform:translateX(-50%);background:#16302b;color:#fff;padding:12px 20px;border-radius:999px;font:600 16px system-ui,sans-serif;z-index:2147483647;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw;text-align:center";document.body.appendChild(b);var t0=Date.now();function f(){var t=Date.now()-t0;x.clearRect(0,0,W,H);for(var j=0;j<p.length;j++){var q=p[j];q.y+=q.vy;q.x+=q.vx;q.a+=q.va;x.save();x.translate(q.x,q.y);x.rotate(q.a);x.fillStyle=q.k;x.fillRect(-q.r/2,-q.r/2,q.r,q.r*0.6);x.restore()}if(t<3500)requestAnimationFrame(f);else c.remove()}f();setTimeout(function(){b.remove()},6000)}catch(e){}})();</script>`;
 
 export const R2_WORKER_SCRIPT = [
   'const HTML = "text/html; charset=utf-8";',
@@ -32,6 +41,8 @@ export const R2_WORKER_SCRIPT = [
   '  mp3: "audio/mpeg", ogg: "audio/ogg", wav: "audio/wav", pdf: "application/pdf", zip: "application/zip",',
   '  wasm: "application/wasm", webmanifest: "application/manifest+json", vtt: "text/vtt; charset=utf-8",',
   "};",
+  "const FEEST = " + JSON.stringify(FEEST_HTML) + ";",
+  "const FEEST_PARAM = " + JSON.stringify(FEEST_PARAM) + ";",
   "let regelsCache = null;",
   "",
   "function mimeVoor(pad) {",
@@ -99,6 +110,8 @@ export const R2_WORKER_SCRIPT = [
   '    if (request.method !== "GET" && request.method !== "HEAD") {',
   '      return new Response("Methode niet toegestaan", { status: 405, headers: { allow: "GET, HEAD" } });',
   "    }",
+  "    // Feestje uit de livemail: alleen met het toevoegsel, alleen op een gewone pagina",
+  "    const feest = url.searchParams.has(FEEST_PARAM);",
   "    let pad;",
   "    try { pad = decodeURIComponent(url.pathname); } catch (e) { pad = url.pathname; }",
   '    if (pad.includes("..") || /(^|\\/)\\.[^/]*$/.test(pad)) {',
@@ -170,6 +183,11 @@ export const R2_WORKER_SCRIPT = [
   "      }",
   '      kop.set("content-length", String("suffix" in obj.range ? obj.range.suffix : lengte));',
   '      return new Response(request.method === "HEAD" ? null : obj.body, { status: 206, headers: kop });',
+  "    }",
+  '    if (feest && status === 200 && request.method === "GET" && mimeVoor(key) === HTML && typeof HTMLRewriter !== "undefined") {',
+  '      kop.delete("content-length");',
+  "      const antwoord = new Response(obj.body, { status, headers: kop });",
+  '      return new HTMLRewriter().on("body", { element(el) { el.append(FEEST, { html: true }); } }).transform(antwoord);',
   "    }",
   '    kop.set("content-length", String(obj.size));',
   '    return new Response(request.method === "HEAD" ? null : obj.body, { status, headers: kop });',

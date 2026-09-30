@@ -10,7 +10,8 @@ import { bouwLiveMail } from "../lib/klant-mails";
 const m = bouwLiveMail({ siteNaam: "Van den Berg Mediation", naam: "Dirk-Jan van den Berg", adres: "vandenbergmediation.nl", eigenTekst: "Gefeliciteerd!" });
 assert.ok(m.onderwerp.includes("vandenbergmediation.nl"), "het adres staat niet in het onderwerp");
 assert.ok(m.html.includes("Hoi Dirk-Jan,"), "de aanhef gebruikt niet de voornaam");
-assert.ok(m.html.includes('href="https://vandenbergmediation.nl/"'), "de knop wijst niet naar de site");
+assert.ok(m.html.includes('href="https://vandenbergmediation.nl/?wordswap-feest=1"'), "de knop wijst niet naar de site met het feest-toevoegsel");
+assert.ok(!/feestje|confetti/i.test(m.html), "de mail verklapt de verrassing");
 assert.ok(m.html.includes("komt bij jou binnen per mail én in je eigen portaal"), "de geruststelling over formulierberichten ontbreekt");
 assert.ok(m.html.includes("testen we alles nog een keer"), "de uitleg over het testen ontbreekt");
 assert.ok(m.html.includes("Gefeliciteerd!"), "de persoonlijke noot ontbreekt");
@@ -20,7 +21,7 @@ const metServer = bouwLiveMail({ siteNaam: "X", naam: "A", adres: "klant.nl", vr
 assert.ok(metServer.html.includes("E-mail vanaf je eigen adres") && metServer.html.includes("stuur het nooit per mail"), "het mailserververzoek ontbreekt of vraagt het wachtwoord per mail");
 assert.ok(!m.html.includes("E-mail vanaf je eigen adres"), "het mailserververzoek staat er ook zonder vinkje");
 const zonder = bouwLiveMail({ siteNaam: "X", naam: null, adres: "www.klant.nl" });
-assert.ok(zonder.html.includes('href="https://www.klant.nl/"'), "een www-hoofdadres wordt niet gevolgd");
+assert.ok(zonder.html.includes('href="https://www.klant.nl/?wordswap-feest=1"'), "een www-hoofdadres wordt niet gevolgd");
 
 const pagina = await readFile("app/admin/klant/[id]/page.tsx", "utf8");
 const blok = pagina.slice(pagina.indexOf('id="livemail"'), pagina.indexOf("</form>", pagina.indexOf('id="livemail"')));

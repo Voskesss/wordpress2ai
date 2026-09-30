@@ -6,6 +6,7 @@
 import { duurInWoorden, momentInWoorden } from "@/lib/afspraken";
 import { REVIEW_LINK, TELEFOON } from "@/lib/persoonlijk";
 import { inWordSwapHuisstijl, ontsnap } from "@/lib/wordswap-mail";
+import { FEEST_PARAM } from "@/lib/worker-r2";
 
 const voornaam = (naam?: string | null) => (naam ?? "").trim().split(/\s+/)[0] || "klant";
 
@@ -188,7 +189,7 @@ export function bouwLiveMail(o: {
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
 ${persoonlijkeNoot(o.eigenTekst)}
 <p>Het is zover: je website draait vanaf nu op je eigen adres, <strong>${ontsnap(o.adres)}</strong>. Gefeliciteerd!</p>
-${knop(url, "Bekijk je website")}
+${knop(`${url}?${FEEST_PARAM}=1`, "Bekijk je website")}
 <p><strong>Wat we nu doen:</strong> de komende dagen testen we alles nog een keer op het echte adres. Formulieren, doorverwijzingen van oude links, de vindbaarheid in Google. Zie jij iets vreemds, mail of bel me dan gewoon.</p>
 <p><strong>Goed om te weten:</strong> wie een formulier op je site invult, krijgt een bevestiging, en het bericht komt bij jou binnen per mail én in je eigen portaal. Er gaat dus niets verloren, ook niet tijdens het testen.</p>
 <p>Wil je iets aanpassen? Log in op je portaal en typ het in de chat. Je ziet eerst een voorbeeld, en jij bepaalt wanneer het live gaat.</p>
