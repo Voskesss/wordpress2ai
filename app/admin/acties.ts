@@ -423,6 +423,7 @@ export async function testSmtpVerbinding(formData: FormData) {
       gebruiker: site.smtpGebruiker!,
       wachtwoord,
       afzender: site.smtpAfzender,
+      domein: site.domein,
     },
     naarAdres || undefined,
     site.naam,

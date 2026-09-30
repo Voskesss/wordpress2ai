@@ -20,11 +20,14 @@ const gevallen: [string | null, string][] = [
 ];
 for (const [in_, uit] of gevallen) assert.equal(schoneSmtpHost(in_), uit, `invoer ${JSON.stringify(in_)}`);
 
-// De helper moet op alle drie de plekken draaien: opslaan (portaal en admin) en versturen
-for (const bestand of ["app/portal/acties.ts", "app/admin/acties.ts", "lib/mail.ts"]) {
+// De helper moet draaien bij opslaan (portaal en admin) en bij elke verbinding.
+// Versturen (lib/mail.ts) loopt sinds 1.36.5 via maakTransport, die schoonmaakt.
+for (const bestand of ["app/portal/acties.ts", "app/admin/acties.ts"]) {
   const tekst = await readFile(bestand, "utf8");
   assert.ok(tekst.includes("schoneSmtpHost("), `${bestand} maakt de servernaam niet schoon`);
 }
 const transport = await readFile("lib/smtp.ts", "utf8");
 assert.ok(/host: schoneSmtpHost\(g\.host\)/.test(transport), "maakTransport maakt de servernaam niet schoon");
+const mail = await readFile("lib/mail.ts", "utf8");
+assert.ok(mail.includes("await maakTransport(") && !mail.includes("createTransport("), "lib/mail.ts verstuurt niet via maakTransport");
 console.log("✓ servernaam wordt schoongemaakt");

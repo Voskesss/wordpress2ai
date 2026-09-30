@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { handtekening } from "./mailer";
-import { schoneSmtpHost } from "./smtp";
+import { maakTransport, tekstVanHtml } from "./smtp";
 
 /** Sleutel voor het versleutelen van SMTP-wachtwoorden (afgeleid van CRON_SECRET). */
 function sleutel(): Buffer {
@@ -126,18 +126,23 @@ export async function verstuurSiteMail(opties: {
     const wachtwoord = ontsleutel(site.smtpWachtwoord);
     if (wachtwoord) {
       try {
-        const nodemailer = (await import("nodemailer")).default;
-        const transport = nodemailer.createTransport({
-          host: schoneSmtpHost(site.smtpHost),
-          port: site.smtpPoort ?? 465,
-          secure: (site.smtpPoort ?? 465) === 465,
-          auth: { user: site.smtpGebruiker, pass: wachtwoord },
+        // Zelfde verbinding als de testknop (lib/smtp.ts): schone servernaam
+        // en een HELO-naam, anders meldt nodemailer zich met het interne
+        // IP van de Vercel-functie en dat is een spamsignaal.
+        const transport = await maakTransport({
+          host: site.smtpHost,
+          poort: site.smtpPoort ?? 465,
+          gebruiker: site.smtpGebruiker,
+          wachtwoord,
+          afzender: site.smtpAfzender,
+          domein: site.domein,
         });
         await transport.sendMail({
           from: `"${site.naam.replace(/"/g, "")}" <${site.smtpAfzender ?? site.smtpGebruiker}>`,
           to: naar,
           subject: onderwerp,
           html,
+          text: tekstVanHtml(html),
           ...(antwoordNaar ? { replyTo: antwoordNaar } : {}),
           ...(bijlagen?.length
             ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud })) }

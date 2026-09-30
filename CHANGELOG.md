@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.5 (30 september 2026)
+
+- E-mail vanaf je eigen adres: we melden ons bij de mailserver nu met het domein van de site in plaats van het interne adres van onze server, en de testmail en bevestigingsmails gaan als tekst plus html. Beide waren bij Hotmail een reden om mail via de eigen server van Van den Berg Mediation als spam te zien, terwijl SPF, DKIM en DMARC in orde waren. Versturen en testen gebruiken nu dezelfde verbinding.
+
 ## 1.36.4 (30 september 2026)
 
 - E-mail vanaf je eigen adres: een servernaam met een punt erachter, met smtp:// ervoor of met :poort erachter werkt nu gewoon. De naam wordt schoongemaakt bij het opslaan en bij het versturen, dus ook al ingevulde waarden. Een punt achter mail.vandenbergmediation.nl gaf "certificaat wordt niet vertrouwd" terwijl de server in orde was.

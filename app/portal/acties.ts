@@ -536,6 +536,7 @@ export async function testEigenMailserver(formData: FormData) {
       gebruiker: site.smtpGebruiker,
       wachtwoord: ontsleutel(site.smtpWachtwoord) ?? "",
       afzender: site.smtpAfzender,
+      domein: site.domein,
     },
     naarAdres || undefined,
     site.naam,
