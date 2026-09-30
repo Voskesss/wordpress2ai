@@ -47,7 +47,8 @@ assert.ok(!/if \(!domein \|\| !site\.siteSlug\) return null;/.test(blok), "zonde
 //     de site opnieuw uit en stuurt formulieren en maillogo naar het nieuwe
 //     adres: te vroeg zolang de oude site nog draait)
 assert.ok(blok.includes('name="domein"') && blok.includes("laat je leeg tot de overstap"), "het blok heeft geen eigen domeinveld, of legt niet uit waarom het veld bij Instellingen leeg blijft");
-assert.ok(acties.includes('kaalDomein({ domein: String(formData.get("domein") ?? "") })'), "aanmelden leest het domein niet uit het eigen veld");
+const aanmeldActie = acties.slice(acties.indexOf("export async function routeBAanmelden("), acties.indexOf("export async function routeBAanmeldenSnel"));
+assert.ok(aanmeldActie.includes('kaalDomein({ domein: String(formData.get("domein") ?? "") })'), "aanmelden leest het domein niet uit het eigen veld");
 assert.ok(blok.includes("Dit is het moment van de overstap") && blok.includes("open concept"), "het blok zegt niet wanneer het veld bij Instellingen ingevuld moet worden, of waarschuwt niet voor het open concept");
 assert.ok(blok.includes("Object.keys(kaart).find((d) => slugVan(kaart[d]) === site.siteSlug)"), "het blok zoekt het aangemelde domein niet in de kaart");
 
