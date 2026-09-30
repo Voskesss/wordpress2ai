@@ -37,7 +37,7 @@ assert.ok(admin.includes("<SiteExtra"), "de admin toont niet hetzelfde blok als 
 
 // 4. De lijst kan filteren, zoeken, uitklappen en in bulk werken
 const lijst = await readFile("app/portal/InzendingenLijst.tsx", "utf8");
-for (const eis of ['type="search"', "router.refresh()", "useTransition", "tellingPerFormulier", 'actie="terug"', 'actie="archiveer"', 'actie="verwijder"', 'name={typeof id === "number" ? "id" : "ids"}', "aria-expanded"])
+for (const eis of ['type="search"', "startVerversen(() => router.refresh())", "useTransition", "tellingPerFormulier", 'actie="terug"', 'actie="archiveer"', 'actie="verwijder"', 'name={typeof id === "number" ? "id" : "ids"}', "aria-expanded"])
   assert.ok(lijst.includes(eis), `lijst mist: ${eis}`);
 
 // 5. De serveractie neemt meerdere ids en blijft aan de eigen site gebonden
