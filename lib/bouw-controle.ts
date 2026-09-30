@@ -565,6 +565,25 @@ export async function controleerSiteMap(
           );
     }
 
+    // 15. Oude documentadressen blijven werken. Downloadknoppen op de site
+    // zelf wijzen al naar de nieuwe plek, maar mails, Google en bladwijzers
+    // buiten de site kennen alleen het oude pad (/wp-content/uploads/...).
+    // Zo gaf het boekje van Van den Berg Mediation een 404 vanuit de
+    // welkomstmail, terwijl de site zelf niets miste. Zie oudeDocumenten().
+    for (const pad of await oudeDocumenten(opties.bronMap)) {
+      if (await bestandBestaat(pad.replace(/^\//, ""))) continue;
+      const doel = redirects.get(pad);
+      if (doel && (bestaatAlsPagina(doel) || (await bestandBestaat(doel.split(/[?#]/)[0].replace(/^\//, "")))))
+        continue;
+      fout(
+        "documenten",
+        pad,
+        doel
+          ? `Oud documentadres verwijst in _redirects naar ${doel}, maar dat bestaat niet.`
+          : "Oud documentadres werkt niet meer: zet het bestand op dit pad of voeg een 301 toe in _redirects. Mails en Google linken ernaar.",
+      );
+    }
+
     for (const [pad, oud] of await oudeSeoPaginas(opties.bronMap)) {
       if (oud.noindex) continue;
       if (redirects.has(pad) || redirects.has(pad.replace(/\/$/, "") + "/")) continue;
@@ -651,6 +670,61 @@ async function oudeDerden(bronMap: string): Promise<Map<string, Set<Derde>>> {
     if (pad && !uit.has(pad)) uit.set(pad, derdenVan(html));
   }
   return uit;
+}
+
+/** Documentextensies waar buiten de site naar gelinkt wordt (mails, Google). */
+export const DOCUMENT_EXTENSIES = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "zip"];
+const hostVan = (url: string | undefined) => {
+  if (!url || !/^https?:\/\//i.test(url)) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+const isDocument = (pad: string) => {
+  const schoon = pad.split(/[?#]/)[0];
+  const ext = schoon.split(".").pop()?.toLowerCase() ?? "";
+  if (!DOCUMENT_EXTENSIES.includes(ext)) return false;
+  // Een geüpload WordPress-thema of -plugin is geen document voor bezoekers
+  // (evc-professionals had een themeforest-zip in de mediabibliotheek).
+  if (ext === "zip" && /theme|plugin/i.test(schoon)) return false;
+  return true;
+};
+
+/**
+ * Alle documentpaden van de oude site: de mediaUrls uit elk seo-manifest*.json
+ * in de bron-map plus de documentlinks in de bewaarde HTML van oud-ontwerp/.
+ * Geen bron-map of niets gevonden: lege lijst, de regel slaat dan over.
+ */
+export async function oudeDocumenten(bronMap: string): Promise<string[]> {
+  const uit = new Set<string>();
+  const neem = (url: string) => {
+    const pad = padVan(url);
+    if (pad && isDocument(pad)) uit.add(decodeURI(pad).split(/[?#]/)[0]);
+  };
+  for (const naam of await readdir(bronMap).catch(() => [] as string[])) {
+    if (!/^seo-manifest.*\.json$/.test(naam)) continue;
+    try {
+      const ruw = JSON.parse(await readFile(path.join(bronMap, naam), "utf8")) as { mediaUrls?: unknown };
+      if (ruw && typeof ruw === "object" && Array.isArray(ruw.mediaUrls))
+        for (const u of ruw.mediaUrls) if (typeof u === "string") neem(u);
+    } catch {
+      /* geen leesbaar manifest */
+    }
+  }
+  for (const bestand of await htmlBestanden(path.join(bronMap, "oud-ontwerp")).catch(() => [] as string[])) {
+    const html = await readFile(bestand, "utf8").catch(() => "");
+    // Alleen eigen documenten: een link naar een pdf van de Rijksoverheid is
+    // niet onze zorg. Eigen = relatief pad, of dezelfde host als de canonical.
+    const eigenHost = hostVan(leesSeo(html).canonical);
+    for (const m of html.matchAll(/\b(?:href|src)=["']([^"']+)["']/gi)) {
+      if (!isDocument(m[1])) continue;
+      const host = hostVan(m[1]);
+      if (!host || (eigenHost && host === eigenHost)) neem(m[1]);
+    }
+  }
+  return [...uit].sort();
 }
 
 const esc = (s: string) =>

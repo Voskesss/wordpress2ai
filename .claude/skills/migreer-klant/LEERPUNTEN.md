@@ -103,3 +103,12 @@ Max 2000px/q82 leverde bij schilderij-foto's ~500 kB per beeld op → mobiele LC
 - **`seo-vergelijk.mts vastleggen` stopt bij een doorverwijzing naar een ander domein** (bewuste beveiliging). Haal zulke adressen uit de padenlijst (aparte `paden-seo.txt`) en zet ze als 301 in `_redirects`.
 - **Screenshots zonder cookiebanner en chat**: blokkeer in Playwright `cookiebot|futy|googletagmanager|leadinfo` via `context.route(..., r => r.abort())`, anders bedekt de banner de hero in élke screenshot.
 - **Het menubreekpunt van het origineel kan zelf kapot zijn**: Webflow klapte hier pas bij 991px in, terwijl het menu tussen 992 en 1150px al over twee regels liep en "Over ons" wegviel. Wij zetten de hamburger op 1150px (reparatie, noemen in de oplevering).
+
+## Documenten op hun oude adres (30-09-2026, Van den Berg Mediation)
+
+Na de domeinverhuizing gaf `/wp-content/uploads/2025/07/Boekje_2025.pdf` een 404. Die link staat in de Mailblue-welkomstmail die mensen krijgen na het aanvragen van het boekje. De downloadknoppen op de site werkten wel (die wezen naar `/documenten/`), dus de bouw-controle en de oplevering zagen niets. Alles buiten de site (mails, Google, bladwijzers) kent alleen het oude pad.
+
+- Documenten horen op hun oude adres, want mails en Google linken ernaar. Alle 13 documenten staan nu op hun oorspronkelijke `/wp-content/uploads/...`-pad.
+- Sinds 1.36.3 eist de poort dit (regel `documenten`, lib/bouw-controle.ts): elk document uit `seo-manifest*.json` (mediaUrls) en uit de oude HTML in `oud-ontwerp/` moet op zijn pad bestaan, of een 301 in `_redirects` hebben naar iets dat bestaat. Zonder bron-map slaat de regel over.
+- Bij de rit langs de bestaande migraties (30-09): VGK mist de algemene voorwaarden-pdf, BSR Veluwezoom mist de klachtenregeling en de privacyverklaring; beide nog niet live. Vakbeurs, RoelArt, UNDSQVRD, Summit en ovbuRo: niets kapot.
+
