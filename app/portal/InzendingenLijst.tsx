@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { afzenderVan, filterInzendingen, kernVan, tellingPerFormulier, type InzendingRij } from "@/lib/inzendingen";
 import { inzendingVerwerken } from "./acties";
 import InzendingKnop from "./InzendingKnop";
@@ -45,6 +46,10 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
   const [toonAfgehandeld, setToonAfgehandeld] = useState(false);
   const [open, setOpen] = useState<Set<number>>(new Set());
   const [gekozen, setGekozen] = useState<Set<number>>(new Set());
+  // Verversen zonder de pagina te herladen: router.refresh() haalt alleen de
+  // servergegevens opnieuw op, de scrollpositie en de filters blijven staan.
+  const router = useRouter();
+  const [ververst, startVerversen] = useTransition();
 
   const basis = useMemo(() => rijen.filter((r) => r.gearchiveerd === toonAfgehandeld), [rijen, toonAfgehandeld]);
   const telling = useMemo(() => tellingPerFormulier(basis), [basis]);
@@ -93,6 +98,15 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
           aria-label="Zoek in berichten"
           className={`${veldStijl} ml-auto w-full sm:w-64`}
         />
+        <button
+          type="button"
+          onClick={() => startVerversen(() => router.refresh())}
+          disabled={ververst}
+          title="Nieuwe berichten ophalen zonder de pagina te herladen"
+          className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-700 disabled:opacity-50"
+        >
+          {ververst ? "Bezig…" : "↻ Verversen"}
+        </button>
       </div>
 
       {zichtbaar.length === 0 ? (

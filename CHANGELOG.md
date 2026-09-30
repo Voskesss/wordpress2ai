@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.1 (30 september 2026)
+
+- Berichten: een knop "Verversen" haalt nieuwe berichten op zonder de pagina te herladen. Filters, zoektekst en scrollpositie blijven staan.
+
 ## 1.38.0 (30 september 2026)
 
 **Berichten via je formulieren, nu als echt overzicht.** Het blok staat over de volle breedte, in het portaal en in de admin. Elke rij toont datum, formulier, van wie en waar het over gaat; klik om het hele bericht met bijlagen te zien. Je filtert per formulier, zoekt in alle berichten, schakelt tussen open en afgehandeld, en handelt meerdere berichten in één keer af, zet ze terug of verwijdert ze. Alle bewaarde berichten staan erin, niet meer alleen de laatste dertig.
