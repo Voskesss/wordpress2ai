@@ -32,7 +32,8 @@ assert.ok(formulier.includes('name="naamTonen"') && formulier.includes("defaultC
 const acties = await readFile("app/portal/acties.ts", "utf8");
 assert.ok(acties.includes('mailNaamVerbergen: formData.get("naamTonen") !== "ja"'), "de keuze wordt niet opgeslagen");
 for (const pad of ["app/portal/page.tsx", "app/admin/klant/[id]/page.tsx"]) {
-  assert.ok((await readFile(pad, "utf8")).includes("mailNaamVerbergen={site.mailNaamVerbergen}"), pad + " geeft de keuze niet door aan het formulier");
+  // In het portaal heet de site sinds de tabbladen getoondeSite
+  assert.ok(/mailNaamVerbergen=\{(site|getoondeSite)\.mailNaamVerbergen\}/.test(await readFile(pad, "utf8")), pad + " geeft de keuze niet door aan het formulier");
 }
 assert.ok((await readFile("db/schema.ts", "utf8")).includes('boolean("mail_naam_verbergen").notNull().default(false)'), "de kolom ontbreekt in het schema");
 assert.ok((await readFile("db/migrations/20260928-mail-naam-verbergen.sql", "utf8")).includes("ADD COLUMN IF NOT EXISTS mail_naam_verbergen"), "de migratie ontbreekt");

@@ -194,6 +194,7 @@ export default function Chat({
   meelezenUit = false,
   verbruik = null,
   startVolledig = true,
+  metBalk = false,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
@@ -209,6 +210,12 @@ export default function Chat({
    * springt het gesprek dan bij elke herlading over je scherm heen.
    */
   startVolledig?: boolean;
+  /**
+   * Het portaal heeft een vaste bovenbalk met tabbladen (PortaalSchil). Dan
+   * begint de schermvullende weergave ónder die balk, en zijn de losse
+   * terug-knopjes overbodig: de navigatie staat er altijd.
+   */
+  metBalk?: boolean;
   previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
@@ -2088,6 +2095,10 @@ export default function Chat({
             ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
+        // In het portaal staat een vaste balk (PortaalSchil zet --portaal-nav):
+        // schermvullend betekent dan "alles onder de balk". In de admin
+        // bestaat de variabele niet en is dit gewoon 0.
+        style={volledigScherm || (isMobiel && mobielVol) ? { top: "var(--portaal-nav, 0px)" } : undefined}
       >
         {/* Publiceren/verwijderen: duidelijke overlay over venster én chat, zodat niemand ondertussen doorklikt */}
         {conceptActie && (
@@ -2134,7 +2145,7 @@ export default function Chat({
             ))}
             {/* Duidelijke weg terug naar het portaal met menu — een kaal
                 kruisje herkende niemand als uitgang */}
-            <button
+            {!metBalk && <button
               onClick={() => setMobielVol(false)}
               aria-label="Editor verkleinen — terug naar de pagina met het menu"
               className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-stone-300 px-3 text-sm font-semibold text-stone-600 cursor-pointer"
@@ -2143,7 +2154,7 @@ export default function Chat({
                 <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               Menu
-            </button>
+            </button>}
           </div>
         )}
 
@@ -2217,7 +2228,7 @@ export default function Chat({
                 </button>
               ))}
             </div>
-            {volledigScherm && !isMobiel && (
+            {volledigScherm && !isMobiel && !metBalk && (
               <>
                 {/* Schermvullend: duidelijke weg terug naar de rest van het dashboard */}
                 {terugLink && (
@@ -2269,7 +2280,9 @@ export default function Chat({
             <Tip
               tekst={
                 volledigScherm
-                  ? "Terug naar de normale weergave (kan ook met Esc)"
+                  ? metBalk
+                    ? "Kleinere weergave, met ruimte eromheen (kan ook met Esc)"
+                    : "Terug naar de normale weergave (kan ook met Esc)"
                   : "Voorbeeld schermvullend maken"
               }
               plaats="onder"
@@ -2281,9 +2294,11 @@ export default function Chat({
                 onClick={() => setVolledigScherm(!volledigScherm)}
                 aria-label={volledigScherm ? "Volledig scherm sluiten" : "Maak groot"}
                 className={`hidden sm:flex items-center justify-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer ${
-                  volledigScherm
+                  volledigScherm && !metBalk
                     ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-                    : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    : volledigScherm
+                      ? "border-stone-300 bg-white text-stone-600 hover:bg-stone-50"
+                      : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
                 }`}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -2293,7 +2308,7 @@ export default function Chat({
                     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   )}
                 </svg>
-                {volledigScherm ? <span className="hidden md:inline">Volledig scherm uit</span> : <span>Maak groot</span>}
+                {volledigScherm ? <span className="hidden md:inline">{metBalk ? "Kleiner" : "Volledig scherm uit"}</span> : <span>Maak groot</span>}
               </button>
             </Tip>
           </div>

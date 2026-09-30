@@ -5,6 +5,7 @@ import InlogVenster from "./InlogVenster";
 import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
+import SiteKop from "./SiteKop";
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
@@ -232,16 +233,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               ⚠ Dev-omgeving — niet de live website
             </div>
           )}
-          <header
-            className={`sticky ${isDev ? "top-7" : "top-0"} z-50 site-header`}
-          >
-            <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
-              <Link href="/" aria-label="WordSwap home">
-                <Logo klein />
-              </Link>
-              <HeaderNav isAdmin={isAdmin} portalLabel={portalLabel} />
-            </div>
-          </header>
+          <SiteKop>
+            <header
+              className={`sticky ${isDev ? "top-7" : "top-0"} z-50 site-header`}
+            >
+              <div className="mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
+                <Link href="/" aria-label="WordSwap home">
+                  <Logo klein />
+                </Link>
+                <HeaderNav isAdmin={isAdmin} portalLabel={portalLabel} />
+              </div>
+            </header>
+          </SiteKop>
           <main id="inhoud" className="flex-1">
             {children}
           </main>
