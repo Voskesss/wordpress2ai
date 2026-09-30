@@ -20,6 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.0 (30 september 2026)
+
+**Proefmaand Optimaal ontzorgd met WhatsApp.** Alleen op uitnodiging: Jos klikt op de klantpagina op "Bied de proefmaand aan" en de klant krijgt één mail met een knop. Klikt hij, dan staat WhatsApp een maand aan (hij geeft zijn nummer door in het portaal, Jos koppelt). Een week voor het einde volgt één herinnering met een ja-knop. Zegt hij ja, dan wordt het maandbedrag vanaf de einddatum gepland op het ontzorgd-tarief (€39) via de bestaande bedragwijziging bij Mollie. Zegt hij niets, dan gaat WhatsApp vanzelf uit en verandert er niets aan het abonnement. Nooit automatisch doorbelasten.
+
+- Dagelijkse controle herinnert en sluit af; de proef is in de admin ook handmatig te beëindigen.
+- Vereist twee kolommen (db/migrations/20260930-proef-ontzorgd.sql) vóór de uitrol.
+
 ## 1.35.9 (30 september 2026)
 
 - De feestbalk is een kaartje geworden dat op de telefoon netjes past; de ronde vorm werd daar een ei.
