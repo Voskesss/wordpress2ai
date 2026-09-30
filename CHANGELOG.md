@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.5 (30 september 2026)
+
+**WordPress-kopieën staan tijdelijk klaar.** Een kopie (vaak meerdere GB) blijft 30 dagen in het portaal; een week vooraf krijgt de klant één herinnering, daarna ruimt de dagelijkse controle hem op. Zo betalen we niet maandenlang voor opslag waar niets meer mee gebeurt. De uploadmail, de livemail, het portaal en de admin noemen de einddatum. Kopieën van vóór vandaag (RoelArt, Vakbeursonline) tellen vanaf vandaag: zij lopen tot 29 oktober.
+
 ## 1.35.4 (30 september 2026)
 
 **Mail "je website staat live".** Op de klantpagina, zodra het eigen domein is ingevuld: één mail aan de klant met het nieuwe adres, wat we de komende dagen nog testen, dat formulierberichten sowieso binnenkomen, een knop naar de site en een persoonlijke noot. Optioneel met het verzoek de eigen mailserver te koppelen: de klant vult de servergegevens en het wachtwoord zelf in zijn portaal in, nooit per mail. Met voorbeeld en bevestigingsvraag.
