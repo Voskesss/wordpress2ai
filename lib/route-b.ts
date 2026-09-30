@@ -279,3 +279,20 @@ export function naamInPaneel(volledig: string, domein: string): string {
   if (n === d) return "@";
   return n.endsWith(`.${d}`) ? n.slice(0, -d.length - 1) : n;
 }
+
+/** Importbestand (BIND-formaat) voor het DNS-beheer van de hoster, zodat hij
+ * niets hoeft over te typen. Stap 1 = de controleregels (TXT), stap 2 = de
+ * twee verwijzingen (CNAME). Cloudflare en de meeste panelen kunnen zo'n
+ * bestand importeren; bestaande regels blijven staan. */
+export function importBestand(domein: string, stap: 1 | 2, statussen: DomeinStatus[]): string {
+  const d = kaartDomein(domein) ?? domein;
+  const regels: string[] = [`$ORIGIN ${d}.`, `; WordSwap, stap ${stap} voor ${d}. Wolkje bij alle regels op grijs (alleen DNS).`];
+  if (stap === 1) {
+    for (const s of statussen) for (const r of s.controleRegels) regels.push(`${naamInPaneel(r.naam, d)} 300 IN TXT "${r.waarde}"`);
+  } else {
+    regels.push(`; Bestaat er al een A-regel voor @ of www, haal die dan eerst weg: een A en een CNAME kunnen niet naast elkaar.`);
+    regels.push(`@ 300 IN CNAME ${ONTVANGSTADRES}.`);
+    regels.push(`www 300 IN CNAME ${ONTVANGSTADRES}.`);
+  }
+  return regels.join("\n") + "\n";
+}

@@ -171,6 +171,17 @@ export default async function RouteBBlok({
             De naam is het stuk vóór {domein}; de meeste panelen zetten het domein er zelf achter. De codes zijn ongeveer
             een week geldig.
           </p>
+          {!certificatenKlaar && (
+            <a
+              href={`/api/admin/route-b-import?domein=${encodeURIComponent(domein ?? "")}&stap=1`}
+              className="mt-3 inline-block rounded-full border border-emerald-400 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
+            >
+              ⬇ Download als importbestand (stap 1)
+            </a>
+          )}
+          <p className="mt-1 text-xs text-stone-500">
+            In Cloudflare: DNS, Records, Import, bestand kiezen. Vinkje "Proxy imported DNS records" uit laten.
+          </p>
         </div>
       )}
 
@@ -192,6 +203,14 @@ export default async function RouteBBlok({
             </li>
           ))}
         </ol>
+        {aangemeld && certificatenKlaar && !omgezet && (
+          <a
+            href={`/api/admin/route-b-import?domein=${encodeURIComponent(domein ?? "")}&stap=2`}
+            className="mt-3 inline-block rounded-full border border-stone-400 bg-white px-4 py-1.5 text-xs font-semibold text-stone-800 hover:bg-stone-100"
+          >
+            ⬇ Download als importbestand (stap 2)
+          </a>
+        )}
       </div>
       )}
 

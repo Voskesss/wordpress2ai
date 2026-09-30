@@ -5,7 +5,7 @@
  */
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { ONTVANGSTADRES, SAAS_ZONE, adressenVan, meldDomeinAan, naamInPaneel, regelsVoorHoster } from "../lib/route-b";
+import { ONTVANGSTADRES, SAAS_ZONE, adressenVan, importBestand, meldDomeinAan, naamInPaneel, regelsVoorHoster } from "../lib/route-b";
 
 // 1. Een adres van wordswap.nl zelf mag nooit via de verdeler lopen
 for (const d of ["wordswap.nl", "www.wordswap.nl", "clerk.wordswap.nl", "sites.wordswap.nl"]) {
@@ -80,5 +80,22 @@ assert.ok(blok.includes("moeten er allemaal in"), "de waarschuwing over regels m
 assert.equal(naamInPaneel("_acme-challenge.proef.aimia.nl", "aimia.nl"), "_acme-challenge.proef");
 assert.equal(naamInPaneel("_cf-custom-hostname.www.klant.nl.", "www.klant.nl"), "_cf-custom-hostname.www");
 assert.equal(naamInPaneel("klant.nl", "klant.nl"), "@");
+
+
+// 8. Importbestand voor de hoster (bewezen 30-09: Cloudflare importeerde de zes
+//    regels in één keer, allemaal op alleen-DNS). Stap 1 = TXT, stap 2 = CNAME.
+const st = [{ adres: "klant.nl", id: "1", methode: "txt", adresStatus: "pending", certificaatStatus: "pending_validation", fouten: [], controleRegels: [{ soort: "TXT", naam: "_cf-custom-hostname.klant.nl", waarde: "a" }, { soort: "TXT", naam: "_acme-challenge.klant.nl", waarde: "b" }] },
+            { adres: "www.klant.nl", id: "2", methode: "txt", adresStatus: "pending", certificaatStatus: "pending_validation", fouten: [], controleRegels: [{ soort: "TXT", naam: "_acme-challenge.www.klant.nl", waarde: "c" }] }];
+const b1 = importBestand("klant.nl", 1, st);
+assert.ok(b1.startsWith("$ORIGIN klant.nl.\n"), "het importbestand begint niet met de zone");
+assert.ok(b1.includes('_cf-custom-hostname 300 IN TXT "a"') && b1.includes('_acme-challenge.www 300 IN TXT "c"'), "de namen in het importbestand kloppen niet");
+assert.equal((b1.match(/ IN TXT /g) ?? []).length, 3);
+assert.ok(!b1.includes("CNAME"), "stap 1 bevat al een verwijzing: dan gaat de site om vóór het certificaat er is");
+const b2 = importBestand("klant.nl", 2, []);
+assert.ok(b2.includes(`@ 300 IN CNAME ${ONTVANGSTADRES}.`) && b2.includes(`www 300 IN CNAME ${ONTVANGSTADRES}.`), "stap 2 mist een verwijzing");
+assert.ok(b2.includes("A-regel"), "stap 2 waarschuwt niet dat de A-regels eerst weg moeten");
+const importRoute = await readFile("app/api/admin/route-b-import/route.ts", "utf8");
+assert.ok(importRoute.includes("await requireAdmin();") && importRoute.includes("Dit domein is niet aangemeld"), "de download is niet afgeschermd of geeft bestanden voor onbekende domeinen");
+assert.ok(blok.includes("route-b-import?domein=") && blok.includes("stap=1") && blok.includes("stap=2"), "de downloadknoppen ontbreken in het blok");
 
 console.log("route-b: ok");
