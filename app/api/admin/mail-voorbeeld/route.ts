@@ -111,6 +111,11 @@ export async function GET(req: Request) {
     const { kopieTotVoor } = await import("@/lib/backups");
     const { publiekAdres } = await import("@/lib/hoofdadres");
     mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht, vraagMailserver: q.get("mailserver") === "ja", kopieTot: await kopieTotVoor(site.id) });
+  } else if (soort === "proef-ontzorgd") {
+    const { bouwProefAanbod } = await import("@/lib/klant-mails");
+    const { PAKKETTEN } = await import("@/lib/aanbod");
+    mail = bouwProefAanbod({ siteNaam: site.naam, naam: ontvanger?.naam, startUrl: "https://www.wordswap.nl/api/proef-ontzorgd?voorbeeld", eigenTekst: bericht, prijs: PAKKETTEN.ontzorgd.prijs });
+    bijlageNoot = "In de echte mail werkt de knop en start de proefmaand zodra de klant klikt.";
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

@@ -28,6 +28,7 @@ import LivegangChecklist from "./LivegangChecklist";
 import RouteBBlok from "./RouteBBlok";
 import { publiekAdres } from "@/lib/hoofdadres";
 import { datumNl, verlooptOp } from "@/lib/backups";
+import { PAKKETTEN } from "@/lib/aanbod";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import BevestigingsMails from "@/app/portal/BevestigingsMails";
@@ -53,6 +54,8 @@ import {
   herstelVersie,
   koppelKlant,
   stuurLiveMail,
+  stuurProefAanbod,
+  stopProef,
   trekKoppelingIn,
   zetSiteOnline,
   verwijderKlant,
@@ -97,11 +100,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string; routeb?: string; live?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string; routeb?: string; live?: string; proef?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding, routeb: routeBMelding, live: liveMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding, routeb: routeBMelding, live: liveMelding, proef: proefMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -1235,6 +1238,62 @@ export default async function KlantDetail({
           spraak). Publiceren blijft een bewuste knop. <strong>Alleen de nummers hieronder komen
           binnen</strong>; appt een ander nummer, dan gebeurt er niets en krijg jij een mail.
         </p>
+        {/* Proefmaand Optimaal ontzorgd (met WhatsApp), alleen op uitnodiging */}
+        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
+          <p className="text-sm font-semibold text-violet-900">
+            Proefmaand Optimaal ontzorgd (€{PAKKETTEN.ontzorgd.prijs} per maand, met WhatsApp)
+          </p>
+          {proefMelding && (
+            <p className={`mt-2 rounded-xl border px-3.5 py-2 text-sm ${proefMelding === "verstuurd" || proefMelding === "gestopt" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-red-200 bg-red-50 text-red-900"}`}>
+              {proefMelding === "verstuurd"
+                ? "✓ Het aanbod is gemaild. De proef start pas als de klant op de knop klikt."
+                : proefMelding === "gestopt"
+                  ? "✓ Proef beëindigd, WhatsApp staat uit. Er is niets afgeschreven."
+                  : proefMelding === "geen-adres"
+                    ? "Er is nog geen klantaccount of mailadres aan deze site gekoppeld."
+                    : "De mail kon niet worden verstuurd. Probeer het opnieuw."}
+            </p>
+          )}
+          {site.proefOntzorgdTot ? (
+            <>
+              <p className="mt-2 text-sm text-stone-700">
+                Proef loopt tot <b>{datumInWoorden(site.proefOntzorgdTot.toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" }))}</b>
+                {site.proefHerinnerd ? ", herinnering met ja-knop is verstuurd" : ", een week vooraf krijgt de klant een herinnering met ja-knop"}.
+                Zegt de klant niets, dan gaat WhatsApp op die dag vanzelf uit. Zegt hij ja, dan wordt het maandbedrag vanaf die dag gepland op €{PAKKETTEN.ontzorgd.prijs}.
+              </p>
+              <form action={stopProef} className="mt-2">
+                <input type="hidden" name="siteId" value={site.id} />
+                <BevestigKnop
+                  vraag="Proef nu beëindigen? WhatsApp gaat uit en de klant krijgt geen herinnering meer."
+                  label="Proef beëindigen"
+                  bezigLabel="Bezig..."
+                  className="cursor-pointer text-xs font-semibold text-red-700 hover:underline"
+                />
+              </form>
+            </>
+          ) : (
+            <form action={stuurProefAanbod} className="mt-2">
+              <input type="hidden" name="siteId" value={site.id} />
+              <p className="text-sm text-stone-600">
+                Eén mail aan de klant: probeer het een maand gratis. Klikt hij, dan gaat WhatsApp aan en loopt de maand.
+                Na de maand gaat het vanzelf uit, tenzij hij op de ja-knop in de herinnering klikt. Nooit automatisch doorbelasten.
+              </p>
+              <label className="mt-2 block text-xs text-stone-500">
+                Persoonlijke noot bovenaan de mail (mag leeg)
+                <textarea name="bericht" rows={2} placeholder="Bijv.: je vroeg laatst of het ook via WhatsApp kon. Probeer maar." className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none" />
+              </label>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <MailVoorbeeldKnop soort="proef-ontzorgd" siteId={site.id} velden={[["bericht", "bericht"]]} />
+                <BevestigKnop
+                  vraag="Het aanbod voor de proefmaand nu mailen naar de klant?"
+                  label="Bied de proefmaand aan"
+                  bezigLabel="Versturen..."
+                  className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
+                />
+              </div>
+            </form>
+          )}
+        </div>
         <form action={bewaarWhatsapp} className="mt-3">
           <input type="hidden" name="siteId" value={site.id} />
           <input type="hidden" name="aan" value={site.whatsappActief ? "0" : "1"} />

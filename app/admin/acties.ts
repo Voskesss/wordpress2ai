@@ -1101,6 +1101,48 @@ export async function bewaarAiExtra(formData: FormData) {
 }
 
 
+/** Proefmaand Optimaal ontzorgd (met WhatsApp) aanbieden: één mail, op uitnodiging van Jos. */
+export async function stuurProefAanbod(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  let uitkomst = "verstuurd";
+  try {
+    const { klantEmailVoorSite } = await import("@/lib/klant-email");
+    const ontvanger = await klantEmailVoorSite(siteId);
+    if (!ontvanger) uitkomst = "geen-adres";
+    else {
+      const { bouwProefAanbod } = await import("@/lib/klant-mails");
+      const { proefLink, zorgSiteToken } = await import("@/lib/proef-ontzorgd");
+      const { PAKKETTEN } = await import("@/lib/aanbod");
+      const { headers } = await import("next/headers");
+      const kop = await headers();
+      const host = kop.get("x-forwarded-host") ?? kop.get("host") ?? "www.wordswap.nl";
+      const origin = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
+      const mail = bouwProefAanbod({ siteNaam: site.naam, naam: ontvanger.naam, startUrl: proefLink(origin, await zorgSiteToken(siteId), "start"), eigenTekst, prijs: PAKKETTEN.ontzorgd.prijs });
+      const { mailVanJos } = await import("@/lib/wordswap-mail");
+      const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+      if (!gelukt) uitkomst = "mislukt";
+    }
+  } catch (e) {
+    console.error("Proefaanbod mislukt:", e);
+    uitkomst = "mislukt";
+  }
+  redirect(`/admin/klant/${siteId}?proef=${uitkomst}#whatsapp`);
+}
+
+/** Proef handmatig beëindigen (bv. klant belt af): WhatsApp uit, niets afgeschreven. */
+export async function stopProef(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  await db.update(sites).set({ proefOntzorgdTot: null, proefHerinnerd: false, whatsappActief: false }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/portal");
+  redirect(`/admin/klant/${siteId}?proef=gestopt#whatsapp`);
+}
+
 /** WhatsApp-kanaal (betaalde extra) aan- of uitzetten voor een site. */
 export async function bewaarWhatsapp(formData: FormData) {
   await requireAdmin();

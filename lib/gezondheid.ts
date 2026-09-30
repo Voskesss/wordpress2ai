@@ -109,6 +109,16 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
+    await meet("proef-ontzorgd", "Proefmaanden Optimaal ontzorgd: herinneren en afsluiten", async () => {
+      const { onderhoudProeven } = await import("./proef-ontzorgd");
+      const u = await onderhoudProeven("https://www.wordswap.nl");
+      if (u.fouten.length) return { status: "fout", detail: u.fouten.join("; ") };
+      const delen = [u.herinnerd.length ? `herinnerd: ${u.herinnerd.join(", ")}` : "", u.verlopen.length ? `afgesloten zonder ja (WhatsApp uit): ${u.verlopen.join(", ")}` : ""].filter(Boolean);
+      return delen.length ? delen.join(" · ") : "Niets te doen.";
+    }),
+  );
+
+  checks.push(
     await meet("wp-kopieen", "WordPress-kopieën: herinneren en opruimen", async () => {
       const { onderhoudKopieen, BEWAAR_DAGEN } = await import("./backups");
       const u = await onderhoudKopieen();

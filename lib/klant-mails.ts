@@ -5,6 +5,7 @@
  */
 import { duurInWoorden, momentInWoorden } from "@/lib/afspraken";
 import { REVIEW_LINK, TELEFOON } from "@/lib/persoonlijk";
+import { PAKKETTEN } from "@/lib/aanbod";
 import { inWordSwapHuisstijl, ontsnap } from "@/lib/wordswap-mail";
 import { FEEST_PARAM } from "@/lib/worker-r2";
 
@@ -202,6 +203,73 @@ ${
     ? `<p><strong>Je oude WordPress-site:</strong> de complete kopie staat tot <strong>${o.kopieTot.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" })}</strong> in je portaal, onder Je website en gegevens meenemen. Wil je hem bewaren, download hem dan voor die tijd. Daarna ruimen we hem op, want hij is groot en er gebeurt niets meer mee.</p>`
     : ""
 }<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+/* Proefmaand Optimaal ontzorgd met WhatsApp (lib/proef-ontzorgd.ts). Vier mails:
+ * aanbod (op uitnodiging van Jos), gestart, herinnering met ja-knop, verlopen. */
+const ONTZORGD_TEKST = "Optimaal ontzorgd: voorrang, elke maand 30 minuten persoonlijke hulp, en je website bijhouden via WhatsApp. Gewoon een appje sturen, ook een foto of een spraakbericht, en je ziet een voorbeeld voordat het live gaat.";
+
+export function bouwProefAanbod(o: { siteNaam: string; naam?: string | null; startUrl: string; eigenTekst?: string | null; prijs: number }): { onderwerp: string; html: string } {
+  return {
+    onderwerp: "Probeer een maand gratis: je website bijhouden via WhatsApp",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+${persoonlijkeNoot(o.eigenTekst)}
+<p>Ik wil je iets laten proberen. Je kunt je website ook bijhouden door hem gewoon een appje te sturen. Even een nieuwe openingstijd, een foto van een klus, een spraakberichtje in de auto: je website maakt er een voorbeeld van, en jij zegt of het live mag.</p>
+<p>Dat zit in ons pakket <strong>Optimaal ontzorgd</strong>. ${ONTZORGD_TEKST}</p>
+<p><strong>Probeer het een maand gratis.</strong> Na die maand gaat het vanzelf weer uit, tenzij jij zegt dat je door wilt. Er wordt dus niets afgeschreven zonder dat jij daar ja op zegt. Doorgaan kost daarna €${o.prijs} per maand exclusief btw in plaats van je huidige bedrag.</p>
+${knop(o.startUrl, "Ja, ik probeer het een maand")}
+<p>Na het klikken geef je in je portaal het telefoonnummer door waarmee je wilt appen. Ik koppel het dan, en je krijgt van mij een berichtje zodra het werkt.</p>
+<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+export function bouwProefGestart(o: { naam?: string | null; tot: Date; portaalUrl: string }): { onderwerp: string; html: string } {
+  const datum = o.tot.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" });
+  return {
+    onderwerp: "Je proefmaand is begonnen",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+<p>Leuk dat je het probeert! Je proefmaand Optimaal ontzorgd loopt tot <strong>${datum}</strong>. Tot die tijd kost het niets.</p>
+<p><strong>Nog één stap:</strong> geef in je portaal het telefoonnummer door waarmee je wilt appen. Ik koppel het dan en laat je weten zodra je kunt beginnen.</p>
+${knop(o.portaalUrl, "Naar mijn portaal")}
+<p>Een week voor het einde krijg je een mail met de vraag of je door wilt. Zeg je niets, dan gaat WhatsApp vanzelf weer uit en verandert er niets aan je abonnement.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+export function bouwProefHerinnering(o: { naam?: string | null; tot: Date; jaUrl: string }): { onderwerp: string; html: string } {
+  const datum = o.tot.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" });
+  return {
+    onderwerp: `Nog een week gratis: wil je doorgaan met WhatsApp?`,
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+<p>Je proefmaand Optimaal ontzorgd loopt tot <strong>${datum}</strong>. Hoe was het, je website bijhouden via een appje?</p>
+<p>Wil je doorgaan? Klik dan op de knop. Je abonnement wordt dan vanaf ${datum} Optimaal ontzorgd, voor €${PAKKETTEN.ontzorgd.prijs} per maand exclusief btw. Maandelijks opzegbaar, zoals altijd.</p>
+${knop(o.jaUrl, "Ja, ik ga door")}
+<p>Wil je niet doorgaan? Dan hoef je niets te doen. Op ${datum} gaat WhatsApp vanzelf uit en blijft je abonnement zoals het was. Er wordt niets extra afgeschreven.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+export function bouwProefVerlopen(o: { naam?: string | null; jaUrl: string }): { onderwerp: string; html: string } {
+  return {
+    onderwerp: "Je proefmaand is voorbij, WhatsApp staat weer uit",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+<p>Je proefmaand Optimaal ontzorgd is voorbij. Zoals beloofd staat WhatsApp nu weer uit en is er niets extra afgeschreven. Je website bijhouden gaat gewoon door via de chat in je portaal.</p>
+<p>Toch liever appen? Dat kan alsnog, met één klik.</p>
+${knop(o.jaUrl, "Ja, zet WhatsApp weer aan")}
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+export function bouwProefJa(o: { naam?: string | null; vanaf: string; via: "gepland" | "meteen" | "geen-abonnement" }): { onderwerp: string; html: string } {
+  const datum = new Date(o.vanaf + "T12:00:00").toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" });
+  return {
+    onderwerp: "Welkom bij Optimaal ontzorgd",
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+<p>Dank je wel, het staat genoteerd. WhatsApp blijft aan, en je hebt voortaan voorrang en elke maand 30 minuten persoonlijke hulp.</p>
+${o.via === "gepland" ? `<p>Vanaf <strong>${datum}</strong> is je maandbedrag €${PAKKETTEN.ontzorgd.prijs} exclusief btw. Tot die tijd betaal je je huidige bedrag. Je hoeft hier niets voor te doen.</p>` : o.via === "meteen" ? `<p>Je maandbedrag is €${PAKKETTEN.ontzorgd.prijs} exclusief btw.</p>` : `<p>Ik neem contact met je op om het abonnement in orde te maken.</p>`}
 <p>Groet,<br>Jos</p>`),
   };
 }
