@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.37.0 (30 september 2026)
+
+**Formulieren laten zien dat ze bezig zijn.** Na een klik op verzenden verstuurt WordSwap eerst de mail (via een eigen mailserver soms enkele seconden) en stuurt dan pas door naar de bedanktpagina. Bezoekers zagen al die tijd niets en klikten nog eens. Nu zet de knop zichzelf op "Bezig met versturen", een tweede klik doet niets, en bij de terug-knop staat de knop weer gewoon klaar. Dit zit in het site-script (versie 13), dus elke site krijgt het bij de volgende publicatie; sites via route B meteen. Opgemerkt bij Van den Berg Mediation.
+
 ## 1.36.7 (30 september 2026)
 
 - Reparatie op 1.36.5: we melden ons bij de eigen mailserver van een klant als wordswap.nl, niet als het domein van de klant. De server van Van den Berg Mediation weigerde dat als vervalsing, waardoor de mails sinds vanmiddag via no-reply@wordswap.nl gingen in plaats van vanaf zijn eigen adres.

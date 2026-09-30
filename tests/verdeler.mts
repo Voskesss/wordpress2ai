@@ -16,12 +16,20 @@ import { R2_WORKER_SCRIPT } from "../lib/worker-r2";
 // Workers hebben HTMLRewriter ingebouwd; Node niet. Een kleine nabootsing die
 // alleen 'append op body' kent, genoeg om het feestje te controleren.
 class NepRewriter {
-  handlers: [string, { element(el: { append(html: string, o?: unknown): void }): void }][] = [];
-  on(sel: string, h: { element(el: { append(html: string, o?: unknown): void }): void }) { this.handlers.push([sel, h]); return this; }
+  handlers: [string, { element(el: { append(html: string, o?: unknown): void; after(html: string, o?: unknown): void }): void }][] = [];
+  on(sel: string, h: { element(el: { append(html: string, o?: unknown): void; after(html: string, o?: unknown): void }): void }) { this.handlers.push([sel, h]); return this; }
   transform(r: Response) {
     return (async () => {
       let tekst = await r.text();
-      for (const [sel, h] of this.handlers) if (sel === "body") { let extra = ""; h.element({ append: (html) => { extra += html; } }); tekst = /<\/body>/i.test(tekst) ? tekst.replace(/<\/body>/i, extra + "</body>") : tekst + extra; }
+      for (const [sel, h] of this.handlers) {
+        let extra = "";
+        const el = { append: (html: string) => { extra += html; }, after: (html: string) => { extra += html; } };
+        if (sel === "body") { h.element(el); tekst = /<\/body>/i.test(tekst) ? tekst.replace(/<\/body>/i, extra + "</body>") : tekst + extra; }
+        else if (sel.startsWith("form[")) {
+          // elk formulier dat naar /api/formulier wijst krijgt een element-aanroep; 'after' plakt achter dat formulier
+          tekst = tekst.replace(/<form\b[^>]*action="[^"]*\/api\/formulier[^"]*"[^>]*>[\s\S]*?<\/form>/gi, (m) => { extra = ""; h.element(el); return m + extra; });
+        }
+      }
       return new Response(tekst, { status: r.status, headers: r.headers });
     })();
   }
@@ -36,7 +44,7 @@ const verdeler = (await import(pathToFileURL(pad).href)).default as { fetch(r: R
 const opslag = new Map<string, string>([
   [DOMEINKAART_SLEUTEL, JSON.stringify({ "alfa.nl": "alfa", "beta.nl": "beta", "fout.nl": "wv-alfa", "stiekem.nl": "intern", "gamma.nl": { slug: "beta", hoofd: "www" }, "scheef.nl": { slug: "wv-alfa", hoofd: "www" } })],
   ["alfa/index.html", "<h1>ALFA</h1>"],
-  ["alfa/contact/index.html", "<h1>ALFA contact</h1>"],
+  ["alfa/contact/index.html", '<h1>ALFA contact</h1><form action="https://wordswap.nl/api/formulier" method="post"><button>Verstuur</button></form><form action="https://wordswap.nl/api/formulier" method="post"><button>Nog een</button></form>'],
   ["alfa/_redirects", "/oud /contact/ 301\n"],
   ["alfa/_headers", "/*\n  X-Test: alfa\n"],
   ["beta/index.html", "<h1>BETA</h1>"],
@@ -56,7 +64,7 @@ const haal = async (url: string) => verdeler.fetch(new Request(url, { redirect: 
 // 1. Elk domein krijgt zijn eigen site
 assert.equal(await (await haal("https://alfa.nl/")).text(), "<h1>ALFA</h1>");
 assert.equal(await (await haal("https://beta.nl/")).text(), "<h1>BETA</h1>");
-assert.equal(await (await haal("https://alfa.nl/contact/")).text(), "<h1>ALFA contact</h1>");
+assert.ok((await (await haal("https://alfa.nl/contact/")).text()).startsWith("<h1>ALFA contact</h1>"));
 
 // 2. Redirects en headers van de ene site lekken niet naar de andere
 //    (het site-script had één gedeeld geheugen; via de verdeler is dat per site)
@@ -149,3 +157,13 @@ assert.equal(kaartDomein("geen domein"), null);
 assert.equal(kaartDomein("../intern"), null);
 
 console.log("verdeler: ok");
+
+
+// Formulier-terugkoppeling: het script komt één keer achter het (eerste)
+// formulier naar /api/formulier, en niet op pagina's zonder zo'n formulier.
+const metForm = await (await haal("https://alfa.nl/contact/")).text();
+assert.equal(metForm.split('<script>(function(){var A="/api/formulier"').length - 1, 1, "het formulierscript hoort precies één keer op de pagina");
+assert.ok(/<\/form><script>/.test(metForm) && metForm.includes('data-ws-bezig') && metForm.includes('"pageshow"'), "het formulierscript mist de dubbele-klik-rem of het herstel bij terug");
+const zonderForm = await (await haal("https://alfa.nl/")).text();
+assert.ok(!zonderForm.includes("Bezig met versturen"), "een pagina zonder formulier krijgt het script niet");
+console.log("✓ formulierknop toont 'bezig' via het site-script");

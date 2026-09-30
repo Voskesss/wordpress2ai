@@ -15,12 +15,14 @@
  *    standaard www → kaal, met binding HOOFD=www juist kaal → www
  *  - http → https (301); samen met www in één doorverwijzing
  *  - confetti, alleen met ?wordswap-feest in het adres (knop uit de livemail)
+ *  - verzendknop van formulieren toont "Bezig met versturen" en blokkeert een
+ *    dubbele klik (de mail via een eigen server duurt soms seconden)
  *  - ETag/If-None-Match (304), Range-verzoeken (video seeken), mime-types
  *
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "12";
+export const R2_SCRIPT_VERSIE = "13";
 
 /** Het toevoegsel in de link uit de livemail. Alleen wie via die knop
  * binnenkomt ziet het feestje; gewone bezoekers en Google nooit. */
@@ -28,6 +30,13 @@ export const FEEST_PARAM = "wordswap-feest";
 
 /** Confetti plus een balkje, ruim zes seconden, daarna weg. Haalt het toevoegsel
  * meteen uit de adresbalk zodat het niet blijft hangen of gedeeld wordt. */
+/** Formulieren posten naar wordswap.nl/api/formulier; die verstuurt eerst de
+ * mail (via een eigen mailserver soms seconden) en stuurt dan pas door naar
+ * de bedanktpagina. Zonder terugkoppeling klikt een bezoeker nog eens of
+ * denkt dat het stuk is. Dit script zet de knop op "Bezig met versturen" en
+ * houdt een tweede verzending tegen; bij terug-knop (bfcache) herstelt hij. */
+export const FORM_BEZIG_TEKST = "Bezig met versturen\u2026";
+const FORM_HTML = `<script>(function(){var A="/api/formulier";function knop(f){return f.querySelector('button[type=submit],input[type=submit],button:not([type])')}document.addEventListener("submit",function(e){var f=e.target;if(!f||!f.getAttribute||String(f.getAttribute("action")||"").indexOf(A)<0)return;if(f.getAttribute("data-ws-bezig")){e.preventDefault();return}f.setAttribute("data-ws-bezig","1");var k=knop(f);if(!k)return;k.setAttribute("aria-busy","true");k.classList.add("bezig");k.style.opacity=".65";k.style.pointerEvents="none";if(k.tagName==="INPUT"){k.setAttribute("data-ws-tekst",k.value);k.value=${JSON.stringify(FORM_BEZIG_TEKST)}}else{k.setAttribute("data-ws-tekst",k.textContent);k.textContent=${JSON.stringify(FORM_BEZIG_TEKST)}}},true);addEventListener("pageshow",function(e){if(!e.persisted)return;var fs=document.querySelectorAll("form[data-ws-bezig]");for(var i=0;i<fs.length;i++){var f=fs[i];f.removeAttribute("data-ws-bezig");var k=knop(f);if(!k)continue;k.removeAttribute("aria-busy");k.classList.remove("bezig");k.style.opacity="";k.style.pointerEvents="";var t=k.getAttribute("data-ws-tekst");if(t!==null){if(k.tagName==="INPUT")k.value=t;else k.textContent=t}}})})();</script>`;
 const FEEST_HTML = `<script>(function(){try{var u=new URL(location.href);if(!u.searchParams.has(${JSON.stringify(FEEST_PARAM)}))return;u.searchParams.delete(${JSON.stringify(FEEST_PARAM)});history.replaceState(null,"",u.pathname+u.search+u.hash);var c=document.createElement("canvas");c.setAttribute("aria-hidden","true");c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2147483647";document.body.appendChild(c);var x=c.getContext("2d");var W=c.width=innerWidth,H=c.height=innerHeight;var kl=["#31956B","#F5B84B","#E8604C","#4A90E2","#9B59B6","#ffffff"];var p=[];for(var i=0;i<260;i++)p.push({x:Math.random()*W,y:-20-Math.random()*H*1.4,r:4+Math.random()*6,k:kl[i%kl.length],vy:2+Math.random()*3,vx:-1+Math.random()*2,a:Math.random()*6.28,va:-0.1+Math.random()*0.2});var b=document.createElement("div");b.setAttribute("role","status");b.innerHTML="\uD83C\uDF89 Gefeliciteerd, je website staat live!<span style='display:block;margin-top:6px;font-weight:400;font-size:14px;line-height:1.45;opacity:.9'>Dit feestje ziet alleen jij, via de knop in de mail. Je bezoekers zien gewoon je website.</span><span style='display:block;margin-top:4px;font-weight:400;font-size:14px;line-height:1.45;opacity:.9'>Vanaf nu werk je je website bij via de WordSwap-chat in je portaal.</span>";b.style.cssText="position:fixed;left:12px;right:12px;top:12px;margin:0 auto;max-width:460px;box-sizing:border-box;background:#16302b;color:#fff;padding:14px 18px;border-radius:16px;font:600 17px/1.35 system-ui,sans-serif;z-index:2147483647;box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:left";document.body.appendChild(b);var t0=Date.now();function f(){var t=Date.now()-t0;x.clearRect(0,0,W,H);for(var j=0;j<p.length;j++){var q=p[j];q.y+=q.vy;q.x+=q.vx;q.a+=q.va;x.save();x.translate(q.x,q.y);x.rotate(q.a);x.fillStyle=q.k;x.fillRect(-q.r/2,-q.r/2,q.r,q.r*0.6);x.restore()}if(t<6500)requestAnimationFrame(f);else c.remove()}f();setTimeout(function(){b.remove()},10000)}catch(e){}})();</script>`;
 
 export const R2_WORKER_SCRIPT = [
@@ -42,6 +51,7 @@ export const R2_WORKER_SCRIPT = [
   '  wasm: "application/wasm", webmanifest: "application/manifest+json", vtt: "text/vtt; charset=utf-8",',
   "};",
   "const FEEST = " + JSON.stringify(FEEST_HTML) + ";",
+  "const FORM = " + JSON.stringify(FORM_HTML) + ";",
   "const FEEST_PARAM = " + JSON.stringify(FEEST_PARAM) + ";",
   "let regelsCache = null;",
   "",
@@ -184,10 +194,14 @@ export const R2_WORKER_SCRIPT = [
   '      kop.set("content-length", String("suffix" in obj.range ? obj.range.suffix : lengte));',
   '      return new Response(request.method === "HEAD" ? null : obj.body, { status: 206, headers: kop });',
   "    }",
-  '    if (feest && status === 200 && request.method === "GET" && mimeVoor(key) === HTML && typeof HTMLRewriter !== "undefined") {',
+  '    if (status === 200 && request.method === "GET" && mimeVoor(key) === HTML && typeof HTMLRewriter !== "undefined") {',
   '      kop.delete("content-length");',
   "      const antwoord = new Response(obj.body, { status, headers: kop });",
-  '      return new HTMLRewriter().on("body", { element(el) { el.append(FEEST, { html: true }); } }).transform(antwoord);',
+  "      // Het formulierscript alleen op pagina's met zo'n formulier, en één keer",
+  "      let formGedaan = false;",
+  "      const rw = new HTMLRewriter().on('form[action*=\"/api/formulier\"]', { element(el) { if (formGedaan) return; formGedaan = true; el.after(FORM, { html: true }); } });",
+  '      if (feest) rw.on("body", { element(el) { el.append(FEEST, { html: true }); } });',
+  "      return rw.transform(antwoord);",
   "    }",
   '    kop.set("content-length", String(obj.size));',
   '    return new Response(request.method === "HEAD" ? null : obj.body, { status, headers: kop });',
