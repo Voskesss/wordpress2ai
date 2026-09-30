@@ -59,21 +59,39 @@ export async function herkenFormulieren(werkmap: string): Promise<HerkendFormuli
   const perNaam = new Map<string, HerkendFormulier>();
   const bestanden = await alleHtmlBestanden(werkmap);
   // Een formulier in delen/ staat op de pagina's die dat onderdeel invoegen;
-  // zit het in het menu of de footer, dan is dat (vrijwel) elke pagina
-  const paginasVanDeel = async (rel: string): Promise<string[]> => {
-    const naam = rel.replace(/^delen\//, "").replace(/\.html?$/i, "").toLowerCase();
-    const marker = new RegExp(`<!--\\s*invoeg:${naam}\\s*-->`, "i");
-    const gebruikt: string[] = [];
+  // zit het in het menu of de footer, dan is dat (vrijwel) elke pagina.
+  // Een deel kan zelf weer in een ander deel zitten (formulier in een
+  // contactblok dat op artikelpagina's staat): dan tellen de pagina's van
+  // dat buitenste deel mee. Een bezocht-set voorkomt een kring.
+  const inhoud = new Map<string, string>();
+  const lees = async (p: string) => {
+    if (!inhoud.has(p)) inhoud.set(p, await readFile(path.join(werkmap, p), "utf8").catch(() => ""));
+    return inhoud.get(p)!;
+  };
+  const markerVan = (rel: string) => {
+    const naam = rel.replace(/^delen\//, "").replace(/\.html?$/i, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`<!--\\s*invoeg:${naam}\\s*-->`, "i");
+  };
+  const paginasMetDeel = async (rel: string, bezocht: Set<string>): Promise<Set<string>> => {
+    const gevonden = new Set<string>();
+    if (bezocht.has(rel)) return gevonden;
+    bezocht.add(rel);
+    const marker = markerVan(rel);
     for (const p of bestanden) {
-      if (p.startsWith("delen/")) continue;
-      if (marker.test(await readFile(path.join(werkmap, p), "utf8").catch(() => ""))) gebruikt.push(paginaVanBestand(p));
+      if (!marker.test(await lees(p))) continue;
+      if (p.startsWith("delen/")) for (const x of await paginasMetDeel(p, bezocht)) gevonden.add(x);
+      else gevonden.add(paginaVanBestand(p));
     }
+    return gevonden;
+  };
+  const paginasVanDeel = async (rel: string): Promise<string[]> => {
+    const gebruikt = [...(await paginasMetDeel(rel, new Set()))];
     const paginaTotaal = bestanden.filter((p) => !p.startsWith("delen/") && p !== "404.html").length;
     return gebruikt.length >= Math.max(5, paginaTotaal * 0.8) ? ["op elke pagina"] : gebruikt;
   };
   for (const rel of bestanden) {
     if (rel === "404.html" || rel.includes("bedankt")) continue;
-    const html = await readFile(path.join(werkmap, rel), "utf8").catch(() => "");
+    const html = await lees(rel);
     for (const m of html.matchAll(/<form\b[^>]*action=["'][^"']*\/api\/formulier[^"']*["'][^>]*>([\s\S]*?)<\/form>/gi)) {
       const binnen = m[1];
       const waarde = (veld: string) =>

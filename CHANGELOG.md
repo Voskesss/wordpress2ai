@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.2 (30 september 2026)
+
+- Bevestigingsmails: een formulier in een deel dat zelf in een ander deel zit (contactblok op artikelpagina's) krijgt nu de juiste pagina's in plaats van "niet meer op de website gevonden". Gemeld bij Van den Berg Mediation.
+
 ## 1.36.1 (30 september 2026)
 
 **Optimaal ontzorgd opnieuw omschreven.** De "30 minuten ondersteuning per maand" is overal weg. Het pakket is nu: alles uit het basispakket, voorrang bij je vragen, en je website bijhouden via WhatsApp. Storingen aan onze kant lossen we voor iedereen kosteloos op, in elk pakket. Aangepast op de prijzenpagina, de homepage-gegevens voor Google, de voorwaarden, de landingspagina's (via de gedeelde pakkettekst) en in de klantmails van de proefmaand.
