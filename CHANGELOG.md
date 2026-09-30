@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.1 (30 september 2026)
+
+**Optimaal ontzorgd opnieuw omschreven.** De "30 minuten ondersteuning per maand" is overal weg. Het pakket is nu: alles uit het basispakket, voorrang bij je vragen, en je website bijhouden via WhatsApp. Storingen aan onze kant lossen we voor iedereen kosteloos op, in elk pakket. Aangepast op de prijzenpagina, de homepage-gegevens voor Google, de voorwaarden, de landingspagina's (via de gedeelde pakkettekst) en in de klantmails van de proefmaand.
+
 ## 1.36.0 (30 september 2026)
 
 **Proefmaand Optimaal ontzorgd met WhatsApp.** Alleen op uitnodiging: Jos klikt op de klantpagina op "Bied de proefmaand aan" en de klant krijgt één mail met een knop. Klikt hij, dan staat WhatsApp een maand aan (hij geeft zijn nummer door in het portaal, Jos koppelt). Een week voor het einde volgt één herinnering met een ja-knop. Zegt hij ja, dan wordt het maandbedrag vanaf de einddatum gepland op het ontzorgd-tarief (€39) via de bestaande bedragwijziging bij Mollie. Zegt hij niets, dan gaat WhatsApp vanzelf uit en verandert er niets aan het abonnement. Nooit automatisch doorbelasten.
