@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.7 (30 september 2026)
+
+- Het feest-script uit 1.35.6 deed niets: een aanhalingsteken brak het af. Hersteld, en de test controleert nu of het script geldige JavaScript is.
+
 ## 1.35.6 (30 september 2026)
 
 **Een feestje bij de eerste blik op de live site.** De knop in de livemail opent de website met drie seconden confetti en de regel "Gefeliciteerd, je website staat live", met erbij dat alleen de klant dit ziet. Gewone bezoekers en Google zien nooit iets: het feestje verschijnt alleen met het toevoegsel uit die knop, alleen op een gewone pagina, en het toevoegsel verdwijnt meteen uit de adresbalk. De mail zelf verklapt niets.
