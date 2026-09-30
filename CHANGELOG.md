@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.3 (30 september 2026)
+
+**Importbestand voor de hoster.** Het blok "Domein blijft bij de hoster" heeft per stap een downloadknop: stap 1 de zes controleregels, stap 2 de twee verwijzingen. De hoster (of Jos, in het account van de hoster) importeert het bestand in één keer in plaats van alles over te typen. Getest bij Cloudflare: zes regels in één keer, allemaal op alleen DNS.
+
 ## 1.35.2 (30 september 2026)
 
 **Aanmelden bij de hoster staat los van het veld Domein.** Het blok "Domein blijft bij de hoster" heeft een eigen invoerveld. Het veld bij Instellingen blijft leeg tot de overstap, want dat veld rolt de site opnieuw uit en stuurt formulieren en het maillogo naar het nieuwe adres. Zodra het certificaat klaar is, zegt het blok dat het moment van de overstap er is en wat er dan in welke volgorde moet.
