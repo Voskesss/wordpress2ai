@@ -33,3 +33,16 @@ for (const p of ["app/portal/acties.ts", "app/admin/acties.ts"])
 const tekst = tekstVanHtml(`<div><p>Hallo Dirk-Jan,</p><p>Je bericht is <b>ontvangen</b>.<br>Tot snel.</p><p><a href="https://voorbeeld.nl/">Bekijk</a></p></div>`);
 assert.equal(tekst, "Hallo Dirk-Jan,\n\nJe bericht is ontvangen.\nTot snel.\n\nBekijk (https://voorbeeld.nl/)");
 console.log("✓ HELO-naam en multipart op de eigen mailserver");
+
+// 5. Ook onze eigen mail via Resend gaat als tekst + html: klantmails,
+//    mails van Jos, outreach, webinarmails en losse mails.
+for (const [p, aantal] of [
+  ["lib/mail.ts", 2],
+  ["lib/wordswap-mail.ts", 1],
+  ["app/admin/acties.ts", 2],
+  ["app/api/admin/mail-versturen/route.ts", 1],
+] as [string, number][]) {
+  const n = (await readFile(p, "utf8")).match(/text: tekstVanHtml\(/g)?.length ?? 0;
+  assert.equal(n, aantal, `${p}: ${n} mails met tekstversie, verwacht ${aantal}`);
+}
+console.log("✓ eigen mail via Resend heeft ook een tekstversie");

@@ -1,3 +1,5 @@
+import { tekstVanHtml } from "./smtp";
+
 /** Mail vanuit WordSwap via Resend; antwoorden gaan naar Jos. Standaard met een kopie (bcc) naar Jos. */
 export async function mailVanJos(o: {
   naar: string;
@@ -21,6 +23,7 @@ export async function mailVanJos(o: {
       reply_to: ["jos@wordswap.nl"],
       subject: o.onderwerp,
       html: o.html,
+      text: tekstVanHtml(o.html),
       ...(o.bijlagen?.length
         ? { attachments: o.bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud.toString("base64") })) }
         : {}),

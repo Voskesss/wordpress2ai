@@ -2,6 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { tekstVanHtml } from "@/lib/smtp";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { outreachAfzender } from "@/lib/afzender";
@@ -648,6 +649,7 @@ export async function verstuurOutreach(formData: FormData) {
       to: [p.email],
       subject: mail.onderwerp,
       html: mail.html,
+      text: tekstVanHtml(mail.html),
       reply_to: ["info@wordswap.nl"],
     }),
   });
@@ -838,6 +840,7 @@ export async function webinarMailen(formData: FormData) {
         to: [o.email],
         subject: sjabloon.onderwerp,
         html: sjabloon.html.replace("{{naam}}", o.naam ? ` ${o.naam}` : ""),
+        text: tekstVanHtml(sjabloon.html.replace("{{naam}}", o.naam ? ` ${o.naam}` : "")),
         reply_to: ["info@wordswap.nl"],
       }),
     }).catch((e) => console.error("Webinar-mail mislukt:", e));

@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { losseMailNaarHtml } from "@/lib/mailer";
+import { tekstVanHtml } from "@/lib/smtp";
 
 /** Losse mail vanuit jos@wordswap.nl (de admin-mailer). */
 export async function POST(req: Request) {
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
       to: [aan.trim()],
       subject: onderwerp.trim(),
       html: losseMailNaarHtml(tekst.trim(), metDemo !== false),
+      text: tekstVanHtml(losseMailNaarHtml(tekst.trim(), metDemo !== false)),
       reply_to: ["jos@wordswap.nl"],
       // Kopie voor Jos zelf (komt via de doorsturing in zijn eigen inbox)
       bcc: ["jos@wordswap.nl"],

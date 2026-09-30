@@ -178,6 +178,7 @@ export async function verstuurSiteMail(opties: {
       to: [naar],
       subject: onderwerp,
       html,
+      text: tekstVanHtml(html),
       ...(antwoordNaar ? { reply_to: [antwoordNaar] } : {}),
       ...(bijlagen?.length
         ? { attachments: bijlagen.map((b) => ({ filename: b.bestandsnaam, content: b.inhoud.toString("base64") })) }
