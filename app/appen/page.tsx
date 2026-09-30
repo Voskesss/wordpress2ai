@@ -7,7 +7,7 @@ import { josFoto } from "@/lib/persoonlijk";
 export const metadata: Metadata = {
   title: "Je laatste project op je website? Stuur een appje.",
   description:
-    "Foto’s van je laatste project op je site zetten door ze te appen. In bèta. Vandaag kan het al via de chat van je eigen website.",
+    "Foto’s van je laatste project op je site zetten door ze te appen. Of via de chat van je eigen website. Jij drukt op publiceren.",
   alternates: { canonical: "/appen" },
 };
 
@@ -61,7 +61,7 @@ const faq = [
   {
     vraag: "Werkt dat appen nu al?",
     antwoord:
-      "Het appen zit in bèta: we testen het met een kleine groep. Wat vandaag al wel werkt, is de chat op je eigen website. Daarin typ je wat er anders moet, je ziet een voorstel en je publiceert zelf. Wie zich nu aanmeldt, hoort als eerste wanneer het appen opengaat.",
+      "Ja. Zodra je site is omgezet, app je je website vanaf je eigen telefoon. Je krijgt altijd eerst een voorstel te zien en jij bepaalt of het gepubliceerd wordt. Liever typen op een groter scherm? Dat kan ook, via de chat op je eigen website.",
   },
   {
     vraag: "Wat moet ik doen om mee te kunnen doen?",
@@ -102,7 +102,7 @@ export default function Appen() {
       {/* Hero */}
       <div className="mx-auto max-w-5xl px-6 pt-20 grid gap-12 lg:grid-cols-5 items-start">
         <div className="lg:col-span-3">
-          <p className="eyebrow">IN BÈTA — MELD JE AAN VOOR DE EERSTE GROEP</p>
+          <p className="eyebrow">APPEN MET JE EIGEN WEBSITE</p>
           <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
             Je laatste project op je website?
             <br />
@@ -114,15 +114,15 @@ export default function Appen() {
             inloggen, geen editor, geen avond eraan kwijt.
           </p>
           <p className="mt-4 text-lg text-stone-600 leading-relaxed">
-            Het appen zit in bèta. Maar zodra je site is omgezet, kun je dit
-            allemaal <strong>vandaag al</strong> in de chat van je eigen
-            website: foto’s van je laatste project erop, prijzen aanpassen, een
-            dienst erbij. Je typt het, je site doet het.
+            Zodra je site is omgezet, kan dit <strong>meteen</strong>: foto’s
+            van je laatste project erop, prijzen aanpassen, een dienst erbij.
+            Appen vanaf je telefoon, of typen in de chat op je eigen website.
+            Je zegt het, je site doet het.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <a href="#aanmelden" className="button-primary">
               <WhatsAppTeken className="h-5 w-5" />
-              Ik wil bij de eerste groep <span>↗</span>
+              Vraag je websitecheck aan <span>↗</span>
             </a>
             <Link href="/demo" className="button-text">
               Bekijk hoe de chat werkt <span>→</span>
@@ -134,7 +134,7 @@ export default function Appen() {
         <div className="lg:col-span-2 rounded-2xl border border-stone-200 bg-[#f4f1ec] p-5 sm:p-6">
           <div className="flex items-center gap-2.5">
             <WhatsAppTeken className="h-7 w-7 shrink-0" />
-            <p className="eyebrow !mt-0">ZO GAAT DAT STRAKS</p>
+            <p className="eyebrow !mt-0">ZO GAAT DAT</p>
           </div>
           <div className="mt-4 space-y-3">
             {gesprek.map((b, i) => (
@@ -161,12 +161,12 @@ export default function Appen() {
       <section className="mx-auto max-w-4xl px-6 pt-20">
         <p className="eyebrow">DIRECT NA DE OMZETTING</p>
         <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight">
-          In de chat kan alles al
+          Appen of typen, allebei kan
         </h2>
         <p className="mt-4 text-stone-600 leading-relaxed max-w-2xl">
-          Je hoeft niet op het appen te wachten. Zodra je site is omgezet, doe
-          je dit in de chat van je eigen website. Je krijgt eerst een voorstel
-          te zien, jij publiceert.
+          Zit je achter je bureau, dan typ je het in de chat van je eigen
+          website. Sta je op locatie, dan stuur je een appje. Je krijgt eerst
+          een voorstel te zien, jij publiceert.
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
@@ -184,8 +184,8 @@ export default function Appen() {
           ))}
         </div>
         <p className="mt-5 text-sm text-stone-500">
-          Het appen via WhatsApp komt daar straks bij, zodat het ook kan terwijl
-          je nog op locatie bent.
+          En via WhatsApp kan hetzelfde, zodat het ook lukt terwijl je nog op
+          locatie bent.
         </p>
       </section>
 
@@ -247,18 +247,17 @@ export default function Appen() {
         <div className="lg:col-span-2">
           <p className="eyebrow">GRATIS & VRIJBLIJVEND</p>
           <h2 className="font-display mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">
-            Meld je aan voor de eerste groep
+            Kan mijn website overgezet worden?
           </h2>
           <p className="mt-5 text-stone-600 leading-relaxed">
-            Stuur je websiteadres. Jos kijkt wat er van je huidige site mee kan,
-            wat een overstap zou kosten en wanneer het appen voor jou opengaat.
-            Je hebt nog niets besteld.
+            Stuur je websiteadres. Jos kijkt wat er van je huidige site mee kan
+            en wat een overstap zou kosten. Je hebt nog niets besteld.
           </p>
           <ul className="mt-8 space-y-3 text-stone-600">
             {[
               "Wat er van je huidige site meegaat, inclusief je adressen",
               "Wat de overstap kost en wat je maandelijks kwijt bent",
-              "Wanneer je het appen kunt proberen",
+              "Hoe snel je kunt overstappen en meteen kunt appen",
             ].map((punt) => (
               <li key={punt} className="flex gap-3">
                 <span className="mt-1 text-[#31956B] shrink-0">✓</span>
@@ -367,7 +366,7 @@ export default function Appen() {
             type="submit"
             className="lift rounded-lg bg-[#244b3d] px-7 py-3.5 font-semibold text-white shadow-sm hover:bg-[#2f5d4b]"
           >
-            Meld mij aan voor de eerste groep ↗
+            Vraag je websitecheck aan ↗
           </button>
           <p className="text-xs leading-relaxed text-stone-500">
             Met je gegevens beantwoorden we je aanmelding. Lees ons{" "}
