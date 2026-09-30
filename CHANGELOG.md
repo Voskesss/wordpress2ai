@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.6 (30 september 2026)
+
+**Een feestje bij de eerste blik op de live site.** De knop in de livemail opent de website met drie seconden confetti en de regel "Gefeliciteerd, je website staat live", met erbij dat alleen de klant dit ziet. Gewone bezoekers en Google zien nooit iets: het feestje verschijnt alleen met het toevoegsel uit die knop, alleen op een gewone pagina, en het toevoegsel verdwijnt meteen uit de adresbalk. De mail zelf verklapt niets.
+
 ## 1.35.5 (30 september 2026)
 
 **WordPress-kopieën staan tijdelijk klaar.** Een kopie (vaak meerdere GB) blijft 30 dagen in het portaal; een week vooraf krijgt de klant één herinnering, daarna ruimt de dagelijkse controle hem op. Zo betalen we niet maandenlang voor opslag waar niets meer mee gebeurt. De uploadmail, de livemail, het portaal en de admin noemen de einddatum. Kopieën van vóór vandaag (RoelArt, Vakbeursonline) tellen vanaf vandaag: zij lopen tot 29 oktober.
