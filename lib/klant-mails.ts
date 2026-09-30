@@ -179,6 +179,8 @@ export function bouwLiveMail(o: {
   eigenTekst?: string | null;
   /** Vraag de klant zijn eigen mailserver te koppelen (wachtwoord vult hij ZELF in het portaal in, nooit per mail) */
   vraagMailserver?: boolean;
+  /** Staat er een WordPress-kopie klaar: tot wanneer */
+  kopieTot?: Date | null;
 }): { onderwerp: string; html: string } {
   const url = `https://${o.adres.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`;
   return {
@@ -194,7 +196,25 @@ ${
   o.vraagMailserver
     ? `<p><strong>Eén verzoek:</strong> de bevestigingsmails aan je bezoekers gaan nu uit naam van je bedrijf, maar technisch vanaf ons adres. Mooier is dat ze echt vanaf je eigen mailadres komen. Dat regel je zelf in je portaal, onder <strong>E-mail vanaf je eigen adres</strong>: daar vul je de gegevens van je mailserver in (servernaam, gebruikersnaam en wachtwoord). Die staan in je mailprogramma, of je vraagt ze aan je mailbeheerder. Vul het wachtwoord daar zelf in; stuur het nooit per mail, ook niet aan mij. Ik kan het daar niet zien en dat hoort ook zo.</p>`
     : ""
+}${
+  o.kopieTot
+    ? `<p><strong>Je oude WordPress-site:</strong> de complete kopie staat tot <strong>${o.kopieTot.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" })}</strong> in je portaal, onder Je website en gegevens meenemen. Wil je hem bewaren, download hem dan voor die tijd. Daarna ruimen we hem op, want hij is groot en er gebeurt niets meer mee.</p>`
+    : ""
 }<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
+/** Een week voor het verlopen van de WordPress-kopie: download hem nu. */
+export function bouwKopieHerinnering(o: { naam?: string | null; bestandsnaam: string; verlooptOp: Date }): { onderwerp: string; html: string } {
+  const datum = o.verlooptOp.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "long" });
+  return {
+    onderwerp: `Je WordPress-kopie staat nog tot ${datum} klaar`,
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+<p>Een korte herinnering: de kopie van je oude WordPress-site (<strong>${ontsnap(o.bestandsnaam)}</strong>) staat nog tot <strong>${datum}</strong> in je portaal. Daarna ruimen we hem op, want hij neemt veel opslag in en er gebeurt niets meer mee.</p>
+<p>Wil je hem bewaren, download hem dan nu. Dat kan in je portaal onder <strong>Je website en gegevens meenemen</strong>. Heb je hem niet nodig, dan hoef je niets te doen.</p>
+${knop("https://wordswap.nl/portal", "Naar mijn portaal")}
+<p>Wil je dat wij hem langer bewaren? Antwoord dan even op deze mail.</p>
 <p>Groet,<br>Jos</p>`),
   };
 }

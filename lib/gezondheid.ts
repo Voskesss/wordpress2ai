@@ -109,6 +109,19 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
+    await meet("wp-kopieen", "WordPress-kopieën: herinneren en opruimen", async () => {
+      const { onderhoudKopieen, BEWAAR_DAGEN } = await import("./backups");
+      const u = await onderhoudKopieen();
+      const delen = [
+        u.herinnerd.length ? `herinnerd: ${u.herinnerd.join(", ")}` : "",
+        u.verwijderd.length ? `opgeruimd na ${BEWAAR_DAGEN} dagen: ${u.verwijderd.join(", ")}` : "",
+      ].filter(Boolean);
+      if (u.fouten.length) return { status: "fout", detail: u.fouten.join("; ") };
+      return delen.length ? delen.join(" · ") : "Niets te doen.";
+    }),
+  );
+
+  checks.push(
     await meet("route-b", "Domeinen bij de hoster (route B)", async () => {
       const { leesDomeinkaart, statusVan } = await import("./route-b");
       const domeinen = Object.keys(await leesDomeinkaart());

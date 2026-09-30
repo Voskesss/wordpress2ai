@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
-export type BackupRij = { id: number; bestandsnaam: string; grootteBytes: number | null; omschrijving: string | null; datum: string };
+export type BackupRij = { id: number; bestandsnaam: string; grootteBytes: number | null; omschrijving: string | null; datum: string; tot?: string };
 
 function grootte(bytes: number | null): string {
   if (!bytes) return "";
@@ -84,7 +84,7 @@ export default function BackupUpload({
                   {r.bestandsnaam}
                 </a>{" "}
                 <span className="text-xs text-stone-500">
-                  {grootte(r.grootteBytes)} · {r.datum}
+                  {grootte(r.grootteBytes)} · {r.datum}{r.tot ? ` · staat klaar tot ${r.tot}, daarna automatisch weg` : ""}
                   {r.omschrijving && <> · {r.omschrijving}</>}
                 </span>
               </span>

@@ -108,8 +108,9 @@ export async function GET(req: Request) {
     bijlageNoot = "Jouw eigen opmerking uit het tekstvak komt in de echte mail bovenaan te staan.";
   } else if (soort === "live") {
     const { bouwLiveMail } = await import("@/lib/klant-mails");
+    const { kopieTotVoor } = await import("@/lib/backups");
     const { publiekAdres } = await import("@/lib/hoofdadres");
-    mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht, vraagMailserver: q.get("mailserver") === "ja" });
+    mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht, vraagMailserver: q.get("mailserver") === "ja", kopieTot: await kopieTotVoor(site.id) });
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

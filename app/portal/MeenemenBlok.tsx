@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { abonnementen, sites, wpBackups } from "@/db/schema";
+import { BEWAAR_DAGEN, dagenOver, datumNl, verlooptOp } from "@/lib/backups";
 import { datumInWoorden } from "@/lib/opzegging";
 import ActieKnop from "@/app/admin/klant/[id]/ActieKnop";
 import { zegAbonnementOp, trekOpzeggingIn } from "./acties";
@@ -49,7 +50,8 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
           <p className="text-sm font-semibold text-stone-800">🛟 Je oude WordPress-site (terugweg-garantie)</p>
           <p className="mt-1 text-xs leading-relaxed text-stone-600">
             De complete kopie van je WordPress-site van vóór de overstap. Wil je ooit terug, dan heb je hiermee alles;
-            wij helpen je desgewenst met terugzetten.
+            wij helpen je desgewenst met terugzetten. De kopie staat {BEWAAR_DAGEN} dagen klaar en wordt daarna
+            opgeruimd: download hem als je hem wilt bewaren.
           </p>
           <ul className="mt-2 space-y-1 text-sm">
             {backups.map((b) => (
@@ -64,6 +66,8 @@ export default async function MeenemenBlok({ siteId }: { siteId: number }) {
                   {b.grootteBytes ? `${Math.round(b.grootteBytes / (1024 * 1024))} MB · ` : ""}
                   {b.aangemaakt.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" })}
                   {b.omschrijving && <> · {b.omschrijving}</>}
+                  {" · "}
+                  <span className={dagenOver(b.aangemaakt) <= 7 ? "font-semibold text-amber-800" : ""}>staat klaar tot {datumNl(verlooptOp(b.aangemaakt))}</span>
                 </span>
               </li>
             ))}

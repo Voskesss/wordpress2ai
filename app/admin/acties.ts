@@ -1414,8 +1414,9 @@ export async function stuurLiveMail(formData: FormData) {
     if (!ontvanger) uitkomst = "geen-adres";
     else {
       const { bouwLiveMail } = await import("@/lib/klant-mails");
+      const { kopieTotVoor } = await import("@/lib/backups");
       const { mailVanJos } = await import("@/lib/wordswap-mail");
-      const mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger.naam, adres, eigenTekst, vraagMailserver: formData.get("mailserver") === "ja" });
+      const mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger.naam, adres, eigenTekst, vraagMailserver: formData.get("mailserver") === "ja", kopieTot: await kopieTotVoor(siteId) });
       const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
       if (!gelukt) uitkomst = "mislukt";
     }

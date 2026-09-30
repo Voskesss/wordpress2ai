@@ -27,6 +27,7 @@ import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 import LivegangChecklist from "./LivegangChecklist";
 import RouteBBlok from "./RouteBBlok";
 import { publiekAdres } from "@/lib/hoofdadres";
+import { datumNl, verlooptOp } from "@/lib/backups";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import BevestigingsMails from "@/app/portal/BevestigingsMails";
@@ -1069,6 +1070,7 @@ export default async function KlantDetail({
             grootteBytes: b.grootteBytes,
             omschrijving: b.omschrijving,
             datum: b.aangemaakt.toLocaleDateString("nl-NL", { timeZone: "Europe/Amsterdam" }),
+            tot: datumNl(verlooptOp(b.aangemaakt)),
           }))}
         />
       </div>

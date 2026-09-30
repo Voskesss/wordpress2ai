@@ -2,6 +2,7 @@ import { del } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { BEWAAR_DAGEN, datumNl, verlooptOp } from "@/lib/backups";
 import { db } from "@/db";
 import { sites, wpBackups } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
@@ -93,8 +94,9 @@ export async function POST(req: Request) {
             van: "Jos van WordSwap",
             onderwerp: "Je WordPress-kopie staat veilig klaar",
             html: `<p>Beste ${voornaam},</p>
-<p>De complete kopie van je oude WordPress-site staat nu veilig voor je klaar. Je vindt hem in je portaal, onder <strong>“Je website en gegevens meenemen”</strong>, en je kunt hem daar altijd zelf downloaden.</p>
-<p>Dit is je terugweg-garantie: met deze kopie kun je je WordPress-site later altijd weer terugzetten, en wij helpen je daar desgewenst bij. Alleen jij kunt hem downloaden, na inloggen.</p>
+<p>De complete kopie van je oude WordPress-site staat nu veilig voor je klaar. Je vindt hem in je portaal, onder <strong>“Je website en gegevens meenemen”</strong>, en je kunt hem daar zelf downloaden.</p>
+<p>Dit is je terugweg-garantie: met deze kopie kun je je WordPress-site later weer terugzetten, en wij helpen je daar desgewenst bij. Alleen jij kunt hem downloaden, na inloggen.</p>
+<p><strong>Let op:</strong> de kopie staat <strong>${BEWAAR_DAGEN} dagen</strong> klaar, tot ${datumNl(verlooptOp(new Date()))}. Hij is groot en er gebeurt na de overstap niets meer mee, dus daarna ruimen we hem op. Wil je hem bewaren, download hem dan voor die tijd. Een week vooraf krijg je nog een herinnering.</p>
 <p><a href="https://wordswap.nl/portal" style="display:inline-block;background:#31956B;color:#fff !important;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600"><span style="color:#fff !important;text-decoration:none">Naar mijn portaal</span></a></p>
 <p>Met vriendelijke groet,<br>Jos van WordSwap</p>`,
           });
