@@ -109,7 +109,7 @@ export async function GET(req: Request) {
   } else if (soort === "live") {
     const { bouwLiveMail } = await import("@/lib/klant-mails");
     const { publiekAdres } = await import("@/lib/hoofdadres");
-    mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht });
+    mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht, vraagMailserver: q.get("mailserver") === "ja" });
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

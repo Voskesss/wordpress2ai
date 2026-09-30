@@ -453,8 +453,16 @@ export default async function KlantDetail({
               className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
             />
           </label>
+          <label className="mt-3 flex items-start gap-2 text-sm">
+            <input type="checkbox" name="mailserver" value="ja" defaultChecked={!site.smtpHost} className="mt-0.5 h-4 w-4 cursor-pointer accent-violet-700" />
+            <span>
+              <b>Vraag om de eigen mailserver.</b> De mail legt uit dat bevestigingen nu vanaf ons adres gaan en dat de
+              klant in zijn portaal zelf de servergegevens en het wachtwoord invult. Nooit per mail.
+              {site.smtpHost ? " Deze site heeft al een eigen mailserver, dus dit staat uit." : ""}
+            </span>
+          </label>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <MailVoorbeeldKnop soort="live" siteId={site.id} velden={[["bericht", "bericht"]]} />
+            <MailVoorbeeldKnop soort="live" siteId={site.id} velden={[["bericht", "bericht"], ["mailserver", "mailserver"]]} />
             <BevestigKnop
               vraag="De mail 'je website staat live' nu versturen naar de klant?"
               label="Verstuur de livemail"

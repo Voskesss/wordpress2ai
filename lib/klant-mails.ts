@@ -177,6 +177,8 @@ export function bouwLiveMail(o: {
   /** Het publieke adres, bv. vandenbergmediation.nl of www.klant.nl */
   adres: string;
   eigenTekst?: string | null;
+  /** Vraag de klant zijn eigen mailserver te koppelen (wachtwoord vult hij ZELF in het portaal in, nooit per mail) */
+  vraagMailserver?: boolean;
 }): { onderwerp: string; html: string } {
   const url = `https://${o.adres.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`;
   return {
@@ -188,7 +190,11 @@ ${knop(url, "Bekijk je website")}
 <p><strong>Wat we nu doen:</strong> de komende dagen testen we alles nog een keer op het echte adres. Formulieren, doorverwijzingen van oude links, de vindbaarheid in Google. Zie jij iets vreemds, mail of bel me dan gewoon.</p>
 <p><strong>Goed om te weten:</strong> wie een formulier op je site invult, krijgt een bevestiging, en het bericht komt bij jou binnen per mail én in je eigen portaal. Er gaat dus niets verloren, ook niet tijdens het testen.</p>
 <p>Wil je iets aanpassen? Log in op je portaal en typ het in de chat. Je ziet eerst een voorbeeld, en jij bepaalt wanneer het live gaat.</p>
-<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+${
+  o.vraagMailserver
+    ? `<p><strong>Eén verzoek:</strong> de bevestigingsmails aan je bezoekers gaan nu uit naam van je bedrijf, maar technisch vanaf ons adres. Mooier is dat ze echt vanaf je eigen mailadres komen. Dat regel je zelf in je portaal, onder <strong>E-mail vanaf je eigen adres</strong>: daar vul je de gegevens van je mailserver in (servernaam, gebruikersnaam en wachtwoord). Die staan in je mailprogramma, of je vraagt ze aan je mailbeheerder. Vul het wachtwoord daar zelf in; stuur het nooit per mail, ook niet aan mij. Ik kan het daar niet zien en dat hoort ook zo.</p>`
+    : ""
+}<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
 <p>Groet,<br>Jos</p>`),
   };
 }

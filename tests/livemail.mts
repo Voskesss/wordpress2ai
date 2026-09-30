@@ -15,6 +15,10 @@ assert.ok(m.html.includes("komt bij jou binnen per mail én in je eigen portaal"
 assert.ok(m.html.includes("testen we alles nog een keer"), "de uitleg over het testen ontbreekt");
 assert.ok(m.html.includes("Gefeliciteerd!"), "de persoonlijke noot ontbreekt");
 assert.ok(!/[—–]/.test(m.html), "lang streepje in de mail");
+// Eigen mailserver: het wachtwoord vult de klant ZELF in het portaal in, nooit per mail
+const metServer = bouwLiveMail({ siteNaam: "X", naam: "A", adres: "klant.nl", vraagMailserver: true });
+assert.ok(metServer.html.includes("E-mail vanaf je eigen adres") && metServer.html.includes("stuur het nooit per mail"), "het mailserververzoek ontbreekt of vraagt het wachtwoord per mail");
+assert.ok(!m.html.includes("E-mail vanaf je eigen adres"), "het mailserververzoek staat er ook zonder vinkje");
 const zonder = bouwLiveMail({ siteNaam: "X", naam: null, adres: "www.klant.nl" });
 assert.ok(zonder.html.includes('href="https://www.klant.nl/"'), "een www-hoofdadres wordt niet gevolgd");
 
@@ -26,7 +30,7 @@ assert.ok(pagina.includes("heeftLivegang(site) && publiekAdres(site) && ("), "de
 const acties = await readFile("app/admin/acties.ts", "utf8");
 const fn = acties.slice(acties.indexOf("export async function stuurLiveMail"), acties.indexOf("\nexport async function", acties.indexOf("export async function stuurLiveMail") + 10));
 assert.ok(fn.includes("await requireAdmin();") && fn.includes("klantEmailVoorSite(siteId)"), "de actie mist de beheerderscontrole of stuurt niet naar de gekoppelde klant");
-assert.ok(fn.includes("Livemail mislukt") && fn.indexOf("redirect(") > fn.indexOf("catch"), "redirect staat in het try-blok: NEXT_REDIRECT wordt dan opgeslokt");
+assert.ok(fn.includes("Livemail mislukt") && fn.lastIndexOf("redirect(") > fn.indexOf("catch"), "de afsluitende redirect staat in het try-blok: NEXT_REDIRECT wordt dan opgeslokt");
 const route = await readFile("app/api/admin/mail-voorbeeld/route.ts", "utf8");
 assert.ok(route.includes('soort === "live"'), "het voorbeeld kent de livemail niet");
 console.log("livemail: ok");
