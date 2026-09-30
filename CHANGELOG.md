@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.36.7 (30 september 2026)
+
+- Reparatie op 1.36.5: we melden ons bij de eigen mailserver van een klant als wordswap.nl, niet als het domein van de klant. De server van Van den Berg Mediation weigerde dat als vervalsing, waardoor de mails sinds vanmiddag via no-reply@wordswap.nl gingen in plaats van vanaf zijn eigen adres.
+
 ## 1.36.6 (30 september 2026)
 
 - Ook onze eigen mail via Resend gaat nu als tekst plus html: klantmails (formulierbevestigingen en meldingen), mails van Jos aan klanten en leads, outreach, webinarmails en losse mails. Een mail met alleen html is bij Microsoft en Google een klein spamsignaal.

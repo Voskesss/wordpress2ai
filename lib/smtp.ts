@@ -23,12 +23,13 @@ export type SmtpGegevens = {
  * stuurt nodemailer het interne adres van de Vercel-functie (169.254.x.x),
  * en een kaal IP uit dat bereik is bij Microsoft een spamsignaal (Van den Berg:
  * SCL 5 terwijl SPF, DKIM en DMARC alle drie pass waren).
+ *
+ * NIET het domein van de klant: zijn eigen mailserver ziet dat als vervalsing
+ * en weigert ("550 Bad HELO - Host impersonating domain name", Exim bij
+ * Websmid, 30-09-2026). Wij zijn WordSwap, dus we melden ons als wordswap.nl.
  */
-export function heloNaam(g: Pick<SmtpGegevens, "domein" | "afzender" | "gebruiker">): string {
-  const eigen = schoneSmtpHost(g.domein);
-  if (eigen && !/\.workers\.dev$/.test(eigen)) return eigen.replace(/^www\./, "");
-  const uitAdres = (g.afzender || g.gebruiker || "").split("@")[1]?.trim().toLowerCase();
-  return uitAdres || "wordswap.nl";
+export function heloNaam(_g?: Pick<SmtpGegevens, "domein" | "afzender" | "gebruiker">): string {
+  return process.env.SMTP_HELO_NAAM?.trim() || "wordswap.nl";
 }
 
 /** Eenvoudige tekstversie van een html-mail, voor het multipart-alternatief. */

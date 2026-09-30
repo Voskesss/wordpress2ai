@@ -8,12 +8,16 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { heloNaam, tekstVanHtml } from "../lib/smtp";
 
-// 1. HELO-naam: sitedomein, anders domein van het afzendadres, anders wordswap.nl
-assert.equal(heloNaam({ domein: "vandenbergmediation.nl", gebruiker: "info@vandenbergmediation.nl" }), "vandenbergmediation.nl");
-assert.equal(heloNaam({ domein: "https://www.voorbeeld.nl/", gebruiker: "x@y.nl" }), "voorbeeld.nl");
-assert.equal(heloNaam({ domein: "site.wordswap.workers.dev", gebruiker: "info@klant.nl" }), "klant.nl");
-assert.equal(heloNaam({ domein: null, afzender: "Noreply@Klant.NL", gebruiker: "login" }), "klant.nl");
-assert.equal(heloNaam({ domein: null, gebruiker: "login" }), "wordswap.nl");
+// 1. HELO-naam: altijd wordswap.nl, nooit het domein van de klant. Zijn eigen
+//    mailserver weigert dat als vervalsing ("550 Bad HELO - Host impersonating
+//    domain name", Exim bij Websmid, 30-09-2026) en dan valt alles terug op Resend.
+for (const g of [
+  { domein: "vandenbergmediation.nl", gebruiker: "info@vandenbergmediation.nl" },
+  { domein: null, afzender: "Noreply@Klant.NL", gebruiker: "login" },
+  { domein: null, gebruiker: "login" },
+])
+  assert.equal(heloNaam(g), "wordswap.nl", JSON.stringify(g));
+assert.notEqual(heloNaam({ domein: "vandenbergmediation.nl", gebruiker: "x" }), "vandenbergmediation.nl");
 
 // 2. Elke verbinding krijgt die naam mee, en versturen gebruikt dezelfde verbinding als de testknop
 const smtp = await readFile("lib/smtp.ts", "utf8");
