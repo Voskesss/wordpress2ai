@@ -346,6 +346,7 @@ export default async function KlantDetail({
       <SnelMenu
         heeft={{
           livegang: Boolean(livegang),
+          livemail: heeftLivegang(site) && Boolean(publiekAdres(site)),
           online: !site.siteSlug,
           whatsapp: true,
           verwijderen: true,

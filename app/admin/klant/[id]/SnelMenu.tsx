@@ -5,6 +5,7 @@
 export default function SnelMenu({ heeft }: { heeft: Record<string, boolean> }) {
   const items: { anker: string; label: string }[] = [
     { anker: "livegang", label: "🚀 Livegang" },
+    { anker: "livemail", label: "🎉 Livemail" },
     { anker: "online", label: "Online zetten" },
     { anker: "chat", label: "Beheer via chat" },
     { anker: "instellingen", label: "Instellingen" },
