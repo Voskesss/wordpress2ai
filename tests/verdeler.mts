@@ -110,6 +110,11 @@ assert.equal(feest.status, 200);
 assert.ok(feestTekst.includes("Gefeliciteerd, je website staat live") && feestTekst.includes("Dit feestje ziet alleen jij"), "het feestje ontbreekt bij het toevoegsel");
 assert.ok(feestTekst.includes('u.searchParams.delete("wordswap-feest")') && feestTekst.includes("history.replaceState"), "het toevoegsel blijft in de adresbalk hangen");
 assert.ok(feestTekst.startsWith("<h1>ALFA</h1>"), "de pagina zelf is aangetast");
+// Het script moet geldige JavaScript zijn: een verdwaald aanhalingsteken en de
+// browser doet niets (gebeurde 30-09 op vandenbergmediation.nl)
+const scriptTekst = feestTekst.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+assert.ok(scriptTekst.length > 500, "het feest-script ontbreekt");
+assert.doesNotThrow(() => new Function(scriptTekst), "het feest-script is geen geldige JavaScript");
 assert.equal(feest.headers.get("content-length"), null, "content-length staat nog op de oude lengte: browsers knippen de pagina dan af");
 assert.ok(!(await (await haal("https://alfa.nl/")).text()).includes("Gefeliciteerd"), "gewone bezoekers zien het feestje");
 assert.ok(!(await (await haal("https://beta.nl/bestaat-niet?wordswap-feest=1")).text()).includes("Gefeliciteerd"), "het feestje staat op een 404-pagina");
