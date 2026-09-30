@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.35.4 (30 september 2026)
+
+**Mail "je website staat live".** Op de klantpagina, zodra het eigen domein is ingevuld: één mail aan de klant met het nieuwe adres, wat we de komende dagen nog testen, dat formulierberichten sowieso binnenkomen, een knop naar de site en een persoonlijke noot. Optioneel met het verzoek de eigen mailserver te koppelen: de klant vult de servergegevens en het wachtwoord zelf in zijn portaal in, nooit per mail. Met voorbeeld en bevestigingsvraag.
+
+- Route B: kopieerknop bij elke naam en waarde, geen overtypen meer. Stap 2 gaat open zodra de certificaten klaar zijn (bij een domein dat al bij Cloudflare zit gaat "herkend" pas na het omzetten op groen).
+- WordPress-back-up: tot 10 GB, upload in delen (Van den Berg: 3,7 GB).
+- Van den Berg Mediation staat sinds vandaag live op vandenbergmediation.nl via route B, zonder onderbreking: alle 114 oude adressen werken, titels en omschrijvingen gelijk aan de oude site.
+
 ## 1.35.3 (30 september 2026)
 
 **Importbestand voor de hoster.** Het blok "Domein blijft bij de hoster" heeft per stap een downloadknop: stap 1 de zes controleregels, stap 2 de twee verwijzingen. De hoster (of Jos, in het account van de hoster) importeert het bestand in één keer in plaats van alles over te typen. Getest bij Cloudflare: zes regels in één keer, allemaal op alleen DNS.
