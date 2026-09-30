@@ -22,7 +22,7 @@
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "13";
+export const R2_SCRIPT_VERSIE = "14";
 
 /** Het toevoegsel in de link uit de livemail. Alleen wie via die knop
  * binnenkomt ziet het feestje; gewone bezoekers en Google nooit. */
@@ -35,8 +35,22 @@ export const FEEST_PARAM = "wordswap-feest";
  * de bedanktpagina. Zonder terugkoppeling klikt een bezoeker nog eens of
  * denkt dat het stuk is. Dit script zet de knop op "Bezig met versturen" en
  * houdt een tweede verzending tegen; bij terug-knop (bfcache) herstelt hij. */
-export const FORM_BEZIG_TEKST = "Bezig met versturen\u2026";
-const FORM_HTML = `<script>(function(){var A="/api/formulier";function knop(f){return f.querySelector('button[type=submit],input[type=submit],button:not([type])')}document.addEventListener("submit",function(e){var f=e.target;if(!f||!f.getAttribute||String(f.getAttribute("action")||"").indexOf(A)<0)return;if(f.getAttribute("data-ws-bezig")){e.preventDefault();return}f.setAttribute("data-ws-bezig","1");var k=knop(f);if(!k)return;k.setAttribute("aria-busy","true");k.classList.add("bezig");k.style.opacity=".65";k.style.pointerEvents="none";if(k.tagName==="INPUT"){k.setAttribute("data-ws-tekst",k.value);k.value=${JSON.stringify(FORM_BEZIG_TEKST)}}else{k.setAttribute("data-ws-tekst",k.textContent);k.textContent=${JSON.stringify(FORM_BEZIG_TEKST)}}},true);addEventListener("pageshow",function(e){if(!e.persisted)return;var fs=document.querySelectorAll("form[data-ws-bezig]");for(var i=0;i<fs.length;i++){var f=fs[i];f.removeAttribute("data-ws-bezig");var k=knop(f);if(!k)continue;k.removeAttribute("aria-busy");k.classList.remove("bezig");k.style.opacity="";k.style.pointerEvents="";var t=k.getAttribute("data-ws-tekst");if(t!==null){if(k.tagName==="INPUT")k.value=t;else k.textContent=t}}})})();</script>`;
+/** Tekst op de knop per taal van de pagina (html lang, of lang op het
+ * formulier zelf). Onbekende taal: Engels. Een site kan het overschrijven met
+ * data-bezig="..." op het formulier. */
+export const FORM_BEZIG_TEKSTEN: Record<string, string> = {
+  nl: "Bezig met versturen\u2026",
+  en: "Sending\u2026",
+  de: "Wird gesendet\u2026",
+  fr: "Envoi en cours\u2026",
+  es: "Enviando\u2026",
+  it: "Invio in corso\u2026",
+  pt: "A enviar\u2026",
+  pl: "Wysy\u0142anie\u2026",
+  tr: "G\u00f6nderiliyor\u2026",
+};
+export const FORM_BEZIG_TEKST = FORM_BEZIG_TEKSTEN.nl;
+const FORM_HTML = `<script>(function(){var A="/api/formulier";var T=${JSON.stringify(FORM_BEZIG_TEKSTEN)};function knop(f){return f.querySelector('button[type=submit],input[type=submit],button:not([type])')}function tekst(f){var e=f.getAttribute("data-bezig");if(e)return e;var n=f;while(n&&n.getAttribute&&!n.getAttribute("lang"))n=n.parentNode;var l=(n&&n.getAttribute?n.getAttribute("lang"):"")||document.documentElement.lang||"en";l=l.toLowerCase().split(/[-_]/)[0];return T[l]||T.en}document.addEventListener("submit",function(e){var f=e.target;if(!f||!f.getAttribute||String(f.getAttribute("action")||"").indexOf(A)<0)return;if(f.getAttribute("data-ws-bezig")){e.preventDefault();return}f.setAttribute("data-ws-bezig","1");var k=knop(f);if(!k)return;k.setAttribute("aria-busy","true");k.classList.add("bezig");k.style.opacity=".65";k.style.pointerEvents="none";var t=tekst(f);if(k.tagName==="INPUT"){k.setAttribute("data-ws-tekst",k.value);k.value=t}else{k.setAttribute("data-ws-tekst",k.textContent);k.textContent=t}},true);addEventListener("pageshow",function(e){if(!e.persisted)return;var fs=document.querySelectorAll("form[data-ws-bezig]");for(var i=0;i<fs.length;i++){var f=fs[i];f.removeAttribute("data-ws-bezig");var k=knop(f);if(!k)continue;k.removeAttribute("aria-busy");k.classList.remove("bezig");k.style.opacity="";k.style.pointerEvents="";var t=k.getAttribute("data-ws-tekst");if(t!==null){if(k.tagName==="INPUT")k.value=t;else k.textContent=t}}})})();</script>`;
 const FEEST_HTML = `<script>(function(){try{var u=new URL(location.href);if(!u.searchParams.has(${JSON.stringify(FEEST_PARAM)}))return;u.searchParams.delete(${JSON.stringify(FEEST_PARAM)});history.replaceState(null,"",u.pathname+u.search+u.hash);var c=document.createElement("canvas");c.setAttribute("aria-hidden","true");c.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2147483647";document.body.appendChild(c);var x=c.getContext("2d");var W=c.width=innerWidth,H=c.height=innerHeight;var kl=["#31956B","#F5B84B","#E8604C","#4A90E2","#9B59B6","#ffffff"];var p=[];for(var i=0;i<260;i++)p.push({x:Math.random()*W,y:-20-Math.random()*H*1.4,r:4+Math.random()*6,k:kl[i%kl.length],vy:2+Math.random()*3,vx:-1+Math.random()*2,a:Math.random()*6.28,va:-0.1+Math.random()*0.2});var b=document.createElement("div");b.setAttribute("role","status");b.innerHTML="\uD83C\uDF89 Gefeliciteerd, je website staat live!<span style='display:block;margin-top:6px;font-weight:400;font-size:14px;line-height:1.45;opacity:.9'>Dit feestje ziet alleen jij, via de knop in de mail. Je bezoekers zien gewoon je website.</span><span style='display:block;margin-top:4px;font-weight:400;font-size:14px;line-height:1.45;opacity:.9'>Vanaf nu werk je je website bij via de WordSwap-chat in je portaal.</span>";b.style.cssText="position:fixed;left:12px;right:12px;top:12px;margin:0 auto;max-width:460px;box-sizing:border-box;background:#16302b;color:#fff;padding:14px 18px;border-radius:16px;font:600 17px/1.35 system-ui,sans-serif;z-index:2147483647;box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:left";document.body.appendChild(b);var t0=Date.now();function f(){var t=Date.now()-t0;x.clearRect(0,0,W,H);for(var j=0;j<p.length;j++){var q=p[j];q.y+=q.vy;q.x+=q.vx;q.a+=q.va;x.save();x.translate(q.x,q.y);x.rotate(q.a);x.fillStyle=q.k;x.fillRect(-q.r/2,-q.r/2,q.r,q.r*0.6);x.restore()}if(t<6500)requestAnimationFrame(f);else c.remove()}f();setTimeout(function(){b.remove()},10000)}catch(e){}})();</script>`;
 
 export const R2_WORKER_SCRIPT = [

@@ -1,3 +1,5 @@
+import { TELEFOON, TELEFOON_LINK } from "./contactgegevens";
+
 const stijl = `font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px`;
 
 const ontsnap = (s: string) =>
@@ -21,6 +23,8 @@ export function handtekening(metDemo = true, naam = "Jos van WordSwap"): string 
 <a href="https://wordswap.nl" style="color:#245747;text-decoration:none;font-weight:600">wordswap.nl</a>
 <span style="color:#d6d3d1">&nbsp;·&nbsp;</span>
 <a href="mailto:jos@wordswap.nl" style="color:#78716c;text-decoration:none">jos@wordswap.nl</a>
+<span style="color:#d6d3d1">&nbsp;·&nbsp;</span>
+<a href="tel:${TELEFOON_LINK}" style="color:#78716c;text-decoration:none">${TELEFOON}</a>
 </p>
 ${metDemo ? DEMO_KNOP : ""}
 </td></tr></table>`;

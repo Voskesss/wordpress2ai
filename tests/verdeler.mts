@@ -167,3 +167,8 @@ assert.ok(/<\/form><script>/.test(metForm) && metForm.includes('data-ws-bezig') 
 const zonderForm = await (await haal("https://alfa.nl/")).text();
 assert.ok(!zonderForm.includes("Bezig met versturen"), "een pagina zonder formulier krijgt het script niet");
 console.log("✓ formulierknop toont 'bezig' via het site-script");
+// De knoptekst volgt de taal van de pagina (html lang of lang op het formulier), met Engels als vangnet
+for (const [taal, verwacht] of [["nl", "Bezig met versturen"], ["en", "Sending"], ["de", "Wird gesendet"], ["fr", "Envoi en cours"]])
+  assert.ok(metForm.includes(`"${taal}":"${verwacht}`), `knoptekst voor ${taal} ontbreekt`);
+assert.ok(metForm.includes('getAttribute("data-bezig")') && metForm.includes("document.documentElement.lang") && metForm.includes("T[l]||T.en"), "het script kijkt niet naar data-bezig, de lang van de pagina of het Engelse vangnet");
+console.log("✓ knoptekst per taal");

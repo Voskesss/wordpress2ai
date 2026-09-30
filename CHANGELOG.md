@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.37.1 (30 september 2026)
+
+- De verzendknop zegt "Bezig met versturen" in de taal van de pagina (Nederlands, Engels, Duits, Frans, Spaans, Italiaans, Portugees, Pools, Turks; anders Engels). Een site kan een eigen tekst meegeven met data-bezig op het formulier. Site-script versie 14.
+- Ons telefoonnummer staat nu onder de mails van Jos, naast het mailadres.
+
 ## 1.37.0 (30 september 2026)
 
 **Formulieren laten zien dat ze bezig zijn.** Na een klik op verzenden verstuurt WordSwap eerst de mail (via een eigen mailserver soms enkele seconden) en stuurt dan pas door naar de bedanktpagina. Bezoekers zagen al die tijd niets en klikten nog eens. Nu zet de knop zichzelf op "Bezig met versturen", een tweede klik doet niets, en bij de terug-knop staat de knop weer gewoon klaar. Dit zit in het site-script (versie 13), dus elke site krijgt het bij de volgende publicatie; sites via route B meteen. Opgemerkt bij Van den Berg Mediation.
