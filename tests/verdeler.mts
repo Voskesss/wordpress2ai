@@ -108,6 +108,8 @@ const feest = await haal("https://alfa.nl/?wordswap-feest=1");
 const feestTekst = await feest.text();
 assert.equal(feest.status, 200);
 assert.ok(feestTekst.includes("Gefeliciteerd, je website staat live") && feestTekst.includes("Dit feestje ziet alleen jij"), "het feestje ontbreekt bij het toevoegsel");
+assert.ok(feestTekst.includes("bij via de WordSwap-chat"), "de wenk over bijwerken via de chat ontbreekt");
+assert.ok(/t<6500\)requestAnimationFrame/.test(feestTekst), "de confetti duurt geen zes seconden meer");
 assert.ok(feestTekst.includes('u.searchParams.delete("wordswap-feest")') && feestTekst.includes("history.replaceState"), "het toevoegsel blijft in de adresbalk hangen");
 assert.ok(feestTekst.startsWith("<h1>ALFA</h1>"), "de pagina zelf is aangetast");
 // Het script moet geldige JavaScript zijn: een verdwaald aanhalingsteken en de
