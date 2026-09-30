@@ -209,7 +209,7 @@ ${
 
 /* Proefmaand Optimaal ontzorgd met WhatsApp (lib/proef-ontzorgd.ts). Vier mails:
  * aanbod (op uitnodiging van Jos), gestart, herinnering met ja-knop, verlopen. */
-const ONTZORGD_TEKST = "Optimaal ontzorgd: voorrang, elke maand 30 minuten persoonlijke hulp, en je website bijhouden via WhatsApp. Gewoon een appje sturen, ook een foto of een spraakbericht, en je ziet een voorbeeld voordat het live gaat.";
+const ONTZORGD_TEKST = "Optimaal ontzorgd: bij vragen helpen we jou als eerste, en je houdt je website bij via WhatsApp. Gewoon een appje sturen, ook een foto of een spraakbericht, en je ziet een voorbeeld voordat het live gaat.";
 
 export function bouwProefAanbod(o: { siteNaam: string; naam?: string | null; startUrl: string; eigenTekst?: string | null; prijs: number }): { onderwerp: string; html: string } {
   return {
@@ -268,7 +268,7 @@ export function bouwProefJa(o: { naam?: string | null; vanaf: string; via: "gepl
   return {
     onderwerp: "Welkom bij Optimaal ontzorgd",
     html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
-<p>Dank je wel, het staat genoteerd. WhatsApp blijft aan, en je hebt voortaan voorrang en elke maand 30 minuten persoonlijke hulp.</p>
+<p>Dank je wel, het staat genoteerd. WhatsApp blijft aan, en bij vragen helpen we jou voortaan als eerste.</p>
 ${o.via === "gepland" ? `<p>Vanaf <strong>${datum}</strong> is je maandbedrag €${PAKKETTEN.ontzorgd.prijs} exclusief btw. Tot die tijd betaal je je huidige bedrag. Je hoeft hier niets voor te doen.</p>` : o.via === "meteen" ? `<p>Je maandbedrag is €${PAKKETTEN.ontzorgd.prijs} exclusief btw.</p>` : `<p>Ik neem contact met je op om het abonnement in orde te maken.</p>`}
 <p>Groet,<br>Jos</p>`),
   };

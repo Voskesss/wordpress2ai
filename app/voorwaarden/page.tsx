@@ -69,11 +69,10 @@ export default function Voorwaarden() {
           stel je vragen per e-mail. Werk dat wij op jouw verzoek voor je doen
           buiten je pakket (zoals een wijziging, advies of het regelen van een
           koppeling) rekenen we per begonnen kwartier tegen het afgesproken
-          tarief, na overleg vooraf. Bij Optimaal ontzorgd zijn voorrang en een
-          vast aantal minuten ondersteuning per maand inbegrepen; niet
-          gebruikte minuten vervallen aan het eind van de maand en worden niet
-          meegenomen naar een volgende maand. Storingen die aan ons te wijten
-          zijn lossen we kosteloos op. Facturen betaal je
+          tarief, na overleg vooraf. Bij Optimaal ontzorgd krijg je voorrang bij
+          je vragen en kun je je website bijhouden via WhatsApp. Storingen die
+          aan ons te wijten zijn lossen we voor iedereen kosteloos op, in elk
+          pakket. Facturen betaal je
           binnen 14 dagen. Bij uitblijvende betaling kunnen we de AI-koppeling
           pauzeren nadat we je daarover hebben geïnformeerd; de website zelf
           blijft dan gewoon online zolang de overeenkomst loopt.

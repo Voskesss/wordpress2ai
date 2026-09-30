@@ -18,12 +18,12 @@ const extra = [
   ],
   [
     "Zit hulp bij het maandbedrag in?",
-    "Meestal heb je geen hulp nodig: je vraagt het aan je website en die regelt het. Vragen stel je in het basispakket per e-mail. Wil je dat wij iets voor je doen, dan rekenen we €15 per kwartier, altijd eerst in overleg. Bij Optimaal ontzorgd zit elke maand 30 minuten ondersteuning inbegrepen; niet gebruikte minuten vervallen aan het eind van de maand. Storingen die bij ons liggen lossen we altijd kosteloos op.",
+    "Meestal heb je geen hulp nodig: je vraagt het aan je website en die regelt het. Vragen stel je in het basispakket per e-mail. Wil je dat wij iets voor je doen, dan rekenen we €15 per kwartier, altijd eerst in overleg. Storingen die bij ons liggen lossen we voor iedereen kosteloos op. Bij Optimaal ontzorgd helpen we jou bovendien als eerste met je vragen, en houd je je website ook bij via WhatsApp.",
   ],
   ["Welke kosten staan los van de koppeling?", aanbod.aanvullingen],
   [
     "Welke hulp krijg ik?",
-    "Jos is je aanspreekpunt voor de overstap en voor vragen over WordSwap. In het basispakket stel je vragen per e-mail; bij Optimaal ontzorgd krijg je voorrang en 30 minuten ondersteuning per maand, ook voor advies en meedenken. Een nieuw ontwerp of extra functies vallen onder een aparte afspraak. Ondersteuning voor je e-mailbox loopt via je e-mailprovider.",
+    "Jos is je aanspreekpunt voor de overstap en voor vragen over WordSwap. In het basispakket stel je vragen per e-mail; bij Optimaal ontzorgd helpen we jou als eerste met je vragen, en houd je je website ook bij via WhatsApp. Storingen aan onze kant lossen we voor iedereen kosteloos op. Een nieuw ontwerp of extra functies vallen onder een aparte afspraak. Ondersteuning voor je e-mailbox loopt via je e-mailprovider.",
   ],
   [
     "Wanneer betaal ik voor de overstap?",
@@ -117,22 +117,22 @@ export default function Prijzen() {
             €39 <small>per maand</small>
           </h2>
           <p>
-            Je hoeft er zelfs niet meer naar te kijken. Stuur een mailtje, app
-            of bel, en wij regelen het voor je.
+            Voor wie vooraan wil staan. Vragen? Wij helpen jou als eerste. En je
+            website bijhouden gaat ook gewoon via een appje.
           </p>
           <ul className="check-list ontzorgd-lijst">
             {[
               "Alles uit het basispakket",
-              "Voorrang: wij reageren als eerste op jouw vraag",
-              "Elke maand 30 minuten ondersteuning: advies, meedenken of een wijziging die wij voor je doen",
-              "Niet gebruikte minuten vervallen aan het eind van de maand",
+              "Voorrang: bij vragen helpen we jou als eerste",
+              "Je website bijhouden via WhatsApp: tekst, foto of spraakbericht, met een voorbeeld vóór het live gaat",
+              "Storingen aan onze kant lossen we voor iedereen kosteloos op, ook in het basispakket",
             ].map((x) => (
               <li key={x}>{x}</li>
             ))}
           </ul>
           <p className="ontzorgd-noot">
-            Meer nodig in een maand? Daarboven €15 per kwartier, altijd eerst in
-            overleg.
+            Werk dat wij voor je doen, zoals een wijziging of advies, rekenen we
+            per kwartier: €15, altijd eerst in overleg.
           </p>
         </article>
       </section>
@@ -181,7 +181,7 @@ export default function Prijzen() {
             maand betaal je €150 + 12 × €19 ={" "}
             <strong>€378 excl. btw in het eerste jaar</strong>, daarna €228 per
             jaar. Met Optimaal ontzorgd is dat €150 + 12 × €39 ={" "}
-            <strong>€618</strong>, met elke maand 30 minuten ondersteuning.
+            <strong>€618</strong>, met voorrang bij je vragen en WhatsApp.
             Ter vergelijking: alleen de hosting van een WordPress-site kost vaak
             al €8 tot €15 per maand, en dan doe je alles nog zelf. Die hosting
             kun je na de overstap meestal opzeggen.

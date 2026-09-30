@@ -42,7 +42,7 @@ export async function GET(req: Request) {
   await mailVanJos({ naar: "jos@wordswap.nl", onderwerp: `Ja op Optimaal ontzorgd: ${site.naam}`, html: `<p>${ontsnap(site.naam)} gaat door met Optimaal ontzorgd (€${PAKKETTEN.ontzorgd.prijs}). Bedrag: ${uitkomst.via === "gepland" ? `gepland per ${uitkomst.vanaf} via de abonnementencron` : uitkomst.via === "meteen" ? "staat al goed" : "GEEN lopend abonnement, zelf regelen"}.</p><p><a href="${origin}/admin/klant/${site.id}">Naar de klantpagina</a></p>`, bcc: false });
   return pagina(
     "Dank je wel, het staat genoteerd",
-    `<p>WhatsApp blijft aan, en je hebt voortaan voorrang en elke maand 30 minuten persoonlijke hulp.</p>
+    `<p>WhatsApp blijft aan, en bij vragen helpen we jou voortaan als eerste.</p>
 ${uitkomst.via === "gepland" ? `<p>Vanaf <strong>${datumNl(new Date(uitkomst.vanaf + "T12:00:00"))}</strong> is je maandbedrag €${PAKKETTEN.ontzorgd.prijs} exclusief btw. Tot die tijd betaal je je huidige bedrag.</p>` : uitkomst.via === "meteen" ? `<p>Je maandbedrag is €${PAKKETTEN.ontzorgd.prijs} exclusief btw.</p>` : "<p>Jos neemt contact met je op om het abonnement in orde te maken.</p>"}
 <p>Je krijgt dit ook per mail.</p>`,
   );

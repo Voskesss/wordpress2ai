@@ -152,7 +152,7 @@ const jsonLd = {
           price: "39",
           priceCurrency: "EUR",
           description:
-            "€39 per maand excl. btw: basispakket plus voorrang en 30 minuten ondersteuning per maand (vervalt aan het eind van de maand); maandelijks opzegbaar",
+            "€39 per maand excl. btw: basispakket plus voorrang bij je vragen en je website bijhouden via WhatsApp; maandelijks opzegbaar",
         },
       ],
     },
