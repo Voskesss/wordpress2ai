@@ -20,7 +20,7 @@
  * Verhoog R2_SCRIPT_VERSIE bij elke wijziging aan dit script: de deploy
  * publiceert het script dan opnieuw voor elke site die aan de beurt is.
  */
-export const R2_SCRIPT_VERSIE = "9";
+export const R2_SCRIPT_VERSIE = "10";
 
 /** Het toevoegsel in de link uit de livemail. Alleen wie via die knop
  * binnenkomt ziet het feestje; gewone bezoekers en Google nooit. */
