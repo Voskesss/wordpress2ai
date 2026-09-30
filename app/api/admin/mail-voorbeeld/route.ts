@@ -106,6 +106,10 @@ export async function GET(req: Request) {
       eigenTekst: bericht,
     });
     bijlageNoot = "Jouw eigen opmerking uit het tekstvak komt in de echte mail bovenaan te staan.";
+  } else if (soort === "live") {
+    const { bouwLiveMail } = await import("@/lib/klant-mails");
+    const { publiekAdres } = await import("@/lib/hoofdadres");
+    mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger?.naam, adres: publiekAdres(site) ?? "je-domein.nl", eigenTekst: bericht });
   } else if (soort === "review") {
     mail = bouwReviewVerzoek({ siteNaam: site.naam, naam: ontvanger?.naam, eigenTekst: bericht });
     } else {

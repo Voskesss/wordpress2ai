@@ -170,6 +170,29 @@ ${knop(o.ontwerpUrl, "Bekijk het nieuwe ontwerp")}
   };
 }
 
+/** Het moment: de website staat live op het eigen domein. */
+export function bouwLiveMail(o: {
+  siteNaam: string;
+  naam?: string | null;
+  /** Het publieke adres, bv. vandenbergmediation.nl of www.klant.nl */
+  adres: string;
+  eigenTekst?: string | null;
+}): { onderwerp: string; html: string } {
+  const url = `https://${o.adres.replace(/^https?:\/\//, "").replace(/\/$/, "")}/`;
+  return {
+    onderwerp: `Je website staat live: ${o.adres.replace(/^https?:\/\//, "").replace(/\/$/, "")}`,
+    html: inWordSwapHuisstijl(`<p>Hoi ${ontsnap(voornaam(o.naam))},</p>
+${persoonlijkeNoot(o.eigenTekst)}
+<p>Het is zover: je website draait vanaf nu op je eigen adres, <strong>${ontsnap(o.adres)}</strong>. Gefeliciteerd!</p>
+${knop(url, "Bekijk je website")}
+<p><strong>Wat we nu doen:</strong> de komende dagen testen we alles nog een keer op het echte adres. Formulieren, doorverwijzingen van oude links, de vindbaarheid in Google. Zie jij iets vreemds, mail of bel me dan gewoon.</p>
+<p><strong>Goed om te weten:</strong> wie een formulier op je site invult, krijgt een bevestiging, en het bericht komt bij jou binnen per mail én in je eigen portaal. Er gaat dus niets verloren, ook niet tijdens het testen.</p>
+<p>Wil je iets aanpassen? Log in op je portaal en typ het in de chat. Je ziet eerst een voorbeeld, en jij bepaalt wanneer het live gaat.</p>
+<p>Vragen? Antwoord gewoon op deze mail of bel me op ${TELEFOON}.</p>
+<p>Groet,<br>Jos</p>`),
+  };
+}
+
 /** Bericht dat het ontwerp tijdelijk is teruggetrokken (adres is dan dood). */
 export function bouwOntwerpTeruggetrokken(o: {
   siteNaam: string;

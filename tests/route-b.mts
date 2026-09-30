@@ -98,4 +98,11 @@ const importRoute = await readFile("app/api/admin/route-b-import/route.ts", "utf
 assert.ok(importRoute.includes("await requireAdmin();") && importRoute.includes("Dit domein is niet aangemeld"), "de download is niet afgeschermd of geeft bestanden voor onbekende domeinen");
 assert.ok(blok.includes("route-b-import?domein=") && blok.includes("stap=1") && blok.includes("stap=2"), "de downloadknoppen ontbreken in het blok");
 
+
+// 9. Stap 2 mag zodra de CERTIFICATEN klaar zijn; "herkend" gaat bij een domein
+//    dat al bij Cloudflare zit pas na het omzetten op groen (Van den Berg 30-09)
+assert.ok(blok.includes('status.every((s) => s.certificaatStatus === "active")') && !blok.includes('s.adresStatus === "active" && s.certificaatStatus === "active")'), "stap 2 wacht op 'herkend' en blokkeert de overstap bij een domein dat al bij Cloudflare zit");
+// 10. Kopieerknoppen per naam en per waarde, geen overtypen
+assert.ok((blok.match(/<KopieerKnop /g) ?? []).length >= 4, "er ontbreken kopieerknoppen bij de regels");
+
 console.log("route-b: ok");

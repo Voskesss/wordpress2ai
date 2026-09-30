@@ -10,7 +10,9 @@ import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
 
 export const maxDuration = 60;
 
-const MAX_BACKUP = 3 * 1024 * 1024 * 1024; // 3 GB
+// Een volledige WordPress-back-up met alle beelden is al snel enkele GB
+// (Van den Berg: 3,7 GB); de upload gaat in delen, dus de grens mag ruim
+const MAX_BACKUP = 10 * 1024 * 1024 * 1024; // 10 GB
 
 /**
  * WordPress-kopie (terugweg-garantie) uploaden: de browser zet het zip-bestand

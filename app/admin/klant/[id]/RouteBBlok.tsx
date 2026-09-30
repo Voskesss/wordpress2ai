@@ -1,5 +1,6 @@
 import ActieKnop from "./ActieKnop";
 import BevestigKnop from "./BevestigKnop";
+import KopieerKnop from "./KopieerKnop";
 import { routeBAanmelden, routeBAanmeldenSnel, routeBAfmelden } from "../../acties-route-b";
 import { hoofdBinding, kaalDomein } from "@/lib/hoofdadres";
 import { ONTVANGSTADRES, leesDomeinkaart, naamInPaneel, regelsVoorHoster, slugVan, statusVan, wijstNaarOns, type DomeinStatus } from "@/lib/route-b";
@@ -68,7 +69,9 @@ export default async function RouteBBlok({
     storing = true;
   }
   const vooraf = status.some((s) => s.methode === "txt");
-  const certificatenKlaar = status.length > 0 && status.every((s) => s.adresStatus === "active" && s.certificaatStatus === "active");
+  // Alleen de certificaten tellen: "herkend" gaat bij een domein dat al bij
+  // Cloudflare zit pas op groen ná het omzetten (les Van den Berg 30-09)
+  const certificatenKlaar = status.length > 0 && status.every((s) => s.certificaatStatus === "active");
   const controleRegels = status.flatMap((s) => s.controleRegels);
   const omgezet = status.length > 0 && status.every((s) => naarOns[s.adres] === true);
   const hoofd = hoofdBinding(site);
@@ -161,8 +164,14 @@ export default async function RouteBBlok({
               {controleRegels.map((r) => (
                 <tr key={r.naam + r.waarde} className="border-t border-stone-200/70 align-top">
                   <td className="py-1.5 pr-3 font-mono text-xs">TXT</td>
-                  <td className="break-all py-1.5 pr-3 font-mono text-xs">{naamInPaneel(r.naam, domein ?? "")}</td>
-                  <td className="break-all py-1.5 font-mono text-xs">{r.waarde}</td>
+                  <td className="break-all py-1.5 pr-3 font-mono text-xs">
+                    {naamInPaneel(r.naam, domein ?? "")}
+                    <KopieerKnop tekst={naamInPaneel(r.naam, domein ?? "")} label="de naam" />
+                  </td>
+                  <td className="break-all py-1.5 font-mono text-xs">
+                    {r.waarde}
+                    <KopieerKnop tekst={r.waarde} label="de waarde" />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -197,7 +206,9 @@ export default async function RouteBBlok({
           {regels.map((r) => (
             <li key={r.naam}>
               <span className="font-mono text-xs">
-                {r.soort} · {r.naam} → {ONTVANGSTADRES}
+                {r.soort} · naam {naamInPaneel(r.naam, domein ?? "")}
+                <KopieerKnop tekst={naamInPaneel(r.naam, domein ?? "")} label="de naam" /> → {ONTVANGSTADRES}
+                <KopieerKnop tekst={ONTVANGSTADRES} label="het doel" />
               </span>
               <span className="block text-stone-600">{r.uitleg}</span>
             </li>

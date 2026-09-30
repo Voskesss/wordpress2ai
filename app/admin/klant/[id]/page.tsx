@@ -23,8 +23,10 @@ import { toonNummer } from "@/lib/whatsapp/berichten";
 import ActieKnop from "./ActieKnop";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
+import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
 import LivegangChecklist from "./LivegangChecklist";
 import RouteBBlok from "./RouteBBlok";
+import { publiekAdres } from "@/lib/hoofdadres";
 import Chat from "@/app/portal/Chat";
 import SiteExtra from "@/app/portal/SiteExtra";
 import BevestigingsMails from "@/app/portal/BevestigingsMails";
@@ -49,6 +51,7 @@ import {
   sjabloonVastleggen,
   herstelVersie,
   koppelKlant,
+  stuurLiveMail,
   trekKoppelingIn,
   zetSiteOnline,
   verwijderKlant,
@@ -93,11 +96,11 @@ export default async function KlantDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string; routeb?: string }>;
+  searchParams: Promise<{ abonnement?: string; koppel?: string; slot?: string; ontwerp?: string; whatsapp?: string; routeb?: string; live?: string }>;
 }) {
   const admin = await requireAdmin();
   const { id } = await params;
-  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding, routeb: routeBMelding } = await searchParams;
+  const { abonnement: abonnementMelding, koppel: koppelMelding, slot: slotMelding, ontwerp: ontwerpMelding, whatsapp: whatsappMelding, routeb: routeBMelding, live: liveMelding } = await searchParams;
   const siteId = Number(id);
   if (!Number.isInteger(siteId)) notFound();
 
@@ -421,6 +424,46 @@ export default async function KlantDetail({
       )}
 
       {heeftLivegang(site) && <RouteBBlok site={site} melding={routeBMelding} />}
+
+      {heeftLivegang(site) && publiekAdres(site) && (
+        <form id="livemail" action={stuurLiveMail} className="mt-6 scroll-mt-24 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
+          <input type="hidden" name="siteId" value={site.id} />
+          <h2 className="font-display text-xl font-semibold">🎉 Mail: je website staat live</h2>
+          <p className="mt-2 text-sm text-stone-600">
+            Eén mail aan de klant: de site draait op <b>{publiekAdres(site)}</b>, wat we de komende dagen nog testen, dat
+            formulierberichten sowieso binnenkomen, en een knop naar de website. Klik op ⓘ om hem eerst te bekijken.
+          </p>
+          {liveMelding && (
+            <p className={`mt-3 rounded-xl border px-3.5 py-2 text-sm ${liveMelding === "verstuurd" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-red-200 bg-red-50 text-red-900"}`}>
+              {liveMelding === "verstuurd"
+                ? "✓ Verstuurd."
+                : liveMelding === "geen-adres"
+                  ? "Er is nog geen klantaccount of mailadres aan deze site gekoppeld."
+                  : liveMelding === "geen-domein"
+                    ? "Vul eerst het eigen domein in bij Instellingen."
+                    : "De mail kon niet worden verstuurd. Probeer het opnieuw."}
+            </p>
+          )}
+          <label className="mt-3 block text-xs text-stone-500">
+            Persoonlijke noot bovenaan de mail (mag leeg)
+            <textarea
+              name="bericht"
+              rows={2}
+              placeholder="Bijv.: gefeliciteerd Dirk-Jan, wat een mooi moment."
+              className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:border-violet-600 focus:outline-none"
+            />
+          </label>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <MailVoorbeeldKnop soort="live" siteId={site.id} velden={[["bericht", "bericht"]]} />
+            <BevestigKnop
+              vraag="De mail 'je website staat live' nu versturen naar de klant?"
+              label="Verstuur de livemail"
+              bezigLabel="Versturen..."
+              className="cursor-pointer rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600"
+            />
+          </div>
+        </form>
+      )}
 
       {/* Instellingen */}
       <form

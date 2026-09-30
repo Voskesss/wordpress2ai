@@ -1398,6 +1398,34 @@ export async function ontwerpPromoveren(formData: FormData) {
 }
 
 
+/** "Je website staat live": één mail aan de klant, met de knop naar de site. */
+export async function stuurLiveMail(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const eigenTekst = String(formData.get("bericht") ?? "").trim().slice(0, 2000);
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+  const { publiekAdres } = await import("@/lib/hoofdadres");
+  const adres = site ? publiekAdres(site) : null;
+  if (!site || !adres) redirect(`/admin/klant/${siteId}?live=geen-domein#livemail`);
+  let uitkomst = "verstuurd";
+  try {
+    const { klantEmailVoorSite } = await import("@/lib/klant-email");
+    const ontvanger = await klantEmailVoorSite(siteId);
+    if (!ontvanger) uitkomst = "geen-adres";
+    else {
+      const { bouwLiveMail } = await import("@/lib/klant-mails");
+      const { mailVanJos } = await import("@/lib/wordswap-mail");
+      const mail = bouwLiveMail({ siteNaam: site.naam, naam: ontvanger.naam, adres, eigenTekst });
+      const gelukt = await mailVanJos({ naar: ontvanger.email, van: "Jos van WordSwap", onderwerp: mail.onderwerp, html: mail.html });
+      if (!gelukt) uitkomst = "mislukt";
+    }
+  } catch (e) {
+    console.error("Livemail mislukt:", e);
+    uitkomst = "mislukt";
+  }
+  redirect(`/admin/klant/${siteId}?live=${uitkomst}#livemail`);
+}
+
 export async function ontwerpZichtbaarheid(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));

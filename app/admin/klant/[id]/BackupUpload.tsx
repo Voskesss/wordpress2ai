@@ -39,6 +39,8 @@ export default function BackupUpload({
     try {
       const blob = await upload(`wp-backups/site-${siteId}/${bestand.name}`, bestand, {
         access: "public",
+        // In delen: anders strandt een bestand van meerdere GB halverwege
+        multipart: true,
         handleUploadUrl: "/api/admin/backup-upload?stap=token",
         clientPayload: JSON.stringify({ siteId }),
         onUploadProgress: ({ percentage }) => setVoortgang(Math.round(percentage)),
