@@ -184,9 +184,13 @@ export default function DocumentBank({
                 nieuw === d.pad ? "border-violet-400 bg-violet-50/60" : d.inGebruik ? "border-emerald-300" : "border-stone-200"
               }`}
             >
+              {/* Naam en gegevens op een eigen regel over de volle breedte, de
+                  knoppen eronder: naast drie knoppen werd de naam afgekapt en
+                  viel de rest woord voor woord onder elkaar (01-10). */}
+              <span className="flex min-w-0 basis-full items-start gap-3">
               <span aria-hidden className="text-lg">📄</span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-stone-800" title={d.pad}>
+                <span className="block text-sm font-medium text-stone-800 [overflow-wrap:anywhere]" title={d.pad}>
                   {nieuw === d.pad && <span className="mr-1.5 rounded-full bg-violet-700 px-1.5 py-0.5 text-[10px] font-bold text-white">Nieuw</span>}
                   {d.pad.split("/").pop()}
                 </span>
@@ -202,6 +206,7 @@ export default function DocumentBank({
                     Nog niet live: de link kun je kopiëren zodra je wijziging gepubliceerd is.
                   </span>
                 )}
+              </span>
               </span>
               {previewAccess && (
                 <a

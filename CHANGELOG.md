@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.5 (1 oktober 2026)
+
+- Documentenbank: de volledige naam van een document is weer te lezen. Naast de drie knoppen werd hij afgekapt en viel de rest woord voor woord onder elkaar; nu staan naam en gegevens op een eigen regel, met de knoppen eronder.
+
 ## 1.38.4 (1 oktober 2026)
 
 - Documentenbank en paperclipmenu waarschuwen nu vóór het uploaden: documenten op je site zijn openbaar. Iedereen met de link kan ze openen en Google kan ze vinden, dus nooit iets met persoonsgegevens of iets vertrouwelijks.
