@@ -20,6 +20,8 @@ import BevestigingsMails from "./BevestigingsMails";
 import MeenemenBlok from "./MeenemenBlok";
 import AfspraakBlok from "./AfspraakBlok";
 import MeelezenRegel from "./MeelezenRegel";
+import PortaalSchil from "./PortaalSchil";
+import { leesTab } from "@/lib/portaal-tabs";
 
 export const metadata: Metadata = {
   title: "Mijn websites",
@@ -31,9 +33,9 @@ export const dynamic = "force-dynamic";
 export default async function Portal({
   searchParams,
 }: {
-  searchParams: Promise<{ site?: string }>;
+  searchParams: Promise<{ site?: string; tab?: string }>;
 }) {
-  const { site: gekozenParam } = await searchParams;
+  const { site: gekozenParam, tab: tabParam } = await searchParams;
   const userId = await requireUser();
   const { and, or } = await import("drizzle-orm");
 
@@ -230,12 +232,74 @@ export default async function Portal({
       .catch(() => []);
   })();
 
+  // Tabbladen alleen bij één gekozen, echte site: de demo en het overzicht
+  // hebben alleen de werkweergave.
+  const metTabs = Boolean(getoondeSite && !getoondeSite.isDemo);
+  const isDev = process.env.NODE_ENV !== "production" || process.env.VERCEL_ENV !== "production";
+  const tabHouder = "mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10";
+
   return (
-    <div data-demo-step={mijnSites.some((s) => s.isDemo) ? "portal" : undefined} className="mx-auto max-w-[1500px] px-2 sm:px-6 py-4 sm:py-10">
-      {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && (
-        <DemoWelkom />
-      )}
-      <Aankondigingen lijst={aankondigingenLijst} />
+    <PortaalSchil
+      isDev={isDev}
+      isAdmin={await isBeheerder()}
+      meerdereSites={mijnSites.length > 1}
+      siteNaam={getoondeSite ? getoondeSite.naam : null}
+      metTabs={metTabs}
+      beginTab={leesTab(tabParam)}
+      boven={
+        <>
+          {mijnSites.some((s) => s.isDemo && s.clerkUserId !== userId) && <DemoWelkom />}
+          <Aankondigingen lijst={aankondigingenLijst} />
+        </>
+      }
+      berichten={
+        metTabs && getoondeSite ? (
+          <div className={tabHouder}>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Berichten &amp; mail</h1>
+            <p className="mt-1 text-stone-500">
+              Wat bezoekers via je formulieren sturen, en hoe je mail eruitziet. {getoondeSite.naam}
+            </p>
+            <SiteExtra
+              siteId={getoondeSite.id}
+              siteRepo={getoondeSite.githubRepo}
+              siteNaam={getoondeSite.naam}
+              domein={getoondeSite.domein}
+              mailHandtekening={getoondeSite.mailHandtekening}
+              mailLogoUrl={getoondeSite.mailLogoUrl}
+              mailKleur={getoondeSite.mailKleur}
+              mailNaamVerbergen={getoondeSite.mailNaamVerbergen}
+              online={Boolean(getoondeSite.siteSlug)}
+              notificatieEmail={getoondeSite.notificatieEmail}
+            />
+            <AfspraakBlok siteId={getoondeSite.id} />
+            <BevestigingsMails siteId={getoondeSite.id} />
+            <EigenMailserver
+              siteId={getoondeSite.id}
+              smtpHost={getoondeSite.smtpHost}
+              smtpPoort={getoondeSite.smtpPoort}
+              smtpGebruiker={getoondeSite.smtpGebruiker}
+              smtpAfzender={getoondeSite.smtpAfzender}
+              smtpIngesteld={Boolean(getoondeSite.smtpWachtwoord)}
+              smtpFoutOp={getoondeSite.smtpFoutOp}
+              smtpFoutTekst={getoondeSite.smtpFoutTekst}
+              eigenAdres={getoondeSite.notificatieEmail ?? emails[0] ?? null}
+            />
+          </div>
+        ) : null
+      }
+      account={
+        metTabs && getoondeSite ? (
+          <div className={tabHouder}>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Account</h1>
+            <p className="mt-1 text-stone-500">Facturen, je gegevens meenemen en privacy. {getoondeSite.naam}</p>
+            <KlantFacturen siteId={getoondeSite.id} />
+            <MeenemenBlok siteId={getoondeSite.id} />
+            <MeelezenRegel siteId={getoondeSite.id} meelezenUit={getoondeSite.meelezenUit} />
+          </div>
+        ) : null
+      }
+      website={
+    <div data-demo-step={mijnSites.some((s) => s.isDemo) ? "portal" : undefined} className={tabHouder}>
       {meekijk && getoondeSite && (
         <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-900">
           <p className="font-semibold">👀 Meekijk-modus: je ziet {getoondeSite.naam} zoals de klant het ziet.</p>
@@ -377,6 +441,7 @@ export default async function Portal({
                   <HerstelMelding changeId={herstelMap[site.id]} />
                 )}
                 <Chat
+                  metBalk={metTabs}
                   terugLink={mijnSites.length > 1 ? "/portal" : null}
                   isDemo={site.isDemo}
                   meelezenUit={site.meelezenUit}
@@ -418,42 +483,14 @@ export default async function Portal({
                   zelf. De demo-site wordt elk uur teruggezet. Zoiets voor je
                   eigen website? Neem contact op!
                 </p>
-              ) : (
-                <>
-                  <SiteExtra
-                    siteId={site.id}
-                    siteRepo={site.githubRepo}
-                    siteNaam={site.naam}
-                    domein={site.domein}
-                    mailHandtekening={site.mailHandtekening}
-                    mailLogoUrl={site.mailLogoUrl}
-                    mailKleur={site.mailKleur}
-                    mailNaamVerbergen={site.mailNaamVerbergen}
-                    online={Boolean(site.siteSlug)}
-                    notificatieEmail={site.notificatieEmail}
-                  />
-                  <AfspraakBlok siteId={site.id} />
-                  <BevestigingsMails siteId={site.id} />
-                  <EigenMailserver
-                    siteId={site.id}
-                    smtpHost={site.smtpHost}
-                    smtpPoort={site.smtpPoort}
-                    smtpGebruiker={site.smtpGebruiker}
-                    smtpAfzender={site.smtpAfzender}
-                    smtpIngesteld={Boolean(site.smtpWachtwoord)}
-                    smtpFoutOp={site.smtpFoutOp}
-                    smtpFoutTekst={site.smtpFoutTekst}
-                    eigenAdres={site.notificatieEmail ?? emails[0] ?? null}
-                  />
-                  <KlantFacturen siteId={site.id} />
-                  <MeenemenBlok siteId={site.id} />
-                  <MeelezenRegel siteId={site.id} meelezenUit={site.meelezenUit} />
-                </>
-              )}
+              ) : null}
+              {/* Berichten, mail en account staan in hun eigen tabblad (PortaalSchil) */}
             </div>
           ))}
         </div>
       )}
     </div>
+      }
+    />
   );
 }

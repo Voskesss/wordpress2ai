@@ -25,22 +25,46 @@ export async function staatLive(adres: string, ms = 4000): Promise<boolean> {
 }
 
 /**
- * Een schone bestandsnaam in bestanden/ die nog niet bestaat. Een upload
- * overschrijft nooit stilletjes een bestaand document: dan verandert wat er
- * achter een al verstuurde link staat. Bestaat de naam al, dan -2, -3 enz.
+ * Een bestandsnaam die nog niet bestaat. Een upload overschrijft nooit
+ * stilletjes een bestaand bestand: dan verandert wat er achter een al
+ * verstuurde link staat. Bestaat de naam al, dan -2, -3 enzovoort.
+ * `bestaand` bevat volledige paden (map/naam) of kale namen, afhankelijk van
+ * wat `opbouw` maakt.
  */
-export function vrijPad(naam: string, bestaand: Set<string>): string {
-  const schoon =
-    (naam.split("/").pop() ?? "document.pdf")
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9.]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "document.pdf";
+export function vrijeNaam(stam: string, ext: string, bestaand: Set<string>, opbouw: (naam: string) => string = (n) => n): string {
+  let naam = `${stam}${ext}`;
+  for (let n = 2; bestaand.has(opbouw(naam)); n++) naam = `${stam}-${n}${ext}`;
+  return naam;
+}
+
+/** Schone stam en extensie uit een geüploade bestandsnaam. */
+export function schoneNaamDelen(naam: string, standaard = "document"): { stam: string; ext: string } {
+  const schoon = (naam.split("/").pop() ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/^-+|-+$/g, "");
   const punt = schoon.lastIndexOf(".");
-  const stam = (punt > 0 ? schoon.slice(0, punt) : schoon).replace(/-+$/, "") || "document";
+  const stam = (punt > 0 ? schoon.slice(0, punt) : schoon).replace(/\./g, "-").replace(/-+$/, "").slice(0, 80) || standaard;
   const ext = punt > 0 ? schoon.slice(punt) : "";
-  let pad = `bestanden/${stam}${ext}`;
-  for (let n = 2; bestaand.has(pad); n++) pad = `bestanden/${stam}-${n}${ext}`;
-  return pad;
+  return { stam, ext };
+}
+
+/** Vrij pad voor een document in bestanden/ (zie vrijeNaam). */
+export function vrijPad(naam: string, bestaand: Set<string>, map = "bestanden"): string {
+  const { stam, ext } = schoneNaamDelen(naam);
+  return `${map}/${vrijeNaam(stam, ext || ".pdf", bestaand, (n) => `${map}/${n}`)}`;
+}
+
+/** Welke paden van deze site nu echt in de live opslag staan (één lijst-
+ * opvraging, ook bij honderden foto's). Paden zonder de slug ervoor. */
+export async function livePaden(slug: string | null | undefined): Promise<Set<string>> {
+  if (!slug) return new Set();
+  try {
+    const { lijstSleutels } = await import("./r2");
+    return new Set((await lijstSleutels(`${slug}/`)).map((k) => k.slice(slug.length + 1)));
+  } catch {
+    return new Set();
+  }
 }

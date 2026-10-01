@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { zoekOpNaam } from "@/lib/bank-zoeken";
+import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+
+type Link = { adres: string | null; live: boolean };
 
 /** Audiobank: podcasts en andere audio van de site. De bestanden staan in de
  * media-map in R2 (niet in de repo) en overleven het weggooien van een
@@ -23,6 +27,10 @@ export default function AudioBank({
   const [fout, setFout] = useState<string | null>(null);
   const [wisBezig, setWisBezig] = useState<string | null>(null);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
+  const [links, setLinks] = useState<Record<string, Link>>({});
+  const [zoek, setZoek] = useState("");
+  const [upload, setUpload] = useState<string | null>(null);
+  const [nieuw, setNieuw] = useState<string | null>(null);
 
   async function laad() {
     try {
@@ -30,6 +38,7 @@ export default function AudioBank({
       if (r.error) throw new Error(r.error);
       setAudio(r.audio ?? []);
       setLimiet(r.limiet ?? null);
+      setLinks(r.links ?? {});
     } catch (e) {
       setFout(e instanceof Error ? e.message : "Kon de audiobank niet laden.");
     }
@@ -38,6 +47,43 @@ export default function AudioBank({
     void laad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteId]);
+
+  /** Rechtstreeks uploaden in de bank, zonder de chat: zelfde weg als de
+   * chat (upload-opslag, dan de media-map van de site). Audio staat daarna
+   * meteen online, dus de link is direct te kopiëren. */
+  async function uploaden(bestand: File) {
+    if (upload) return;
+    setFout(null);
+    if (!/\.(mp3|m4a|aac|ogg|wav)$/i.test(bestand.name)) {
+      setFout("Alleen audio: mp3, m4a, aac, ogg of wav.");
+      return;
+    }
+    setUpload("Uploaden... 0%");
+    try {
+      const { upload: naarOpslag } = await import("@vercel/blob/client");
+      const blob = await naarOpslag(bestand.name, bestand, {
+        access: "public",
+        handleUploadUrl: "/api/audio-upload",
+        clientPayload: JSON.stringify({ siteId }),
+        onUploadProgress: (p) => setUpload(`Uploaden... ${Math.round(p.percentage)}%`),
+      });
+      setUpload("In je audiobank zetten...");
+      const r = (await fetch("/api/audiobank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
+      }).then((x) => x.json())) as { naam?: string; adres?: string | null; live?: boolean; error?: string };
+      if (!r.naam) throw new Error(r.error ?? "Opslaan lukte niet");
+      const naam = r.naam;
+      setAudio((a) => [naam, ...(a ?? []).filter((x) => x !== naam)]);
+      setLinks((l) => ({ ...l, [naam]: { adres: r.adres ?? null, live: Boolean(r.live) } }));
+      setNieuw(naam);
+    } catch (e) {
+      setFout(`Uploaden lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.`);
+    } finally {
+      setUpload(null);
+    }
+  }
 
   async function verwijder(naam: string) {
     setWisBezig(naam);
@@ -80,11 +126,17 @@ export default function AudioBank({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
+          <OpenbaarMelding voorbeelden="zoals een opname van een gesprek met een klant" />
+          <UploadKnop label="⬆ Audio uploaden (mp3, m4a)" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" bezig={upload} onKies={(l) => void uploaden(l[0])} />
+          <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={audio?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
           {audio === null && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {audio && audio.length > 0 && zoek && zoekOpNaam(audio, zoek, (n) => n).length === 0 && (
+            <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
+          )}
           {audio?.length === 0 && (
             <p className="text-sm text-stone-500">
-              Nog geen audio. Stuur via de 📎 een mp3 of m4a mee (bijvoorbeeld een podcastaflevering), dan verschijnt hij hier en kun je hem op een pagina laten zetten.
+              Nog geen audio. Upload hierboven een mp3 of m4a (bijvoorbeeld een podcastaflevering), of stuur hem mee in de chat via de 📎.
             </p>
           )}
           {(audio?.length ?? 0) > 1 && (
@@ -100,16 +152,20 @@ export default function AudioBank({
               </select>
             </label>
           )}
-          {(opNaam && audio ? [...audio].sort((a, b) => a.localeCompare(b)) : audio)?.map((naam) => (
-            <div key={naam} className="rounded-2xl border border-stone-200 p-3">
-              <p className="mb-2 truncate text-sm font-medium text-stone-800" title={naam}>{naam}</p>
+          {zoekOpNaam((opNaam && audio ? [...audio].sort((a, b) => a.localeCompare(b)) : audio) ?? [], zoek, (n) => n).map((naam) => (
+            <div key={naam} className={`rounded-2xl border p-3 ${nieuw === naam ? "border-violet-400 bg-violet-50/60" : "border-stone-200"}`}>
+              <p className="mb-2 truncate text-sm font-medium text-stone-800" title={naam}>
+                {nieuw === naam && <span className="mr-1.5 rounded-full bg-violet-700 px-1.5 py-0.5 text-[10px] font-bold text-white">Nieuw</span>}
+                {naam}
+              </p>
               <audio
                 controls
                 preload="none"
                 className="mb-2 w-full"
                 src={`/api/audiobank?siteId=${siteId}&bestand=${encodeURIComponent(naam)}`}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <KopieerLink adres={links[naam]?.adres} live={links[naam]?.live} />
                 <button
                   onClick={() => {
                     onGebruik(`/audio/${naam}`);

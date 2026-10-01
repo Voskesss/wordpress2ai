@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { zoekOpNaam } from "@/lib/bank-zoeken";
+import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean };
 
@@ -22,10 +24,9 @@ export default function DocumentBank({
   const [fout, setFout] = useState<string | null>(null);
   const [bezigMet, setBezigMet] = useState<string | null>(null);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
-  const [gekopieerd, setGekopieerd] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<string | null>(null);
-  const kiezer = useRef<HTMLInputElement>(null);
+  const [zoek, setZoek] = useState("");
 
   /** Rechtstreeks uploaden in de bank, zonder de chat. Zelfde weg als via de
    * chat (eerst naar de upload-opslag, dan in de site), en het document staat
@@ -63,21 +64,7 @@ export default function DocumentBank({
       setFout(`Uploaden lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.`);
     } finally {
       setUpload(null);
-      if (kiezer.current) kiezer.current.value = "";
     }
-  }
-
-  /** Het webadres naar het klembord, voor een nieuwsbrief of mail. Lukt het
-   * klembord niet (oude browser), dan staat het adres eronder om te selecteren. */
-  async function kopieer(d: Doc) {
-    if (!d.adres) return;
-    try {
-      await navigator.clipboard.writeText(d.adres);
-    } catch {
-      /* het adres staat zichtbaar onder de knop */
-    }
-    setGekopieerd(d.pad);
-    setTimeout(() => setGekopieerd((v) => (v === d.pad ? null : v)), 4000);
   }
 
   useEffect(() => {
@@ -141,43 +128,24 @@ export default function DocumentBank({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-2.5">
-          <input
-            ref={kiezer}
-            type="file"
-            accept="application/pdf,.pdf"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void uploaden(f);
-            }}
-          />
-          {/* Documenten op de site zijn openbaar: iedereen met de link kan ze
-              openen en Google kan ze vinden. Dat moet je weten vóór je uploadt. */}
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
-            <strong>Let op: alles wat je hier uploadt is openbaar.</strong> Iedereen met de link kan het openen, en
-            Google kan het vinden. Upload dus nooit iets met persoonsgegevens of iets vertrouwelijks, zoals een
-            contract, offerte, dossier of verslag over een klant.
-          </p>
-          <button
-            type="button"
-            onClick={() => kiezer.current?.click()}
-            disabled={upload !== null}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-violet-300 px-4 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-60 cursor-pointer"
-          >
-            {upload ?? "⬆ Document uploaden (pdf)"}
-          </button>
+          <OpenbaarMelding voorbeelden="zoals een contract, offerte, dossier of verslag over een klant" />
+          <UploadKnop label="⬆ Document uploaden (pdf)" accept="application/pdf,.pdf" bezig={upload} onKies={(l) => void uploaden(l[0])} />
           <p className="-mt-1 text-center text-[11px] text-stone-500">
             Het staat daarna meteen online. Kopieer de link voor een mail of nieuwsbrief, of zet het op een pagina.
           </p>
+          <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={docs?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
           {!docs && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {docs && docs.length > 0 && zoek && zoekOpNaam(docs, zoek, (d) => d.pad).length === 0 && (
+            <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
+          )}
           {docs?.length === 0 && (
             <p className="text-sm text-stone-500">
               Nog geen documenten. Upload hierboven een pdf, of stuur er een mee in de chat via de 📎, bijvoorbeeld een
               vacature of je voorwaarden.
             </p>
           )}
-          {docs?.map((d) => (
+          {zoekOpNaam(docs ?? [], zoek, (d) => d.pad).map((d) => (
             <div
               key={d.pad}
               className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border p-3 ${
@@ -194,14 +162,6 @@ export default function DocumentBank({
                   {d.kb} kB
                   {d.inGebruik ? " · staat op je site" : " · nergens op je site gelinkt"}
                 </span>
-                {d.adres && d.live && gekopieerd === d.pad && (
-                  <span className="mt-0.5 block select-all break-all text-[11px] text-emerald-800">{d.adres}</span>
-                )}
-                {d.adres && !d.live && (
-                  <span className="mt-0.5 block text-[11px] text-amber-700">
-                    Nog niet live: de link kun je kopiëren zodra je wijziging gepubliceerd is.
-                  </span>
-                )}
               </span>
               {previewAccess && (
                 <a
@@ -213,19 +173,7 @@ export default function DocumentBank({
                   Openen
                 </a>
               )}
-              {d.adres && d.live && (
-                <button
-                  onClick={() => kopieer(d)}
-                  title="Het webadres van dit document, om in een mail of nieuwsbrief te plakken"
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer ${
-                    gekopieerd === d.pad
-                      ? "border-emerald-400 bg-emerald-50 text-emerald-800"
-                      : "border-violet-300 text-violet-700 hover:bg-violet-50"
-                  }`}
-                >
-                  {gekopieerd === d.pad ? "✓ Link gekopieerd" : "🔗 Link kopiëren"}
-                </button>
-              )}
+              <KopieerLink adres={d.adres} live={d.live} />
               <button
                 onClick={() => {
                   onGebruik(`/${d.pad}`);
