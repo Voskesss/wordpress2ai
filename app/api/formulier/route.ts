@@ -9,8 +9,9 @@ import {
   veldenVoorMail,
   type RemOordeel,
 } from "@/lib/formulier-rem";
+import { GEEN_SPAM, beoordeelSpamInhoud } from "@/lib/formulier-spam";
 import { verstuurSiteMail } from "@/lib/mail";
-import { magBewaren } from "@/lib/formulier-privacy";
+import { magBewaren, magMeelezen } from "@/lib/formulier-privacy";
 
 const ontsnap = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -190,6 +191,8 @@ export async function POST(req: Request) {
     }
   }
 
+  // Uitkomst van de inhoudscontrole, ook nodig ná het echt-blok (leadlijst)
+  let spamOordeel = GEEN_SPAM;
   if (echt) {
     let opgeslagen = true;
     // Meegestuurde bestanden bewaren, zodat de eigenaar ze later nog kan
@@ -202,6 +205,24 @@ export async function POST(req: Request) {
     // was: zonder die regel telt de spamrem niets meer en is het formulier een
     // open doorgeefluik. Zie lib/formulier-privacy.ts.
     const bewaren = magBewaren(site?.formulierPrivacy);
+    // Inhoudscontrole: vangt het spambericht dat door een mens of slimme bot
+    // los wordt ingetypt en dus langs honeypot en rem komt. Alleen bij
+    // privacystand "normaal": in de andere standen beloven we dat niemand
+    // behalve de klant meeleest, dus gaat de inhoud ook niet naar de AI.
+    // Spam wordt wél bewaard (gemarkeerd), maar niemand krijgt er mail over.
+    if (site && magMeelezen(site.formulierPrivacy)) {
+      spamOordeel = await beoordeelSpamInhoud({
+        siteNaam: site.naam,
+        formulier,
+        velden,
+      });
+      if (spamOordeel.kostenUsd > 0) {
+        const { registreerAiKosten } = await import("@/lib/kosten");
+        await registreerAiKosten(site.id, "spamcheck", spamOordeel).catch((e) =>
+          console.error("Kostenregistratie spamcheck mislukt:", e),
+        );
+      }
+    }
     const blobToken =
       process.env.BLOBEU_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
     if (bewaren && bijlagen.length && blobToken) {
@@ -233,6 +254,8 @@ export async function POST(req: Request) {
         bijlagen: bewaardeBijlagen,
         ipAfdruk: afdruk,
         inhoudBewaard: bewaren,
+        spam: spamOordeel.spam,
+        spamReden: spamOordeel.reden,
       })
       .catch(() => {
         opgeslagen = false;
@@ -317,7 +340,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (invullerEmail && oordeel.mailen) {
+    if (invullerEmail && oordeel.mailen && !spamOordeel.spam) {
       if (formulier === "webinar") {
         await verstuurSiteMail({
           site: site ?? null,
@@ -368,8 +391,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de invuller
-    if (site?.notificatieEmail) {
+    // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de
+    // invuller. Spam blijft stil: die staat alleen gemarkeerd in het portaal.
+    if (site?.notificatieEmail && !spamOordeel.spam) {
       const staart = bewaren
         ? `<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`
         : `<p>Dit bericht wordt bij ons niet bewaard, dus deze mail is de enige plek waar het staat.</p>`;
@@ -410,7 +434,7 @@ export async function POST(req: Request) {
   }
 
   // Webinar-aanmelder op de eigen site: automatisch in de leadlijst met een opvolgactie na het webinar
-  if (formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
+  if (echt && !spamOordeel.spam && formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
     try {
       const { leads, leadActies } = await import("@/db/schema");
       const { and, ilike } = await import("drizzle-orm");
