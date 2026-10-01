@@ -55,7 +55,7 @@ export async function verstuurSpamDagmails(): Promise<{
         const afzender =
           afzenderVan((r.velden ?? {}) as Record<string, string>) ||
           "onbekende afzender";
-        return `<li>${ontsnap(afzender)} — ${ontsnap(r.spamReden ?? "massaspam")}</li>`;
+        return `<li>${ontsnap(afzender)}: ${ontsnap(r.spamReden ?? "massaspam")}</li>`;
       })
       .join("");
     const n = rijen.length;
@@ -63,7 +63,7 @@ export async function verstuurSpamDagmails(): Promise<{
       site,
       naar: site.notificatieEmail,
       onderwerp: `${n === 1 ? "1 bericht" : `${n} berichten`} als spam apart gezet op ${site.naam}`,
-      html: `<p>Vandaag ${n === 1 ? "is er 1 bericht" : `zijn er ${n} berichten`} op ${ontsnap(site.naam)} automatisch als spam apart gezet. Je kreeg er geen losse melding van en de afzender kreeg geen bevestiging.</p><ul>${regels}</ul><p>Toch een echt bericht ertussen? Open het tabblad Spam bij <a href="https://wordswap.nl/portal">je berichten in het portaal</a> en klik op "Geen spam" — dan staat het weer bij je open berichten.</p>`,
+      html: `<p>Vandaag ${n === 1 ? "is er 1 bericht" : `zijn er ${n} berichten`} op ${ontsnap(site.naam)} automatisch als spam apart gezet. Je kreeg er geen losse melding van en de afzender kreeg geen bevestiging.</p><ul>${regels}</ul><p>Toch een echt bericht ertussen? Open het tabblad Spam bij <a href="https://wordswap.nl/portal">je berichten in het portaal</a> en klik op "Geen spam", dan staat het weer bij je open berichten.</p>`,
     });
     if (!weg) continue; // mail mislukt: stempel leeg laten, morgen opnieuw
 
