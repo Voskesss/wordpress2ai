@@ -2517,7 +2517,9 @@ export default function Chat({
         <div
           className={
             splitModus
-              ? "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
+              ? // overflow-x-hidden: anders gaf één iets te breed element een
+                // horizontale schuifbalk onder de hele kolom (01-10)
+                "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto overflow-x-hidden border-l border-stone-200 bg-stone-100/80 p-3"
               : mobielChat
                 ? // Op een telefoon stond hier "justify-end" samen met
                   // "overflow-y-auto". Die combinatie klemt de bovenkant zodra
@@ -3561,7 +3563,10 @@ export default function Chat({
                 setChatOpen(true);
               }
             }}
-            className={`${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
+            // shrink-0: bij weinig hoogte kromp de invoerbalk mee met het
+            // gesprek en viel het typveld half weg (01-10). Het gesprek
+            // levert de ruimte in, dat kan scrollen; het typveld niet.
+            className={`shrink-0 ${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
               toonHint
                 ? "border-violet-500 ring-4 ring-violet-300/50"
                 : "border-stone-200"
@@ -4097,7 +4102,7 @@ export default function Chat({
               tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
               keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
           {!tipWeg && !bezig && (
-            <div className="mt-2.5 flex justify-center px-2">
+            <div className="mt-2.5 flex shrink-0 justify-center px-2">
               <div className="flex w-full max-w-[46rem] items-start gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/90 px-4 py-2.5 shadow-sm backdrop-blur">
                 <span aria-hidden className="mt-0.5 text-base leading-none">💡</span>
                 <button
