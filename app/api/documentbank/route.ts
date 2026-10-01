@@ -9,7 +9,7 @@ import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
-import { documentAdres, staatLive } from "@/lib/document-adres";
+import { documentAdres, staatLive, vrijPad } from "@/lib/document-adres";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
  * menukaarten, brochures). Ze leven in de siterepo, in bestanden/, en gaan bij
@@ -89,7 +89,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-  const body = (await req.json().catch(() => null)) as { siteId?: number; blobUrl?: string; naam?: string } | null;
+  // bron "bank": rechtstreeks geüpload in de documentenbank, niet via de chat
+  const body = (await req.json().catch(() => null)) as { siteId?: number; blobUrl?: string; naam?: string; bron?: string } | null;
   if (!body?.siteId || !body.blobUrl || !body.naam)
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
@@ -103,18 +104,30 @@ export async function POST(req: Request) {
     if (!antwoord.ok) return NextResponse.json({ error: "Bestand niet gevonden in de upload-opslag." }, { status: 400 });
     const data = Buffer.from((await antwoord.arrayBuffer()) as ArrayBuffer);
     const kb = Math.round(data.length / 1024);
-    const schoon = (body.naam.split("/").pop() ?? "document.pdf")
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9.]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    const pad = `bestanden/${schoon}`;
-
     const openConcept = await openConceptVan(site.id);
-    const { pushBestanden } = await import("@/lib/github");
-    for (const tak of openConcept?.branch ? ["main", openConcept.branch] : ["main"])
+    const { lijstBestanden, pushBestanden } = await import("@/lib/github");
+    const takken = openConcept?.branch ? ["main", openConcept.branch] : ["main"];
+    // Nooit een bestaand document overschrijven: zoek een vrije naam in
+    // zowel de live versie als het concept
+    const bestaand = new Set<string>();
+    for (const tak of takken) for (const b of await lijstBestanden(site.githubRepo, tak).catch(() => [])) bestaand.add(b);
+    const pad = vrijPad(body.naam, bestaand);
+    for (const tak of takken)
       await pushBestanden(site.githubRepo, [{ pad, inhoud: data }], "Document bewaard in de documentenbank", tak);
+
+    // Meteen ook op de live site, zodat de link direct werkt (bijvoorbeeld
+    // voor een nieuwsbrief). Alleen dit ene nieuwe bestand: pagina's raken we
+    // niet aan, en een volgende publicatie neemt het gewoon mee uit main.
+    if (site.siteSlug) {
+      try {
+        const { schrijfObject } = await import("@/lib/r2");
+        await schrijfObject(`${site.siteSlug}/${pad}`, data, "application/pdf");
+      } catch (e) {
+        console.error("Document direct live zetten:", e);
+      }
+    }
+    const adres = documentAdres(site, pad);
+    const live = adres ? await staatLive(adres) : false;
 
     try {
       const { del } = await import("@vercel/blob");
@@ -127,16 +140,21 @@ export async function POST(req: Request) {
     await db
       .insert(messages)
       .values([
-        { siteId: site.id, rol: "klant" as const, tekst: `📄 Document meegestuurd: ${body.naam}`, clerkUserId: userId },
+        {
+          siteId: site.id,
+          rol: "klant" as const,
+          tekst: body.bron === "bank" ? `📄 Document geüpload in de documentenbank: ${body.naam}` : `📄 Document meegestuurd: ${body.naam}`,
+          clerkUserId: userId,
+        },
         {
           siteId: site.id,
           rol: "assistent" as const,
-          tekst: `Je document staat in de documentenbank (/${pad}, ${kb} kB). Typ waar de link naartoe moet komen — bijvoorbeeld "zet de vacature op de vacaturepagina" — dan zet ik hem er netjes neer. Je vindt hem altijd terug via 📎 → Documentenbank.`,
+          tekst: `Je document staat in de documentenbank (/${pad}, ${kb} kB).${live && adres ? ` Het staat al online: ${adres}` : ""} Wil je het op een pagina, typ dan waar de link naartoe moet komen, bijvoorbeeld "zet de vacature op de vacaturepagina". Je vindt het altijd terug via 📎 → Documentenbank.`,
           clerkUserId: userId,
         },
       ])
       .catch((e) => console.error("Documentbank-berichten bewaren:", e));
-    return NextResponse.json({ ok: true, pad: `/${pad}`, kb });
+    return NextResponse.json({ ok: true, pad: `/${pad}`, kb, adres, live });
   } catch (e) {
     console.error("Document in de documentenbank zetten:", e);
     return NextResponse.json({ error: "Opslaan in de documentenbank lukte niet." }, { status: 503 });

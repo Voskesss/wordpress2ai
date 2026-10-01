@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { documentAdres, staatLive } from "../lib/document-adres";
+import { documentAdres, staatLive, vrijPad } from "../lib/document-adres";
 
 // 1. Het adres: hoofdadres van de klant, nette tekens, nooit workers.dev
 assert.equal(documentAdres({ domein: "vandenbergmediation.nl" }, "documenten/boekje.pdf"), "https://vandenbergmediation.nl/documenten/boekje.pdf");
@@ -36,4 +36,15 @@ assert.ok(bank.includes("Nog niet live"), "geen uitleg als het document alleen i
 assert.ok(bank.includes("verstuurde mail of nieuwsbrief"), "opruimen waarschuwt niet voor links in verstuurde mails");
 const api = await readFile("app/api/documentbank/route.ts", "utf8");
 assert.ok(api.includes("const adres = documentAdres(site, pad)") && api.includes("live: adres ? await staatLive(adres) : false"), "de API geeft geen adres of live-stand mee");
-console.log("✓ documentlink: vast adres, alleen kopiëren als hij werkt");
+
+// 4. Uploaden in de bank zelf: nooit een bestaand document overschrijven
+assert.equal(vrijPad("Boekje 2025 (Def).PDF", new Set()), "bestanden/boekje-2025-def.pdf");
+assert.equal(vrijPad("vacature.pdf", new Set(["bestanden/vacature.pdf"])), "bestanden/vacature-2.pdf");
+assert.equal(vrijPad("vacature.pdf", new Set(["bestanden/vacature.pdf", "bestanden/vacature-2.pdf"])), "bestanden/vacature-3.pdf");
+assert.equal(vrijPad("Éénjarig plan.pdf", new Set()), "bestanden/eenjarig-plan.pdf");
+assert.ok(api.includes("const pad = vrijPad(body.naam, bestaand)"), "de upload kiest geen vrije naam");
+assert.ok(api.includes("await schrijfObject(`${site.siteSlug}/${pad}`, data, \"application/pdf\")"), "de upload zet het document niet direct live");
+assert.ok(api.includes("return NextResponse.json({ ok: true, pad: `/${pad}`, kb, adres, live })"), "de upload geeft het adres niet terug");
+assert.ok(bank.includes("⬆ Document uploaden (pdf)") && bank.includes('bron: "bank"'), "de bank heeft geen eigen uploadknop");
+assert.ok(bank.includes('handleUploadUrl: "/api/audio-upload"'), "de bank uploadt niet via dezelfde weg als de chat");
+console.log("✓ documentlink: vast adres, alleen kopiëren als hij werkt, uploaden in de bank zelf");

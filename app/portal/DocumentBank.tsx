@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean };
 
@@ -23,6 +23,49 @@ export default function DocumentBank({
   const [bezigMet, setBezigMet] = useState<string | null>(null);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
   const [gekopieerd, setGekopieerd] = useState<string | null>(null);
+  const [upload, setUpload] = useState<string | null>(null);
+  const [nieuw, setNieuw] = useState<string | null>(null);
+  const kiezer = useRef<HTMLInputElement>(null);
+
+  /** Rechtstreeks uploaden in de bank, zonder de chat. Zelfde weg als via de
+   * chat (eerst naar de upload-opslag, dan in de site), en het document staat
+   * daarna meteen online zodat de link direct te kopiëren is. */
+  async function uploaden(bestand: File) {
+    if (upload) return;
+    setFout(null);
+    if (!/\.pdf$/i.test(bestand.name)) {
+      setFout("Alleen pdf-bestanden kunnen in de documentenbank.");
+      return;
+    }
+    setUpload("Uploaden... 0%");
+    try {
+      const { upload: naarOpslag } = await import("@vercel/blob/client");
+      const blob = await naarOpslag(bestand.name, bestand, {
+        access: "public",
+        handleUploadUrl: "/api/audio-upload",
+        clientPayload: JSON.stringify({ siteId }),
+        onUploadProgress: (p) => setUpload(`Uploaden... ${Math.round(p.percentage)}%`),
+      });
+      setUpload("Op je site zetten...");
+      const r = (await fetch("/api/documentbank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name, bron: "bank" }),
+      }).then((x) => x.json())) as { pad?: string; kb?: number; adres?: string | null; live?: boolean; error?: string };
+      if (!r.pad) throw new Error(r.error ?? "Opslaan lukte niet");
+      const pad = r.pad.replace(/^\//, "");
+      setDocs((v) => [
+        { pad, kb: r.kb ?? 0, inGebruik: false, adres: r.adres ?? null, live: Boolean(r.live) },
+        ...(v ?? []).filter((d) => d.pad !== pad),
+      ]);
+      setNieuw(pad);
+    } catch (e) {
+      setFout(`Uploaden lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.`);
+    } finally {
+      setUpload(null);
+      if (kiezer.current) kiezer.current.value = "";
+    }
+  }
 
   /** Het webadres naar het klembord, voor een nieuwsbrief of mail. Lukt het
    * klembord niet (oude browser), dan staat het adres eronder om te selecteren. */
@@ -98,24 +141,46 @@ export default function DocumentBank({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-2.5">
+          <input
+            ref={kiezer}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploaden(f);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => kiezer.current?.click()}
+            disabled={upload !== null}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-violet-300 px-4 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-60 cursor-pointer"
+          >
+            {upload ?? "⬆ Document uploaden (pdf)"}
+          </button>
+          <p className="-mt-1 text-center text-[11px] text-stone-500">
+            Het staat daarna meteen online. Kopieer de link voor een mail of nieuwsbrief, of zet het op een pagina.
+          </p>
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
           {!docs && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
           {docs?.length === 0 && (
             <p className="text-sm text-stone-500">
-              Nog geen documenten. Stuur een pdf mee via de 📎 — bijvoorbeeld een vacature of je voorwaarden — dan zet
-              ik hem op je site met een nette downloadlink.
+              Nog geen documenten. Upload hierboven een pdf, of stuur er een mee in de chat via de 📎, bijvoorbeeld een
+              vacature of je voorwaarden.
             </p>
           )}
           {docs?.map((d) => (
             <div
               key={d.pad}
               className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border p-3 ${
-                d.inGebruik ? "border-emerald-300" : "border-stone-200"
+                nieuw === d.pad ? "border-violet-400 bg-violet-50/60" : d.inGebruik ? "border-emerald-300" : "border-stone-200"
               }`}
             >
               <span aria-hidden className="text-lg">📄</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium text-stone-800" title={d.pad}>
+                  {nieuw === d.pad && <span className="mr-1.5 rounded-full bg-violet-700 px-1.5 py-0.5 text-[10px] font-bold text-white">Nieuw</span>}
                   {d.pad.split("/").pop()}
                 </span>
                 <span className="text-[11px] text-stone-500">

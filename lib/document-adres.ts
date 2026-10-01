@@ -23,3 +23,24 @@ export async function staatLive(adres: string, ms = 4000): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Een schone bestandsnaam in bestanden/ die nog niet bestaat. Een upload
+ * overschrijft nooit stilletjes een bestaand document: dan verandert wat er
+ * achter een al verstuurde link staat. Bestaat de naam al, dan -2, -3 enz.
+ */
+export function vrijPad(naam: string, bestaand: Set<string>): string {
+  const schoon =
+    (naam.split("/").pop() ?? "document.pdf")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "document.pdf";
+  const punt = schoon.lastIndexOf(".");
+  const stam = (punt > 0 ? schoon.slice(0, punt) : schoon).replace(/-+$/, "") || "document";
+  const ext = punt > 0 ? schoon.slice(punt) : "";
+  let pad = `bestanden/${stam}${ext}`;
+  for (let n = 2; bestaand.has(pad); n++) pad = `bestanden/${stam}-${n}${ext}`;
+  return pad;
+}
