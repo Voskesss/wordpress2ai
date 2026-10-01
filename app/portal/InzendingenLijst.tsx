@@ -214,7 +214,7 @@ function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; 
           {!r.spam && r.spamStand === "waarschijnlijk" && (
             <p className="mt-0.5 text-xs text-amber-700">
               <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Mogelijk spam</span>
-              {r.spamReden ? ` ${r.spamReden}` : ""} — de afzender kreeg geen automatische bevestiging.
+              {r.spamReden ? ` ${r.spamReden}.` : ""} De afzender kreeg geen automatische bevestiging.
             </p>
           )}
         </td>
