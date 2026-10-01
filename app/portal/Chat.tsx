@@ -1254,14 +1254,14 @@ export default function Chat({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
-      }).then((x) => x.json() as Promise<{ pad?: string; kb?: number; error?: string }>);
+      }).then((x) => x.json() as Promise<{ pad?: string; kb?: number; adres?: string | null; live?: boolean; error?: string }>);
       if (!r.pad) throw new Error(r.error ?? "Opslaan in de documentenbank mislukte");
       setStatusTekst(null);
       setBerichten((b) => [
         ...b,
         {
           rol: "assistent",
-          tekst: `Je document staat in de documentenbank (${r.pad}${r.kb ? `, ${r.kb} kB` : ""}). Typ waar de link naartoe moet komen — bijvoorbeeld "zet de vacature op de vacaturepagina". Je vindt hem altijd terug via 📎 → Documentenbank.`,
+          tekst: `Je document staat in de documentenbank (${r.pad}${r.kb ? `, ${r.kb} kB` : ""}).${r.live && r.adres ? ` Het staat al online: ${r.adres}` : ""} Wil je het op een pagina, typ dan waar de link naartoe moet komen, bijvoorbeeld "zet de vacature op de vacaturepagina". Je vindt het altijd terug via 📎 → Documentenbank.`,
         },
       ]);
     } catch (e) {
