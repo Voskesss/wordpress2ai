@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
+import { zoekOpNaam } from "@/lib/bank-zoeken";
+import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
-type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean };
+type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean; adres?: string | null; live?: boolean };
 
 /** Fotobank: alle foto's die ooit op de site stonden — niets wordt bij
  * vervangen weggegooid. Oude versies kun je met één klik terugzetten. */
 export default function Fotobank({
   siteId,
+  magUploaden = false,
   previewAccess,
   beeldBasis,
   vervangDoel,
@@ -21,6 +24,8 @@ export default function Fotobank({
   onKlaarKiezen,
 }: {
   siteId: number;
+  /** Zelf foto's uploaden in de bank (niet in de demo) */
+  magUploaden?: boolean;
   /** Sleutel voor /site-weergave: de miniaturen komen daarmee uit dezelfde
    * bron als de bank zelf (de bestanden van de site), niet van de
    * gepubliceerde worker. Een net geüploade foto die nog nergens geplaatst
@@ -68,6 +73,59 @@ export default function Fotobank({
   // Echte afmetingen per foto: zo zie je vóór het plaatsen of iets staand of
   // liggend is (de vakjes zelf snijden niet meer af sinds object-contain).
   const [maten, setMaten] = useState<Record<string, { w: number; h: number }>>({});
+  const [zoek, setZoek] = useState("");
+  const [upload, setUpload] = useState<string | null>(null);
+  const [nieuw, setNieuw] = useState<Set<string>>(new Set());
+  const [melding, setMelding] = useState<string | null>(null);
+
+  /** Rechtstreeks uploaden in de bank, zonder de chat. Verkleind op dezelfde
+   * maat als via de chat, in de site bewaard en meteen online, zodat de link
+   * direct te kopiëren is. Meerdere tegelijk kan; ze gaan één voor één. */
+  async function uploaden(lijst: File[]) {
+    if (upload) return;
+    setFout(null);
+    setMelding(null);
+    const fotos = lijst.filter((f) => f.type.startsWith("image/") || /\.(jpe?g|png|webp|gif|avif|heic)$/i.test(f.name));
+    if (!fotos.length) {
+      setFout("Kies een foto (jpg, png, webp of heic).");
+      return;
+    }
+    const nieuwe: string[] = [];
+    const waarschuwingen: string[] = [];
+    try {
+      const { upload: naarOpslag } = await import("@vercel/blob/client");
+      for (const [i, f] of fotos.entries()) {
+        const teller = fotos.length > 1 ? ` (${i + 1} van ${fotos.length})` : "";
+        setUpload(`Uploaden${teller}... 0%`);
+        const blob = await naarOpslag(`bank/${Date.now()}-${f.name}`, f, {
+          access: "public",
+          handleUploadUrl: "/api/foto-upload",
+          clientPayload: JSON.stringify({ siteId }),
+          onUploadProgress: (p) => setUpload(`Uploaden${teller}... ${Math.round(p.percentage)}%`),
+        });
+        setUpload(`Verkleinen en op je site zetten${teller}...`);
+        const r = (await fetch("/api/fotobank/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ siteId, blobUrl: blob.url, naam: f.name }),
+        }).then((x) => x.json())) as { pad?: string; grootte?: number; adres?: string | null; live?: boolean; kwaliteit?: string | null; error?: string };
+        if (!r.pad) throw new Error(r.error ?? "Opslaan lukte niet");
+        const pad = r.pad;
+        nieuwe.push(pad);
+        if (r.kwaliteit) waarschuwingen.push(`${f.name}: ${r.kwaliteit}`);
+        setBeelden((b) => [
+          { pad, stam: pad, grootte: r.grootte ?? 0, inGebruik: false, adres: r.adres ?? null, live: Boolean(r.live) },
+          ...(b ?? []).filter((x) => x.pad !== pad),
+        ]);
+      }
+    } catch (e) {
+      setFout(`Uploaden lukte niet: ${e instanceof Error ? e.message : "onbekende fout"}. Probeer het zo nog eens.`);
+    } finally {
+      setUpload(null);
+      if (nieuwe.length) setNieuw((n) => new Set([...n, ...nieuwe]));
+      if (waarschuwingen.length) setMelding(waarschuwingen.join(" "));
+    }
+  }
 
   useEffect(() => {
     let weg = false;
@@ -149,9 +207,13 @@ export default function Fotobank({
   const gefilterd = (beelden ?? []).filter((b) =>
     alleenOud ? !b.inGebruik || (stammen.get(b.stam)?.length ?? 0) > 1 : true
   );
-  const getoond = opNaam
-    ? [...gefilterd].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
-    : gefilterd;
+  const getoond = zoekOpNaam(
+    opNaam
+      ? [...gefilterd].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
+      : gefilterd,
+    zoek,
+    (b) => b.pad,
+  );
 
   return (
     <div className="mb-3 max-h-[70vh] overflow-y-auto rounded-2xl border border-violet-300 bg-white/95 p-4 shadow-2xl backdrop-blur">
@@ -168,6 +230,19 @@ export default function Fotobank({
           ? "Klik een foto aan en hij komt op de plek van de aangewezen foto te staan (als concept — jij publiceert). Liever een nieuw bestand? Gebruik dan de knop \"Vervang deze foto\"."
           : "Bij het vervangen van een foto gooien we niets weg — alles wat ooit op je site stond blijft hier beschikbaar. Klik \"Gebruik in opdracht\" bij elke foto die mee moet (meerdere kan) en vertel daarna in de chat wat ermee moet gebeuren. Een foto op de site vervangen? Wijs hem aan en kies daar \"Kies uit de fotobank\"."}
       </p>
+      {!vervangDoel && magUploaden && (
+        <div className="mt-3 space-y-2">
+          <OpenbaarMelding voorbeelden="zoals foto's van klanten zonder hun toestemming, of een foto van een document" />
+          <UploadKnop label="⬆ Foto's uploaden" accept="image/*" meerdere bezig={upload} onKies={(l) => void uploaden(l)} />
+          <p className="-mt-1 text-center text-[11px] text-stone-500">
+            Ze worden verkleind voor het web en staan daarna meteen online, met een link om te kopiëren.
+          </p>
+          {melding && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">{melding}</p>}
+        </div>
+      )}
+      <div className="mt-2">
+        <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={beelden?.length ?? 0} />
+      </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <label className="flex items-center gap-2 text-xs text-stone-600">
           <input type="checkbox" checked={alleenOud} onChange={(e) => setAlleenOud(e.target.checked)} />
@@ -190,9 +265,11 @@ export default function Fotobank({
       {fout && <p className="mt-3 text-sm text-red-600">{fout}</p>}
       {beelden && getoond.length === 0 && (
         <p className="mt-3 text-sm text-stone-500">
-          {alleenOud
-            ? "Nog geen vervangen foto's — zodra je een foto vervangt, verschijnt de oude hier."
-            : "Geen foto's gevonden."}
+          {zoek
+            ? `Niets gevonden met "${zoek}".`
+            : alleenOud
+              ? "Nog geen vervangen foto's — zodra je een foto vervangt, verschijnt de oude hier."
+              : "Geen foto's gevonden."}
         </p>
       )}
 
@@ -201,7 +278,7 @@ export default function Fotobank({
           <div
             key={b.pad}
             className={`overflow-hidden rounded-xl border ${
-              b.inGebruik ? "border-emerald-300" : "border-stone-200"
+              nieuw.has(b.pad) ? "border-violet-400 ring-2 ring-violet-200" : b.inGebruik ? "border-emerald-300" : "border-stone-200"
             }`}
           >
             {previewAccess || beeldBasis ? (
@@ -228,6 +305,7 @@ export default function Fotobank({
             )}
             <div className="p-2">
               <p className="truncate text-[11px] text-stone-500" title={b.pad}>
+                {nieuw.has(b.pad) && <span className="mr-1 rounded-full bg-violet-700 px-1.5 py-0.5 text-[9px] font-bold text-white">Nieuw</span>}
                 {b.pad.split("/").pop()}
               </p>
               {maten[b.pad] && (
@@ -240,6 +318,11 @@ export default function Fotobank({
                 <span className="mt-1 mr-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                   op de site
                 </span>
+              )}
+              {!vervangDoel && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  <KopieerLink adres={b.adres} live={b.live} />
+                </div>
               )}
               {vervangDoel && (
                 <button

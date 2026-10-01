@@ -11,6 +11,7 @@ import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { documentAdres, livePaden } from "@/lib/document-adres";
 
 export const maxDuration = 120;
 
@@ -64,6 +65,9 @@ export async function GET(req: Request) {
     const bronnen = alle.filter((b) => /\.(html?|css)$/i.test(b));
     let inhoud = "";
     for (const b of bronnen) inhoud += await readFile(path.join(werkmap, b), "utf8");
+    // Wat staat er echt live? Eén opvraging voor alle foto's samen. Alleen
+    // dan is de link te kopiëren (voor een mail of nieuwsbrief).
+    const live = site.isDemo ? new Set<string>() : await livePaden(site.siteSlug);
     const lijst = await Promise.all(
       beelden.map(async (pad) => {
         const { size } = await import("node:fs").then((fs) =>
@@ -74,6 +78,8 @@ export async function GET(req: Request) {
           stam: stamVan(pad),
           grootte: size,
           inGebruik: inhoud.includes(pad),
+          adres: site.isDemo ? null : documentAdres(site, pad),
+          live: live.has(pad),
         };
       })
     );

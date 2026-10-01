@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
+import { documentAdres, staatLive, vrijeNaam } from "@/lib/document-adres";
 
 /** De audiobank van een site: afleveringen in de media-map in R2, los van de
  * GitHub-repo en de deploy-sync. Verwijderen is hier een bewuste actie; een
@@ -51,7 +52,18 @@ export async function GET(req: Request) {
   }
 
   const { lijstAudio } = await import("@/lib/media");
-  return NextResponse.json({ audio: await lijstAudio(site.siteSlug), limiet: site.audioLimiet });
+  const audio = await lijstAudio(site.siteSlug);
+  // Per bestand het vaste webadres en of het al werkt (om te kopiëren naar
+  // een mail of nieuwsbrief). Een site op een ouder site-script kent /audio/
+  // nog niet: dan is hij pas na de volgende publicatie live.
+  const links: Record<string, { adres: string | null; live: boolean }> = {};
+  await Promise.all(
+    audio.map(async (naam) => {
+      const adres = documentAdres(site, `audio/${naam}`);
+      links[naam] = { adres, live: adres ? await staatLive(adres) : false };
+    }),
+  );
+  return NextResponse.json({ audio, limiet: site.audioLimiet, links });
 }
 
 export async function POST(req: Request) {
@@ -74,8 +86,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Alleen audio (mp3, m4a, aac, ogg, wav)." }, { status: 400 });
 
   const bestaand = await lijstAudio(site.siteSlug);
+  // Nooit een bestaande aflevering overschrijven: achter een al verstuurde
+  // link zou dan ineens iets anders staan. Dezelfde naam wordt naam-2.mp3.
   const schoon = schoneAudioNaam(body.naam);
-  if (!bestaand.includes(schoon) && bestaand.length >= site.audioLimiet)
+  const punt = schoon.lastIndexOf(".");
+  const vrij = vrijeNaam(schoon.slice(0, punt), schoon.slice(punt), new Set(bestaand));
+  if (bestaand.length >= site.audioLimiet)
     return NextResponse.json(
       { error: `De audiobank zit vol (${site.audioLimiet} bestanden). Verwijder eerst een oude aflevering, of vraag ons om meer ruimte.` },
       { status: 409 },
@@ -87,7 +103,7 @@ export async function POST(req: Request) {
   const data = Buffer.from(await antwoord.arrayBuffer());
   if (data.length > MAX_AUDIO_BYTES)
     return NextResponse.json({ error: "Bestand is te groot (max 150 MB)." }, { status: 400 });
-  const naam = await bewaarAudio(site.siteSlug, body.naam, data);
+  const naam = await bewaarAudio(site.siteSlug, vrij, data);
 
   // Tijdelijke blob opruimen; mislukt dat, dan verloopt hij vanzelf
   try {
@@ -112,7 +128,8 @@ export async function POST(req: Request) {
       },
     ])
     .catch((e) => console.error("Audiobank-berichten bewaren:", e));
-  return NextResponse.json({ ok: true, naam, pad: `/audio/${naam}` });
+  const adres = documentAdres(site, `audio/${naam}`);
+  return NextResponse.json({ ok: true, naam, pad: `/audio/${naam}`, adres, live: adres ? await staatLive(adres) : false });
 }
 
 export async function DELETE(req: Request) {

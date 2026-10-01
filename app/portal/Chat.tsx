@@ -2985,6 +2985,7 @@ export default function Chat({
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
+              magUploaden={!isDemo}
               // Aanklikken = toevoegen aan het stapeltje (nogmaals = eraf); de
               // bank blijft open zodat je meerdere foto's tegelijk kunt kiezen
               // ("zet deze drie in de galerij") — voorheen sloot hij na één
@@ -3062,6 +3063,8 @@ export default function Chat({
                 invoerRef.current?.focus();
               }}
               onSluit={() => setVideoBankOpen(false)}
+              // Uploaden vanuit de bank loopt via dezelfde videoverwerking als de 📎
+              onUpload={isDemo ? undefined : (bestand) => void videoUploaden(bestand)}
             />
           )}
           {audioBankOpen && (
@@ -3778,7 +3781,7 @@ export default function Chat({
                           { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
                           { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt verkleind, mét geluid, max 3 min" },
                           { soort: "audio", icoon: "🎧", titel: "Audio / podcast", uitleg: "mp3 of m4a, tot 150 MB" },
-                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure. Openbaar: niets vertrouwelijks" },
+                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
                         ] as const
                       ).map((k) => (
                         <button
@@ -3793,6 +3796,10 @@ export default function Chat({
                           </span>
                         </button>
                       ))}
+                      {/* Alles wat je meestuurt kan op je site komen en is dan openbaar */}
+                      <p className="mx-3 mb-1 mt-0.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] leading-snug text-amber-900">
+                        Openbaar op je site: stuur niets vertrouwelijks of met persoonsgegevens mee.
+                      </p>
                       <button
                         onClick={() => {
                           setBijlageMenu(false);
