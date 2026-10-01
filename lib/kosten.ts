@@ -4,7 +4,7 @@ import { aiKosten } from "@/db/schema";
 /** Append-only kostenlog; gelijktijdige aanvragen verliezen geen verbruik. */
 export async function registreerAiKosten(
   siteId: number,
-  bron: "chat" | "bouw",
+  bron: "chat" | "bouw" | "spamcheck",
   verbruik: { tokensIn?: number; tokensUit?: number; kostenUsd?: number },
 ) {
   const maand = new Date().toISOString().slice(0, 7);

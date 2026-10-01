@@ -26,11 +26,7 @@ reparaties.
 
 ## Nog niet uitgebracht (op dev): alle banken
 
-**Alle banken werken nu zoals de documentenbank.** In de fotobank, videobank en audiobank kun je zelf uploaden, een link kopiëren voor een mail of nieuwsbrief, en zoeken op naam. Elke bank waarschuwt vóór het uploaden dat alles openbaar is, en het paperclipmenu zegt het ook.
-- Foto's: meerdere tegelijk, verkleind op dezelfde maat als via de chat, en meteen online.
-- Audio: meteen online. Een aflevering met dezelfde naam wordt niet meer overschreven maar krijgt -2, zodat links in verstuurde mails blijven kloppen.
-- Video: uploaden in de bank gaat via dezelfde verwerking als in de chat (verkleinen duurt even, de voortgang staat in de chat). Daarna staat hij in de bank met zijn link.
-- De link verschijnt alleen als het bestand echt online staat.
+- Binnenkomende formulierberichten worden voortaan op spam gecontroleerd. Overduidelijke massaspam (aangeboden "diensten", linkrommel, sjabloonberichten) komt stil in een eigen Spam-tabje bij je berichten: jij krijgt er geen losse melding van en de afzender krijgt niet jouw automatische bevestiging. Aan het eind van de dag krijg je één kort overzicht, alleen op dagen dat er iets is tegengehouden. Twijfelgevallen komen gewoon bij je open berichten binnen, met een geel label "Mogelijk spam" en de reden erbij; de melding krijg je dan wel, alleen de afzender krijgt geen bevestiging. Jij houdt altijd het laatste woord: één klik op "Spam" of "Geen spam". Bij twijfel of een storing laat de controle alles gewoon door, en op de privacystanden "WordSwap kan niet meelezen" en "niets bewaren" staat hij uit.
 
 ## 1.38.5 (1 oktober 2026)
 

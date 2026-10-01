@@ -119,7 +119,7 @@ export default function Privacy() {
           <li><strong>Cloudflare</strong> — hosting van de klantwebsites</li>
           <li><strong>Neon</strong> — database (accounts, chatgeschiedenis, formulierinzendingen)</li>
           <li><strong>Clerk</strong> — inloggen en accountbeheer</li>
-          <li><strong>Anthropic</strong> — de AI die wijzigingen aan websites uitvoert; chatberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen</li>
+          <li><strong>Anthropic</strong> — de AI die wijzigingen aan websites uitvoert en binnenkomende formulierberichten op spam controleert; chatberichten en formulierberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen. Site-eigenaren kunnen de spamcontrole uitzetten via de privacystand van hun formulieren</li>
           <li><strong>Meta (WhatsApp Business Platform)</strong> — alleen als je je website via WhatsApp aanstuurt: het afleveren van berichten tussen jou en WordSwap</li>
           <li><strong>OpenAI</strong> — alleen bij WhatsApp-spraakberichten: het omzetten van spraak naar tekst; de opname wordt niet gebruikt om AI-modellen te trainen</li>
           <li><strong>Resend</strong> — het versturen van e-mail (bevestigingen en meldingen)</li>

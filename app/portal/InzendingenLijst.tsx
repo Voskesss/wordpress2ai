@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { afzenderVan, filterInzendingen, kernVan, tellingPerFormulier, type InzendingRij } from "@/lib/inzendingen";
+import { afzenderVan, bakVan, filterInzendingen, kernVan, tellingPerFormulier, type Bak, type InzendingRij } from "@/lib/inzendingen";
 import { inzendingVerwerken } from "./acties";
 import InzendingKnop from "./InzendingKnop";
 
@@ -43,7 +43,10 @@ function Actie({ id, siteId, actie, label, bezigLabel, bevestig, className }: { 
 export default function InzendingenLijst({ siteId, rijen }: { siteId: number; rijen: InzendingRij[] }) {
   const [formulier, setFormulier] = useState<string | null>(null);
   const [zoek, setZoek] = useState("");
-  const [toonAfgehandeld, setToonAfgehandeld] = useState(false);
+  // Drie bakken: open, afgehandeld en (alleen als er iets in zit) spam.
+  // Spam telt nergens anders mee: niet in Open, niet in Afgehandeld.
+  const [bak, setBak] = useState<Bak>("open");
+  const toonAfgehandeld = bak === "afgehandeld";
   const [open, setOpen] = useState<Set<number>>(new Set());
   const [gekozen, setGekozen] = useState<Set<number>>(new Set());
   // Verversen zonder de pagina te herladen: router.refresh() haalt alleen de
@@ -51,11 +54,15 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
   const router = useRouter();
   const [ververst, startVerversen] = useTransition();
 
-  const basis = useMemo(() => rijen.filter((r) => r.gearchiveerd === toonAfgehandeld), [rijen, toonAfgehandeld]);
+  const basis = useMemo(
+    () => rijen.filter((r) => bakVan(r) === bak),
+    [rijen, bak],
+  );
   const telling = useMemo(() => tellingPerFormulier(basis), [basis]);
   const zichtbaar = useMemo(() => filterInzendingen(basis, { formulier, zoek }), [basis, formulier, zoek]);
-  const openAantal = rijen.filter((r) => !r.gearchiveerd).length;
-  const afgehandeldAantal = rijen.length - openAantal;
+  const openAantal = rijen.filter((r) => bakVan(r) === "open").length;
+  const afgehandeldAantal = rijen.filter((r) => bakVan(r) === "afgehandeld").length;
+  const spamAantal = rijen.filter((r) => bakVan(r) === "spam").length;
 
   const wissel = (set: Set<number>, id: number) => {
     const n = new Set(set);
@@ -71,12 +78,22 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => { setToonAfgehandeld(false); setFormulier(null); }} className={chip(!toonAfgehandeld)}>
+        <button type="button" onClick={() => { setBak("open"); setFormulier(null); }} className={chip(bak === "open")}>
           Open ({openAantal})
         </button>
-        <button type="button" onClick={() => { setToonAfgehandeld(true); setFormulier(null); }} className={chip(toonAfgehandeld)}>
+        <button type="button" onClick={() => { setBak("afgehandeld"); setFormulier(null); }} className={chip(bak === "afgehandeld")}>
           Afgehandeld ({afgehandeldAantal})
         </button>
+        {spamAantal > 0 && (
+          <button
+            type="button"
+            onClick={() => { setBak("spam"); setFormulier(null); }}
+            className={chip(bak === "spam")}
+            title="Berichten die de automatische controle als massaspam zag. Je kreeg er geen melding van en de afzender geen bevestiging."
+          >
+            Spam ({spamAantal})
+          </button>
+        )}
         {telling.length > 1 && (
           <>
             <span className="mx-1 text-stone-300">|</span>
@@ -109,16 +126,23 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
         </button>
       </div>
 
+      {bak === "spam" && (
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Deze berichten zag de automatische controle als massaspam. Je kreeg er geen melding van en de afzender kreeg geen bevestiging. Toch een echt bericht? Klik op &ldquo;Geen spam&rdquo;, dan staat het weer bij je open berichten.
+        </p>
+      )}
       {zichtbaar.length === 0 ? (
         <p className="mt-4 text-sm text-stone-500">
-          {rijen.length === 0 ? "Nog geen berichten ontvangen." : zoek || formulier ? "Niets gevonden met dit filter." : toonAfgehandeld ? "Nog niets afgehandeld." : "Alles is afgehandeld."}
+          {rijen.length === 0 ? "Nog geen berichten ontvangen." : zoek || formulier ? "Niets gevonden met dit filter." : bak === "spam" ? "Geen spam." : toonAfgehandeld ? "Nog niets afgehandeld." : "Alles is afgehandeld."}
         </p>
       ) : (
         <>
           {gekozenZichtbaar.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm">
               <span className="font-semibold text-violet-900">{gekozenZichtbaar.length} gekozen</span>
-              {toonAfgehandeld ? (
+              {bak === "spam" ? (
+                <Actie id={gekozenZichtbaar.join(",")} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className="font-medium text-violet-700 hover:underline cursor-pointer" />
+              ) : toonAfgehandeld ? (
                 <Actie id={gekozenZichtbaar.join(",")} siteId={siteId} actie="terug" label="↩ Terugzetten" bezigLabel="Bezig..." className="font-medium text-violet-700 hover:underline cursor-pointer" />
               ) : (
                 <Actie id={gekozenZichtbaar.join(",")} siteId={siteId} actie="archiveer" label="✓ Markeer als afgehandeld" bezigLabel="Bezig..." className="font-medium text-violet-700 hover:underline cursor-pointer" />
@@ -184,10 +208,26 @@ function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; 
             {kernVan(r.velden) || "(leeg)"}
             {r.bijlagen?.length ? ` 📎${r.bijlagen.length}` : ""}
           </button>
+          {r.spam && r.spamReden && (
+            <p className="mt-0.5 text-xs text-amber-700">Waarom spam: {r.spamReden}</p>
+          )}
+          {!r.spam && r.spamStand === "waarschijnlijk" && (
+            <p className="mt-0.5 text-xs text-amber-700">
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Mogelijk spam</span>
+              {r.spamReden ? ` ${r.spamReden}` : ""} — de afzender kreeg geen automatische bevestiging.
+            </p>
+          )}
         </td>
         <td className="py-2">
           <div className="flex justify-end gap-3">
-            {r.gearchiveerd ? (
+            {r.spam ? (
+              <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+            ) : r.spamStand === "waarschijnlijk" ? (
+              <>
+                <Actie id={r.id} siteId={siteId} actie="wel-spam" label="Spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-amber-700`} />
+                <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+              </>
+            ) : r.gearchiveerd ? (
               <Actie id={r.id} siteId={siteId} actie="terug" label="↩ Terugzetten" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
             ) : (
               <Actie id={r.id} siteId={siteId} actie="archiveer" label="✓ Afgehandeld" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />

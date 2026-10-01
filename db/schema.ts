@@ -264,7 +264,7 @@ export const aiKosten = pgTable("ai_kosten", {
     .notNull()
     .references(() => sites.id),
   maand: text("maand").notNull(), // "2026-08"
-  bron: text("bron", { enum: ["chat", "bouw"] }).notNull(),
+  bron: text("bron", { enum: ["chat", "bouw", "spamcheck"] }).notNull(),
   beurten: integer("beurten").notNull().default(0), // aantal AI-opdrachten
   tokensIn: integer("tokens_in").notNull().default(0),
   tokensUit: integer("tokens_uit").notNull().default(0),
@@ -287,6 +287,18 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   // Afgehandeld: uit het overzicht, wel bewaard (uitklapbaar terug te zien)
   gearchiveerd: boolean("gearchiveerd").notNull().default(false),
+  // Door de inhoudscontrole herkend als overduidelijke massaspam: wel bewaard
+  // (apart terug te vinden), maar niemand kreeg er mail over. De reden staat
+  // erbij zodat een vals alarm te beoordelen is. Zie lib/formulier-spam.
+  spam: boolean("spam").notNull().default(false),
+  spamReden: text("spam_reden"),
+  // Het oordeel van het model: "zeker" (stil in het Spam-tabje) of
+  // "waarschijnlijk" (geel label bij Open, melding met waarschuwing).
+  // Leeg = geen spam. De boolean spam hierboven blijft leidend voor de bak.
+  spamStand: text("spam_stand", { enum: ["zeker", "waarschijnlijk"] }),
+  // Wanneer dit zeker-spambericht in het dagoverzicht aan de eigenaar is
+  // gemeld (lib/spam-dagmail). Leeg = nog melden.
+  spamGemeldOp: timestamp("spam_gemeld_op"),
   // false = deze site staat op "niet bewaren": er staat alleen dat er een
   // bericht was, zodat de spamrem blijft tellen. De inhoud is nooit opgeslagen.
   inhoudBewaard: boolean("inhoud_bewaard").notNull().default(true),

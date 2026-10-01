@@ -11,7 +11,23 @@ export type InzendingRij = {
   /** ISO-tijd, want een Date overleeft de sprong naar de client niet als Date. */
   aangemaakt: string;
   gearchiveerd: boolean;
+  /** Door de inhoudscontrole als massaspam herkend (lib/formulier-spam):
+   * staat dan onder het Spam-tabje, met de reden erbij. */
+  spam?: boolean;
+  spamReden?: string | null;
+  /** Oordeel van het model: "waarschijnlijk" geeft een geel label bij Open;
+   * "zeker" hoort bij spam=true. Leeg = geen spam. */
+  spamStand?: "zeker" | "waarschijnlijk" | null;
 };
+
+export type Bak = "open" | "afgehandeld" | "spam";
+
+/** In welke bak van het portaal een bericht hoort. Spam gaat altijd voor:
+ * een spambericht telt nooit mee bij de open of afgehandelde berichten. */
+export function bakVan(r: Pick<InzendingRij, "spam" | "gearchiveerd">): Bak {
+  if (r.spam) return "spam";
+  return r.gearchiveerd ? "afgehandeld" : "open";
+}
 
 const NAAMVELDEN = ["naam", "name", "voornaam", "achternaam", "bedrijf", "organisatie"];
 const MAILVELDEN = ["email", "e-mail", "emailadres", "e-mailadres", "mail"];

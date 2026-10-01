@@ -77,6 +77,9 @@ export default async function SiteExtra({
       bijlagen: (Array.isArray(i.bijlagen) ? i.bijlagen : []) as InzendingRij["bijlagen"],
       aangemaakt: i.aangemaakt.toISOString(),
       gearchiveerd: i.gearchiveerd,
+      spam: i.spam,
+      spamReden: i.spamReden,
+      spamStand: i.spamStand,
     }));
 
   return (

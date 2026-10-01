@@ -23,13 +23,13 @@ export const UITLEG: Record<Stand, { label: string; kort: string; gevolg: string
     label: "WordSwap kan niet meelezen",
     kort: "Berichten worden bewaard en de klant ziet ze gewoon, maar WordSwap ziet de inhoud niet.",
     gevolg:
-      "Het vangnet blijft: raakt een mail kwijt, dan staat het bericht er nog. Bij een probleem met een formulier kunnen wij niet in de berichten kijken om het te vinden.",
+      "Het vangnet blijft: raakt een mail kwijt, dan staat het bericht er nog. Bij een probleem met een formulier kunnen wij niet in de berichten kijken om het te vinden, en de automatische spamcontrole staat uit (die leest mee).",
   },
   "niet-bewaren": {
     label: "Niets bewaren, alleen doorsturen",
     kort: "Het bericht gaat per mail naar de klant en wordt nergens opgeslagen. Ook bijlagen niet.",
     gevolg:
-      "Geen overzicht in het portaal, geen export, en geen vangnet: komt de mail niet aan, dan is het bericht weg. De bezoeker krijgt dat dan wel te zien, zodat hij kan bellen.",
+      "Geen overzicht in het portaal, geen export, en geen vangnet: komt de mail niet aan, dan is het bericht weg. De bezoeker krijgt dat dan wel te zien, zodat hij kan bellen. Ook de automatische spamcontrole staat uit (die leest mee).",
   },
 };
 
