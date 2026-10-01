@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Doc = { pad: string; kb: number; inGebruik: boolean };
+type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean };
 
 /** Documentenbank: de pdf's die op de site staan (vacature, voorwaarden,
  * menukaart, brochure). Opruimen kan zodra er nergens meer een downloadlink
@@ -22,6 +22,20 @@ export default function DocumentBank({
   const [fout, setFout] = useState<string | null>(null);
   const [bezigMet, setBezigMet] = useState<string | null>(null);
   const [wisVraag, setWisVraag] = useState<string | null>(null);
+  const [gekopieerd, setGekopieerd] = useState<string | null>(null);
+
+  /** Het webadres naar het klembord, voor een nieuwsbrief of mail. Lukt het
+   * klembord niet (oude browser), dan staat het adres eronder om te selecteren. */
+  async function kopieer(d: Doc) {
+    if (!d.adres) return;
+    try {
+      await navigator.clipboard.writeText(d.adres);
+    } catch {
+      /* het adres staat zichtbaar onder de knop */
+    }
+    setGekopieerd(d.pad);
+    setTimeout(() => setGekopieerd((v) => (v === d.pad ? null : v)), 4000);
+  }
 
   useEffect(() => {
     let weg = false;
@@ -71,8 +85,8 @@ export default function DocumentBank({
           <div>
             <h3 className="font-semibold text-stone-900">📄 Documentenbank</h3>
             <p className="text-xs text-stone-500">
-              De pdf&apos;s op je site: vacatures, voorwaarden, menukaarten. Opruimen kan zodra er geen downloadlink
-              meer naar wijst.
+              De pdf&apos;s op je site: vacatures, voorwaarden, menukaarten. Kopieer de link om een document in een
+              mail of nieuwsbrief te zetten.
             </p>
           </div>
           <button
@@ -106,8 +120,16 @@ export default function DocumentBank({
                 </span>
                 <span className="text-[11px] text-stone-500">
                   {d.kb} kB
-                  {d.inGebruik ? " · staat op je site" : " · nergens gelinkt"}
+                  {d.inGebruik ? " · staat op je site" : " · nergens op je site gelinkt"}
                 </span>
+                {d.adres && d.live && gekopieerd === d.pad && (
+                  <span className="mt-0.5 block select-all break-all text-[11px] text-emerald-800">{d.adres}</span>
+                )}
+                {d.adres && !d.live && (
+                  <span className="mt-0.5 block text-[11px] text-amber-700">
+                    Nog niet live: de link kun je kopiëren zodra je wijziging gepubliceerd is.
+                  </span>
+                )}
               </span>
               {previewAccess && (
                 <a
@@ -118,6 +140,19 @@ export default function DocumentBank({
                 >
                   Openen
                 </a>
+              )}
+              {d.adres && d.live && (
+                <button
+                  onClick={() => kopieer(d)}
+                  title="Het webadres van dit document, om in een mail of nieuwsbrief te plakken"
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer ${
+                    gekopieerd === d.pad
+                      ? "border-emerald-400 bg-emerald-50 text-emerald-800"
+                      : "border-violet-300 text-violet-700 hover:bg-violet-50"
+                  }`}
+                >
+                  {gekopieerd === d.pad ? "✓ Link gekopieerd" : "🔗 Link kopiëren"}
+                </button>
               )}
               <button
                 onClick={() => {
@@ -130,7 +165,10 @@ export default function DocumentBank({
               </button>
               {!d.inGebruik &&
                 (wisVraag === d.pad ? (
-                  <span className="flex items-center gap-1.5 text-xs">
+                  <span className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="basis-full text-amber-800">
+                      Staat deze link in een verstuurde mail of nieuwsbrief? Dan werkt die daarna niet meer.
+                    </span>
                     <button
                       onClick={() => wis(d.pad)}
                       disabled={bezigMet !== null}

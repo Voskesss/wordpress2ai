@@ -20,9 +20,13 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## 1.39.0 (30 september 2026)
+## 1.39.0 (1 oktober 2026)
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.
+
+## 1.38.2 (30 september 2026)
+
+- Documentenbank: per document een knop "Link kopiëren" met het vaste webadres, om een pdf in een mail of nieuwsbrief te zetten (bijvoorbeeld via Mailblue). De knop verschijnt alleen als het adres echt werkt; staat een document nog alleen in een concept, dan staat er dat de link na publiceren beschikbaar komt. Opruimen waarschuwt nu dat links in verstuurde mails daarna niet meer werken. Gevraagd voor Van den Berg Mediation.
 
 ## 1.38.1 (30 september 2026)
 

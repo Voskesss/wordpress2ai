@@ -9,6 +9,7 @@ import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { documentAdres, staatLive } from "@/lib/document-adres";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
  * menukaarten, brochures). Ze leven in de siterepo, in bestanden/, en gaan bij
@@ -54,11 +55,19 @@ export async function GET(req: Request) {
     const documenten = await Promise.all(
       alle
         .filter((b) => IS_DOCUMENT.test(b))
-        .map(async (pad) => ({
-          pad,
-          kb: Math.round((await stat(path.join(werkmap!, pad))).size / 1024),
-          inGebruik: inhoud.includes(pad),
-        })),
+        .map(async (pad) => {
+          // Het webadres om te kopiëren (voor een nieuwsbrief of mail), en of
+          // het al werkt: staat het document alleen in een concept, dan geeft
+          // het live adres nog een 404 en mag niemand het versturen.
+          const adres = documentAdres(site, pad);
+          return {
+            pad,
+            kb: Math.round((await stat(path.join(werkmap!, pad))).size / 1024),
+            inGebruik: inhoud.includes(pad),
+            adres,
+            live: adres ? await staatLive(adres) : false,
+          };
+        }),
     );
     documenten.sort((a, b) => Number(b.inGebruik) - Number(a.inGebruik) || a.pad.localeCompare(b.pad));
     return NextResponse.json({ documenten });
