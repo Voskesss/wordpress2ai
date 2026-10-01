@@ -20,13 +20,17 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## 1.38.5 (1 oktober 2026)
+## Nog niet uitgebracht (op dev): alle banken
 
 **Alle banken werken nu zoals de documentenbank.** In de fotobank, videobank en audiobank kun je zelf uploaden, een link kopiëren voor een mail of nieuwsbrief, en zoeken op naam. Elke bank waarschuwt vóór het uploaden dat alles openbaar is, en het paperclipmenu zegt het ook.
 - Foto's: meerdere tegelijk, verkleind op dezelfde maat als via de chat, en meteen online.
 - Audio: meteen online. Een aflevering met dezelfde naam wordt niet meer overschreven maar krijgt -2, zodat links in verstuurde mails blijven kloppen.
 - Video: uploaden in de bank gaat via dezelfde verwerking als in de chat (verkleinen duurt even, de voortgang staat in de chat). Daarna staat hij in de bank met zijn link.
 - De link verschijnt alleen als het bestand echt online staat.
+
+## 1.38.5 (1 oktober 2026)
+
+- Documentenbank: de volledige naam van een document is weer te lezen. Naast de drie knoppen werd hij afgekapt en viel de rest woord voor woord onder elkaar; nu staan naam en gegevens op een eigen regel, met de knoppen eronder.
 
 ## 1.38.4 (1 oktober 2026)
 
