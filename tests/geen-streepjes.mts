@@ -47,6 +47,20 @@ for (const [bestand, toegestaan] of [
   assert.equal(aantal, toegestaan, `${bestand}: ${aantal} lange streepjes, verwacht ${toegestaan}`);
 }
 
+// 3b. Portaalteksten van de berichtenlijst en de spamcontrole (01-10: "— de
+// afzender kreeg geen automatische bevestiging" stond live). Commentaar telt
+// niet mee, alleen tekst die een klant kan zien.
+const zonderCommentaar = (s: string) =>
+  s
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+for (const bestand of ["app/portal/InzendingenLijst.tsx", "lib/spam-dagmail.ts", "lib/formulier-spam.ts", "lib/inzendingen.ts"]) {
+  const inhoud = zonderCommentaar(await readFile(new URL(`../${bestand}`, import.meta.url), "utf8"));
+  const aantal = (inhoud.match(/—/g) ?? []).length;
+  assert.equal(aantal, 0, `${bestand}: ${aantal} lange streepjes in tekst voor klanten`);
+}
+
 // 4. En de AI krijgt de regel ook echt mee
 {
   const inhoud = await readFile(new URL("../lib/lead-mail-ai.ts", import.meta.url), "utf8");

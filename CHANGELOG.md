@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.8 (1 oktober 2026)
+
+- Spam-tabje: de uitleg bij een bericht heeft geen lang streepje meer (huisregel). De streepjestest controleert nu ook de berichtenlijst en de teksten van de spamcontrole.
+
 ## 1.38.7 (1 oktober 2026)
 
 - Facturen en opdrachtbevestigingen tonen het vaste WordSwap-nummer 026 234 01 22, uit dezelfde bron als de site, in plaats van een mobiel nummer. Staat de KvK van de klant al in het adresveld, dan staat hij er niet meer twee keer op. Al uitgegeven facturen blijven zoals ze zijn.
