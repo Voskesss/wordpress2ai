@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { zoekOpNaam } from "@/lib/bank-zoeken";
+import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
-type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media" };
+type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media"; adres?: string | null; live?: boolean };
 
 /** Videobank: alle video's die op de site staan, met hun voorbeeldplaatje.
  * Opruimen kan alleen bij video's die nergens meer gebruikt worden — anders
@@ -12,6 +14,7 @@ export default function VideoBank({
   previewAccess,
   onGebruik,
   onSluit,
+  onUpload,
 }: {
   siteId: number;
   /** Sleutel voor /site-weergave: poster en video komen uit dezelfde bron als
@@ -19,8 +22,13 @@ export default function VideoBank({
   previewAccess?: string | null;
   onGebruik: (pad: string) => void;
   onSluit: () => void;
+  /** Uploaden vanuit de bank: gaat via de videoverwerking van de chat
+   * (verkleinen, voortgang, herstel na verversen). Daar zie je de voortgang;
+   * daarna staat de video hier met zijn link. */
+  onUpload?: (bestand: File) => void;
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
+  const [zoek, setZoek] = useState("");
   // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
   // op naam is er voor wie een specifieke video zoekt (26-09)
   const [opNaam, setOpNaam] = useState(false);
@@ -110,12 +118,35 @@ export default function VideoBank({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="mb-3 space-y-2.5">
+            <OpenbaarMelding voorbeelden="zoals beelden van klanten zonder hun toestemming" />
+            {onUpload && (
+              <>
+                <UploadKnop
+                  label="⬆ Video uploaden (mp4, mov)"
+                  accept="video/mp4,video/quicktime,video/webm"
+                  bezig={null}
+                  onKies={(l) => {
+                    onUpload(l[0]);
+                    onSluit();
+                  }}
+                />
+                <p className="-mt-1 text-center text-[11px] text-stone-500">
+                  Hij wordt eerst verkleind voor het web; de voortgang zie je in de chat. Daarna staat hij hier met zijn link.
+                </p>
+              </>
+            )}
+            <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={videos?.length ?? 0} />
+          </div>
           {fout && <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
+          {videos && videos.length > 0 && zoek && zoekOpNaam(videos, zoek, (v) => v.pad).length === 0 && (
+            <p className="mb-3 text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
+          )}
           {!videos && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
           {videos?.length === 0 && (
             <p className="text-sm text-stone-500">
-              Nog geen video&apos;s. Stuur er een mee via de 📎 — hij wordt automatisch verkleind voor het web en
-              daarna zet ik hem op de plek die je noemt.
+              Nog geen video&apos;s. Upload er hierboven een, of stuur hem mee in de chat via de 📎. Hij wordt
+              automatisch verkleind voor het web.
             </p>
           )}
           {(videos?.length ?? 0) > 1 && (
@@ -132,10 +163,13 @@ export default function VideoBank({
             </label>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            {(opNaam && videos
-              ? [...videos].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
-              : videos
-            )?.map((v) => (
+            {zoekOpNaam(
+              (opNaam && videos
+                ? [...videos].sort((a, b) => (a.pad.split("/").pop() ?? "").localeCompare(b.pad.split("/").pop() ?? ""))
+                : videos) ?? [],
+              zoek,
+              (v) => v.pad,
+            ).map((v) => (
               <div key={v.pad} className={`overflow-hidden rounded-2xl border ${v.inGebruik ? "border-emerald-300" : "border-stone-200"}`}>
                 {bron(v) ? (
                   // eslint-disable-next-line jsx-a11y/media-has-caption
@@ -171,6 +205,7 @@ export default function VideoBank({
                     </span>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <KopieerLink adres={v.adres} live={v.live} />
                     <button
                       onClick={() => {
                         onGebruik(`/${v.pad}`);

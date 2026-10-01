@@ -194,6 +194,7 @@ export default function Chat({
   meelezenUit = false,
   verbruik = null,
   startVolledig = true,
+  metBalk = false,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
@@ -209,6 +210,12 @@ export default function Chat({
    * springt het gesprek dan bij elke herlading over je scherm heen.
    */
   startVolledig?: boolean;
+  /**
+   * Het portaal heeft een vaste bovenbalk met tabbladen (PortaalSchil). Dan
+   * begint de schermvullende weergave ónder die balk, en zijn de losse
+   * terug-knopjes overbodig: de navigatie staat er altijd.
+   */
+  metBalk?: boolean;
   previewAccess: string;
   historie: Bericht[];
   liveUrl?: string | null;
@@ -442,12 +449,32 @@ export default function Chat({
 
   // Invoerveld laten meegroeien met de tekst (tot ~5 regels) — ook bij spraakinvoer,
   // zodat je altijd de volledige tekst ziet die je gaat opsturen
-  useEffect(() => {
+  // Meten kan alleen als het veld zichtbaar is: in een verborgen tabblad van
+  // het portaal (PortaalSchil) is scrollHeight 0, en dan bleef het veld 0
+  // hoog, zonder zelfs de voorbeeldtekst (01-10). Daarom bij 0 niets
+  // vastzetten, en opnieuw meten zodra het veld (weer) breedte krijgt.
+  const pasInvoerHoogteAan = useCallback(() => {
     const el = invoerRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
-  }, [invoer]);
+    const h = el.scrollHeight;
+    el.style.height = h > 0 ? `${Math.min(h, 120)}px` : "";
+  }, []);
+  useEffect(() => {
+    pasInvoerHoogteAan();
+  }, [invoer, pasInvoerHoogteAan]);
+  useEffect(() => {
+    const el = invoerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let breedte = el.clientWidth;
+    const waarnemer = new ResizeObserver(() => {
+      if (el.clientWidth === breedte) return; // alleen bij een andere breedte
+      breedte = el.clientWidth;
+      pasInvoerHoogteAan();
+    });
+    waarnemer.observe(el);
+    return () => waarnemer.disconnect();
+  }, [pasInvoerHoogteAan]);
 
   // Escape sluit de schermvullende weergave
   useEffect(() => {
@@ -2088,6 +2115,10 @@ export default function Chat({
             ? "fixed inset-0 z-[80]"
             : "relative rounded-3xl border-2 shadow-sm"
         } ${concept ? "border-amber-400" : "border-stone-200"}`}
+        // In het portaal staat een vaste balk (PortaalSchil zet --portaal-nav):
+        // schermvullend betekent dan "alles onder de balk". In de admin
+        // bestaat de variabele niet en is dit gewoon 0.
+        style={volledigScherm || (isMobiel && mobielVol) ? { top: "var(--portaal-nav, 0px)" } : undefined}
       >
         {/* Publiceren/verwijderen: duidelijke overlay over venster én chat, zodat niemand ondertussen doorklikt */}
         {conceptActie && (
@@ -2134,7 +2165,7 @@ export default function Chat({
             ))}
             {/* Duidelijke weg terug naar het portaal met menu — een kaal
                 kruisje herkende niemand als uitgang */}
-            <button
+            {!metBalk && <button
               onClick={() => setMobielVol(false)}
               aria-label="Editor verkleinen — terug naar de pagina met het menu"
               className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-stone-300 px-3 text-sm font-semibold text-stone-600 cursor-pointer"
@@ -2143,7 +2174,7 @@ export default function Chat({
                 <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               Menu
-            </button>
+            </button>}
           </div>
         )}
 
@@ -2217,7 +2248,7 @@ export default function Chat({
                 </button>
               ))}
             </div>
-            {volledigScherm && !isMobiel && (
+            {volledigScherm && !isMobiel && !metBalk && (
               <>
                 {/* Schermvullend: duidelijke weg terug naar de rest van het dashboard */}
                 {terugLink && (
@@ -2269,7 +2300,9 @@ export default function Chat({
             <Tip
               tekst={
                 volledigScherm
-                  ? "Terug naar de normale weergave (kan ook met Esc)"
+                  ? metBalk
+                    ? "Kleinere weergave, met ruimte eromheen (kan ook met Esc)"
+                    : "Terug naar de normale weergave (kan ook met Esc)"
                   : "Voorbeeld schermvullend maken"
               }
               plaats="onder"
@@ -2281,9 +2314,11 @@ export default function Chat({
                 onClick={() => setVolledigScherm(!volledigScherm)}
                 aria-label={volledigScherm ? "Volledig scherm sluiten" : "Maak groot"}
                 className={`hidden sm:flex items-center justify-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer ${
-                  volledigScherm
+                  volledigScherm && !metBalk
                     ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-                    : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    : volledigScherm
+                      ? "border-stone-300 bg-white text-stone-600 hover:bg-stone-50"
+                      : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
                 }`}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -2293,7 +2328,7 @@ export default function Chat({
                     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                   )}
                 </svg>
-                {volledigScherm ? <span className="hidden md:inline">Volledig scherm uit</span> : <span>Maak groot</span>}
+                {volledigScherm ? <span className="hidden md:inline">{metBalk ? "Kleiner" : "Volledig scherm uit"}</span> : <span>Maak groot</span>}
               </button>
             </Tip>
           </div>
@@ -2502,7 +2537,9 @@ export default function Chat({
         <div
           className={
             splitModus
-              ? "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto border-l border-stone-200 bg-stone-100/80 p-3"
+              ? // overflow-x-hidden: anders gaf één iets te breed element een
+                // horizontale schuifbalk onder de hele kolom (01-10)
+                "flex w-[26rem] xl:w-[30rem] 2xl:w-[34rem] shrink-0 flex-col justify-end gap-0 overflow-y-auto overflow-x-hidden border-l border-stone-200 bg-stone-100/80 p-3"
               : mobielChat
                 ? // Op een telefoon stond hier "justify-end" samen met
                   // "overflow-y-auto". Die combinatie klemt de bovenkant zodra
@@ -2970,6 +3007,7 @@ export default function Chat({
           {fotobankOpen && (
             <Fotobank
               siteId={siteId}
+              magUploaden={!isDemo}
               // Aanklikken = toevoegen aan het stapeltje (nogmaals = eraf); de
               // bank blijft open zodat je meerdere foto's tegelijk kunt kiezen
               // ("zet deze drie in de galerij") — voorheen sloot hij na één
@@ -3047,6 +3085,8 @@ export default function Chat({
                 invoerRef.current?.focus();
               }}
               onSluit={() => setVideoBankOpen(false)}
+              // Uploaden vanuit de bank loopt via dezelfde videoverwerking als de 📎
+              onUpload={isDemo ? undefined : (bestand) => void videoUploaden(bestand)}
             />
           )}
           {audioBankOpen && (
@@ -3543,7 +3583,10 @@ export default function Chat({
                 setChatOpen(true);
               }
             }}
-            className={`${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
+            // shrink-0: bij weinig hoogte kromp de invoerbalk mee met het
+            // gesprek en viel het typveld half weg (01-10). Het gesprek
+            // levert de ruimte in, dat kan scrollen; het typveld niet.
+            className={`shrink-0 ${smalleBalk ? "rounded-3xl" : "rounded-full"} border bg-white/95 p-1.5 shadow-2xl backdrop-blur ${
               toonHint
                 ? "border-violet-500 ring-4 ring-violet-300/50"
                 : "border-stone-200"
@@ -3763,7 +3806,7 @@ export default function Chat({
                           { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
                           { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt verkleind, mét geluid, max 3 min" },
                           { soort: "audio", icoon: "🎧", titel: "Audio / podcast", uitleg: "mp3 of m4a, tot 150 MB" },
-                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure. Openbaar: niets vertrouwelijks" },
+                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
                         ] as const
                       ).map((k) => (
                         <button
@@ -3778,6 +3821,10 @@ export default function Chat({
                           </span>
                         </button>
                       ))}
+                      {/* Alles wat je meestuurt kan op je site komen en is dan openbaar */}
+                      <p className="mx-3 mb-1 mt-0.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] leading-snug text-amber-900">
+                        Openbaar op je site: stuur niets vertrouwelijks of met persoonsgegevens mee.
+                      </p>
                       <button
                         onClick={() => {
                           setBijlageMenu(false);
@@ -4029,7 +4076,7 @@ export default function Chat({
                     ? "De AI is bezig — typ alvast je volgende opdracht (Enter = klaarzetten)"
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
-                className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]`}
+                className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug min-h-[2.5rem] max-h-[120px]`}
               />
               <button
                 onClick={bezig ? stop : verstuur}
@@ -4075,7 +4122,7 @@ export default function Chat({
               tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
               keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
           {!tipWeg && !bezig && (
-            <div className="mt-2.5 flex justify-center px-2">
+            <div className="mt-2.5 flex shrink-0 justify-center px-2">
               <div className="flex w-full max-w-[46rem] items-start gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/90 px-4 py-2.5 shadow-sm backdrop-blur">
                 <span aria-hidden className="mt-0.5 text-base leading-none">💡</span>
                 <button
