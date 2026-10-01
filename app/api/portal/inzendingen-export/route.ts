@@ -53,7 +53,7 @@ export async function GET(req: Request) {
       [
         r.aangemaakt.toLocaleString("nl-NL"),
         r.formulier,
-        r.gearchiveerd ? "afgehandeld" : "nieuw",
+        r.spam ? "spam" : r.gearchiveerd ? "afgehandeld" : "nieuw",
         ...veldNamen.map((n) => velden[n] ?? ""),
       ]
         .map(cel)
