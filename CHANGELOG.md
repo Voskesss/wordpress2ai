@@ -24,6 +24,10 @@ reparaties.
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.
 
+## 1.38.4 (1 oktober 2026)
+
+- Documentenbank en paperclipmenu waarschuwen nu vóór het uploaden: documenten op je site zijn openbaar. Iedereen met de link kan ze openen en Google kan ze vinden, dus nooit iets met persoonsgegevens of iets vertrouwelijks.
+
 ## 1.38.3 (1 oktober 2026)
 
 - Documentenbank: je kunt nu ook in de bank zelf een pdf uploaden, naast meesturen in de chat. Het document staat daarna meteen online, bovenaan de lijst met "Link kopiëren", klaar voor een mail of nieuwsbrief. Ook via de chat staat een document voortaan direct online, en de chat noemt de link. Een upload overschrijft nooit een bestaand document met dezelfde naam: dan wordt het bijvoorbeeld vacature-2.pdf, zodat links in al verstuurde mails blijven kloppen.

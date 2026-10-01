@@ -151,6 +151,13 @@ export default function DocumentBank({
               if (f) void uploaden(f);
             }}
           />
+          {/* Documenten op de site zijn openbaar: iedereen met de link kan ze
+              openen en Google kan ze vinden. Dat moet je weten vóór je uploadt. */}
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+            <strong>Let op: alles wat je hier uploadt is openbaar.</strong> Iedereen met de link kan het openen, en
+            Google kan het vinden. Upload dus nooit iets met persoonsgegevens of iets vertrouwelijks, zoals een
+            contract, offerte, dossier of verslag over een klant.
+          </p>
           <button
             type="button"
             onClick={() => kiezer.current?.click()}

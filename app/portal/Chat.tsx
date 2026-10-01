@@ -3778,7 +3778,7 @@ export default function Chat({
                           { soort: "foto", icoon: "🖼️", titel: "Foto’s", uitleg: "meerdere tegelijk kan" },
                           { soort: "video", icoon: "🎬", titel: "Video", uitleg: "wordt verkleind, mét geluid, max 3 min" },
                           { soort: "audio", icoon: "🎧", titel: "Audio / podcast", uitleg: "mp3 of m4a, tot 150 MB" },
-                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure" },
+                          { soort: "pdf", icoon: "📄", titel: "PDF-document", uitleg: "vacature, voorwaarden, brochure. Openbaar: niets vertrouwelijks" },
                         ] as const
                       ).map((k) => (
                         <button

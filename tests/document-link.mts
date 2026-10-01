@@ -47,4 +47,9 @@ assert.ok(api.includes("await schrijfObject(`${site.siteSlug}/${pad}`, data, \"a
 assert.ok(api.includes("return NextResponse.json({ ok: true, pad: `/${pad}`, kb, adres, live })"), "de upload geeft het adres niet terug");
 assert.ok(bank.includes("⬆ Document uploaden (pdf)") && bank.includes('bron: "bank"'), "de bank heeft geen eigen uploadknop");
 assert.ok(bank.includes('handleUploadUrl: "/api/audio-upload"'), "de bank uploadt niet via dezelfde weg als de chat");
+// 5. Wie uploadt, weet vooraf dat het openbaar is (bank én paperclipmenu)
+assert.ok(bank.includes("alles wat je hier uploadt is openbaar") && bank.includes("persoonsgegevens"), "de bank waarschuwt niet dat documenten openbaar zijn");
+assert.ok(bank.indexOf("alles wat je hier uploadt is openbaar") < bank.indexOf("⬆ Document uploaden (pdf)"), "de waarschuwing staat niet vóór de uploadknop");
+const chatBron = await readFile("app/portal/Chat.tsx", "utf8");
+assert.ok(chatBron.includes("Openbaar: niets vertrouwelijks"), "het paperclipmenu waarschuwt niet bij PDF-document");
 console.log("✓ documentlink: vast adres, alleen kopiëren als hij werkt, uploaden in de bank zelf");
