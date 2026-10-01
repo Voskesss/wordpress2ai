@@ -3932,7 +3932,7 @@ export default function Chat({
                 </Tip>
               )}
               {!meerOpties && (
-                <Tip tekst="Meer gereedschap: kleur kiezen, icoontjes laten maken, links controleren en vindbaarheid">
+                <Tip tekst="Meer gereedschap: kleur kiezen, icoontjes laten maken, links controleren en vindbaarheid" uitlijning={smalleBalk ? "rechts" : "links"}>
                 <button
                   onClick={() => setMeerOpties(true)}
                   aria-label="Meer opties"
@@ -4104,7 +4104,7 @@ export default function Chat({
                   </svg>
                 )}
               </button>
-              <Tip tekst="Voorbeeld verversen — als je een wijziging nog niet ziet">
+              <Tip tekst="Voorbeeld verversen, als je een wijziging nog niet ziet" uitlijning="rechts">
               <button
                 onClick={() => herlaad(Boolean(concept))}
                 aria-label="Voorbeeld verversen"

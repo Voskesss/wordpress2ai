@@ -162,7 +162,8 @@
   "chat-recovery.cjs",
   "cowork-briefing.mts",
   "demo-funnel.cjs",
-  "product-preview.cjs"
+  "product-preview.cjs",
+    "portaal-ui.cjs"
  ],
  "_los": {
   "_uitleg": "Draaien niet mee: deze hebben een echte database of een sleutel nodig.",

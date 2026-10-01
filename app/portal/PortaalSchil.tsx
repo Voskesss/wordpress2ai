@@ -128,7 +128,7 @@ export default function PortaalSchil({
             </span>
           )}
           {tabs.length > 0 && (
-            <div role="tablist" aria-label="Onderdelen" className="flex min-w-0 flex-1 items-center justify-center gap-1">
+            <div role="tablist" aria-label="Onderdelen" className="flex min-w-0 flex-1 items-center justify-center gap-0.5 sm:gap-1">
               {tabs.map((t) => {
                 const actief = t === tab;
                 return (
@@ -139,11 +139,13 @@ export default function PortaalSchil({
                     aria-selected={actief}
                     aria-controls={`portaal-tab-${t}`}
                     onClick={() => kies(t)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                    // Op een smalle telefoon (360px) geen icoontjes en minder
+                    // ruimte: anders schoven tabbladen over logo en account
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-sm font-semibold transition cursor-pointer sm:px-3 ${
                       actief ? "bg-violet-700 text-white shadow" : "text-stone-600 hover:bg-stone-100 hover:text-violet-700"
                     }`}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="hidden sm:block">
                       {LABELS[t].icoon}
                     </svg>
                     <span className="hidden sm:inline">{LABELS[t].lang}</span>
