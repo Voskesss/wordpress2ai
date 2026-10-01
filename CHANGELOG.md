@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.4 (1 oktober 2026)
+
+- Documentenbank en paperclipmenu waarschuwen nu vóór het uploaden: documenten op je site zijn openbaar. Iedereen met de link kan ze openen en Google kan ze vinden, dus nooit iets met persoonsgegevens of iets vertrouwelijks.
+
 ## 1.38.3 (1 oktober 2026)
 
 - Documentenbank: je kunt nu ook in de bank zelf een pdf uploaden, naast meesturen in de chat. Het document staat daarna meteen online, bovenaan de lijst met "Link kopiëren", klaar voor een mail of nieuwsbrief. Ook via de chat staat een document voortaan direct online, en de chat noemt de link. Een upload overschrijft nooit een bestaand document met dezelfde naam: dan wordt het bijvoorbeeld vacature-2.pdf, zodat links in al verstuurde mails blijven kloppen.
