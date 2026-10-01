@@ -24,7 +24,7 @@ reparaties.
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.
 
-## 1.38.7 (op dev, nog niet uitgebracht): alle banken
+## 1.38.8 (op dev, nog niet uitgebracht): alle banken
 
 **Alle banken werken nu zoals de documentenbank.** In de fotobank, videobank en audiobank kun je zelf uploaden, een link kopiëren voor een mail of nieuwsbrief, en zoeken op naam. Elke bank waarschuwt vóór het uploaden dat alles openbaar is, en het paperclipmenu zegt het ook.
 - Foto's: meerdere tegelijk, verkleind op dezelfde maat als via de chat, en meteen online.
@@ -32,7 +32,11 @@ reparaties.
 - Video: uploaden in de bank gaat via dezelfde verwerking als in de chat (verkleinen duurt even, de voortgang staat in de chat). Daarna staat hij in de bank met zijn link.
 - De link verschijnt alleen als het bestand echt online staat.
 
-## 1.38.6 (op dev, nog niet uitgebracht): spamcontrole
+## 1.38.7 (1 oktober 2026)
+
+- Facturen en opdrachtbevestigingen tonen het vaste WordSwap-nummer 026 234 01 22, uit dezelfde bron als de site, in plaats van een mobiel nummer. Staat de KvK van de klant al in het adresveld, dan staat hij er niet meer twee keer op. Al uitgegeven facturen blijven zoals ze zijn.
+
+## 1.38.6 (1 oktober 2026)
 
 - Binnenkomende formulierberichten worden voortaan op spam gecontroleerd. Overduidelijke massaspam (aangeboden "diensten", linkrommel, sjabloonberichten) komt stil in een eigen Spam-tabje bij je berichten: jij krijgt er geen losse melding van en de afzender krijgt niet jouw automatische bevestiging. Aan het eind van de dag krijg je één kort overzicht, alleen op dagen dat er iets is tegengehouden. Twijfelgevallen komen gewoon bij je open berichten binnen, met een geel label "Mogelijk spam" en de reden erbij; de melding krijg je dan wel, alleen de afzender krijgt geen bevestiging. Jij houdt altijd het laatste woord: één klik op "Spam" of "Geen spam". Bij twijfel of een storing laat de controle alles gewoon door, en op de privacystanden "WordSwap kan niet meelezen" en "niets bewaren" staat hij uit.
 
