@@ -79,6 +79,7 @@ export default async function SiteExtra({
       gearchiveerd: i.gearchiveerd,
       spam: i.spam,
       spamReden: i.spamReden,
+      spamStand: i.spamStand,
     }));
 
   return (

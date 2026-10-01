@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.38.5 (1 oktober 2026)
+
+- Binnenkomende formulierberichten worden voortaan op spam gecontroleerd. Overduidelijke massaspam (aangeboden "diensten", linkrommel, sjabloonberichten) komt stil in een eigen Spam-tabje bij je berichten: jij krijgt er geen losse melding van en de afzender krijgt niet jouw automatische bevestiging. Aan het eind van de dag krijg je één kort overzicht, alleen op dagen dat er iets is tegengehouden. Twijfelgevallen komen gewoon bij je open berichten binnen, met een geel label "Mogelijk spam" en de reden erbij; de melding krijg je dan wel, alleen de afzender krijgt geen bevestiging. Jij houdt altijd het laatste woord: één klik op "Spam" of "Geen spam". Bij twijfel of een storing laat de controle alles gewoon door, en op de privacystanden "WordSwap kan niet meelezen" en "niets bewaren" staat hij uit.
+
 ## 1.38.4 (1 oktober 2026)
 
 - Documentenbank en paperclipmenu waarschuwen nu vóór het uploaden: documenten op je site zijn openbaar. Iedereen met de link kan ze openen en Google kan ze vinden, dus nooit iets met persoonsgegevens of iets vertrouwelijks.

@@ -209,7 +209,9 @@ export async function POST(req: Request) {
     // los wordt ingetypt en dus langs honeypot en rem komt. Alleen bij
     // privacystand "normaal": in de andere standen beloven we dat niemand
     // behalve de klant meeleest, dus gaat de inhoud ook niet naar de AI.
-    // Spam wordt wél bewaard (gemarkeerd), maar niemand krijgt er mail over.
+    // "zeker" blijft stil (Spam-tabje + dagoverzicht); "waarschijnlijk"
+    // krijgt een gewaarschuwde melding en een geel label, maar de afzender
+    // krijgt bij beide geen bevestiging. Zie lib/formulier-spam.
     if (site && magMeelezen(site.formulierPrivacy)) {
       spamOordeel = await beoordeelSpamInhoud({
         siteNaam: site.naam,
@@ -254,7 +256,8 @@ export async function POST(req: Request) {
         bijlagen: bewaardeBijlagen,
         ipAfdruk: afdruk,
         inhoudBewaard: bewaren,
-        spam: spamOordeel.spam,
+        spam: spamOordeel.stand === "zeker",
+        spamStand: spamOordeel.stand,
         spamReden: spamOordeel.reden,
       })
       .catch(() => {
@@ -340,7 +343,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (invullerEmail && oordeel.mailen && !spamOordeel.spam) {
+    if (invullerEmail && oordeel.mailen && spamOordeel.stand === null) {
       if (formulier === "webinar") {
         await verstuurSiteMail({
           site: site ?? null,
@@ -392,16 +395,21 @@ export async function POST(req: Request) {
     }
 
     // Melding naar de site-eigenaar; antwoorden gaat rechtstreeks naar de
-    // invuller. Spam blijft stil: die staat alleen gemarkeerd in het portaal.
-    if (site?.notificatieEmail && !spamOordeel.spam) {
+    // invuller. Zekere spam blijft stil; bij "waarschijnlijk" gaat de melding
+    // gewoon uit, met de waarschuwing en de reden erin.
+    if (site?.notificatieEmail && spamOordeel.stand !== "zeker") {
+      const mogelijkSpam =
+        spamOordeel.stand === "waarschijnlijk"
+          ? `<p style="color:#b45309"><strong>Mogelijk spam:</strong> ${ontsnap(spamOordeel.reden ?? "")} De afzender kreeg geen automatische bevestiging. In je portaal kun je kiezen: spam of geen spam.</p>`
+          : "";
       const staart = bewaren
         ? `<p>Alle inzendingen staan ook in je WordSwap-portaal.</p>`
         : `<p>Dit bericht wordt bij ons niet bewaard, dus deze mail is de enige plek waar het staat.</p>`;
       const weg = await verstuurSiteMail({
         site,
         naar: site.notificatieEmail,
-        onderwerp: `Nieuwe ${formulier}-inzending via ${siteNaam}`,
-        html: `<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}${staart}`,
+        onderwerp: `${spamOordeel.stand === "waarschijnlijk" ? "Mogelijk spam: " : ""}Nieuwe ${formulier}-inzending via ${siteNaam}`,
+        html: `${mogelijkSpam}<p>Er is een nieuw bericht binnengekomen via het formulier "${ontsnap(formulier)}" op ${ontsnap(siteNaam)}:</p>${veldenHtml}${staart}`,
         antwoordNaar: invullerEmail,
         bijlagen,
       });
@@ -434,7 +442,7 @@ export async function POST(req: Request) {
   }
 
   // Webinar-aanmelder op de eigen site: automatisch in de leadlijst met een opvolgactie na het webinar
-  if (echt && !spamOordeel.spam && formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
+  if (echt && spamOordeel.stand !== "zeker" && formulier === "webinar" && siteRepo === "wordswap" && webinarSessie) {
     try {
       const { leads, leadActies } = await import("@/db/schema");
       const { and, ilike } = await import("drizzle-orm");

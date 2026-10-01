@@ -238,8 +238,15 @@ export async function inzendingVerwerken(formData: FormData) {
   if (actie === "verwijder") {
     await db.delete(formulierInzendingen).where(vanDezeSite);
   } else if (actie === "geen-spam") {
-    // Vals alarm van de spamcontrole: terug naar de open berichten
-    await db.update(formulierInzendingen).set({ spam: false, gearchiveerd: false }).where(vanDezeSite);
+    // Vals alarm van de spamcontrole: terug naar de open berichten, zonder
+    // label en zonder dat het dagoverzicht er nog over begint
+    await db
+      .update(formulierInzendingen)
+      .set({ spam: false, spamStand: null, gearchiveerd: false })
+      .where(vanDezeSite);
+  } else if (actie === "wel-spam") {
+    // De eigenaar bevestigt het gele "mogelijk spam"-label: naar het Spam-tabje
+    await db.update(formulierInzendingen).set({ spam: true, gearchiveerd: false }).where(vanDezeSite);
   } else {
     await db.update(formulierInzendingen).set({ gearchiveerd: actie !== "terug" }).where(vanDezeSite);
   }
