@@ -309,6 +309,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   ["wordpress-overzetten", "WordPress overzetten"],
                   ["wordpress-alternatief", "WordPress-alternatief"],
                   ["website-zonder-onderhoud", "Zonder onderhoud"],
+                  ["website-laten-onderhouden", "Laten onderhouden"],
                   ["website-zonder-cms", "Zonder CMS"],
                   ["wordpress-website-traag", "Trage website"],
                   ["wordpress-website-maken-met-ai", "Website maken met AI"],
