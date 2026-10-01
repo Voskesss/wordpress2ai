@@ -5,12 +5,20 @@
  *
  * Honeypot en spamrem vangen bots en volume; dit vangt het bericht dat door
  * een mens of slimme bot los wordt ingetypt. Een klein goedkoop model leest
- * het bericht en zegt alleen bij OVERDUIDELIJKE massaspam "spam". De regels:
+ * het bericht en geeft een van drie standen:
  *
- * - Twijfel is geen spam: een echte aanvraag mag nooit stilletjes verdwijnen.
- * - Spam wordt wél bewaard (gemarkeerd, apart terug te vinden in het portaal),
- *   maar er gaat geen melding naar de eigenaar en geen bevestiging naar de
- *   afzender.
+ * - "zeker": overduidelijke massaspam. Stil bewaard onder het Spam-tabje in
+ *   het portaal, geen melding aan de eigenaar, geen bevestiging aan de
+ *   afzender. De eigenaar ziet het terug in het dagoverzicht
+ *   (lib/spam-dagmail) en kan een vals alarm altijd terugzetten.
+ * - "waarschijnlijk": sterke spamkenmerken, maar het zou nog net echt kunnen
+ *   zijn. De eigenaar krijgt de gewone melding mét waarschuwing erin; alleen
+ *   de afzender krijgt geen bevestiging. In het portaal staat het gewoon bij
+ *   Open, met een geel label en de keuze Spam of Geen spam.
+ * - geen (null): gewoon bericht, alles zoals altijd.
+ *
+ * De vaste regels:
+ * - Twijfel zakt altijd een stand: een echte aanvraag mag nooit verdwijnen.
  * - De controle draait alleen bij privacystand "normaal": bij "WordSwap kan
  *   niet meelezen" en "niets bewaren" sturen we de inhoud ook niet naar de
  *   AI, want dan zou die belofte niets waard zijn. Zie lib/formulier-privacy.
@@ -23,9 +31,12 @@ const PRIJS_UIT = 5;
 /** Zoveel tekst gaat er hooguit naar het model (spam herken je aan het begin). */
 const MAX_TEKENS = 2000;
 
+/** null = geen spam. */
+export type SpamStand = "zeker" | "waarschijnlijk" | null;
+
 export type SpamOordeel = {
-  spam: boolean;
-  /** Korte reden in gewone taal, alleen bij spam (voor het portaal). */
+  stand: SpamStand;
+  /** Korte reden in gewone taal, alleen bij een spamstand (voor het portaal). */
   reden: string | null;
   tokensIn: number;
   tokensUit: number;
@@ -33,7 +44,7 @@ export type SpamOordeel = {
 };
 
 export const GEEN_SPAM: SpamOordeel = {
-  spam: false,
+  stand: null,
   reden: null,
   tokensIn: 0,
   tokensUit: 0,
@@ -53,19 +64,27 @@ export function veldenAlsTekst(velden: Record<string, string>): string {
 /** Het antwoord van het model lezen; alles wat niet klopt telt als geen spam. */
 export function interpreteerSpamAntwoord(
   tekst: string,
-): { spam: boolean; reden: string | null } {
+): { stand: SpamStand; reden: string | null } {
   try {
     const json = JSON.parse(tekst.match(/\{[\s\S]*\}/)?.[0] ?? "{}") as {
-      spam?: boolean;
+      spam?: string | boolean;
       reden?: string;
     };
-    if (json.spam !== true) return { spam: false, reden: null };
+    const stand: SpamStand =
+      json.spam === "zeker"
+        ? "zeker"
+        : json.spam === "waarschijnlijk"
+          ? "waarschijnlijk"
+          : null;
+    if (!stand) return { stand: null, reden: null };
     return {
-      spam: true,
-      reden: (typeof json.reden === "string" ? json.reden : "").slice(0, 200) || "Herkend als massaspam",
+      stand,
+      reden:
+        (typeof json.reden === "string" ? json.reden : "").slice(0, 200) ||
+        "Herkend als massaspam",
     };
   } catch {
-    return { spam: false, reden: null };
+    return { stand: null, reden: null };
   }
 }
 
@@ -82,7 +101,7 @@ export async function beoordeelSpamInhoud(opties: {
         model: MODEL,
         max_tokens: 150,
         system:
-          'Je beoordeelt berichten die via het contactformulier van een bedrijfswebsite binnenkomen. Vraag: is dit bericht OVERDUIDELIJK massaspam of koude massa-acquisitie die niets met dit bedrijf te maken heeft? Voorbeelden die WEL spam zijn: aangeboden SEO-, linkbuilding-, webdesign- of marketingdiensten van onbekenden, "restore your site from web archives", ledenwerving voor crypto/leningen/gokken, medicijnreclame, berichten die alleen uit links of promotie bestaan, hetzelfde sjabloonbericht dat aan duizenden sites gestuurd kan worden. GEEN spam: alles wat ook maar enigszins een echte vraag van een klant, leverancier of sollicitant kan zijn. Ook korte, onhandige of anderstalige berichten zijn GEEN spam als de inhoud over het bedrijf of zijn diensten kan gaan. Een andere taal dan die van de site is op zichzelf NOOIT genoeg. Bij de minste twijfel: geen spam, want een gemiste klantvraag is veel erger dan één doorgelaten spambericht. Antwoord ALLEEN met JSON: {"spam":false} of {"spam":true,"reden":"korte reden in gewoon Nederlands, zonder jargon"}.',
+          'Je beoordeelt berichten die via het contactformulier van een bedrijfswebsite binnenkomen, in drie standen.\n"zeker" = OVERDUIDELIJKE massaspam: aangeboden SEO-, linkbuilding-, webdesign- of marketingdiensten van onbekenden, "restore your site from web archives", werving voor crypto/leningen/gokken, medicijnreclame, berichten die alleen uit links of promotie bestaan, hetzelfde sjabloonbericht dat aan duizenden sites gestuurd kan worden.\n"waarschijnlijk" = sterke spamkenmerken (generiek verkooppraatje, past totaal niet bij dit bedrijf, nep-namen, linkjes), maar het zóu nog net een echt bericht kunnen zijn.\n"geen" = alles wat ook maar enigszins een echte vraag van een klant, leverancier of sollicitant kan zijn. Ook korte, onhandige of anderstalige berichten zijn "geen" als de inhoud over het bedrijf of zijn diensten kan gaan; een andere taal dan die van de site is op zichzelf NOOIT genoeg voor een spamstand.\nBij twijfel kies je altijd de lagere stand (tussen zeker en waarschijnlijk: waarschijnlijk; tussen waarschijnlijk en geen: geen), want een gemiste klantvraag is veel erger dan één doorgelaten spambericht. Antwoord ALLEEN met JSON: {"spam":"geen"} of {"spam":"waarschijnlijk","reden":"..."} of {"spam":"zeker","reden":"..."} met als reden één korte zin in gewoon Nederlands, zonder jargon.',
         messages: [
           {
             role: "user",

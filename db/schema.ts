@@ -292,6 +292,13 @@ export const formulierInzendingen = pgTable("formulier_inzendingen", {
   // erbij zodat een vals alarm te beoordelen is. Zie lib/formulier-spam.
   spam: boolean("spam").notNull().default(false),
   spamReden: text("spam_reden"),
+  // Het oordeel van het model: "zeker" (stil in het Spam-tabje) of
+  // "waarschijnlijk" (geel label bij Open, melding met waarschuwing).
+  // Leeg = geen spam. De boolean spam hierboven blijft leidend voor de bak.
+  spamStand: text("spam_stand", { enum: ["zeker", "waarschijnlijk"] }),
+  // Wanneer dit zeker-spambericht in het dagoverzicht aan de eigenaar is
+  // gemeld (lib/spam-dagmail). Leeg = nog melden.
+  spamGemeldOp: timestamp("spam_gemeld_op"),
   // false = deze site staat op "niet bewaren": er staat alleen dat er een
   // bericht was, zodat de spamrem blijft tellen. De inhoud is nooit opgeslagen.
   inhoudBewaard: boolean("inhoud_bewaard").notNull().default(true),

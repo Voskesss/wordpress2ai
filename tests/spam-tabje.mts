@@ -27,9 +27,13 @@ assert.ok(/actie="geen-spam" label="Geen spam"/.test(lijst), "de knop 'Geen spam
 const se = await readFile("app/portal/SiteExtra.tsx", "utf8");
 assert.ok(/spam: i\.spam,\s*spamReden: i\.spamReden,/.test(se), "de spamvelden gaan niet mee naar de lijst");
 
-// 4. "Geen spam" zet het bericht terug bij de open berichten, alleen voor deze site
+// 4. "Geen spam" zet het bericht terug bij de open berichten, wist ook het
+// gele "mogelijk spam"-label, en werkt alleen voor de eigen site; "Spam"
+// (bevestigen van het label) stuurt het bericht naar het Spam-tabje
 const acties = await readFile("app/portal/acties.ts", "utf8");
-assert.ok(/actie === "geen-spam"\) \{[\s\S]{0,200}set\(\{ spam: false, gearchiveerd: false \}\)\.where\(vanDezeSite\)/.test(acties), "'Geen spam' zet het bericht niet (veilig, per site) terug");
+assert.ok(/actie === "geen-spam"\) \{[\s\S]{0,400}spam: false[\s\S]{0,100}spamStand: null[\s\S]{0,100}gearchiveerd: false[\s\S]{0,120}\.where\(vanDezeSite\)/.test(acties), "'Geen spam' zet het bericht niet (veilig, per site, zonder label) terug");
+assert.ok(/actie === "wel-spam"\) \{[\s\S]{0,300}spam: true[\s\S]{0,120}\.where\(vanDezeSite\)/.test(acties), "'Spam' (label bevestigen) ontbreekt of filtert niet per site");
+assert.ok(/spamStand === "waarschijnlijk"/.test(lijst), "het gele 'Mogelijk spam'-label ontbreekt in de lijst");
 
 // 5. De export noemt spam ook als spam
 const exp = await readFile("app/api/portal/inzendingen-export/route.ts", "utf8");

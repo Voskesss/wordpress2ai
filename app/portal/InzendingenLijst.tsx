@@ -211,11 +211,22 @@ function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; 
           {r.spam && r.spamReden && (
             <p className="mt-0.5 text-xs text-amber-700">Waarom spam: {r.spamReden}</p>
           )}
+          {!r.spam && r.spamStand === "waarschijnlijk" && (
+            <p className="mt-0.5 text-xs text-amber-700">
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Mogelijk spam</span>
+              {r.spamReden ? ` ${r.spamReden}` : ""} — de afzender kreeg geen automatische bevestiging.
+            </p>
+          )}
         </td>
         <td className="py-2">
           <div className="flex justify-end gap-3">
             {r.spam ? (
               <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+            ) : r.spamStand === "waarschijnlijk" ? (
+              <>
+                <Actie id={r.id} siteId={siteId} actie="wel-spam" label="Spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-amber-700`} />
+                <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+              </>
             ) : r.gearchiveerd ? (
               <Actie id={r.id} siteId={siteId} actie="terug" label="↩ Terugzetten" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
             ) : (

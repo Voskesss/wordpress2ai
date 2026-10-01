@@ -15,6 +15,9 @@ export type InzendingRij = {
    * staat dan onder het Spam-tabje, met de reden erbij. */
   spam?: boolean;
   spamReden?: string | null;
+  /** Oordeel van het model: "waarschijnlijk" geeft een geel label bij Open;
+   * "zeker" hoort bij spam=true. Leeg = geen spam. */
+  spamStand?: "zeker" | "waarschijnlijk" | null;
 };
 
 export type Bak = "open" | "afgehandeld" | "spam";
