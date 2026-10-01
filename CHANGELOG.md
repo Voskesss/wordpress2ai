@@ -20,17 +20,21 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## 1.39.0 (1 oktober 2026, op dev, nog niet uitgebracht): tabbladen in het portaal
+## 1.39.0 (op dev, nog niet uitgebracht): tabbladen in het portaal
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.
 
-## 1.38.8 (op dev, nog niet uitgebracht): alle banken
+## Nog niet uitgebracht (op dev): alle banken
 
 **Alle banken werken nu zoals de documentenbank.** In de fotobank, videobank en audiobank kun je zelf uploaden, een link kopiëren voor een mail of nieuwsbrief, en zoeken op naam. Elke bank waarschuwt vóór het uploaden dat alles openbaar is, en het paperclipmenu zegt het ook.
 - Foto's: meerdere tegelijk, verkleind op dezelfde maat als via de chat, en meteen online.
 - Audio: meteen online. Een aflevering met dezelfde naam wordt niet meer overschreven maar krijgt -2, zodat links in verstuurde mails blijven kloppen.
 - Video: uploaden in de bank gaat via dezelfde verwerking als in de chat (verkleinen duurt even, de voortgang staat in de chat). Daarna staat hij in de bank met zijn link.
 - De link verschijnt alleen als het bestand echt online staat.
+
+## 1.38.8 (1 oktober 2026)
+
+- Spam-tabje: de uitleg bij een bericht heeft geen lang streepje meer (huisregel). De streepjestest controleert nu ook de berichtenlijst en de teksten van de spamcontrole.
 
 ## 1.38.7 (1 oktober 2026)
 
