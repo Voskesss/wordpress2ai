@@ -55,4 +55,10 @@ assert.ok(hulp.includes("alles wat je hier uploadt is openbaar") && hulp.include
 assert.ok(bank.indexOf("<OpenbaarMelding") >= 0 && bank.indexOf("<OpenbaarMelding") < bank.indexOf("<UploadKnop"), "de waarschuwing staat niet vóór de uploadknop");
 const chatBron = await readFile("app/portal/Chat.tsx", "utf8");
 assert.ok(chatBron.includes("Openbaar op je site: stuur niets vertrouwelijks"), "het paperclipmenu waarschuwt niet");
+// 6. De volledige naam staat op een eigen regel, de knoppen eronder (01-10:
+//    naast drie knoppen werd de naam afgekapt tot "rapp..." en viel de rest
+//    woord voor woord onder elkaar)
+const bankNu = await readFile("app/portal/DocumentBank.tsx", "utf8");
+assert.ok(bankNu.includes('<span className="flex min-w-0 basis-full items-start gap-3">'), "naam en knoppen delen nog één regel");
+assert.ok(!/block truncate text-sm font-medium text-stone-800" title=\{d\.pad\}/.test(bankNu), "de documentnaam wordt nog afgekapt");
 console.log("✓ documentlink: vast adres, alleen kopiëren als hij werkt, uploaden in de bank zelf");

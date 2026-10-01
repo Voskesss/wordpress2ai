@@ -1,4 +1,5 @@
 const { build } = require("esbuild");
+const { serverActiesStub } = require("./hulp/server-acties-stub.cjs");
 const { chromium } = require("playwright");
 const { createServer } = require("node:http");
 const fs = require("node:fs");
@@ -17,6 +18,7 @@ const assert = require("node:assert/strict");
       jsx: "automatic",
       platform: "browser",
       define: { "process.env.NODE_ENV": '"production"' },
+      plugins: [serverActiesStub],
     });
     const css = (
       await require("postcss")([require("@tailwindcss/postcss")()]).process(
@@ -198,8 +200,12 @@ const assert = require("node:assert/strict");
     await alert()
       .getByText(/Geen bevestiging/)
       .waitFor();
+    // Het concept staat nog open (niet als gepubliceerd behandeld). Op dit
+    // telefoonformaat is dat de compacte conceptbalk (sinds 1.24.0), op een
+    // computer het gele blok; beide hebben de knop "Concept weggooien".
     await page
-      .getByText("Concept klaar — nog niet live.", { exact: true })
+      .getByRole("button", { name: "Concept weggooien" })
+      .first()
       .waitFor();
     handlers["/api/publiceer"] = (r) =>
       r.fulfill({ contentType: "application/json", body: '{"ok":true}' });
