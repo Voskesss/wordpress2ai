@@ -43,7 +43,7 @@ const path = require("node:path");
                   ? `export const db={select(fields){return {from(tabel){return {where(){globalThis.__form.reads++;if(tabel&&tabel.__bevestigingen)return Promise.resolve([]);return Promise.resolve(fields?[{n:globalThis.__form.rate}]:[{naam:'Test',domein:'example.invalid',notificatieEmail:'owner@example.invalid'}]);}}}}},insert(){return {values(){globalThis.__form.writes++;return globalThis.__form.failSave?Promise.reject(Error('offline')):Promise.resolve();}}}};`
                   : args.path === "@/lib/mail"
                     ? `export async function verstuurSiteMail(){globalThis.__form.mails++;}`
-                    : `export const sites={},formulierInzendingen={},webinars={},webinarMails={},webinarMailInstellingen={},formulierBevestigingen={__bevestigingen:true};`,
+                    : `export const sites={},formulierInzendingen={},webinars={},webinarMails={},webinarMailInstellingen={},formulierBevestigingen={__bevestigingen:true},aiKosten={};`,
             }));
           },
         },
