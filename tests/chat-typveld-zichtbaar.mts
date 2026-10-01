@@ -14,4 +14,12 @@ assert.ok(chat.includes('<div className="mt-2.5 flex shrink-0 justify-center px-
 assert.ok(/"flex w-\[26rem\][^"]*overflow-y-auto overflow-x-hidden/.test(chat), "de kolom krijgt een horizontale schuifbalk");
 // Het gesprek zelf moet wél kunnen krimpen en scrollen
 assert.ok(chat.includes('splitModus || mobielChat ? "flex min-h-0 flex-1 flex-col" : ""'), "het gesprek kan niet meer krimpen");
-console.log("✓ typveld blijft zichtbaar in de gesplitste weergave");
+
+// Tweede oorzaak (01-10, schermafbeelding zonder voorbeeldtekst): de chat blijft
+// gemount in een verborgen tabblad. Daar is scrollHeight 0, en het veld werd
+// dan 0 hoog vastgezet. Nooit 0 vastzetten, opnieuw meten bij nieuwe breedte,
+// en een minimumhoogte als vangnet.
+assert.ok(chat.includes('el.style.height = h > 0 ? `${Math.min(h, 120)}px` : "";'), "het typveld kan 0 hoog vastgezet worden");
+assert.ok(chat.includes("new ResizeObserver(") && chat.includes("pasInvoerHoogteAan();\n    });"), "het typveld meet niet opnieuw als het zichtbaar wordt");
+assert.ok(chat.includes("leading-snug min-h-[2.5rem] max-h-[120px]"), "het typveld heeft geen minimumhoogte");
+console.log("✓ typveld blijft zichtbaar in de gesplitste weergave en na wisselen van tabblad");

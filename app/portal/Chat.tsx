@@ -449,12 +449,32 @@ export default function Chat({
 
   // Invoerveld laten meegroeien met de tekst (tot ~5 regels) — ook bij spraakinvoer,
   // zodat je altijd de volledige tekst ziet die je gaat opsturen
-  useEffect(() => {
+  // Meten kan alleen als het veld zichtbaar is: in een verborgen tabblad van
+  // het portaal (PortaalSchil) is scrollHeight 0, en dan bleef het veld 0
+  // hoog, zonder zelfs de voorbeeldtekst (01-10). Daarom bij 0 niets
+  // vastzetten, en opnieuw meten zodra het veld (weer) breedte krijgt.
+  const pasInvoerHoogteAan = useCallback(() => {
     const el = invoerRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
-  }, [invoer]);
+    const h = el.scrollHeight;
+    el.style.height = h > 0 ? `${Math.min(h, 120)}px` : "";
+  }, []);
+  useEffect(() => {
+    pasInvoerHoogteAan();
+  }, [invoer, pasInvoerHoogteAan]);
+  useEffect(() => {
+    const el = invoerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let breedte = el.clientWidth;
+    const waarnemer = new ResizeObserver(() => {
+      if (el.clientWidth === breedte) return; // alleen bij een andere breedte
+      breedte = el.clientWidth;
+      pasInvoerHoogteAan();
+    });
+    waarnemer.observe(el);
+    return () => waarnemer.disconnect();
+  }, [pasInvoerHoogteAan]);
 
   // Escape sluit de schermvullende weergave
   useEffect(() => {
@@ -4056,7 +4076,7 @@ export default function Chat({
                     ? "De AI is bezig — typ alvast je volgende opdracht (Enter = klaarzetten)"
                     : `Wat wil je aanpassen${huidigePagina !== "/" ? ` op ${paginaLabel(huidigePagina)}` : ""}?`
                 }
-                className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug max-h-[120px]`}
+                className={`${smalleBalk ? "order-first basis-full px-3" : "px-2"} flex-1 min-w-0 resize-none bg-transparent py-2 text-base sm:text-sm focus:outline-none leading-snug min-h-[2.5rem] max-h-[120px]`}
               />
               <button
                 onClick={bezig ? stop : verstuur}
