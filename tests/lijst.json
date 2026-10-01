@@ -132,6 +132,7 @@
   "smtp-host.mts",
   "smtp-helo.mts",
   "snelmenu.mts",
+  "spam-tabje.mts",
   "spraak-stoppen.mts",
   "tokenbudget.mts",
   "uitsluiten.mts",

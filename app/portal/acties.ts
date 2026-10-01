@@ -237,6 +237,9 @@ export async function inzendingVerwerken(formData: FormData) {
   const vanDezeSite = and(inArray(formulierInzendingen.id, ids), eq(formulierInzendingen.siteRepo, site.githubRepo));
   if (actie === "verwijder") {
     await db.delete(formulierInzendingen).where(vanDezeSite);
+  } else if (actie === "geen-spam") {
+    // Vals alarm van de spamcontrole: terug naar de open berichten
+    await db.update(formulierInzendingen).set({ spam: false, gearchiveerd: false }).where(vanDezeSite);
   } else {
     await db.update(formulierInzendingen).set({ gearchiveerd: actie !== "terug" }).where(vanDezeSite);
   }
