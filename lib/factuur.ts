@@ -4,12 +4,14 @@ import { db } from "@/db";
 import { abonnementen, betaalverzoeken, facturen } from "@/db/schema";
 import { BTW, centVan, euroTekst, SITE_URL, type MolliePayment } from "@/lib/mollie";
 import { mailVanJos, ontsnap } from "@/lib/wordswap-mail";
+import { TELEFOON } from "@/lib/contactgegevens";
 
 export const AFZENDER = {
   naam: "WordSwap",
   adres: ["Lebretweg 72", "6861 ZZ Oosterbeek"],
   email: "jos@wordswap.nl",
-  telefoon: "+31 6 10911365",
+  // Het vaste WordSwap-nummer, uit dezelfde bron als de site (nooit een privénummer)
+  telefoon: TELEFOON,
   web: "wordswap.nl",
   iban: "NL49 ABNA 0508 0411 55",
   btw: "NL820254745B01",
@@ -18,6 +20,17 @@ export const AFZENDER = {
 };
 
 export type Factuur = typeof facturen.$inferSelect;
+
+/** Adresregels van de klant. Een regel met hetzelfde KvK-nummer valt weg: dat
+ * zetten we er zelf al onder, anders stond het er twee keer (ovbuRo, 01-10). */
+export function klantAdresRegels(adres: string | null | undefined, kvk: string | null | undefined): string[] {
+  const kvkCijfers = (kvk ?? "").replace(/\D/g, "");
+  return (adres ?? "")
+    .split(/\r?\n/)
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .filter((r) => !(kvkCijfers.length >= 8 && r.replace(/\D/g, "").includes(kvkCijfers) && /kvk|kamer/i.test(r)));
+}
 type NieuweFactuur = typeof facturen.$inferInsert;
 
 const MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
@@ -373,7 +386,7 @@ export async function maakFactuurPdf(f: Factuur): Promise<Uint8Array> {
   y = 630;
   const klantRegels = [
     ...(f.klantBedrijf ? [f.klantBedrijf, `t.a.v. ${f.klantNaam}`] : [f.klantNaam]),
-    ...(f.klantAdres ?? "").split(/\r?\n/).map((r) => r.trim()).filter(Boolean),
+    ...klantAdresRegels(f.klantAdres, f.klantKvk),
     f.klantEmail,
     ...(f.klantKvk ? [`KvK ${f.klantKvk}`] : []),
     ...(f.klantBtw ? [`Btw-nr ${f.klantBtw}`] : []),
