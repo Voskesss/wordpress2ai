@@ -76,6 +76,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site?.siteSlug) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   // Alleen blobs uit onze eigen opslag verhuizen — nooit een willekeurig adres ophalen
   const blobHost = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//;
   if (!blobHost.test(body.blobUrl))
@@ -140,6 +144,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site?.siteSlug) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
 
   // Staat er nog een speler op de site? Dan niet weggooien: die pagina zou
   // een stille, kapotte speler overhouden. Zowel het openstaande concept als

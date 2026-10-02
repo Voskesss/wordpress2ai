@@ -104,6 +104,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site || site.isDemo) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (!IS_DOCUMENT.test(body.naam)) return NextResponse.json({ error: "Alleen pdf-bestanden." }, { status: 400 });
   const blobHost = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//;
   if (!blobHost.test(body.blobUrl)) return NextResponse.json({ error: "Ongeldig bestandsadres" }, { status: 400 });
@@ -178,6 +182,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(siteId), userId);
   if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (site.isDemo) return NextResponse.json({ error: "In de demo kun je niets verwijderen." }, { status: 403 });
 
   const release = await claimOperation(operationScope(site, userId));
