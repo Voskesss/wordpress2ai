@@ -14,7 +14,14 @@ const route = await readFile("app/api/chat/route.ts", "utf8");
 
 // 1. Een gecomprimeerde video gaat meteen de bank in
 assert.ok(/export async function POST/.test(videobank), "videobank kan geen video opslaan");
-assert.ok(/bewaarMediaVideo\(site\.siteSlug, naam/.test(videobank), "video gaat niet naar de media-opslag");
+// Sinds 02-10 via de gedeelde naamgeving (lib/media: bewaarVideoZonderDubbel),
+// die zelf naar de media-opslag schrijft
+const media = await readFile("lib/media.ts", "utf8");
+assert.ok(
+  /bewaarMediaVideo\(site\.siteSlug, naam/.test(videobank) ||
+    (/bewaarVideoZonderDubbel\(site\.siteSlug/.test(videobank) && /if \(keuze\.nieuw\) await bewaarMediaVideo\(slug, keuze\.naam, data\)/.test(media)),
+  "video gaat niet naar de media-opslag",
+);
 assert.ok(
   !/pushBestanden\([^)]*bestanden[^)]*"Video bewaard/.test(videobank),
   "de video zelf wordt nog naar de siterepo gepusht — dan haalt elke chatbeurt hem weer op",
@@ -29,7 +36,10 @@ const klaarBlok = chat.slice(chat.indexOf("if (st.klaar) {"), chat.indexOf("if (
 assert.ok(/fetch\("\/api\/videobank"/.test(klaarBlok), "de bank-aanroep staat niet in de klaar-afhandeling");
 
 // 3. Foto's worden veiliggesteld vóór de AI begint
-const fotoBlok = route.slice(route.indexOf("for (const foto of afbeeldingen) {"), route.indexOf("for (const foto of afbeeldingen) {") + 1400);
+// Vanaf het wegschrijven (sinds 02-10 staat daarvóór de lus die een bestaande
+// naam ontwijkt, die ook met "for (const foto of afbeeldingen)" begint)
+const schrijf = route.indexOf("const doel = path.join(werkmap, foto.naam);");
+const fotoBlok = route.slice(schrijf, schrijf + 1400);
 assert.ok(/Meegestuurde foto's bewaard in de fotobank/.test(fotoBlok), "foto's worden niet vooraf bewaard");
 assert.ok(
   route.indexOf("Meegestuurde foto's bewaard in de fotobank") < route.indexOf("const uitkomst = await draaiChatAgent({"),
