@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.40.2 (2 oktober 2026)
+
+- Bij elke aankondiging in de admin zie je hoeveel klanten hem al gezien hebben, en wie nog niet. Heeft iedereen hem gezien, dan staat er "kan weg".
+- Met de knop Voorbeeld zie je een aankondiging precies zoals de klant hem ziet, ook als je hem zelf al wegklikte. Het voorbeeld onthoudt niets.
+
 ## 1.40.1 (2 oktober 2026)
 
 - Een geplaatste aankondiging kun je nu bewerken (titel, tekst en link). Wie hem al wegklikte, krijgt hem niet opnieuw.
