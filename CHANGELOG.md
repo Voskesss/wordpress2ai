@@ -33,6 +33,21 @@ reparaties.
 - De documentenbank toont met welke linktekst een document op je site staat.
 - Vraag van Van den Berg Mediation.
 
+## 1.39.1 (2 oktober 2026)
+
+Reparatie aan "Klopt niet, kijk zelf even". De schermafbeelding die de chat
+dan maakt, liet foto's verderop op de pagina als leeg vak zien, terwijl ze
+er voor bezoekers gewoon stonden. De chat dacht dan dat die foto's kapot
+waren en ging ze ongevraagd "repareren". Nu staan alle foto's op de
+schermafbeelding zoals jij ze ziet.
+
+De chat begint bij "kijk zelf" nu ook bij waar jij over klaagde (bijvoorbeeld
+"de knop is nog oranje") en repareert dat eerst. Ziet hij daarnaast nog iets,
+dan noemt hij het en vraagt hij of het moet, in plaats van het meteen aan te
+passen. En als hij een knop een andere kleur geeft, controleert hij nu ook of
+die kleur het echt wint van de bestaande opmaak, in plaats van te zeggen dat
+het al goed is.
+
 ## 1.39.0 (1 oktober 2026)
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.
