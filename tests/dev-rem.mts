@@ -25,7 +25,8 @@ for (const omgeving of ["preview", "development", undefined]) {
   assert.equal(magLiveSchrijven(test1), true, "test-groene-golf moet op dev testbaar blijven");
   assert.equal(magLiveSchrijven(test2), true, "proefballon-test moet op dev testbaar blijven");
   assert.equal(magLiveSchrijven(demo), true, "de demo moet op dev testbaar blijven");
-  assert.equal(magLiveSchrijven(eigen), true, "vakbeursonline is de eigen site van Jos en moet op dev testbaar blijven");
+  for (const repo of ["vakbeursonline", "amarline", "infacilities"])
+    assert.equal(magLiveSchrijven({ isDemo: false, githubRepo: repo }), true, `${repo} is een eigen site van Jos en moet op dev testbaar blijven`);
 }
 assert.equal(isTestsite(bijna), false, "een klant die toevallig met 'test' begint (testament-notaris) is geen testsite");
 assert.ok(!REM_MELDING.includes("—"), "lang streepje in de remmelding");

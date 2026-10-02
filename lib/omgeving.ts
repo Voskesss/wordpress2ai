@@ -17,7 +17,7 @@ export function isProductie(): boolean {
 /** Eigen sites van WordSwap (geen klanten): daar test Jos bewust ook op dev,
  * omdat alleen een site met eigen domein een bestandslink geeft. Een repo
  * hier alleen toevoegen als Jos bevestigt dat het zijn eigen site is. */
-export const EIGEN_SITES = new Set(["vakbeursonline"]);
+export const EIGEN_SITES = new Set(["vakbeursonline", "amarline", "infacilities"]);
 
 /** Sites waar vanaf de testomgeving live geschreven mag worden: de demo,
  * repo's die op naam als test herkenbaar zijn (test-groene-golf,
