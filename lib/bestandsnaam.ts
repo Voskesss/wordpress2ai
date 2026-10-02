@@ -23,7 +23,18 @@ export function schoneNaamDelen(naam: string, standaard = "document"): { stam: s
     .replace(/[^a-z0-9.]+/g, "-")
     .replace(/^-+|-+$/g, "");
   const punt = schoon.lastIndexOf(".");
-  const stam = (punt > 0 ? schoon.slice(0, punt) : schoon).replace(/\./g, "-").replace(/-+$/, "").slice(0, 80) || standaard;
-  const ext = punt > 0 ? schoon.slice(punt) : "";
+  // Nooit een streepje vooraan of achteraan, ook niet als de naam alleen uit
+  // tekens bestond ("---.png" wordt de standaardnaam met .png)
+  const stam = (punt >= 0 ? schoon.slice(0, punt) : schoon).replace(/\./g, "-").replace(/^-+|-+$/g, "").slice(0, 80).replace(/-+$/, "") || standaard;
+  const ext = punt >= 0 && punt < schoon.length - 1 ? schoon.slice(punt) : "";
   return { stam, ext };
+}
+
+/** Een bestandsnaam uit het upload-adres van de opslag terughalen: daar zet
+ * de chat een tijdstempel vóór (chat/1727…-foto.jpg) en de opslag een
+ * willekeurige code achter (foto-AbC…xyz.jpg). Die horen niet in de naam op
+ * de site; vroeger kwamen ze er wel in terecht. */
+export function naamZonderOpslagRuis(naam: string): string {
+  const basis = naam.split("/").pop() ?? naam;
+  return basis.replace(/^\d{10,}-/, "").replace(/-[A-Za-z0-9]{16,}(?=\.[A-Za-z0-9]+$)/, "");
 }

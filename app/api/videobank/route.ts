@@ -153,19 +153,16 @@ export async function POST(req: Request) {
     const posterUrl = st?.output_files?.out_2?.storage_url ?? null;
 
     const ruw = videoUrl.split("/").pop()?.split("?")[0] ?? "";
-    const naam = /^[a-z0-9-]+\.mp4$/i.test(ruw) ? ruw : `video-${Date.now().toString(36)}.mp4`;
+    if (!site.siteSlug) return NextResponse.json({ error: "Deze site staat nog niet online." }, { status: 409 });
+    const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
+    const data = await haal(videoUrl);
+
+    // Schone naam, nooit overschrijven, herhaalbaar (zie lib/media)
+    const { bewaarVideoZonderDubbel } = await import("@/lib/media");
+    const { naam, nieuw } = await bewaarVideoZonderDubbel(site.siteSlug, ruw, data);
+    const zelfde = !nieuw;
     const videoPad = `video/${naam}`;
     const posterPad = posterUrl ? `video/${naam.replace(/\.mp4$/i, "")}-poster.jpg` : null;
-
-    const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
-
-    // De video zelf gaat naar de media-opslag, niet in de siterepo: anders
-    // wordt hij bij ELKE chatbeurt opnieuw met de site opgehaald. De worker
-    // serveert /video/<naam> daar vandaan. De poster is een klein plaatje en
-    // hoort wél bij de site (hij wordt in de HTML gebruikt als voorbeeld).
-    if (!site.siteSlug) return NextResponse.json({ error: "Deze site staat nog niet online." }, { status: 409 });
-    const { bewaarMediaVideo } = await import("@/lib/media");
-    await bewaarMediaVideo(site.siteSlug, naam, await haal(videoUrl));
 
     // Poster is mooi meegenomen maar nooit reden om de hele bankactie te
     // laten mislukken: de video staat al veilig, en zonder deze vangrail
@@ -182,7 +179,7 @@ export async function POST(req: Request) {
       console.error("Poster bij de video bewaren:", e);
     }
 
-    await db
+    if (!zelfde) await db
       .update(sites)
       .set({ videoUploads: sql`${sites.videoUploads} + 1` })
       .where(eq(sites.id, site.id))

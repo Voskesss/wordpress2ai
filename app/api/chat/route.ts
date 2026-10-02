@@ -9,6 +9,8 @@ import { assertNoSymlinks } from "@/lib/agent-boundary";
 import { draaiChatAgent } from "@/lib/chat-agent";
 import { gebruikerVanVerzoek } from "@/lib/intern-verzoek";
 import sharp from "sharp";
+import { naamZonderOpslagRuis, schoneNaamDelen } from "@/lib/bestandsnaam";
+import { existsSync } from "node:fs";
 import { and, desc, eq, sql, inArray } from "drizzle-orm";
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
@@ -185,13 +187,10 @@ async function verwerkFoto(
   bestandsnaam: string,
   gebruikteNamen: Set<string>,
 ) {
+  // Zelfde naamregels als de banken (lib/bestandsnaam): kleine letters,
+  // accenten weg, een streepje voor elke spatie of elk vreemd teken
   let basisnaam =
-    bestandsnaam
-      .replace(/\.[^.]+$/, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "afbeelding";
+    schoneNaamDelen(naamZonderOpslagRuis(bestandsnaam), "afbeelding").stam.slice(0, 60).replace(/-+$/, "") || "afbeelding";
   let naam = basisnaam;
   let n = 2;
   while (gebruikteNamen.has(naam)) naam = `${basisnaam}-${n++}`;
@@ -888,6 +887,23 @@ export async function POST(req: Request) {
           const siteOverzicht = snelpad ? "" : await maakSiteOverzicht(werkmap);
           tik("voorbereid");
 
+          // Nooit een foto overschrijven die al op de site staat: dan zou die
+          // overal vervangen worden (ook op main). Bestaat de naam al, dan
+          // -2, -3 enzovoort, en de beschrijving verhuist mee.
+          const wm = werkmap;
+          for (const foto of afbeeldingen) {
+            const bezet = (p: string) =>
+              existsSync(path.join(wm, p)) || afbeeldingen.some((a) => a !== foto && a.naam === p);
+            if (!existsSync(path.join(wm, foto.naam))) continue;
+            const map = path.posix.dirname(foto.naam);
+            const ext = path.posix.extname(foto.naam);
+            const stam = path.posix.basename(foto.naam, ext);
+            let n = 2;
+            while (bezet(`${map}/${stam}-${n}${ext}`)) n++;
+            const nieuw = `${map}/${stam}-${n}${ext}`;
+            for (const b of fotoBeschrijvingen) if (b.naam === foto.naam) b.naam = nieuw;
+            foto.naam = nieuw;
+          }
           for (const foto of afbeeldingen) {
             const doel = path.join(werkmap, foto.naam);
             await mkdir(path.dirname(doel), { recursive: true });
@@ -991,10 +1007,9 @@ export async function POST(req: Request) {
               const v = st?.output_files?.out_1?.storage_url;
               if (!v) return null;
               const ruweNaam = v.split("/").pop()?.split("?")[0] ?? "";
-              const naam = /^[a-z0-9-]+\.mp4$/i.test(ruweNaam)
-                ? ruweNaam
-                : `video-${Date.now().toString(36)}.mp4`;
-              const videoPad = `video/${naam}`;
+              // Zelfde naamgeving als de videobank (schoon, nooit overschrijven,
+              // en dezelfde video krijgt nooit een tweede naam): lib/media
+              let naam = /^[a-z0-9-]+\.mp4$/i.test(ruweNaam) ? ruweNaam.replace(/-v[0-9a-z]{6,}(?=\.mp4$)/i, "") : `video-${Date.now().toString(36)}.mp4`;
               // De video zelf gaat naar de media-opslag, niet in de site: hij
               // wordt op /video/<naam> geserveerd en hoeft dus niet bij elke
               // chatbeurt mee opgehaald te worden. (Is hij daar al — de
@@ -1002,11 +1017,14 @@ export async function POST(req: Request) {
               // eenvoudig nog eens; dat kost niets en houdt deze weg werkend
               // voor beurten waarin de eigenaar de video direct meestuurt.)
               if (site.siteSlug) {
-                const { bewaarMediaVideo } = await import("@/lib/media");
-                await bewaarMediaVideo(site.siteSlug, naam, await haalBinair(v)).catch((e) =>
-                  console.error("Video in media-opslag bewaren:", e),
-                );
+                const { bewaarVideoZonderDubbel } = await import("@/lib/media");
+                try {
+                  naam = (await bewaarVideoZonderDubbel(site.siteSlug, ruweNaam, await haalBinair(v))).naam;
+                } catch (e) {
+                  console.error("Video in media-opslag bewaren:", e);
+                }
               }
+              const videoPad = `video/${naam}`;
               let posterPad: string | null = null;
               const p = st?.output_files?.out_2?.storage_url;
               if (p) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media"; adres?: string | null; live?: boolean };
 
@@ -29,6 +29,7 @@ export default function VideoBank({
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
   const [zoek, setZoek] = useState("");
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
   // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
   // op naam is er voor wie een specifieke video zoekt (26-09)
   const [opNaam, setOpNaam] = useState(false);
@@ -122,15 +123,28 @@ export default function VideoBank({
             <OpenbaarMelding voorbeelden="zoals beelden van klanten zonder hun toestemming" />
             {onUpload && (
               <>
-                <UploadKnop
-                  label="⬆ Video uploaden (mp4, mov)"
-                  accept="video/mp4,video/quicktime,video/webm"
-                  bezig={null}
-                  onKies={(l) => {
-                    onUpload(l[0]);
-                    onSluit();
-                  }}
-                />
+                {teKiezen ? (
+                  <NaamKiezer
+                    bestanden={teKiezen}
+                    extensie={() => ".mp4"}
+                    bestaat={(naam) => (videos ?? []).some((v) => v.pad === `video/${naam}`)}
+                    onUploaden={(lijst) => {
+                      const { bestand, naam } = lijst[0];
+                      const eigenExt = bestand.name.match(/\.[a-z0-9]+$/i)?.[0] ?? "";
+                      setTeKiezen(null);
+                      onUpload(new File([bestand], `${naam.replace(/\.mp4$/i, "")}${eigenExt}`, { type: bestand.type, lastModified: bestand.lastModified }));
+                      onSluit();
+                    }}
+                    onAnnuleren={() => setTeKiezen(null)}
+                  />
+                ) : (
+                  <UploadKnop
+                    label="⬆ Video uploaden (mp4, mov)"
+                    accept="video/mp4,video/quicktime,video/webm"
+                    bezig={null}
+                    onKies={(l) => setTeKiezen(l.slice(0, 1))}
+                  />
+                )}
                 <p className="-mt-1 text-center text-[11px] text-stone-500">
                   Hij wordt eerst verkleind voor het web; de voortgang zie je in de chat. Daarna staat hij hier met zijn link.
                 </p>

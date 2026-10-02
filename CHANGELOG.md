@@ -23,6 +23,9 @@ reparaties.
 
 ## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
 
+- Naam kiezen geldt bij elke upload: foto, video, audio en pdf, in de banken én bij de gewone upload in de chat (paperclip en slepen). Een geplakte schermafbeelding krijgt geen vraag, maar wel een nette naam.
+- De automatische naam is altijd netjes: kleine letters, een streepje voor elke spatie of elk vreemd teken, accenten weg, en geen tijdstempel of willekeurige code meer uit de opslag.
+- Een foto uit de chat overschreef een bestaande foto met dezelfde naam, overal op de site. Nu krijgt de nieuwe -2, net als in de banken. Video krijgt geen code meer achter de naam en wordt bij een tweede verzoek niet dubbel opgeslagen.
 - Bij het uploaden in de fotobank of documentenbank kies je eerst de naam. De naam van je bestand staat voorgevuld, je ziet hoe hij op je site komt te heten, en een naam die al bestaat wordt vooraf geweigerd. Een bestandsnaam achteraf wijzigen kan bewust niet: een bestand staat op meerdere plekken en dan ontstaan er kapotte plaatjes en links.
 - De fotobank toont bij elke foto de omschrijving die Google leest (alt-tekst), en meldt waar die ontbreekt. Met "Omschrijving aanpassen" zet je de opdracht klaar in de chat.
 - De documentenbank toont met welke linktekst een document op je site staat.

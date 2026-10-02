@@ -224,6 +224,26 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await page.close();
     }
 
+    // 3b. Gewone upload in de chat (paperclip): eerst de naam kiezen, dan gaat
+    //     de foto met die naam mee
+    {
+      const page = await nieuwePagina(1440, 900);
+      await page.evaluate(() => window.mountPortaal("website"));
+      await page.waitForSelector(VELD, { state: "attached" });
+      await page.locator('input[type="file"][accept*="image/*"]').first().setInputFiles({ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
+      const naam = page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" });
+      await naam.waitFor();
+      assert.equal(await naam.inputValue(), "img-2041", "chat: de naam is niet voorgevuld");
+      assert.ok(await page.getByText(".webp").first().isVisible(), "chat: foto's worden webp, dat staat er niet bij");
+      await naam.fill("Kantoor Lisse voorkant");
+      assert.ok(await page.getByText("Wordt: kantoor-lisse-voorkant.webp").isVisible(), "chat: de schone naam wordt niet getoond");
+      await page.screenshot({ path: path.join(uitvoer, "naamkiezer-chat.png") });
+      await page.getByRole("button", { name: "Uploaden", exact: true }).click();
+      await page.getByRole("button", { name: /kantoor-lisse-voorkant\.jpg verwijderen/ }).waitFor({ timeout: 5000 });
+      assert.ok(!(await page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" }).count()), "chat: de naamkiezer blijft staan na uploaden");
+      await page.close();
+    }
+
     // 4. De banken: openbaar-melding, uploadknop, zoeken, link alleen als hij werkt
     for (const soort of ["document", "foto", "audio", "video"]) {
       const page = await nieuwePagina(1280, 900);
@@ -254,6 +274,16 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         assert.ok(await page.getByText(/Google leest: .Kantoor in Lisse, voorkant/).isVisible(), "fotobank: omschrijving niet zichtbaar");
         assert.ok(await page.getByText("Geen omschrijving op 1 plek").isVisible(), "fotobank: ontbrekende omschrijving niet gemeld");
         assert.ok(await page.getByRole("button", { name: "Omschrijving aanpassen" }).first().isVisible(), "fotobank: geen knop om de omschrijving aan te passen");
+      }
+      if (soort === "audio" || soort === "video") {
+        const bestand = soort === "audio" ? { name: "Aflevering 3 (def).MP3", mimeType: "audio/mpeg", buffer: Buffer.from("ID3") } : { name: "Rondleiding Kantoor.MOV", mimeType: "video/quicktime", buffer: Buffer.from([0, 0, 0, 20]) };
+        await page.locator('input[type="file"]').setInputFiles(bestand);
+        const naam = page.getByRole("textbox", { name: `Naam voor ${bestand.name}` });
+        await naam.waitFor();
+        assert.equal(await naam.inputValue(), soort === "audio" ? "aflevering-3-def" : "rondleiding-kantoor", `${soort}: naam niet voorgevuld`);
+        await naam.fill(soort === "audio" ? "aflevering-1" : "rondleiding");
+        assert.ok(await page.getByText("Deze naam bestaat al in je bank").isVisible() || soort === "video", `${soort}: bestaande naam niet geweigerd`);
+        await page.getByRole("button", { name: "Annuleren" }).click();
       }
       if (soort === "document" || soort === "foto") {
         const [bestand, bestaand, goed] =

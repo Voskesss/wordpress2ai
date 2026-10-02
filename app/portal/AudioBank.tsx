@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Link = { adres: string | null; live: boolean };
 
@@ -51,7 +51,8 @@ export default function AudioBank({
   /** Rechtstreeks uploaden in de bank, zonder de chat: zelfde weg als de
    * chat (upload-opslag, dan de media-map van de site). Audio staat daarna
    * meteen online, dus de link is direct te kopiëren. */
-  async function uploaden(bestand: File) {
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
+  async function uploaden(bestand: File, gekozenNaam?: string) {
     if (upload) return;
     setFout(null);
     if (!/\.(mp3|m4a|aac|ogg|wav)$/i.test(bestand.name)) {
@@ -71,7 +72,7 @@ export default function AudioBank({
       const r = (await fetch("/api/audiobank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: gekozenNaam ?? bestand.name }),
       }).then((x) => x.json())) as { naam?: string; adres?: string | null; live?: boolean; error?: string };
       if (!r.naam) throw new Error(r.error ?? "Opslaan lukte niet");
       const naam = r.naam;
@@ -127,7 +128,20 @@ export default function AudioBank({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
           <OpenbaarMelding voorbeelden="zoals een opname van een gesprek met een klant" />
-          <UploadKnop label="⬆ Audio uploaden (mp3, m4a)" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" bezig={upload} onKies={(l) => void uploaden(l[0])} />
+          {teKiezen ? (
+            <NaamKiezer
+              bestanden={teKiezen}
+              extensie={(f) => f.name.match(/\.[a-z0-9]+$/i)?.[0]?.toLowerCase() ?? ""}
+              bestaat={(naam) => (audio ?? []).includes(naam)}
+              onUploaden={(lijst) => {
+                setTeKiezen(null);
+                void uploaden(lijst[0].bestand, lijst[0].naam);
+              }}
+              onAnnuleren={() => setTeKiezen(null)}
+            />
+          ) : (
+            <UploadKnop label="⬆ Audio uploaden (mp3, m4a)" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" bezig={upload} onKies={(l) => setTeKiezen(l.slice(0, 1))} />
+          )}
           <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={audio?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
           {audio === null && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}

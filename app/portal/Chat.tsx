@@ -5,6 +5,7 @@ import Fotobank from "./Fotobank";
 import AudioBank from "./AudioBank";
 import VideoBank from "./VideoBank";
 import DocumentBank from "./DocumentBank";
+import { NaamKiezer } from "./BankHulp";
 import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import DemoOpdrachten from "./DemoOpdrachten";
@@ -293,6 +294,30 @@ export default function Chat({
   // Keuzemenu onder de paperclip: zo is meteen duidelijk dat er naast foto's
   // ook een video of een pdf mee kan
   const [bijlageMenu, setBijlageMenu] = useState(false);
+  // Gekozen bestanden die eerst een naam krijgen. Plakken (schermafbeelding)
+  // slaat dit over: dat zijn meestal voorbeelden die niet op de site komen,
+  // en hun automatische naam wordt toch netjes (lib/bestandsnaam).
+  const [naamKeuze, setNaamKeuze] = useState<{ bestanden: File[]; verder: (b: File[]) => void } | null>(null);
+  function vraagNamen(bestanden: File[], verder: (b: File[]) => void) {
+    if (bestanden.length === 0) return;
+    if (isDemo) return verder(bestanden);
+    setChatOpen(true);
+    setNaamKeuze({ bestanden, verder });
+  }
+  /** De extensie die het bestand op de site krijgt: foto's worden webp, video mp4. */
+  function doelExtensie(f: File): string {
+    if (f.type.startsWith("image/")) return ".webp";
+    if (f.type.startsWith("video/")) return ".mp4";
+    if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)) return ".pdf";
+    const ext = f.name.match(/\.[a-z0-9]+$/i)?.[0]?.toLowerCase();
+    return ext ?? "";
+  }
+  /** Zelfde bestand onder de gekozen naam, met zijn eigen extensie (de server zet om). */
+  function hernoemd(f: File, naam: string): File {
+    const eigenExt = (f.name.match(/\.[a-z0-9]+$/i)?.[0] ?? "").toLowerCase();
+    const stam = naam.replace(/\.[a-z0-9]+$/i, "");
+    return new File([f], `${stam}${eigenExt}`, { type: f.type, lastModified: f.lastModified });
+  }
   /** Opent de bestandskiezer, met alleen het gekozen soort bestand erin. */
   function kiesBijlage(soort: "foto" | "video" | "pdf" | "audio") {
     setBijlageMenu(false);
@@ -3572,23 +3597,42 @@ export default function Chat({
               kwijt. Wie een concept heeft, is toch met dat concept bezig. */}
           {isDemo && !bezig && !concept && <DemoOpdrachten />}
 
+          {/* Naam kiezen vóór het uploaden (foto, video, audio, pdf) */}
+          {naamKeuze && (
+            <div className="mb-2 max-h-[50vh] shrink-0 overflow-y-auto">
+              <NaamKiezer
+                bestanden={naamKeuze.bestanden}
+                extensie={doelExtensie}
+                bestaat={() => false}
+                onUploaden={(lijst) => {
+                  const verder = naamKeuze.verder;
+                  setNaamKeuze(null);
+                  verder(lijst.map(({ bestand, naam }) => hernoemd(bestand, naam)));
+                }}
+                onAnnuleren={() => setNaamKeuze(null)}
+              />
+            </div>
+          )}
           {/* Invoerbalk */}
           <div
             onDragOver={(e) => {
               if (e.dataTransfer.types.includes("Files")) e.preventDefault();
             }}
             onDrop={(e) => {
-              const alles = Array.from(e.dataTransfer.files ?? []);
-              if (alles.length === 0) return;
+              const gesleept = Array.from(e.dataTransfer.files ?? []);
+              if (gesleept.length === 0) return;
               e.preventDefault();
-              const video = alles.find((f) => f.type.startsWith("video/"));
-              if (video) videoUploaden(video);
-              const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
-              if (plaatjes.length > 0) {
-                voegFotosToe(plaatjes);
-                setHintWeg(true);
-                setChatOpen(true);
-              }
+              const welkom = gesleept.filter((f) => f.type.startsWith("video/") || f.type.startsWith("image/"));
+              vraagNamen(welkom, (alles) => {
+                const video = alles.find((f) => f.type.startsWith("video/"));
+                if (video) videoUploaden(video);
+                const plaatjes = alles.filter((f) => f.type.startsWith("image/"));
+                if (plaatjes.length > 0) {
+                  voegFotosToe(plaatjes);
+                  setHintWeg(true);
+                  setChatOpen(true);
+                }
+              });
             }}
             // shrink-0: bij weinig hoogte kromp de invoerbalk mee met het
             // gesprek en viel het typveld half weg (01-10). Het gesprek
@@ -3690,7 +3734,10 @@ export default function Chat({
                 multiple
                 className="hidden"
                 onChange={(e) => {
-                  const alles = Array.from(e.target.files ?? []);
+                  const gekozen = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  // Eerst de naam kiezen (voor Google), dan pas verwerken
+                  vraagNamen(gekozen, (alles) => {
                   // Audio (podcast e.d.): rechtstreeks naar de audiobank in R2
                   const isAudio = (f: File) =>
                     f.type.startsWith("audio/") || /\.(mp3|m4a|aac|ogg|wav)$/i.test(f.name);
@@ -3775,7 +3822,7 @@ export default function Chat({
                   } else if (bestanden.length > 0) {
                     voegFotosToe(bestanden);
                   }
-                  e.target.value = "";
+                  });
                 }}
               />
               <Tip tekst="Klik hierna in het voorbeeld op het onderdeel dat je bedoelt — dan weet ik precies waar je het over hebt">
