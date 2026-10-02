@@ -14,10 +14,16 @@ export function isProductie(): boolean {
   return process.env.VERCEL_ENV === "production";
 }
 
-/** Testsites: de demo, en repo's die op naam als test herkenbaar zijn
- * (test-groene-golf, test-infacilities, proefballon-test). */
+/** Eigen sites van WordSwap (geen klanten): daar test Jos bewust ook op dev,
+ * omdat alleen een site met eigen domein een bestandslink geeft. Een repo
+ * hier alleen toevoegen als Jos bevestigt dat het zijn eigen site is. */
+export const EIGEN_SITES = new Set(["vakbeursonline"]);
+
+/** Sites waar vanaf de testomgeving live geschreven mag worden: de demo,
+ * repo's die op naam als test herkenbaar zijn (test-groene-golf,
+ * test-infacilities, proefballon-test) en de eigen sites van WordSwap. */
 export function isTestsite(site: SiteVoorRem): boolean {
-  return site.isDemo || /^test-|-test$/.test(site.githubRepo);
+  return site.isDemo || /^test-|-test$/.test(site.githubRepo) || EIGEN_SITES.has(site.githubRepo);
 }
 
 /** Mag deze actie direct naar de live site schrijven of daar iets wissen? */

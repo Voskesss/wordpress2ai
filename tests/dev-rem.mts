@@ -8,7 +8,8 @@ import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { isTestsite, magLiveSchrijven, REM_MELDING } from "../lib/omgeving";
 
-const klant = { isDemo: false, githubRepo: "vakbeursonline" };
+const klant = { isDemo: false, githubRepo: "vandenberg-mediation" };
+const eigen = { isDemo: false, githubRepo: "vakbeursonline" };
 const test1 = { isDemo: false, githubRepo: "test-groene-golf" };
 const test2 = { isDemo: false, githubRepo: "proefballon-test" };
 const demo = { isDemo: true, githubRepo: "demo-bakkerij" };
@@ -24,6 +25,7 @@ for (const omgeving of ["preview", "development", undefined]) {
   assert.equal(magLiveSchrijven(test1), true, "test-groene-golf moet op dev testbaar blijven");
   assert.equal(magLiveSchrijven(test2), true, "proefballon-test moet op dev testbaar blijven");
   assert.equal(magLiveSchrijven(demo), true, "de demo moet op dev testbaar blijven");
+  assert.equal(magLiveSchrijven(eigen), true, "vakbeursonline is de eigen site van Jos en moet op dev testbaar blijven");
 }
 assert.equal(isTestsite(bijna), false, "een klant die toevallig met 'test' begint (testament-notaris) is geen testsite");
 assert.ok(!REM_MELDING.includes("—"), "lang streepje in de remmelding");
