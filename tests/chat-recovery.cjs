@@ -151,6 +151,9 @@ const assert = require("node:assert/strict");
           "base64",
         ),
       });
+    // Sinds 02-10 kies je eerst de naam (naamkiezer); de voorgevulde naam is goed
+    await page.getByRole("button", { name: "Uploaden", exact: true }).click();
+    await page.getByRole("button", { name: /voorbeeld\.png verwijderen/ }).waitFor();
     await page.getByRole("button", { name: "Verstuur", exact: true }).click();
     await page
       .getByRole("button", { name: "Stop de wijziging", exact: true })
