@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## Nog niet uitgebracht (op dev): berichten op de telefoon
+
+- Op de telefoon staan de berichten via je formulieren nu als kaartjes onder elkaar, in plaats van een tabel waarvan het bericht rechts buiten beeld viel. Tik op "Hele bericht lezen" om alles te zien; de knoppen (afgehandeld, spam, verwijderen) staan eronder, binnen beeld. Op een groot scherm blijft de tabel.
+
 ## 1.40.2 (2 oktober 2026)
 
 - Bij elke aankondiging in de admin zie je hoeveel klanten hem al gezien hebben, en wie nog niet. Heeft iedereen hem gezien, dan staat er "kan weg".
