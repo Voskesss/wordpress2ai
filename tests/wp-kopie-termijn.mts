@@ -36,7 +36,7 @@ assert.ok(!upload.includes("altijd zelf downloaden"), "de uploadmail belooft nog
 assert.ok((await readFile("app/portal/MeenemenBlok.tsx", "utf8")).includes("staat klaar tot {datumNl(verlooptOp(b.aangemaakt))}"), "het portaal toont de einddatum niet");
 assert.ok((await readFile("app/admin/klant/[id]/BackupUpload.tsx", "utf8")).includes("daarna automatisch weg"), "de admin toont de einddatum niet");
 const gez = await readFile("lib/gezondheid.ts", "utf8");
-assert.ok(gez.includes('meet("wp-kopieen"') && gez.includes("onderhoudKopieen()"), "de dagelijkse cron ruimt niet op");
+assert.ok(gez.includes('meetAls("wp-kopieen"') && gez.includes("onderhoudKopieen()"), "de dagelijkse cron ruimt niet op");
 const lib = await readFile("lib/backups.ts", "utf8");
 assert.ok(lib.includes("await del(rij.url, { token })") && lib.includes("db.delete(wpBackups)"), "verwijderen haalt niet zowel het bestand als de rij weg");
 console.log("wp-kopie-termijn: ok");

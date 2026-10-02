@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.39.2 (2 oktober 2026)
+
+- De bewaking kijkt nu elk kwartier naar de binnenkant: database, AI, mail, Cloudflare en GitHub, plus werk dat blijft hangen (een bouwopdracht die niet vordert, een WhatsApp-bericht dat op verwerking wacht, een publicatie die al een dag op mislukt staat). Gaat er iets kapot, dan volgt binnen een kwartier een mail en een appje; daarna blijft het stil tot het is opgelost, en dan komt er één herstelbericht. De dagelijkse controle van 5:20 blijft het volledige overzicht, en de kwartiercontrole bewaakt ook dat die dagelijkse ronde zelf nog draait. Nieuw is ook een tikje naar een externe wachter: blijft dat uit omdat ons eigen systeem plat ligt, dan waarschuwt die van buitenaf.
+
 ## 1.39.1 (2 oktober 2026)
 
 Reparatie aan "Klopt niet, kijk zelf even". De schermafbeelding die de chat

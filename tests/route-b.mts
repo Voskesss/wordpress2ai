@@ -65,7 +65,7 @@ assert.ok(openLib.includes('"concept", "publicatie_mislukt"'), "een mislukte pub
 const livegang = await readFile("lib/livegang.ts", "utf8");
 assert.ok(livegang.includes("routeBDomeinenVan(siteSlug)"), "de livegang-controle kent route B niet en blijft klagen dat het domein niet gekoppeld is");
 const gezondheid = await readFile("lib/gezondheid.ts", "utf8");
-assert.ok(gezondheid.includes('meet("route-b"') && gezondheid.includes('meet("eigen-dns"'), "het gezondheidsdashboard bewaakt route B of de eigen adressen niet");
+assert.ok(gezondheid.includes('meetAls("route-b"') && gezondheid.includes('meetAls("eigen-dns"'), "het gezondheidsdashboard bewaakt route B of de eigen adressen niet");
 
 
 // 7. Overstap zonder onderbreking (bewezen 29-09 op proef.aimia.nl, DNS bij

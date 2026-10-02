@@ -86,18 +86,25 @@ export async function versieWaakhond(): Promise<VersieRij[]> {
   return uit;
 }
 
-export async function alleChecks(): Promise<CheckUitslag[]> {
-  const checks: CheckUitslag[] = [];
+export async function alleChecks(alleen?: ReadonlySet<string>): Promise<CheckUitslag[]> {
+  const checks: (CheckUitslag | null)[] = [];
+  // De kwartierpols (draaiPols) draait alleen de vitale subset; zonder
+  // filter draait alles, precies zoals de dagelijkse controle altijd deed.
+  const meetAls = (
+    sleutel: string,
+    naam: string,
+    werk: () => Promise<{ status: CheckStatus; detail: string } | string>,
+  ) => (!alleen || alleen.has(sleutel) ? meet(sleutel, naam, werk) : Promise.resolve(null));
 
   checks.push(
-    await meet("database", "Database (Neon)", async () => {
+    await meetAls("database", "Database (Neon)", async () => {
       await db.execute(sql`SELECT 1`);
       return "Bereikbaar.";
     }),
   );
 
   checks.push(
-    await meet("resend", "Mail versturen (Resend)", async () => {
+    await meetAls("resend", "Mail versturen (Resend)", async () => {
       const key = process.env.RESEND_API_KEY;
       if (!key) return { status: "fout", detail: "RESEND_API_KEY ontbreekt." };
       const res = await fetch("https://api.resend.com/domains", {
@@ -109,7 +116,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("proef-ontzorgd", "Proefmaanden Optimaal ontzorgd: herinneren en afsluiten", async () => {
+    await meetAls("proef-ontzorgd", "Proefmaanden Optimaal ontzorgd: herinneren en afsluiten", async () => {
       const { onderhoudProeven } = await import("./proef-ontzorgd");
       const u = await onderhoudProeven("https://www.wordswap.nl");
       if (u.fouten.length) return { status: "fout", detail: u.fouten.join("; ") };
@@ -119,7 +126,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("wp-kopieen", "WordPress-kopieën: herinneren en opruimen", async () => {
+    await meetAls("wp-kopieen", "WordPress-kopieën: herinneren en opruimen", async () => {
       const { onderhoudKopieen, BEWAAR_DAGEN } = await import("./backups");
       const u = await onderhoudKopieen();
       const delen = [
@@ -132,7 +139,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("route-b", "Domeinen bij de hoster (route B)", async () => {
+    await meetAls("route-b", "Domeinen bij de hoster (route B)", async () => {
       const { leesDomeinkaart, statusVan } = await import("./route-b");
       const domeinen = Object.keys(await leesDomeinkaart());
       if (domeinen.length === 0) return "Geen domeinen aangemeld.";
@@ -148,7 +155,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("eigen-dns", "Eigen adressen van wordswap.nl buiten de verdeler", async () => {
+    await meetAls("eigen-dns", "Eigen adressen van wordswap.nl buiten de verdeler", async () => {
       // De verdeler staat op de zone wordswap.nl. Zolang onze eigen adressen op
       // "alleen DNS" staan komen ze niet langs Cloudflare en kan er niets gekaapt worden.
       const { eigenAdressenViaCloudflare } = await import("./route-b");
@@ -161,7 +168,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("soverin", "Mailbox lezen (Soverin)", async () => {
+    await meetAls("soverin", "Mailbox lezen (Soverin)", async () => {
       const { haalLeadPost } = await import("./soverin");
       await haalLeadPost(["jos@wordswap.nl"], new Date(Date.now() - 60 * 60_000));
       return "Inloggen en zoeken lukt.";
@@ -169,7 +176,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("cloudflare", "Cloudflare (sites uitrollen)", async () => {
+    await meetAls("cloudflare", "Cloudflare (sites uitrollen)", async () => {
       const token = process.env.CLOUDFLARE_API_TOKEN;
       if (!token) return { status: "fout", detail: "CLOUDFLARE_API_TOKEN ontbreekt." };
       // Zelfde soort aanroep als de echte deploys, dus dit bewijst wat telt
@@ -184,15 +191,52 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("github", "GitHub (klantrepo's)", async () => {
+    await meetAls("github", "GitHub (klantrepo's)", async () => {
       const { installationToken } = await import("./github");
       await installationToken();
       return "App-toegang werkt.";
     }),
   );
 
+  // Vastgelopen werk: dingen die in een tussenstand blijven hangen zonder
+  // dat iemand het merkt. De chat zelf kan niet hangen (tijdbewaker en
+  // bewerkingsslot), maar deze drie wel.
   checks.push(
-    await meet("mollie", "Mollie (betalingen)", async () => {
+    await meetAls("vast-bouw", "Vastgelopen bouwopdrachten", async () => {
+      const r = await db.execute(sql`SELECT count(*)::int AS n FROM bouw_jobs
+        WHERE (status = 'bezig' AND bijgewerkt < now() - interval '2 hours')
+           OR (status = 'wachtend' AND bijgewerkt < now() - interval '45 minutes')`);
+      const n = Number((r.rows[0] as { n?: number })?.n ?? 0);
+      return n === 0
+        ? "Geen bouwopdrachten blijven hangen."
+        : { status: "fout", detail: `${n} bouwopdracht(en) staan te lang op bezig of wachtend. Kijk bij de bouw-jobs in de admin.` };
+    }),
+  );
+
+  checks.push(
+    await meetAls("vast-whatsapp", "Vastgelopen WhatsApp-berichten", async () => {
+      const r = await db.execute(sql`SELECT count(*)::int AS n FROM whatsapp_berichten
+        WHERE status IN ('wacht', 'bezig') AND ontvangen < now() - interval '15 minutes'`);
+      const n = Number((r.rows[0] as { n?: number })?.n ?? 0);
+      return n === 0
+        ? "Geen berichten blijven hangen."
+        : { status: "fout", detail: `${n} WhatsApp-bericht(en) wachten al langer dan een kwartier op verwerking.` };
+    }),
+  );
+
+  checks.push(
+    await meetAls("vast-publicatie", "Mislukte publicaties die blijven staan", async () => {
+      const r = await db.execute(sql`SELECT count(*)::int AS n FROM changes
+        WHERE status IN ('publicatie_mislukt', 'herstel_mislukt') AND aangemaakt < now() - interval '24 hours'`);
+      const n = Number((r.rows[0] as { n?: number })?.n ?? 0);
+      return n === 0
+        ? "Geen mislukte publicaties blijven staan."
+        : { status: "fout", detail: `${n} concept(en) staan al meer dan een dag op publicatie mislukt. De klant ziet zijn wijziging niet live.` };
+    }),
+  );
+
+  checks.push(
+    await meetAls("mollie", "Mollie (betalingen)", async () => {
       const { mollie } = await import("./mollie");
       await mollie("/methods");
       return "Sleutel geldig.";
@@ -200,7 +244,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("meta", "Meta-leadkoppeling", async () => {
+    await meetAls("meta", "Meta-leadkoppeling", async () => {
       const token = process.env.META_LEADS_TOKEN;
       if (!token) return { status: "waarschuwing", detail: "Niet ingesteld (META_LEADS_TOKEN)." };
       const res = await fetch(`https://graph.facebook.com/v21.0/me?access_token=${encodeURIComponent(token)}`, {
@@ -212,7 +256,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   );
 
   checks.push(
-    await meet("anthropic", "AI (Anthropic)", async () => {
+    await meetAls("anthropic", "AI (Anthropic)", async () => {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
       await new Anthropic().models.list({ limit: 1 });
       return "API bereikbaar; sleutel geldig.";
@@ -222,15 +266,17 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
   // Live klantsites: antwoordt het domein met onze deploy-stempel, en staat er
   // een UptimeRobot-monitor op? (De diepe mail/DNS-controle blijft op de
   // klantpagina; hier alleen wat elke dag stil kapot kan gaan.)
-  const live = await db
-    .select({ id: sites.id, naam: sites.naam, domein: sites.domein })
-    .from(sites)
-    // Onze eigen wordswap.nl is de app zelf, geen uitgerolde klantsite
-    .where(and(eq(sites.status, "actief"), isNotNull(sites.domein), ne(sites.githubRepo, "wordswap")))
-    .catch(() => []);
+  const live = alleen
+    ? []
+    : await db
+        .select({ id: sites.id, naam: sites.naam, domein: sites.domein })
+        .from(sites)
+        // Onze eigen wordswap.nl is de app zelf, geen uitgerolde klantsite
+        .where(and(eq(sites.status, "actief"), isNotNull(sites.domein), ne(sites.githubRepo, "wordswap")))
+        .catch(() => []);
   let monitors: string[] | null = null;
   const urKey = process.env.UPTIMEROBOT_API_KEY;
-  if (urKey) {
+  if (urKey && !alleen) {
     try {
       const res = await fetch("https://api.uptimerobot.com/v2/getMonitors", {
         method: "POST",
@@ -245,7 +291,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
     }
   }
   checks.push(
-    await meet("uptimerobot", "Bewaking (UptimeRobot)", async () => {
+    await meetAls("uptimerobot", "Bewaking (UptimeRobot)", async () => {
       if (!urKey) return { status: "waarschuwing", detail: "Geen sleutel ingesteld." };
       if (monitors === null) return { status: "fout", detail: "UptimeRobot antwoordt niet of weigert de sleutel." };
       return `${monitors.length} monitor(s) actief.`;
@@ -267,7 +313,7 @@ export async function alleChecks(): Promise<CheckUitslag[]> {
     );
   }
 
-  return checks;
+  return checks.filter((c): c is CheckUitslag => c !== null);
 }
 
 export async function leesRapport(): Promise<GezondheidsRapport | null> {
@@ -303,4 +349,125 @@ export async function draaiGezondheid(): Promise<GezondheidsRapport> {
     console.error("Gezondheid: rapport bewaren mislukt:", e),
   );
   return rapport;
+}
+
+/* ------------------------------------------------------------------ */
+/* De kwartierpols: dezelfde meetcode, maar dan elk kwartier en alleen */
+/* de vitale onderdelen. De dagelijkse controle blijft het volledige   */
+/* overzicht; de pols is er zodat een storing binnen een kwartier een  */
+/* mailtje én een appje oplevert in plaats van pas de volgende ochtend.*/
+/* ------------------------------------------------------------------ */
+
+export const POLS_SLEUTEL = "intern/gezondheid-pols.json";
+
+/** Wat de pols elk kwartier aanraakt: de vijf vitale diensten plus het
+ * vastgelopen werk. Alles erbuiten (klantsites, Mollie, Meta, versies)
+ * blijft bij de dagelijkse ronde. */
+export const POLS_SET: ReadonlySet<string> = new Set([
+  "database",
+  "anthropic",
+  "resend",
+  "cloudflare",
+  "github",
+  "vast-bouw",
+  "vast-whatsapp",
+  "vast-publicatie",
+]);
+
+export type PolsStand = {
+  gemetenOp: string;
+  /** sleutel -> "naam: detail" van alles wat bij de vorige pols fout was. */
+  fouten: Record<string, string>;
+};
+
+/** Welke checks nét kapot gingen en welke nét herstelden, vergeleken met de
+ * vorige pols. Alleen overgangen leveren een melding op: een storing die al
+ * gemeld is, blijft stil tot hij herstelt. */
+export function polsOvergangen(
+  vorig: PolsStand | null,
+  checks: CheckUitslag[],
+): { kapot: CheckUitslag[]; hersteld: string[]; stand: PolsStand } {
+  const was = vorig?.fouten ?? {};
+  const fouten: Record<string, string> = {};
+  for (const c of checks) {
+    if (c.status === "fout") fouten[c.sleutel] = `${c.naam}: ${c.detail}`;
+  }
+  const kapot = checks.filter((c) => c.status === "fout" && !(c.sleutel in was));
+  const hersteld = Object.keys(was)
+    .filter((sleutel) => !(sleutel in fouten))
+    .map((sleutel) => was[sleutel]);
+  return { kapot, hersteld, stand: { gemetenOp: new Date().toISOString(), fouten } };
+}
+
+/** Storing of herstel melden: altijd per mail, en als er een nummer is
+ * ingesteld ook met een appje. WhatsApp kan weigeren buiten het
+ * 24-uursvenster; dan blijft de mail het vangnet. */
+async function meldStoring(onderwerp: string, regels: string[]): Promise<void> {
+  const merk = process.env.VERCEL_ENV === "production" ? "" : "[dev] ";
+  try {
+    const { mailVanJos, ontsnap } = await import("./wordswap-mail");
+    await mailVanJos({
+      naar: "jos@wordswap.nl",
+      onderwerp: `${merk}${onderwerp}`,
+      html: `<ul>${regels.map((r) => `<li>${ontsnap(r)}</li>`).join("")}</ul><p>Zie <a href="https://www.wordswap.nl/admin/gezondheid">het gezondheidsdashboard</a>.</p>`,
+    });
+  } catch (e) {
+    console.error("Pols: melding mailen mislukt:", e);
+  }
+  const nummer = process.env.WHATSAPP_STORING_NUMMER;
+  if (nummer) {
+    try {
+      const { stuurTekst } = await import("./whatsapp/api");
+      await stuurTekst(nummer, `${merk}${onderwerp}\n${regels.map((r) => `• ${r}`).join("\n")}`);
+    } catch (e) {
+      console.error("Pols: appje mislukt (mail is het vangnet):", e);
+    }
+  }
+}
+
+export async function draaiPols(): Promise<{
+  checks: number;
+  fouten: number;
+  gemeld: number;
+}> {
+  const checks = await alleChecks(POLS_SET);
+
+  // De pols bewaakt ook de dagelijkse controle zelf: is het laatste rapport
+  // ouder dan 26 uur, dan is die cron stilletjes gestopt.
+  const rapport = await leesRapport().catch(() => null);
+  const uurOud = rapport
+    ? (Date.now() - new Date(rapport.gemetenOp).getTime()) / 3_600_000
+    : Infinity;
+  checks.push(
+    uurOud <= 26
+      ? { sleutel: "dagcontrole", naam: "Dagelijkse controle", status: "ok", detail: `Laatste rapport ${Math.round(uurOud)} uur oud.` }
+      : {
+          sleutel: "dagcontrole",
+          naam: "Dagelijkse controle",
+          status: "fout",
+          detail: rapport
+            ? `Laatste rapport is ${Math.round(uurOud)} uur oud; de dagelijkse cron draait niet meer.`
+            : "Er is nog nooit een dagrapport geschreven.",
+        },
+  );
+
+  const vorig: PolsStand | null = await leesObject(POLS_SLEUTEL)
+    .then((t) => (t ? (JSON.parse(t.toString()) as PolsStand) : null))
+    .catch(() => null);
+  const { kapot, hersteld, stand } = polsOvergangen(vorig, checks);
+
+  if (kapot.length > 0) {
+    await meldStoring(
+      `🔴 Storing: ${kapot.map((c) => c.naam).join(", ")}`,
+      kapot.map((c) => `${c.naam}: ${c.detail}`),
+    );
+  }
+  if (hersteld.length > 0) {
+    await meldStoring(`✅ Opgelost: ${hersteld.length} onderdeel${hersteld.length === 1 ? "" : "en"} weer goed`, hersteld);
+  }
+
+  await schrijfObject(POLS_SLEUTEL, JSON.stringify(stand), "application/json").catch((e) =>
+    console.error("Pols: stand bewaren mislukt:", e),
+  );
+  return { checks: checks.length, fouten: Object.keys(stand.fouten).length, gemeld: kapot.length + hersteld.length };
 }

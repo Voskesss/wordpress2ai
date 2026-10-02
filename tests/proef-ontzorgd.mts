@@ -49,6 +49,6 @@ assert.ok(blok.includes("Bied de proefmaand aan") && blok.includes("<BevestigKno
 assert.ok(blok.includes("Proef beëindigen"), "een proef kan niet handmatig gestopt worden");
 assert.ok(!pagina.includes("stuurProefAanbod(") || true);
 const gez = await readFile("lib/gezondheid.ts", "utf8");
-assert.ok(gez.includes('meet("proef-ontzorgd"'), "de dagelijkse cron kent de proeven niet");
+assert.ok(gez.includes('meetAls("proef-ontzorgd"'), "de dagelijkse cron kent de proeven niet");
 assert.ok((await readFile("db/migrations/20260930-proef-ontzorgd.sql", "utf8")).includes("proef_ontzorgd_tot"), "migratie ontbreekt");
 console.log("proef-ontzorgd: ok");
