@@ -52,6 +52,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import Fotobank from "./app/portal/Fotobank";
           import AudioBank from "./app/portal/AudioBank";
           import VideoBank from "./app/portal/VideoBank";
+          import KlantenLijst from "./app/admin/KlantenLijst";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -59,6 +60,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
               berichten={<div id="berichten-inhoud">Berichten en mail</div>}
               account={<div id="account-inhoud">Account</div>} />);
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
+          window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
           window.mountBank = (soort) => {
             const leeg = () => {};
             if (soort === "document") bank(<DocumentBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} />);
@@ -305,6 +307,26 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         assert.ok(await page.getByRole("button", { name: /uploaden/i }).first().isVisible(), `${soort}: na annuleren is de uploadknop er niet terug`);
       }
       await page.screenshot({ path: path.join(uitvoer, `bank-${soort}.png`) });
+      await page.close();
+    }
+
+    // 4b. Admin-klantenlijst: AI-verbruik als bedrag, percentage en balkje
+    //     (zelfde maat als de klant), niet meer "0/30 wijzigingen"
+    {
+      const page = await nieuwePagina(1280, 700);
+      const basisRij = { domein: "voorbeeld.nl", status: "actief", isDemo: false, eigen: false, livegang: null, openConcepten: 0, offlineNa: null };
+      await page.evaluate((rijen) => window.mountKlanten(rijen), [
+        { ...basisRij, id: 1, naam: "Weinig gebruikt", aiUsd: 0.87, budgetUsd: 4 },
+        { ...basisRij, id: 2, naam: "Bijna op", aiUsd: 3.2, budgetUsd: 4 },
+        { ...basisRij, id: 3, naam: "Op", aiUsd: 5.1, budgetUsd: 4 },
+      ]);
+      await page.getByText("Weinig gebruikt").waitFor();
+      assert.ok(await page.getByText("$0,87 van $4,00").isVisible(), "admin: bedrag en budget staan er niet");
+      const balken = page.getByRole("progressbar", { name: "AI-verbruik deze maand" });
+      assert.equal(await balken.count(), 3, "admin: niet bij elke klant een balkje");
+      assert.deepEqual(await balken.evaluateAll((b) => b.map((x) => x.getAttribute("aria-valuenow"))), ["22", "80", "100"]);
+      assert.ok(!(await page.getByText(/wijzigingen/).count()), "admin: de oude telling van wijzigingen staat er nog");
+      await page.screenshot({ path: path.join(uitvoer, "admin-verbruik.png") });
       await page.close();
     }
 

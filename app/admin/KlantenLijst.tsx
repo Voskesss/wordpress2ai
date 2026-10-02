@@ -12,12 +12,33 @@ export type KlantRij = {
   eigen: boolean;
   livegang: { klaar: number; totaal: number } | null;
   openConcepten: number;
-  wijzigingen: number;
-  wijzigingenLimiet: number;
+  /** AI-verbruik deze maand en het maandbudget, in dollars (zoals ai_kosten) */
   aiUsd: number;
+  budgetUsd: number;
   /** YYYY-MM-DD: opgezegd, website mag na deze datum offline */
   offlineNa: string | null;
 };
+
+const dollar = (v: number) => `$${v.toFixed(2).replace(".", ",")}`;
+
+/** AI-verbruik deze maand: wat ze mogen, wat ze gebruikten, het percentage en
+ * een balkje. Zelfde maat als de klant ziet (lib/verbruik); het oude
+ * "0/30 wijzigingen" zei niets meer, want het budget is wat er begrenst. */
+function VerbruikBalk({ gebruikt, budget }: { gebruikt: number; budget: number }) {
+  if (!(budget > 0)) return null;
+  const procent = Math.min(100, Math.round((gebruikt / budget) * 100));
+  const kleur = procent >= 100 ? "bg-red-500" : procent >= 70 ? "bg-amber-500" : "bg-emerald-500";
+  return (
+    <div className="mt-1 flex items-center gap-2" title={`AI deze maand: ${dollar(gebruikt)} van ${dollar(budget)}`}>
+      <div className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-stone-200" role="progressbar" aria-valuenow={procent} aria-valuemin={0} aria-valuemax={100} aria-label="AI-verbruik deze maand">
+        <div className={`h-full rounded-full ${kleur}`} style={{ width: `${Math.max(procent, gebruikt > 0 ? 3 : 0)}%` }} />
+      </div>
+      <span className="text-[11px] tabular-nums text-stone-500">
+        {procent}%<span className="hidden sm:inline"> · {dollar(gebruikt)} van {dollar(budget)}</span>
+      </span>
+    </div>
+  );
+}
 
 /** Klantenlijst in groepen (migratie, live, overig), compact en doorzoekbaar. */
 export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
@@ -88,10 +109,8 @@ export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
                           <p className="truncate font-semibold text-stone-900">{r.naam}</p>
                           <p className="truncate text-xs text-stone-500">
                             {r.domein ?? "geen domein"}
-                            <span className="hidden sm:inline">
-                              {" "}· {r.wijzigingen}/{r.wijzigingenLimiet} wijzigingen{r.aiUsd > 0 ? ` · $${r.aiUsd.toFixed(2)} AI` : ""}
-                            </span>
                           </p>
+                          <VerbruikBalk gebruikt={r.aiUsd} budget={r.budgetUsd} />
                         </div>
                         <div className="flex shrink-0 items-center gap-2 text-xs">
                           {livegangOpen && (

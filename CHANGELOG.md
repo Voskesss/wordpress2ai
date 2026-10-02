@@ -21,6 +21,11 @@ werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
 
+
+## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
+
+- De klantenlijst in de admin toont per klant het AI-verbruik van deze maand zoals de klant het in zijn portaal ziet: een balkje met het percentage, en wat ze gebruikt hebben van wat ze mogen ($0,87 van $4,00). Groen, oranje vanaf 70 procent, rood als het op is. De oude telling "0/30 wijzigingen" is weg; die begrenst niets meer.
+
 ## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
 
 - Wijs je een foto aan, dan kun je met "Omschrijving aanpassen" zelf de omschrijving van die foto veranderen (de alt-tekst die Google en schermlezers lezen). Zonder AI, in een paar seconden, en alleen precies die foto.
