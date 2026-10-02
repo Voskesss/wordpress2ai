@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { MAIL_VIDEOS, videoBlokHtml } from "../lib/mail-video";
+import { MAIL_VIDEOS, staandVan, videoBlokHtml } from "../lib/mail-video";
 import { sjabloonNaarHtml, type Prospect } from "../lib/outreach";
 import { losseMailNaarHtml } from "../lib/mailer";
 import { tekstVanHtml } from "../lib/smtp";
@@ -18,6 +18,8 @@ for (const naam of Object.keys(MAIL_VIDEOS) as (keyof typeof MAIL_VIDEOS)[]) {
   // De bestanden die de mail en de pagina noemen, bestaan echt
   assert.ok(existsSync(`public${v.bestand}`), `${naam}: videobestand ontbreekt`);
   assert.ok(existsSync(`public${v.beeld}`), `${naam}: beeld voor de mail ontbreekt`);
+  const staand = staandVan(naam);
+  if (staand) assert.ok(existsSync(`public${staand}`), `${naam}: staande versie ontbreekt`);
 
   for (const [soort, html] of [
     ["outreach", sjabloonNaarHtml(`Hallo,\n\n[video:${naam}]\n\nGroet`, p)],
@@ -35,6 +37,11 @@ for (const naam of Object.keys(MAIL_VIDEOS) as (keyof typeof MAIL_VIDEOS)[]) {
 // Een onbekende naam wordt geen kapot blok: de tekst blijft gewoon staan
 assert.equal(videoBlokHtml("bestaat-niet"), null);
 assert.ok(sjabloonNaarHtml("[video:bestaat-niet]", p).includes("[video:bestaat-niet]"), "onbekende video verdwijnt stil");
+
+// Telefoon krijgt de staande versie (Jos 02-10-2026)
+assert.ok(staandVan("website-typen"), "website-typen heeft geen staande versie meer");
+const paginaBron = await readFile("app/video/[naam]/page.tsx", "utf8");
+assert.ok(paginaBron.includes('media="(max-width: 640px)"') && paginaBron.indexOf("src={staand}") < paginaBron.indexOf("src={v.bestand}"), "de telefoon krijgt de staande versie niet als eerste keus");
 
 // De pagina, de knoppen en de AI-herschrijver kennen de code
 const pagina = await readFile("app/video/[naam]/page.tsx", "utf8");

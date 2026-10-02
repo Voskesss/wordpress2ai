@@ -18,12 +18,20 @@ export const MAIL_VIDEOS = {
     titel: "Je website aanpassen door te typen",
     uitleg: "Foto vervangen, pagina erbij, nieuwsbericht plaatsen: je typt wat er anders moet, en het staat klaar.",
     bestand: "/video/wordswap-website-typen.mp4",
+    staand: "/video/wordswap-website-typen-staand.mp4",
     beeld: "/video/wordswap-website-typen-voorbeeld.jpg",
     seconden: 20,
   },
 } as const;
 
 export type MailVideoNaam = keyof typeof MAIL_VIDEOS;
+
+/** Staande versie (9:16) voor telefoons, als die er is. Op de videopagina
+ * kiest de browser zelf: smal scherm staand, anders vierkant (Jos, 02-10-2026). */
+export const staandVan = (naam: MailVideoNaam): string | null => {
+  const v = MAIL_VIDEOS[naam];
+  return "staand" in v ? v.staand : null;
+};
 
 const SITE = "https://www.wordswap.nl";
 
