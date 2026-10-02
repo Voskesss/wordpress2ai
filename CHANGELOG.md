@@ -20,7 +20,9 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## Nog niet uitgebracht (op dev): verbruik op de klantpagina, livegang bij route B
+## 1.40.0 (2 oktober 2026)
+
+Naam kiezen bij elke upload, omschrijvingen zichtbaar, AI-verbruik in de admin en een slimmere livegang-checklist.
 
 - De klantpagina in de admin toont het AI-verbruik deze maand als percentage,
   bedrag en balkje, net als de klantenlijst. De instellingen voor een grens op
@@ -32,14 +34,10 @@ reparaties.
 - Livegang-punten die wij niet kunnen meten (zoals Search Console die de
   klant zelf via een bestand regelde) vink je nu zelf af, en zet je ook weer
   terug. Rode punten, die nu misgaan voor bezoekers, kunnen dat niet.
-  Nieuwe kolom sites.livegang_afgevinkt: vóór main ook op productie draaien.
-
-## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
+  Nieuwe kolom sites.livegang_afgevinkt (op dev en productie gedraaid).
 
 - De groep Live staat nu bovenaan de klantenlijst, In migratie daaronder.
 - De klantenlijst in de admin toont per klant het AI-verbruik van deze maand zoals de klant het in zijn portaal ziet: een balkje met het percentage, en wat ze gebruikt hebben van wat ze mogen ($0,87 van $4,00). Groen, oranje vanaf 70 procent, rood als het op is. De oude telling "0/30 wijzigingen" is weg; die begrenst niets meer.
-
-## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
 
 - Wijs je een foto aan, dan kun je met "Omschrijving aanpassen" zelf de omschrijving van die foto veranderen (de alt-tekst die Google en schermlezers lezen). Zonder AI, in een paar seconden, en alleen precies die foto.
 - Tijdens het laden van een bank zie je lichte vlakken in de vorm van wat er komt (tegels voor foto's, kaarten voor video, regels voor documenten en audio) in plaats van de zin "Even ophalen...". Zonder beweging voor wie dat in zijn instellingen heeft uitgezet.
