@@ -11,7 +11,7 @@ import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
-import { documentAdres, livePaden } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, livePaden } from "@/lib/document-adres";
 import { altTekstenPerBeeld } from "@/lib/beeld-alt";
 
 export const maxDuration = 120;
@@ -100,7 +100,7 @@ export async function GET(req: Request) {
     lijst.sort(
       (a, b) => tijdVan(b.pad) - tijdVan(a.pad) || a.stam.localeCompare(b.stam) || Number(b.inGebruik) - Number(a.inGebruik)
     );
-    return NextResponse.json({ afbeeldingen: lijst });
+    return NextResponse.json({ afbeeldingen: lijst, linkUitleg: linkUitleg(site) });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
   }

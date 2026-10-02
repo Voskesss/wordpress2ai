@@ -29,6 +29,7 @@ export default function AudioBank({
   const [wisVraag, setWisVraag] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<string, Link>>({});
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function AudioBank({
       setAudio(r.audio ?? []);
       setLimiet(r.limiet ?? null);
       setLinks(r.links ?? {});
+      setLinkUitleg(r.linkUitleg ?? null);
     } catch (e) {
       setFout(e instanceof Error ? e.message : "Kon de audiobank niet laden.");
     }
@@ -179,7 +181,7 @@ export default function AudioBank({
                 src={`/api/audiobank?siteId=${siteId}&bestand=${encodeURIComponent(naam)}`}
               />
               <div className="flex flex-wrap items-center gap-2">
-                <KopieerLink adres={links[naam]?.adres} live={links[naam]?.live} />
+                <KopieerLink adres={links[naam]?.adres} live={links[naam]?.live} uitleg={linkUitleg} />
                 <button
                   onClick={() => {
                     onGebruik(`/audio/${naam}`);

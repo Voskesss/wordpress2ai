@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
-import { documentAdres, staatLive, vrijeNaam } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, staatLive, vrijeNaam } from "@/lib/document-adres";
 
 /** De audiobank van een site: afleveringen in de media-map in R2, los van de
  * GitHub-repo en de deploy-sync. Verwijderen is hier een bewuste actie; een
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
       links[naam] = { adres, live: adres ? await staatLive(adres) : false };
     }),
   );
-  return NextResponse.json({ audio, limiet: site.audioLimiet, links });
+  return NextResponse.json({ audio, limiet: site.audioLimiet, links, linkUitleg: linkUitleg(site) });
 }
 
 export async function POST(req: Request) {

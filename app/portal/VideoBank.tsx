@@ -29,6 +29,7 @@ export default function VideoBank({
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
   const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
   // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
   // op naam is er voor wie een specifieke video zoekt (26-09)
@@ -48,6 +49,7 @@ export default function VideoBank({
       try {
         const r = (await fetch(`/api/videobank?siteId=${siteId}`).then((x) => x.json())) as {
           videos?: Video[];
+          linkUitleg?: string | null;
           gebruikt?: number;
           limiet?: number;
           error?: string;
@@ -55,6 +57,7 @@ export default function VideoBank({
         if (weg) return;
         if (r.videos) {
           setVideos(r.videos);
+          setLinkUitleg(r.linkUitleg ?? null);
           if (typeof r.gebruikt === "number" && typeof r.limiet === "number")
             setTegoed({ gebruikt: r.gebruikt, limiet: r.limiet });
         } else setFout(r.error ?? "Kon de videobank niet laden.");
@@ -219,7 +222,7 @@ export default function VideoBank({
                     </span>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <KopieerLink adres={v.adres} live={v.live} />
+                    <KopieerLink adres={v.adres} live={v.live} uitleg={linkUitleg} />
                     <button
                       onClick={() => {
                         onGebruik(`/${v.pad}`);

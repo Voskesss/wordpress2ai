@@ -29,6 +29,7 @@ export default function DocumentBank({
   // Gekozen bestand dat nog een naam moet krijgen (vóór het uploaden)
   const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
 
   /** Rechtstreeks uploaden in de bank, zonder de chat. Zelfde weg als via de
    * chat (eerst naar de upload-opslag, dan in de site), en het document staat
@@ -75,9 +76,11 @@ export default function DocumentBank({
       try {
         const r = (await fetch(`/api/documentbank?siteId=${siteId}`).then((x) => x.json())) as {
           documenten?: Doc[];
+          linkUitleg?: string | null;
           error?: string;
         };
         if (weg) return;
+        setLinkUitleg(r.linkUitleg ?? null);
         if (r.documenten) setDocs(r.documenten);
         else setFout(r.error ?? "Kon de documentenbank niet laden.");
       } catch {
@@ -200,7 +203,7 @@ export default function DocumentBank({
                   Openen
                 </a>
               )}
-              <KopieerLink adres={d.adres} live={d.live} />
+              <KopieerLink adres={d.adres} live={d.live} uitleg={linkUitleg} />
               <button
                 onClick={() => {
                   onGebruik(`/${d.pad}`);

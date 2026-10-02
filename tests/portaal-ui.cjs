@@ -103,7 +103,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         if (p === "/api/fotobank")
           return json({ afbeeldingen: [{ pad: "afbeeldingen/kantoor-lisse-voorkant.webp", stam: "afbeeldingen/kantoor-lisse-voorkant.webp", grootte: 120000, inGebruik: true, adres: "https://voorbeeld.nl/afbeeldingen/kantoor-lisse-voorkant.webp", live: true, alt: { teksten: ["Kantoor in Lisse, voorkant"], zonder: 1, leeg: 0 } }, { pad: "afbeeldingen/team.webp", stam: "afbeeldingen/team.webp", grootte: 90000, inGebruik: false, adres: "https://voorbeeld.nl/afbeeldingen/team.webp", live: true }] });
         if (p === "/api/audiobank" && !new URL(r.request().url()).searchParams.get("bestand"))
-          return json({ audio: ["aflevering-1.mp3", "aflevering-2.mp3"], limiet: 10, links: { "aflevering-1.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-1.mp3", live: true }, "aflevering-2.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-2.mp3", live: false } } });
+          return json({ audio: ["aflevering-1.mp3", "aflevering-2.mp3"], limiet: 10, linkUitleg: "Link kopiëren kan zodra je website op zijn eigen domein staat.", links: { "aflevering-1.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-1.mp3", live: true }, "aflevering-2.mp3": { adres: null, live: false } } });
         if (p === "/api/videobank" && !new URL(r.request().url()).searchParams.get("bestand"))
           return json({ videos: [{ pad: "video/rondleiding.mp4", poster: null, mb: 12, inGebruik: false, bron: "media", adres: "https://voorbeeld.nl/video/rondleiding.mp4", live: true }, { pad: "video/uitleg-mediation.mp4", poster: null, mb: 8, inGebruik: true, bron: "media", adres: "https://voorbeeld.nl/video/uitleg-mediation.mp4", live: false }], gebruikt: 1, limiet: 5 });
         return json({});
@@ -256,8 +256,10 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await zoek.fill("bestaat-niet-xyz");
       assert.ok(await page.getByText(/Niets gevonden|Geen foto's gevonden/).first().isVisible(), `${soort}: zoeken filtert niet`);
       await zoek.fill("");
-      if (soort === "document" || soort === "audio")
+      if (soort === "document")
         assert.ok(await page.getByText(/Nog niet live/).first().isVisible(), `${soort}: geen uitleg bij een link die nog niet werkt`);
+      if (soort === "audio")
+        assert.ok(await page.getByText("Link kopiëren kan zodra je website op zijn eigen domein staat.").isVisible(), "zonder eigen domein: geen uitleg waarom er geen link is");
       if (soort === "document") {
         // De volledige naam is te lezen: niet afgekapt, niet woord voor woord onder elkaar
         const naam = page.getByText(LANG, { exact: true });

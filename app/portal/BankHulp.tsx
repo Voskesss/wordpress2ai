@@ -62,9 +62,9 @@ export function UploadKnop({
 
 /** Het vaste webadres naar het klembord. Lukt het klembord niet (oude
  * browser), dan staat het adres eronder om zelf te selecteren. */
-export function KopieerLink({ adres, live }: { adres?: string | null; live?: boolean }) {
+export function KopieerLink({ adres, live, uitleg }: { adres?: string | null; live?: boolean; uitleg?: string | null }) {
   const [klaar, setKlaar] = useState(false);
-  if (!adres) return null;
+  if (!adres) return uitleg ? <span className="basis-full text-[11px] text-stone-500">{uitleg}</span> : null;
   if (!live)
     return (
       <span className="basis-full text-[11px] text-amber-700">

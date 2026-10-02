@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { documentAdres, staatLive } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, staatLive } from "@/lib/document-adres";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
@@ -121,7 +121,7 @@ export async function GET(req: Request) {
         return { ...v, adres, live: adres ? await staatLive(adres) : false };
       }),
     );
-    return NextResponse.json({ videos: metLinks, gebruikt: site.videoUploads, limiet: site.videoLimiet });
+    return NextResponse.json({ videos: metLinks, gebruikt: site.videoUploads, limiet: site.videoLimiet, linkUitleg: linkUitleg(site) });
   } catch (e) {
     console.error("Videobank laden:", e);
     return NextResponse.json({ error: "Kon de videobank niet laden." }, { status: 503 });

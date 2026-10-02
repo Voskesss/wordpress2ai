@@ -16,6 +16,15 @@ export function documentAdres(site: MetHoofdadres, pad: string): string | null {
   return `https://${host}/${schoon}`;
 }
 
+/** Zonder eigen domein geen link (het tijdelijke adres verandert bij de
+ * verhuizing en dan breken links in verstuurde mails). Dan wel uitleggen
+ * waarom de knop er niet is, anders lijkt hij kwijt (Jos, 02-10-2026). */
+export const GEEN_DOMEIN_UITLEG = "Link kopiëren kan zodra je website op zijn eigen domein staat.";
+export function linkUitleg(site: MetHoofdadres & { isDemo?: boolean | null }): string | null {
+  if (site.isDemo) return null;
+  return documentAdres(site, "x") ? null : GEEN_DOMEIN_UITLEG;
+}
+
 /** Werkt het adres echt (200)? Kort wachten: de bank moet snel openen. */
 export async function staatLive(adres: string, ms = 4000): Promise<boolean> {
   try {

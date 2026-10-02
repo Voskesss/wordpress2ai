@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { documentAdres, staatLive, vrijPad } from "../lib/document-adres";
+import { documentAdres, GEEN_DOMEIN_UITLEG, linkUitleg, staatLive, vrijPad } from "../lib/document-adres";
 
 // 1. Het adres: hoofdadres van de klant, nette tekens, nooit workers.dev
 assert.equal(documentAdres({ domein: "vandenbergmediation.nl" }, "documenten/boekje.pdf"), "https://vandenbergmediation.nl/documenten/boekje.pdf");
@@ -33,7 +33,7 @@ server.close();
 //    (de knop zelf zit sinds 1.38.5 in het gedeelde app/portal/BankHulp.tsx)
 const bank = await readFile("app/portal/DocumentBank.tsx", "utf8");
 const hulp = await readFile("app/portal/BankHulp.tsx", "utf8");
-assert.ok(bank.includes("<KopieerLink adres={d.adres} live={d.live} />"), "de documentenbank toont geen kopieerknop");
+assert.ok(bank.includes("<KopieerLink adres={d.adres} live={d.live} uitleg={linkUitleg} />"), "de documentenbank toont geen kopieerknop");
 assert.ok(hulp.includes("if (!live)") && hulp.includes("navigator.clipboard.writeText(adres)"), "de kopieerknop kopieert ook niet-werkende links");
 assert.ok(hulp.includes("Nog niet live"), "geen uitleg als het document alleen in een concept staat");
 assert.ok(bank.includes("verstuurde mail of nieuwsbrief"), "opruimen waarschuwt niet voor links in verstuurde mails");
@@ -61,4 +61,14 @@ assert.ok(chatBron.includes("Openbaar op je site: stuur niets vertrouwelijks"), 
 const bankNu = await readFile("app/portal/DocumentBank.tsx", "utf8");
 assert.ok(bankNu.includes('<span className="flex min-w-0 basis-full items-start gap-3">'), "naam en knoppen delen nog één regel");
 assert.ok(!/block truncate text-sm font-medium text-stone-800" title=\{d\.pad\}/.test(bankNu), "de documentnaam wordt nog afgekapt");
+// 7. Zonder eigen domein: geen link, maar wel uitleg (anders lijkt de knop kwijt)
+assert.equal(linkUitleg({ domein: "test-groene-golf.wordswap.workers.dev" }), GEEN_DOMEIN_UITLEG);
+assert.equal(linkUitleg({ domein: null }), GEEN_DOMEIN_UITLEG);
+assert.equal(linkUitleg({ domein: "vandenbergmediation.nl" }), null);
+assert.equal(linkUitleg({ domein: "demo-bakkerij.wordswap.workers.dev", isDemo: true }), null, "de demo krijgt geen uitleg over een domein");
+assert.ok(hulp.includes("if (!adres) return uitleg ?"), "de kopieerknop toont de uitleg niet");
+for (const [api, bank] of [["documentbank", "DocumentBank"], ["fotobank", "Fotobank"], ["audiobank", "AudioBank"], ["videobank", "VideoBank"]]) {
+  assert.ok((await readFile(`app/api/${api}/route.ts`, "utf8")).includes("linkUitleg: linkUitleg(site)"), `${api}: geeft geen uitleg mee`);
+  assert.ok((await readFile(`app/portal/${bank}.tsx`, "utf8")).includes("uitleg={linkUitleg}"), `${bank}: toont de uitleg niet`);
+}
 console.log("✓ documentlink: vast adres, alleen kopiëren als hij werkt, uploaden in de bank zelf");

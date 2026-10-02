@@ -78,6 +78,7 @@ export default function Fotobank({
   // liggend is (de vakjes zelf snijden niet meer af sinds object-contain).
   const [maten, setMaten] = useState<Record<string, { w: number; h: number }>>({});
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<Set<string>>(new Set());
   const [melding, setMelding] = useState<string | null>(null);
@@ -135,8 +136,9 @@ export default function Fotobank({
     (async () => {
       try {
         const res = await fetch(`/api/fotobank?siteId=${siteId}`);
-        const data = (await res.json()) as { afbeeldingen?: Beeld[]; error?: string };
+        const data = (await res.json()) as { afbeeldingen?: Beeld[]; linkUitleg?: string | null; error?: string };
         if (weg) return;
+        setLinkUitleg(data.linkUitleg ?? null);
         if (data.afbeeldingen) setBeelden(data.afbeeldingen);
         else setFout(data.error ?? "Kon de fotobank niet laden.");
       } catch {
@@ -362,7 +364,7 @@ export default function Fotobank({
               )}
               {!vervangDoel && (
                 <div className="mt-1 flex flex-wrap gap-1">
-                  <KopieerLink adres={b.adres} live={b.live} />
+                  <KopieerLink adres={b.adres} live={b.live} uitleg={linkUitleg} />
                   {onOpdracht && b.inGebruik && (
                     <button
                       type="button"

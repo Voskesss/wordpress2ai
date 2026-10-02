@@ -9,7 +9,7 @@ import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
-import { documentAdres, staatLive, vrijPad } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, staatLive, vrijPad } from "@/lib/document-adres";
 import { linkTekstenPerDocument } from "@/lib/beeld-alt";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
@@ -79,7 +79,7 @@ export async function GET(req: Request) {
         }),
     );
     documenten.sort((a, b) => Number(b.inGebruik) - Number(a.inGebruik) || a.pad.localeCompare(b.pad));
-    return NextResponse.json({ documenten });
+    return NextResponse.json({ documenten, linkUitleg: linkUitleg(site) });
   } catch (e) {
     console.error("Documentenbank laden:", e);
     return NextResponse.json({ error: "Kon de documentenbank niet laden." }, { status: 503 });
