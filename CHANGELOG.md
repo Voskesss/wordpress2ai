@@ -24,6 +24,7 @@ reparaties.
 
 ## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
 
+- De groep Live staat nu bovenaan de klantenlijst, In migratie daaronder.
 - De klantenlijst in de admin toont per klant het AI-verbruik van deze maand zoals de klant het in zijn portaal ziet: een balkje met het percentage, en wat ze gebruikt hebben van wat ze mogen ($0,87 van $4,00). Groen, oranje vanaf 70 procent, rood als het op is. De oude telling "0/30 wijzigingen" is weg; die begrenst niets meer.
 
 ## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar

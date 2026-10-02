@@ -40,22 +40,23 @@ function VerbruikBalk({ gebruikt, budget }: { gebruikt: number; budget: number }
   );
 }
 
-/** Klantenlijst in groepen (migratie, live, overig), compact en doorzoekbaar. */
+/** Klantenlijst in groepen (live, migratie, overig), compact en doorzoekbaar. */
 export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
   const [zoek, setZoek] = useState("");
   const q = zoek.trim().toLowerCase();
   const gevonden = q ? rijen.filter((r) => `${r.naam} ${r.domein ?? ""}`.toLowerCase().includes(q)) : rijen;
 
   const groepen: { titel: string; uitleg: string; rijen: KlantRij[]; dicht?: boolean }[] = [
-    {
-      titel: "🚀 In migratie",
-      uitleg: "wordt overgezet of wacht op livegang",
-      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "migratie"),
-    },
+    // Live eerst: de klanten die er al zijn (wens Jos, 02-10-2026)
     {
       titel: "✅ Live",
       uitleg: "draait op het eigen domein",
       rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "actief" && !r.offlineNa),
+    },
+    {
+      titel: "🚀 In migratie",
+      uitleg: "wordt overgezet of wacht op livegang",
+      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "migratie"),
     },
     {
       titel: "⏸ Gepauzeerd of opgezegd",

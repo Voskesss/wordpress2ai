@@ -319,13 +319,17 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         { ...basisRij, id: 1, naam: "Weinig gebruikt", aiUsd: 0.87, budgetUsd: 4 },
         { ...basisRij, id: 2, naam: "Bijna op", aiUsd: 3.2, budgetUsd: 4 },
         { ...basisRij, id: 3, naam: "Op", aiUsd: 5.1, budgetUsd: 4 },
+        { ...basisRij, id: 4, naam: "Nog in migratie", status: "migratie", aiUsd: 0, budgetUsd: 4 },
       ]);
       await page.getByText("Weinig gebruikt").waitFor();
       assert.ok(await page.getByText("$0,87 van $4,00").isVisible(), "admin: bedrag en budget staan er niet");
       const balken = page.getByRole("progressbar", { name: "AI-verbruik deze maand" });
-      assert.equal(await balken.count(), 3, "admin: niet bij elke klant een balkje");
-      assert.deepEqual(await balken.evaluateAll((b) => b.map((x) => x.getAttribute("aria-valuenow"))), ["22", "80", "100"]);
+      assert.equal(await balken.count(), 4, "admin: niet bij elke klant een balkje");
+      assert.deepEqual(await balken.evaluateAll((b) => b.map((x) => x.getAttribute("aria-valuenow"))), ["22", "80", "100", "0"]);
       assert.ok(!(await page.getByText(/wijzigingen/).count()), "admin: de oude telling van wijzigingen staat er nog");
+      // Live staat boven In migratie
+      const koppen = await page.locator("text=/^(✅ Live|🚀 In migratie)/").allTextContents();
+      assert.ok(koppen[0]?.startsWith("✅ Live") && koppen[1]?.startsWith("🚀 In migratie"), `admin: volgorde van de groepen klopt niet (${koppen.join(" | ")})`);
       await page.screenshot({ path: path.join(uitvoer, "admin-verbruik.png") });
       await page.close();
     }
