@@ -1,3 +1,4 @@
+import { videoBlokHtml, VIDEO_PATROON } from "./mail-video";
 import { TELEFOON, TELEFOON_LINK } from "./contactgegevens";
 
 const stijl = `font-family:-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:#292524;max-width:560px`;
@@ -49,6 +50,9 @@ export function losseMailNaarHtml(tekst: string, metDemo = true): string {
     .filter(Boolean)
     .map((a) => {
       // Een alinea die alleen uit een afbeeldingsmarkering bestaat wordt het beeld zelf
+      const video = VIDEO_PATROON.exec(a);
+      const videoBlok = video ? videoBlokHtml(video[1]) : null;
+      if (videoBlok) return videoBlok;
       const beeld = BEELD_PATROON.exec(a);
       if (beeld) {
         return `<img src="${ontsnap(beeld[1])}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:8px;margin:20px 0">`;

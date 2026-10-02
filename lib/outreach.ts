@@ -1,3 +1,4 @@
+import { videoBlokHtml, VIDEO_PATROON } from "./mail-video";
 import { createHmac } from "node:crypto";
 import { BEELD_PATROON, HANDTEKENING } from "./mailer";
 
@@ -183,6 +184,9 @@ export function sjabloonNaarHtml(tekst: string, p: Prospect): string {
       // Een alinea die alleen uit een afbeeldingsmarkering bestaat wordt het
       // beeld zelf; voorheen kende alleen de vrije Mailer deze markering en
       // stond hij hier als kale tekst in de mail (vondst Jos 27-09).
+      const video = VIDEO_PATROON.exec(a);
+      const videoBlok = video ? videoBlokHtml(video[1]) : null;
+      if (videoBlok) return videoBlok;
       const beeld = BEELD_PATROON.exec(a);
       if (beeld) {
         return `<img src="${ontsnap(beeld[1])}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:8px;margin:20px 0">`;

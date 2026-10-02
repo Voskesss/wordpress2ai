@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       ? `Je helpt Jos van WordSwap met een zakelijke e-mail.
 
 ${WORDSWAP_FEITEN}
- Schrijfstijl: Nederlands, je-vorm tenzij de mail duidelijk formeler moet, vriendelijk, kort en concreet, geen buzzwoorden. De handtekening komt er automatisch onder — voeg nooit een groet of afsluiting toe. Regels die er zo uitzien: [afbeelding: https://...] zijn afbeeldingen in de mail. Laat zo'n regel EXACT staan, op een eigen regel met een witregel erboven en eronder (verplaatsen mag als de aanwijzing daarom vraagt), en maak er nooit een gewone link of tekst van. Voer de aanwijzing van Jos uit; wijzig alleen wat de aanwijzing raakt. Antwoordformaat, exact dit en niets eromheen:
+ Schrijfstijl: Nederlands, je-vorm tenzij de mail duidelijk formeler moet, vriendelijk, kort en concreet, geen buzzwoorden. De handtekening komt er automatisch onder — voeg nooit een groet of afsluiting toe. Regels die er zo uitzien: [afbeelding: https://...] of [video:naam] zijn afbeeldingen en filmpjes in de mail. Laat zo'n regel EXACT staan, op een eigen regel met een witregel erboven en eronder (verplaatsen mag als de aanwijzing daarom vraagt), en maak er nooit een gewone link of tekst van. Voer de aanwijzing van Jos uit; wijzig alleen wat de aanwijzing raakt. Antwoordformaat, exact dit en niets eromheen:
 ONDERWERP: <de onderwerpregel>
 
 <de volledige mailtekst, met een witregel tussen alinea's>`
@@ -57,7 +57,7 @@ ${WORDSWAP_FEITEN}
 
 Huisstijl van de mails: Nederlands, je-vorm, kort en concreet, over de situatie van de ontvanger (niet "wij doen"), geen brede beloftes, geen buzzwoorden, respectvol over hun site (de ontvanger is trots op zijn zaak), precies één actie ("één reply is genoeg"). Groet en afmeldknop staan er NIET in — die worden automatisch toegevoegd, dus voeg ze nooit toe.
 
-${sjabloon ? 'Dit is een SJABLOON met invulvelden als {{bedrijf}}, {{opening}} en {{prijsregel}} die per prospect worden ingevuld — laat die invulvelden exact staan (of verplaats ze als de aanwijzing daarom vraagt), verzin er nooit zelf tekst voor. ' : ''}Regels die er zo uitzien: [afbeelding: https://...] zijn afbeeldingen in de mail. Laat zo'n regel EXACT staan, op een eigen regel met een witregel erboven en eronder (verplaatsen mag als de aanwijzing daarom vraagt), en maak er nooit een gewone link of tekst van. Voer de aanwijzing van Jos uit op de mail. Wijzig alleen wat de aanwijzing raakt; de rest laat je zoveel mogelijk staan. Antwoordformaat, exact dit en niets eromheen:
+${sjabloon ? 'Dit is een SJABLOON met invulvelden als {{bedrijf}}, {{opening}} en {{prijsregel}} die per prospect worden ingevuld — laat die invulvelden exact staan (of verplaats ze als de aanwijzing daarom vraagt), verzin er nooit zelf tekst voor. ' : ''}Regels die er zo uitzien: [afbeelding: https://...] of [video:naam] zijn afbeeldingen en filmpjes in de mail. Laat zo'n regel EXACT staan, op een eigen regel met een witregel erboven en eronder (verplaatsen mag als de aanwijzing daarom vraagt), en maak er nooit een gewone link of tekst van. Voer de aanwijzing van Jos uit op de mail. Wijzig alleen wat de aanwijzing raakt; de rest laat je zoveel mogelijk staan. Antwoordformaat, exact dit en niets eromheen:
 ONDERWERP: <de onderwerpregel>
 
 <de volledige mailtekst, met een witregel tussen alinea's>`,

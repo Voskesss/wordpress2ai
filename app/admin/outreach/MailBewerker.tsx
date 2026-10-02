@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { MAIL_VIDEOS } from "@/lib/mail-video";
 
 /** Bewerkvak voor één mail (onderwerp + tekst) met AI-hulp: typ een
  * aanwijzing ("korter", "noem het rieten dak") en de AI herschrijft,
@@ -33,6 +34,15 @@ export default function MailBewerker({
   const tekstRef = useRef<HTMLTextAreaElement>(null);
   const bestandRef = useRef<HTMLInputElement>(null);
 
+  /** Markering op een eigen alinea invoegen waar de cursor staat. */
+  function voegMarkeringIn(markering: string) {
+    const veld = tekstRef.current;
+    const positie = veld?.selectionStart ?? tekst.length;
+    const voor = tekst.slice(0, positie).replace(/\s*$/, "");
+    const na = tekst.slice(positie).replace(/^\s*/, "");
+    setTekst(`${voor}${voor ? "\n\n" : ""}${markering}${na ? `\n\n${na}` : "\n"}`);
+  }
+
   /** Afbeelding uploaden en als markering invoegen waar de cursor staat. */
   async function voegAfbeeldingToe(bestand: File) {
     setUploadt(true);
@@ -46,12 +56,7 @@ export default function MailBewerker({
         setFout(data.error ?? "Uploaden lukte niet. Probeer het nog eens.");
         return;
       }
-      const markering = `[afbeelding: ${data.url}]`;
-      const veld = tekstRef.current;
-      const positie = veld?.selectionStart ?? tekst.length;
-      const voor = tekst.slice(0, positie).replace(/\s*$/, "");
-      const na = tekst.slice(positie).replace(/^\s*/, "");
-      setTekst(`${voor}${voor ? "\n\n" : ""}${markering}${na ? `\n\n${na}` : "\n"}`);
+      voegMarkeringIn(`[afbeelding: ${data.url}]`);
     } catch {
       setFout("Uploaden lukte niet. Probeer het nog eens.");
     } finally {
@@ -159,6 +164,17 @@ export default function MailBewerker({
         >
           {uploadt ? "Bezig met uploaden..." : "🖼 Afbeelding toevoegen"}
         </button>
+        {Object.entries(MAIL_VIDEOS).map(([naam, v]) => (
+          <button
+            key={naam}
+            type="button"
+            onClick={() => voegMarkeringIn(`[video:${naam}]`)}
+            title={`Voegt een beeld met afspeelknop in dat doorlinkt naar wordswap.nl/video/${naam} (${v.seconden} sec)`}
+            className="ml-2 rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-semibold text-stone-700 hover:border-violet-600 cursor-pointer"
+          >
+            🎬 {v.titel.replace("Je website aanpassen ", "Video: ")}
+          </button>
+        ))}
         <button
           type="button"
           onClick={() => openVoorbeeld(false)}
@@ -176,7 +192,7 @@ export default function MailBewerker({
           ✉️ Proef naar mijzelf
         </button>
         <span className="ml-2 text-[11px] text-stone-400">
-          de afbeelding komt op de plek van je cursor
+          afbeelding en video komen op de plek van je cursor
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50/50 p-2.5">
