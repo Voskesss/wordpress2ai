@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.40.1 (2 oktober 2026)
+
+- Een geplaatste aankondiging kun je nu bewerken (titel, tekst en link). Wie hem al wegklikte, krijgt hem niet opnieuw.
+
 ## 1.40.0 (2 oktober 2026)
 
 Naam kiezen bij elke upload, omschrijvingen zichtbaar, AI-verbruik in de admin en een slimmere livegang-checklist.
