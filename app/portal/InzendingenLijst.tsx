@@ -153,7 +153,26 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
               </button>
             </div>
           )}
-          <div className="mt-3 overflow-x-auto">
+          {/* Telefoon: kaartjes onder elkaar, het hele bericht leesbaar. De
+              tabel paste niet: het bericht viel rechts buiten beeld (Jos, 02-10-2026). */}
+          <div className="mt-3 sm:hidden">
+            <label className="flex items-center gap-2 py-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+              <input
+                type="checkbox"
+                aria-label="Alles kiezen"
+                checked={zichtbaar.length > 0 && zichtbaar.every((r) => gekozen.has(r.id))}
+                onChange={(e) => setGekozen(e.target.checked ? new Set([...gekozen, ...zichtbaar.map((r) => r.id)]) : new Set([...gekozen].filter((id) => !zichtbaar.some((r) => r.id === id))))}
+              />
+              Alles kiezen
+            </label>
+            <ul className="space-y-2">
+              {zichtbaar.map((r) => (
+                <Kaart key={r.id} r={r} isOpen={open.has(r.id)} gekozen={gekozen.has(r.id)} siteId={siteId}
+                  onOpen={() => setOpen(wissel(open, r.id))} onKies={() => setGekozen(wissel(gekozen, r.id))} />
+              ))}
+            </ul>
+          </div>
+          <div className="mt-3 hidden overflow-x-auto sm:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-stone-400">
@@ -190,7 +209,6 @@ export default function InzendingenLijst({ siteId, rijen }: { siteId: number; ri
 }
 
 function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; isOpen: boolean; gekozen: boolean; siteId: number; onOpen: () => void; onKies: () => void }) {
-  const knop = "text-xs font-medium cursor-pointer whitespace-nowrap";
   return (
     <>
       <tr className={`border-t border-stone-100 align-top ${isOpen ? "bg-stone-50" : "hover:bg-stone-50"}`}>
@@ -208,31 +226,11 @@ function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; 
             {kernVan(r.velden) || "(leeg)"}
             {r.bijlagen?.length ? ` 📎${r.bijlagen.length}` : ""}
           </button>
-          {r.spam && r.spamReden && (
-            <p className="mt-0.5 text-xs text-amber-700">Waarom spam: {r.spamReden}</p>
-          )}
-          {!r.spam && r.spamStand === "waarschijnlijk" && (
-            <p className="mt-0.5 text-xs text-amber-700">
-              <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Mogelijk spam</span>
-              {r.spamReden ? ` ${r.spamReden}.` : ""} De afzender kreeg geen automatische bevestiging.
-            </p>
-          )}
+          <SpamNotitie r={r} />
         </td>
         <td className="py-2">
           <div className="flex justify-end gap-3">
-            {r.spam ? (
-              <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
-            ) : r.spamStand === "waarschijnlijk" ? (
-              <>
-                <Actie id={r.id} siteId={siteId} actie="wel-spam" label="Spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-amber-700`} />
-                <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
-              </>
-            ) : r.gearchiveerd ? (
-              <Actie id={r.id} siteId={siteId} actie="terug" label="↩ Terugzetten" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
-            ) : (
-              <Actie id={r.id} siteId={siteId} actie="archiveer" label="✓ Afgehandeld" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
-            )}
-            <Actie id={r.id} siteId={siteId} actie="verwijder" label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Dit bericht definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className={`${knop} text-stone-400 hover:text-red-600`} />
+            <RijActies r={r} siteId={siteId} />
           </div>
         </td>
       </tr>
@@ -240,18 +238,102 @@ function Rij({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; 
         <tr className="bg-stone-50">
           <td></td>
           <td colSpan={5} className="pb-4 pr-4">
-            <dl className="space-y-1">
-              {Object.entries(r.velden).map(([k, v]) => (
-                <div key={k} className="flex gap-2">
-                  <dt className="shrink-0 font-semibold capitalize text-stone-700">{k}:</dt>
-                  <dd className="min-w-0 whitespace-pre-wrap break-words text-stone-600">{String(v ?? "")}</dd>
-                </div>
-              ))}
-            </dl>
-            <Bijlagen id={r.id} bijlagen={r.bijlagen} />
+            <Velden r={r} />
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+const knop = "text-xs font-medium cursor-pointer whitespace-nowrap";
+
+function SpamNotitie({ r }: { r: InzendingRij }) {
+  return (
+    <>
+      {r.spam && r.spamReden && (
+        <p className="mt-0.5 text-xs text-amber-700">Waarom spam: {r.spamReden}</p>
+      )}
+      {!r.spam && r.spamStand === "waarschijnlijk" && (
+        <p className="mt-0.5 text-xs text-amber-700">
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Mogelijk spam</span>
+          {r.spamReden ? ` ${r.spamReden}.` : ""} De afzender kreeg geen automatische bevestiging.
+        </p>
+      )}
+    </>
+  );
+}
+
+function RijActies({ r, siteId }: { r: InzendingRij; siteId: number }) {
+  return (
+    <>
+      {r.spam ? (
+        <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+      ) : r.spamStand === "waarschijnlijk" ? (
+        <>
+          <Actie id={r.id} siteId={siteId} actie="wel-spam" label="Spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-amber-700`} />
+          <Actie id={r.id} siteId={siteId} actie="geen-spam" label="Geen spam" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+        </>
+      ) : r.gearchiveerd ? (
+        <Actie id={r.id} siteId={siteId} actie="terug" label="↩ Terugzetten" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+      ) : (
+        <Actie id={r.id} siteId={siteId} actie="archiveer" label="✓ Afgehandeld" bezigLabel="Bezig..." className={`${knop} text-stone-500 hover:text-violet-700`} />
+      )}
+      <Actie id={r.id} siteId={siteId} actie="verwijder" label="Verwijderen" bezigLabel="Verwijderen..." bevestig="Dit bericht definitief verwijderen? Dit kan niet ongedaan worden gemaakt." className={`${knop} text-stone-400 hover:text-red-600`} />
+    </>
+  );
+}
+
+/** Alle velden van het bericht, plus bijlagen. */
+function Velden({ r }: { r: InzendingRij }) {
+  return (
+    <>
+      <dl className="space-y-1">
+        {Object.entries(r.velden).map(([k, v]) => (
+          <div key={k} className="flex flex-wrap gap-x-2">
+            <dt className="shrink-0 font-semibold capitalize text-stone-700">{k}:</dt>
+            <dd className="min-w-0 whitespace-pre-wrap break-words text-stone-600">{String(v ?? "")}</dd>
+          </div>
+        ))}
+      </dl>
+      <Bijlagen id={r.id} bijlagen={r.bijlagen} />
+    </>
+  );
+}
+
+/** Eén bericht als kaartje, voor de telefoon. Tik op het kaartje om het hele
+ * bericht te lezen; de knoppen staan eronder, groot genoeg voor een duim. */
+function Kaart({ r, isOpen, gekozen, siteId, onOpen, onKies }: { r: InzendingRij; isOpen: boolean; gekozen: boolean; siteId: number; onOpen: () => void; onKies: () => void }) {
+  return (
+    <li className={`rounded-2xl border p-3 text-sm ${isOpen ? "border-violet-200 bg-stone-50" : "border-stone-200 bg-white"}`}>
+      <div className="flex items-start gap-3">
+        <input type="checkbox" checked={gekozen} onChange={onKies} aria-label="Kies dit bericht" className="mt-1 h-5 w-5 shrink-0" />
+        <button type="button" onClick={onOpen} aria-expanded={isOpen} className="min-w-0 flex-1 text-left">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="min-w-0 break-words font-semibold text-stone-900">{afzenderVan(r.velden) || "-"}</span>
+            <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-medium capitalize text-violet-700">{r.formulier}</span>
+          </span>
+          <span className="mt-0.5 block text-xs text-stone-500">{datum(r.aangemaakt)}</span>
+          {!isOpen && (
+            <span className="mt-1 line-clamp-2 block text-stone-600">
+              {kernVan(r.velden) || "(leeg)"}
+              {r.bijlagen?.length ? ` 📎${r.bijlagen.length}` : ""}
+            </span>
+          )}
+          <span className="mt-1 block text-xs font-semibold text-violet-700">{isOpen ? "▾ Inklappen" : "▸ Hele bericht lezen"}</span>
+        </button>
+      </div>
+      <div className="ml-8">
+        <SpamNotitie r={r} />
+        {isOpen && (
+          <div className="mt-2">
+            <Velden r={r} />
+          </div>
+        )}
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 [&_button]:py-1 [&_button]:text-sm">
+          <RijActies r={r} siteId={siteId} />
+        </div>
+      </div>
+    </li>
   );
 }

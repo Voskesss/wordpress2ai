@@ -19,6 +19,11 @@ const buitenNext = {
   setup(b) {
     b.onResolve({ filter: /^@clerk\/nextjs$/ }, () => ({ path: "clerk", namespace: "stub" }));
     b.onResolve({ filter: /^next\/link$/ }, () => ({ path: "link", namespace: "stub" }));
+    b.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "navigation", namespace: "stub" }));
+    b.onLoad({ filter: /^navigation$/, namespace: "stub" }, () => ({
+      contents: `export const useRouter = () => ({ refresh() {}, push() {}, replace() {} });`,
+      loader: "js",
+    }));
     b.onLoad({ filter: /^clerk$/, namespace: "stub" }, () => ({
       contents: `import React from "react"; export const UserButton = () => React.createElement("span", { "data-test": "account", style: { display: "inline-block", width: 28, height: 28, borderRadius: 14, background: "#999", flexShrink: 0 } });`,
       loader: "jsx",
@@ -55,6 +60,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import KlantenLijst from "./app/admin/KlantenLijst";
           import { VerbruikBalk } from "./app/admin/VerbruikBalk";
           import Voorbeeld from "./app/admin/aankondigingen/Voorbeeld";
+          import InzendingenLijst from "./app/portal/InzendingenLijst";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -63,6 +69,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
               account={<div id="account-inhoud">Account</div>} />);
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
           window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
+          window.mountInzendingen = (rijen) => wortel().render(<div style={{ padding: "16px" }}><InzendingenLijst siteId={1} rijen={rijen} /></div>);
           window.mountVoorbeeld = () => wortel().render(<Voorbeeld a={{ id: 7, titel: "Zelf de bestandsnaam kiezen", tekst: "Upload je een foto?", link: null }} />);
           window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
@@ -311,6 +318,37 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         assert.ok(await page.getByRole("button", { name: /uploaden/i }).first().isVisible(), `${soort}: na annuleren is de uploadknop er niet terug`);
       }
       await page.screenshot({ path: path.join(uitvoer, `bank-${soort}.png`) });
+      await page.close();
+    }
+
+    // 4a. Berichten op de telefoon: kaartjes, het hele bericht leesbaar en de
+    //     knoppen binnen beeld (Jos 02-10-2026: het bericht viel rechts weg)
+    {
+      const page = await nieuwePagina(360, 760);
+      const lang = "Goedemiddag, ik wil graag een afspraak maken voor een eerste gesprek over onze scheiding. Wij hebben twee kinderen en willen het samen goed regelen.";
+      await page.evaluate((r) => window.mountInzendingen(r), [
+        { id: 1, formulier: "gesprek", velden: { naam: "jos klijnhout", email: "jos@voorbeeld.nl", bericht: lang }, bijlagen: [], aangemaakt: "2026-10-02T13:08:00Z", gearchiveerd: false },
+        { id: 2, formulier: "contact", velden: { naam: "Piet", bericht: "Kort" }, bijlagen: [], aangemaakt: "2026-10-01T10:00:00Z", gearchiveerd: false, spamStand: "waarschijnlijk", spamReden: "verdacht" },
+      ]);
+      await page.getByText("jos klijnhout").waitFor();
+      assert.ok(!(await page.locator("table").isVisible()), "telefoon: de brede tabel staat er nog");
+      const breedte = await page.evaluate(() => document.documentElement.scrollWidth);
+      assert.ok(breedte <= 360, `telefoon: de pagina schuift horizontaal (${breedte}px)`);
+      await page.getByRole("button", { name: /Hele bericht lezen/ }).first().click();
+      const tekst = page.getByText(lang);
+      assert.ok(await tekst.isVisible(), "telefoon: het hele bericht is niet te lezen");
+      const vak = await tekst.boundingBox();
+      assert.ok(vak.x >= 0 && vak.x + vak.width <= 360, "telefoon: het bericht valt buiten beeld");
+      for (const naam of ["✓ Afgehandeld", "Verwijderen", "Geen spam", "Spam"]) {
+        const k = page.getByRole("button", { name: naam, exact: true }).first();
+        assert.ok(await k.isVisible(), `telefoon: knop ${naam} niet zichtbaar`);
+        const b = await k.boundingBox();
+        assert.ok(b.x + b.width <= 360, `telefoon: knop ${naam} valt buiten beeld`);
+      }
+      await page.screenshot({ path: path.join(uitvoer, "berichten-telefoon.png"), fullPage: true });
+      // Op een breed scherm blijft de tabel
+      await page.setViewportSize({ width: 1280, height: 760 });
+      assert.ok(await page.locator("table").isVisible(), "breed scherm: de tabel is weg");
       await page.close();
     }
 
