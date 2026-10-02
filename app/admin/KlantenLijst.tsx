@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { VerbruikBalk } from "./VerbruikBalk";
 
 export type KlantRij = {
   id: number;
@@ -12,29 +13,30 @@ export type KlantRij = {
   eigen: boolean;
   livegang: { klaar: number; totaal: number } | null;
   openConcepten: number;
-  wijzigingen: number;
-  wijzigingenLimiet: number;
+  /** AI-verbruik deze maand en het maandbudget, in dollars (zoals ai_kosten) */
   aiUsd: number;
+  budgetUsd: number;
   /** YYYY-MM-DD: opgezegd, website mag na deze datum offline */
   offlineNa: string | null;
 };
 
-/** Klantenlijst in groepen (migratie, live, overig), compact en doorzoekbaar. */
+/** Klantenlijst in groepen (live, migratie, overig), compact en doorzoekbaar. */
 export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
   const [zoek, setZoek] = useState("");
   const q = zoek.trim().toLowerCase();
   const gevonden = q ? rijen.filter((r) => `${r.naam} ${r.domein ?? ""}`.toLowerCase().includes(q)) : rijen;
 
   const groepen: { titel: string; uitleg: string; rijen: KlantRij[]; dicht?: boolean }[] = [
-    {
-      titel: "🚀 In migratie",
-      uitleg: "wordt overgezet of wacht op livegang",
-      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "migratie"),
-    },
+    // Live eerst: de klanten die er al zijn (wens Jos, 02-10-2026)
     {
       titel: "✅ Live",
       uitleg: "draait op het eigen domein",
       rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "actief" && !r.offlineNa),
+    },
+    {
+      titel: "🚀 In migratie",
+      uitleg: "wordt overgezet of wacht op livegang",
+      rijen: gevonden.filter((r) => !r.isDemo && !r.eigen && r.status === "migratie"),
     },
     {
       titel: "⏸ Gepauzeerd of opgezegd",
@@ -88,10 +90,8 @@ export default function KlantenLijst({ rijen }: { rijen: KlantRij[] }) {
                           <p className="truncate font-semibold text-stone-900">{r.naam}</p>
                           <p className="truncate text-xs text-stone-500">
                             {r.domein ?? "geen domein"}
-                            <span className="hidden sm:inline">
-                              {" "}· {r.wijzigingen}/{r.wijzigingenLimiet} wijzigingen{r.aiUsd > 0 ? ` · $${r.aiUsd.toFixed(2)} AI` : ""}
-                            </span>
                           </p>
+                          <VerbruikBalk gebruikt={r.aiUsd} budget={r.budgetUsd} />
                         </div>
                         <div className="flex shrink-0 items-center gap-2 text-xs">
                           {livegangOpen && (

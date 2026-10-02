@@ -58,7 +58,31 @@ assert.match(
 );
 assert.match(vind(geenDkim, "mail-dkim")?.uitleg ?? "", /mail-tester/, "er staat niet hoe je het dan wél vindt");
 
-// 6. En het hangt echt in de livegang-checklist, anders ziet niemand het.
+// 6. Route B (Van den Berg, 02-10-2026): website bij ons, mail en DNS bewust
+//    bij De Websmid, formulieren via zijn eigen SMTP. Dan is "mail bij de
+//    hoster" geen open punt, en is de 'a' in de SPF geen klus voor ons. De
+//    waarschuwing om de hosting niet op te zeggen moet wel blijven staan.
+const vdb: MailFeiten = {
+  ...leeg,
+  mx: ["mail.vandenbergmediation.nl"],
+  txt: ["v=spf1 a mx include:_spf.dewebsmid.nl ~all"],
+};
+const routeB = mailBevindingen(vdb, { routeB: true, smtpHost: "mail.vandenbergmediation.nl" });
+assert.equal(vind(routeB, "mail-waar")?.ok, true, "route B: mail bij de hoster staat onterecht open");
+assert.match(vind(routeB, "mail-waar")?.uitleg ?? "", /dewebsmid/, "de hoster uit de SPF wordt niet genoemd");
+assert.match(vind(routeB, "mail-waar")?.uitleg ?? "", /niet opgezegd/, "route B: waarschuwing om de hosting te houden is weg");
+assert.match(vind(routeB, "mail-waar")?.uitleg ?? "", /SMTP \(mail\.vandenbergmediation\.nl\)/, "de gekoppelde SMTP wordt niet genoemd");
+assert.equal(vind(routeB, "mail-spf-a")?.ok, true, "route B: de 'a' in de SPF staat onterecht open");
+// Zonder route B blijft het gewoon open, nu mét de hoster uit de SPF erbij
+const gewoon = mailBevindingen(vdb);
+assert.equal(vind(gewoon, "mail-waar")?.ok, false, "zonder route B hoort dit open te blijven");
+assert.match(vind(gewoon, "mail-waar")?.uitleg ?? "", /dewebsmid/, "zonder route B: hoster uit de SPF niet herkend");
+assert.equal(vind(gewoon, "mail-spf-a")?.ok, false, "zonder route B hoort de 'a' een klus te blijven");
+// Alleen 'a' zonder mx of include: dan hangt de post er wél aan, ook bij route B open
+const alleenA = mailBevindingen({ ...vdb, txt: ["v=spf1 a ~all"] }, { routeB: true });
+assert.equal(vind(alleenA, "mail-spf-a")?.ok, false, "SPF met alleen 'a' is bij route B wel een probleem");
+
+// 7. En het hangt echt in de livegang-checklist, anders ziet niemand het.
 const livegang = await readFile(new URL("../lib/livegang.ts", import.meta.url), "utf8");
 assert.ok(livegang.includes("mailBevindingen(await mailFeiten("), "de mailcontrole hangt niet in de checklist");
 

@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { documentAdres, staatLive } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, staatLive } from "@/lib/document-adres";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
@@ -121,7 +121,7 @@ export async function GET(req: Request) {
         return { ...v, adres, live: adres ? await staatLive(adres) : false };
       }),
     );
-    return NextResponse.json({ videos: metLinks, gebruikt: site.videoUploads, limiet: site.videoLimiet });
+    return NextResponse.json({ videos: metLinks, gebruikt: site.videoUploads, limiet: site.videoLimiet, linkUitleg: linkUitleg(site) });
   } catch (e) {
     console.error("Videobank laden:", e);
     return NextResponse.json({ error: "Kon de videobank niet laden." }, { status: 503 });
@@ -144,6 +144,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site || site.isDemo) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
 
   try {
     const { rendiStatus } = await import("@/lib/rendi");
@@ -153,19 +157,16 @@ export async function POST(req: Request) {
     const posterUrl = st?.output_files?.out_2?.storage_url ?? null;
 
     const ruw = videoUrl.split("/").pop()?.split("?")[0] ?? "";
-    const naam = /^[a-z0-9-]+\.mp4$/i.test(ruw) ? ruw : `video-${Date.now().toString(36)}.mp4`;
+    if (!site.siteSlug) return NextResponse.json({ error: "Deze site staat nog niet online." }, { status: 409 });
+    const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
+    const data = await haal(videoUrl);
+
+    // Schone naam, nooit overschrijven, herhaalbaar (zie lib/media)
+    const { bewaarVideoZonderDubbel } = await import("@/lib/media");
+    const { naam, nieuw } = await bewaarVideoZonderDubbel(site.siteSlug, ruw, data);
+    const zelfde = !nieuw;
     const videoPad = `video/${naam}`;
     const posterPad = posterUrl ? `video/${naam.replace(/\.mp4$/i, "")}-poster.jpg` : null;
-
-    const haal = async (url: string) => Buffer.from((await fetch(url).then((x) => x.arrayBuffer())) as ArrayBuffer);
-
-    // De video zelf gaat naar de media-opslag, niet in de siterepo: anders
-    // wordt hij bij ELKE chatbeurt opnieuw met de site opgehaald. De worker
-    // serveert /video/<naam> daar vandaan. De poster is een klein plaatje en
-    // hoort wél bij de site (hij wordt in de HTML gebruikt als voorbeeld).
-    if (!site.siteSlug) return NextResponse.json({ error: "Deze site staat nog niet online." }, { status: 409 });
-    const { bewaarMediaVideo } = await import("@/lib/media");
-    await bewaarMediaVideo(site.siteSlug, naam, await haal(videoUrl));
 
     // Poster is mooi meegenomen maar nooit reden om de hele bankactie te
     // laten mislukken: de video staat al veilig, en zonder deze vangrail
@@ -182,7 +183,7 @@ export async function POST(req: Request) {
       console.error("Poster bij de video bewaren:", e);
     }
 
-    await db
+    if (!zelfde) await db
       .update(sites)
       .set({ videoUploads: sql`${sites.videoUploads} + 1` })
       .where(eq(sites.id, site.id))
@@ -214,6 +215,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(siteId), userId);
   if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (site.isDemo) return NextResponse.json({ error: "In de demo kun je niets verwijderen." }, { status: 403 });
 
   const release = await claimOperation(operationScope(site, userId));
@@ -261,7 +266,7 @@ export async function DELETE(req: Request) {
       {
         siteId: site.id,
         rol: "assistent" as const,
-        tekst: `De video ${pad.split("/").pop()} is uit je videobank gehaald${poster ? " (met zijn voorbeeldplaatje)" : ""}. Hij stond nergens meer op je site; via "Vorige versies" is hij zo nodig nog terug te halen.`,
+        tekst: `De video ${pad.split("/").pop()} is uit je videobank gehaald${poster ? " (met zijn voorbeeldplaatje)" : ""}. Hij stond nergens meer op je site. Toch nodig? Laat het Jos weten via Hulp & support, dan haalt hij hem terug.`,
         clerkUserId: userId,
       },
     ]);

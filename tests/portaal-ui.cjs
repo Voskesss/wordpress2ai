@@ -52,6 +52,8 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import Fotobank from "./app/portal/Fotobank";
           import AudioBank from "./app/portal/AudioBank";
           import VideoBank from "./app/portal/VideoBank";
+          import KlantenLijst from "./app/admin/KlantenLijst";
+          import { VerbruikBalk } from "./app/admin/VerbruikBalk";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -59,10 +61,12 @@ const uitvoer = path.join(__dirname, ".uitvoer");
               berichten={<div id="berichten-inhoud">Berichten en mail</div>}
               account={<div id="account-inhoud">Account</div>} />);
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
+          window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
+          window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
             const leeg = () => {};
             if (soort === "document") bank(<DocumentBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} />);
-            if (soort === "foto") bank(<Fotobank siteId={1} magUploaden previewAccess="fixture" onKlaar={leeg} onSluit={leeg} onGebruik={leeg} gekozen={[]} />);
+            if (soort === "foto") bank(<Fotobank siteId={1} magUploaden onOpdracht={leeg} previewAccess="fixture" onKlaar={leeg} onSluit={leeg} onGebruik={leeg} gekozen={[]} />);
             if (soort === "audio") bank(<AudioBank siteId={1} onGebruik={leeg} onSluit={leeg} />);
             if (soort === "video") bank(<VideoBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} onUpload={leeg} />);
           };`,
@@ -96,14 +100,14 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         if (p === "/api/documentbank")
           return json({
             documenten: [
-              { pad: `bestanden/${LANG}`, kb: 1352, inGebruik: true, adres: `https://voorbeeld.nl/bestanden/${LANG}`, live: true },
+              { pad: `bestanden/${LANG}`, kb: 1352, inGebruik: true, adres: `https://voorbeeld.nl/bestanden/${LANG}`, live: true, linkTeksten: ["Download het rapport"] },
               { pad: "bestanden/vacature.pdf", kb: 63, inGebruik: false, adres: "https://voorbeeld.nl/bestanden/vacature.pdf", live: false },
             ],
           });
         if (p === "/api/fotobank")
-          return json({ afbeeldingen: [{ pad: "afbeeldingen/kantoor-lisse-voorkant.webp", stam: "afbeeldingen/kantoor-lisse-voorkant.webp", grootte: 120000, inGebruik: true, adres: "https://voorbeeld.nl/afbeeldingen/kantoor-lisse-voorkant.webp", live: true }, { pad: "afbeeldingen/team.webp", stam: "afbeeldingen/team.webp", grootte: 90000, inGebruik: false, adres: "https://voorbeeld.nl/afbeeldingen/team.webp", live: true }] });
+          return json({ afbeeldingen: [{ pad: "afbeeldingen/kantoor-lisse-voorkant.webp", stam: "afbeeldingen/kantoor-lisse-voorkant.webp", grootte: 120000, inGebruik: true, adres: "https://voorbeeld.nl/afbeeldingen/kantoor-lisse-voorkant.webp", live: true, alt: { teksten: ["Kantoor in Lisse, voorkant"], zonder: 1, leeg: 0 } }, { pad: "afbeeldingen/team.webp", stam: "afbeeldingen/team.webp", grootte: 90000, inGebruik: false, adres: "https://voorbeeld.nl/afbeeldingen/team.webp", live: true }] });
         if (p === "/api/audiobank" && !new URL(r.request().url()).searchParams.get("bestand"))
-          return json({ audio: ["aflevering-1.mp3", "aflevering-2.mp3"], limiet: 10, links: { "aflevering-1.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-1.mp3", live: true }, "aflevering-2.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-2.mp3", live: false } } });
+          return json({ audio: ["aflevering-1.mp3", "aflevering-2.mp3"], limiet: 10, linkUitleg: "Link kopiëren kan zodra je website op zijn eigen domein staat.", links: { "aflevering-1.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-1.mp3", live: true }, "aflevering-2.mp3": { adres: null, live: false } } });
         if (p === "/api/videobank" && !new URL(r.request().url()).searchParams.get("bestand"))
           return json({ videos: [{ pad: "video/rondleiding.mp4", poster: null, mb: 12, inGebruik: false, bron: "media", adres: "https://voorbeeld.nl/video/rondleiding.mp4", live: true }, { pad: "video/uitleg-mediation.mp4", poster: null, mb: 8, inGebruik: true, bron: "media", adres: "https://voorbeeld.nl/video/uitleg-mediation.mp4", live: false }], gebruikt: 1, limiet: 5 });
         return json({});
@@ -224,6 +228,26 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await page.close();
     }
 
+    // 3b. Gewone upload in de chat (paperclip): eerst de naam kiezen, dan gaat
+    //     de foto met die naam mee
+    {
+      const page = await nieuwePagina(1440, 900);
+      await page.evaluate(() => window.mountPortaal("website"));
+      await page.waitForSelector(VELD, { state: "attached" });
+      await page.locator('input[type="file"][accept*="image/*"]').first().setInputFiles({ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
+      const naam = page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" });
+      await naam.waitFor();
+      assert.equal(await naam.inputValue(), "img-2041", "chat: de naam is niet voorgevuld");
+      assert.ok(await page.getByText(".webp").first().isVisible(), "chat: foto's worden webp, dat staat er niet bij");
+      await naam.fill("Kantoor Lisse voorkant");
+      assert.ok(await page.getByText("Wordt: kantoor-lisse-voorkant.webp").isVisible(), "chat: de schone naam wordt niet getoond");
+      await page.screenshot({ path: path.join(uitvoer, "naamkiezer-chat.png") });
+      await page.getByRole("button", { name: "Uploaden", exact: true }).click();
+      await page.getByRole("button", { name: /kantoor-lisse-voorkant\.jpg verwijderen/ }).waitFor({ timeout: 5000 });
+      assert.ok(!(await page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" }).count()), "chat: de naamkiezer blijft staan na uploaden");
+      await page.close();
+    }
+
     // 4. De banken: openbaar-melding, uploadknop, zoeken, link alleen als hij werkt
     for (const soort of ["document", "foto", "audio", "video"]) {
       const page = await nieuwePagina(1280, 900);
@@ -236,8 +260,10 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await zoek.fill("bestaat-niet-xyz");
       assert.ok(await page.getByText(/Niets gevonden|Geen foto's gevonden/).first().isVisible(), `${soort}: zoeken filtert niet`);
       await zoek.fill("");
-      if (soort === "document" || soort === "audio")
+      if (soort === "document")
         assert.ok(await page.getByText(/Nog niet live/).first().isVisible(), `${soort}: geen uitleg bij een link die nog niet werkt`);
+      if (soort === "audio")
+        assert.ok(await page.getByText("Link kopiëren kan zodra je website op zijn eigen domein staat.").isVisible(), "zonder eigen domein: geen uitleg waarom er geen link is");
       if (soort === "document") {
         // De volledige naam is te lezen: niet afgekapt, niet woord voor woord onder elkaar
         const naam = page.getByText(LANG, { exact: true });
@@ -248,7 +274,89 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         const meta = await page.getByText("1352 kB").evaluate((el) => el.getBoundingClientRect().height);
         assert.ok(meta < 40, `documentenbank: de gegevens vallen woord voor woord onder elkaar (${meta}px hoog)`);
       }
+      // Wat Google leest, en de naam kiezen vóór het uploaden
+      if (soort === "document") assert.ok(await page.getByText(/Linktekst op je site: .Download het rapport/).isVisible(), "documentenbank: linktekst niet zichtbaar");
+      if (soort === "foto") {
+        assert.ok(await page.getByText(/Google leest: .Kantoor in Lisse, voorkant/).isVisible(), "fotobank: omschrijving niet zichtbaar");
+        assert.ok(await page.getByText("Geen omschrijving op 1 plek").isVisible(), "fotobank: ontbrekende omschrijving niet gemeld");
+        assert.ok(await page.getByRole("button", { name: "Omschrijving aanpassen" }).first().isVisible(), "fotobank: geen knop om de omschrijving aan te passen");
+      }
+      if (soort === "audio" || soort === "video") {
+        const bestand = soort === "audio" ? { name: "Aflevering 3 (def).MP3", mimeType: "audio/mpeg", buffer: Buffer.from("ID3") } : { name: "Rondleiding Kantoor.MOV", mimeType: "video/quicktime", buffer: Buffer.from([0, 0, 0, 20]) };
+        await page.locator('input[type="file"]').setInputFiles(bestand);
+        const naam = page.getByRole("textbox", { name: `Naam voor ${bestand.name}` });
+        await naam.waitFor();
+        assert.equal(await naam.inputValue(), soort === "audio" ? "aflevering-3-def" : "rondleiding-kantoor", `${soort}: naam niet voorgevuld`);
+        await naam.fill(soort === "audio" ? "aflevering-1" : "rondleiding");
+        assert.ok(await page.getByText("Deze naam bestaat al in je bank").isVisible() || soort === "video", `${soort}: bestaande naam niet geweigerd`);
+        await page.getByRole("button", { name: "Annuleren" }).click();
+      }
+      if (soort === "document" || soort === "foto") {
+        const [bestand, bestaand, goed] =
+          soort === "document" ? [{ name: "Boekje 2025 (def).pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") }, "vacature", "boekje-2025"] : [{ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff]) }, "team", "kantoor-achterkant"];
+        await page.locator('input[type="file"]').setInputFiles(bestand);
+        const naam = page.getByRole("textbox", { name: `Naam voor ${bestand.name}` });
+        await naam.waitFor();
+        assert.equal(await naam.inputValue(), soort === "document" ? "boekje-2025-def" : "img-2041", `${soort}: de naam is niet voorgevuld vanuit het bestand`);
+        await naam.fill(bestaand);
+        assert.ok(await page.getByText("Deze naam bestaat al in je bank").isVisible(), `${soort}: een bestaande naam wordt niet geweigerd`);
+        assert.ok(await page.getByRole("button", { name: "Uploaden", exact: true }).isDisabled(), `${soort}: uploaden kan met een bestaande naam`);
+        await naam.fill(`${goed} Nieuw`);
+        assert.ok(await page.getByText(`Wordt: ${goed}-nieuw${soort === "document" ? ".pdf" : ".webp"}`).isVisible(), `${soort}: de schone naam wordt niet getoond`);
+        assert.ok(await page.getByRole("button", { name: "Uploaden", exact: true }).isEnabled(), `${soort}: uploaden kan niet met een goede naam`);
+        await page.screenshot({ path: path.join(uitvoer, `naamkiezer-${soort}.png`) });
+        await page.getByRole("button", { name: "Annuleren" }).click();
+        assert.ok(await page.getByRole("button", { name: /uploaden/i }).first().isVisible(), `${soort}: na annuleren is de uploadknop er niet terug`);
+      }
       await page.screenshot({ path: path.join(uitvoer, `bank-${soort}.png`) });
+      await page.close();
+    }
+
+    // 4b. Admin-klantenlijst: AI-verbruik als bedrag, percentage en balkje
+    //     (zelfde maat als de klant), niet meer "0/30 wijzigingen"
+    {
+      const page = await nieuwePagina(1280, 700);
+      const basisRij = { domein: "voorbeeld.nl", status: "actief", isDemo: false, eigen: false, livegang: null, openConcepten: 0, offlineNa: null };
+      await page.evaluate((rijen) => window.mountKlanten(rijen), [
+        { ...basisRij, id: 1, naam: "Weinig gebruikt", aiUsd: 0.87, budgetUsd: 4 },
+        { ...basisRij, id: 2, naam: "Bijna op", aiUsd: 3.2, budgetUsd: 4 },
+        { ...basisRij, id: 3, naam: "Op", aiUsd: 5.1, budgetUsd: 4 },
+        { ...basisRij, id: 4, naam: "Nog in migratie", status: "migratie", aiUsd: 0, budgetUsd: 4 },
+      ]);
+      await page.getByText("Weinig gebruikt").waitFor();
+      assert.ok(await page.getByText("$0,87 van $4,00").isVisible(), "admin: bedrag en budget staan er niet");
+      const balken = page.getByRole("progressbar", { name: "AI-verbruik deze maand" });
+      assert.equal(await balken.count(), 4, "admin: niet bij elke klant een balkje");
+      assert.deepEqual(await balken.evaluateAll((b) => b.map((x) => x.getAttribute("aria-valuenow"))), ["22", "80", "100", "0"]);
+      assert.ok(!(await page.getByText(/wijzigingen/).count()), "admin: de oude telling van wijzigingen staat er nog");
+      // Live staat boven In migratie
+      const koppen = await page.locator("text=/^(✅ Live|🚀 In migratie)/").allTextContents();
+      assert.ok(koppen[0]?.startsWith("✅ Live") && koppen[1]?.startsWith("🚀 In migratie"), `admin: volgorde van de groepen klopt niet (${koppen.join(" | ")})`);
+      await page.screenshot({ path: path.join(uitvoer, "admin-verbruik.png") });
+      // De klantpagina: dezelfde maat, groot, in de tegel bovenaan
+      await page.evaluate(() => window.mountKlantBalk());
+      await page.getByText("80%").waitFor();
+      assert.ok(await page.getByText("$3,20 van $4,00").isVisible(), "klantpagina: bedrag en budget staan er niet");
+      const breed = page.getByRole("progressbar", { name: "AI-verbruik deze maand" });
+      assert.equal(await breed.getAttribute("aria-valuenow"), "80");
+      assert.ok((await breed.boundingBox()).width > 200, "klantpagina: het balkje is niet over de hele tegel");
+      await page.screenshot({ path: path.join(uitvoer, "admin-klant-verbruik.png"), clip: { x: 0, y: 0, width: 360, height: 140 } });
+      await page.close();
+    }
+
+    // 5. Tijdens het laden een rustige laadweergave in plaats van een kale zin
+    for (const [soort, api] of [["foto", "fotobank"], ["document", "documentbank"], ["video", "videobank"], ["audio", "audiobank"]]) {
+      const page = await nieuwePagina(1280, 900);
+      await page.route(`**/api/${api}?**`, async (r) => {
+        await new Promise((ok) => setTimeout(ok, 1500));
+        return r.fallback();
+      });
+      await page.evaluate((s) => window.mountBank(s), soort);
+      const laden = page.getByRole("status", { name: "Even laden" });
+      await laden.waitFor({ timeout: 1000 });
+      assert.ok(!(await page.getByText(/Even ophalen|Even kijken wat er staat/).count()), `${soort}: nog de oude laadzin`);
+      if (soort === "foto") await page.screenshot({ path: path.join(uitvoer, "bank-laden-foto.png") });
+      await laden.waitFor({ state: "detached", timeout: 5000 });
       await page.close();
     }
 

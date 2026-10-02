@@ -84,6 +84,8 @@ export const sites = pgTable("sites", {
   wijzigingenLimiet: integer("wijzigingen_limiet").notNull().default(30),
   wijzigingenExtra: integer("wijzigingen_extra").notNull().default(0),
   wijzigingenExtraMaand: text("wijzigingen_extra_maand"),
+  // Livegang-punten die de beheerder zelf afvinkte (komma-gescheiden sleutels)
+  livegangAfgevinkt: text("livegang_afgevinkt"),
   smtpHost: text("smtp_host"),
   smtpPoort: integer("smtp_poort"),
   smtpGebruiker: text("smtp_gebruiker"),

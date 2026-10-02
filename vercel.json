@@ -28,6 +28,10 @@
     {
       "path": "/api/cron/gezondheid",
       "schedule": "20 5 * * *"
+    },
+    {
+      "path": "/api/cron/pols",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

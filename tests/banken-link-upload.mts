@@ -39,7 +39,8 @@ const foto = await bank("Fotobank");
 assert.ok(foto.includes('handleUploadUrl: "/api/foto-upload"') && foto.includes('fetch("/api/fotobank/upload"'), "fotobank uploadt niet");
 assert.ok(foto.includes("{!vervangDoel && magUploaden && ("), "fotobank toont uploaden ook bij het kiezen van een vervanging of in de demo");
 const video = await bank("VideoBank");
-assert.ok(video.includes("onUpload(l[0]);") && video.includes("{onUpload && ("), "videobank heeft geen uploadknop");
+// sinds 02-10 met de gekozen naam (NaamKiezer) in plaats van het kale bestand
+assert.ok(video.includes("onUpload(new File([bestand]") && video.includes("{onUpload && ("), "videobank heeft geen uploadknop");
 const chat = await readFile("app/portal/Chat.tsx", "utf8");
 assert.ok(chat.includes("onUpload={isDemo ? undefined : (bestand) => void videoUploaden(bestand)}"), "de videobank gebruikt de videoverwerking van de chat niet");
 assert.ok(chat.includes("magUploaden={!isDemo}"), "de fotobank weet niet of uploaden mag");

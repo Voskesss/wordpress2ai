@@ -75,7 +75,9 @@ export async function POST(req: Request) {
       if (!/\.public\.blob\.vercel-storage\.com$/.test(host)) {
         return NextResponse.json({ error: "Ongeldige video-URL" }, { status: 400 });
       }
-      const naam = (basisnaam || "video").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "video";
+      // Zelfde naamregels als de banken (accenten weg, streepje voor spatie)
+      const { schoneNaamDelen } = await import("@/lib/bestandsnaam");
+      const naam = schoneNaamDelen(`${basisnaam || "video"}.x`, "video").stam.slice(0, 60).replace(/-+$/, "") || "video";
       const cmd = await rendiComprimeer(blobUrl, `${naam}-v${Date.now().toString(36)}`);
       await db.update(sites).set({ videoUploads: site.videoUploads + 1 }).where(eq(sites.id, site.id));
       return NextResponse.json({ commandId: cmd.command_id });

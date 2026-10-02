@@ -1066,28 +1066,21 @@ export async function resetWijzigingenTeller(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
-/** Fair-use-aantal wijzigingen per maand voor deze klant (pakketbelofte). */
-export async function bewaarWijzigingenLimiet(formData: FormData) {
+/** Een livegang-punt zelf afvinken of terugzetten (aan=1 of 0). */
+export async function zetLivegangAfgevinkt(formData: FormData) {
   await requireAdmin();
   const siteId = Number(formData.get("siteId"));
-  const limiet = Number(formData.get("limiet"));
-  if (!Number.isInteger(siteId) || !Number.isInteger(limiet) || limiet < 1 || limiet > 1000) return;
-  await db.update(sites).set({ wijzigingenLimiet: limiet }).where(eq(sites.id, siteId));
+  const sleutel = String(formData.get("sleutel") ?? "");
+  const aan = formData.get("aan") === "1";
+  if (!Number.isInteger(siteId) || !/^[a-z0-9-]{1,40}$/.test(sleutel)) return;
+  const [site] = await db.select({ livegangAfgevinkt: sites.livegangAfgevinkt }).from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { afgevinkteSleutels } = await import("@/lib/livegang");
+  const rest = afgevinkteSleutels(site).filter((s) => s !== sleutel);
+  const nieuw = aan ? [...rest, sleutel] : rest;
+  await db.update(sites).set({ livegangAfgevinkt: nieuw.length ? nieuw.join(",") : null }).where(eq(sites.id, siteId));
   revalidatePath(`/admin/klant/${siteId}`);
-}
-
-/** Eenmalig extra wijzigingen voor deze maand; vervalt vanzelf op de 1e. */
-export async function bewaarWijzigingenExtra(formData: FormData) {
-  await requireAdmin();
-  const siteId = Number(formData.get("siteId"));
-  const extra = Number(formData.get("extra"));
-  if (!Number.isInteger(siteId) || !Number.isInteger(extra) || extra < 0 || extra > 1000) return;
-  const { huidigeMaand } = await import("@/lib/ai-budget");
-  await db
-    .update(sites)
-    .set(extra > 0 ? { wijzigingenExtra: extra, wijzigingenExtraMaand: huidigeMaand() } : { wijzigingenExtra: 0, wijzigingenExtraMaand: null })
-    .where(eq(sites.id, siteId));
-  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/admin");
 }
 
 /** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de

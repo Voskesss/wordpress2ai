@@ -99,3 +99,40 @@ export async function bewaarMediaVideo(
 export async function verwijderMediaVideo(slug: string, naam: string): Promise<void> {
   await verwijderObject(`${videoPrefix(slug)}${schoneAudioNaam(naam)}`);
 }
+
+/**
+ * Welke naam krijgt een verwerkte video? De verwerking zet een code achter de
+ * naam (-v<tijd>); die gaat eraf. Staat precies deze video (zelfde
+ * naam-familie, zelfde grootte) er al, dan is het een herhaling (verversen,
+ * tweede verzoek) en hergebruiken we die naam. Anders een vrije naam (-2, -3).
+ */
+export function kiesVideoNaam(
+  ruweNaam: string,
+  bestaand: { naam: string; bytes: number }[],
+  grootte: number,
+  vrij: (stam: string, ext: string, bezet: Set<string>) => string,
+): { naam: string; nieuw: boolean } {
+  const basis = /^[a-z0-9-]+\.mp4$/i.test(ruweNaam)
+    ? ruweNaam.replace(/-v[0-9a-z]{6,}(?=\.mp4$)/i, "")
+    : `video-${Date.now().toString(36)}.mp4`;
+  const stam = basis.replace(/\.mp4$/i, "").toLowerCase();
+  const familie = new RegExp(`^${stam.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(-\\d+)?\\.mp4$`, "i");
+  const zelfde = bestaand.find((v) => familie.test(v.naam) && v.bytes === grootte);
+  if (zelfde) return { naam: zelfde.naam, nieuw: false };
+  return { naam: vrij(stam, ".mp4", new Set(bestaand.map((v) => v.naam))), nieuw: true };
+}
+
+/** Een verwerkte video bewaren met de naam uit kiesVideoNaam, nooit
+ * overschrijven. Gedeeld door de videobank en de chat, zodat één video nooit
+ * twee namen krijgt. */
+export async function bewaarVideoZonderDubbel(
+  slug: string,
+  ruweNaam: string,
+  data: Buffer,
+): Promise<{ naam: string; nieuw: boolean }> {
+  const { vrijeNaam } = await import("./bestandsnaam");
+  const bestaand = await lijstMediaVideo(slug).catch(() => [] as { naam: string; bytes: number }[]);
+  const keuze = kiesVideoNaam(ruweNaam, bestaand, data.length, vrijeNaam);
+  if (keuze.nieuw) await bewaarMediaVideo(slug, keuze.naam, data);
+  return keuze;
+}

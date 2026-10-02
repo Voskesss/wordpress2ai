@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media"; adres?: string | null; live?: boolean };
 
@@ -29,6 +29,8 @@ export default function VideoBank({
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null);
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
   // Nieuwste eerst is de standaard (de server sorteert op uploaddatum);
   // op naam is er voor wie een specifieke video zoekt (26-09)
   const [opNaam, setOpNaam] = useState(false);
@@ -47,6 +49,7 @@ export default function VideoBank({
       try {
         const r = (await fetch(`/api/videobank?siteId=${siteId}`).then((x) => x.json())) as {
           videos?: Video[];
+          linkUitleg?: string | null;
           gebruikt?: number;
           limiet?: number;
           error?: string;
@@ -54,6 +57,7 @@ export default function VideoBank({
         if (weg) return;
         if (r.videos) {
           setVideos(r.videos);
+          setLinkUitleg(r.linkUitleg ?? null);
           if (typeof r.gebruikt === "number" && typeof r.limiet === "number")
             setTegoed({ gebruikt: r.gebruikt, limiet: r.limiet });
         } else setFout(r.error ?? "Kon de videobank niet laden.");
@@ -122,15 +126,28 @@ export default function VideoBank({
             <OpenbaarMelding voorbeelden="zoals beelden van klanten zonder hun toestemming" />
             {onUpload && (
               <>
-                <UploadKnop
-                  label="⬆ Video uploaden (mp4, mov)"
-                  accept="video/mp4,video/quicktime,video/webm"
-                  bezig={null}
-                  onKies={(l) => {
-                    onUpload(l[0]);
-                    onSluit();
-                  }}
-                />
+                {teKiezen ? (
+                  <NaamKiezer
+                    bestanden={teKiezen}
+                    extensie={() => ".mp4"}
+                    bestaat={(naam) => (videos ?? []).some((v) => v.pad === `video/${naam}`)}
+                    onUploaden={(lijst) => {
+                      const { bestand, naam } = lijst[0];
+                      const eigenExt = bestand.name.match(/\.[a-z0-9]+$/i)?.[0] ?? "";
+                      setTeKiezen(null);
+                      onUpload(new File([bestand], `${naam.replace(/\.mp4$/i, "")}${eigenExt}`, { type: bestand.type, lastModified: bestand.lastModified }));
+                      onSluit();
+                    }}
+                    onAnnuleren={() => setTeKiezen(null)}
+                  />
+                ) : (
+                  <UploadKnop
+                    label="⬆ Video uploaden (mp4, mov)"
+                    accept="video/mp4,video/quicktime,video/webm"
+                    bezig={null}
+                    onKies={(l) => setTeKiezen(l.slice(0, 1))}
+                  />
+                )}
                 <p className="-mt-1 text-center text-[11px] text-stone-500">
                   Hij wordt eerst verkleind voor het web; de voortgang zie je in de chat. Daarna staat hij hier met zijn link.
                 </p>
@@ -142,7 +159,7 @@ export default function VideoBank({
           {videos && videos.length > 0 && zoek && zoekOpNaam(videos, zoek, (v) => v.pad).length === 0 && (
             <p className="mb-3 text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}
-          {!videos && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {!videos && !fout && <BankLaden vorm="kaarten" />}
           {videos?.length === 0 && (
             <p className="text-sm text-stone-500">
               Nog geen video&apos;s. Upload er hierboven een, of stuur hem mee in de chat via de 📎. Hij wordt
@@ -205,7 +222,7 @@ export default function VideoBank({
                     </span>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <KopieerLink adres={v.adres} live={v.live} />
+                    <KopieerLink adres={v.adres} live={v.live} uitleg={linkUitleg} />
                     <button
                       onClick={() => {
                         onGebruik(`/${v.pad}`);

@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
-type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean; adres?: string | null; live?: boolean };
+type AltStand = { teksten: string[]; zonder: number; leeg: number };
+type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean; adres?: string | null; live?: boolean; alt?: AltStand | null };
 
 /** Fotobank: alle foto's die ooit op de site stonden — niets wordt bij
  * vervangen weggegooid. Oude versies kun je met één klik terugzetten. */
 export default function Fotobank({
   siteId,
   magUploaden = false,
+  onOpdracht,
   previewAccess,
   beeldBasis,
   vervangDoel,
@@ -26,6 +28,8 @@ export default function Fotobank({
   siteId: number;
   /** Zelf foto's uploaden in de bank (niet in de demo) */
   magUploaden?: boolean;
+  /** Zet een opdracht klaar in de chat (bijvoorbeeld een omschrijving aanpassen) */
+  onOpdracht?: (tekst: string) => void;
   /** Sleutel voor /site-weergave: de miniaturen komen daarmee uit dezelfde
    * bron als de bank zelf (de bestanden van de site), niet van de
    * gepubliceerde worker. Een net geüploade foto die nog nergens geplaatst
@@ -74,6 +78,7 @@ export default function Fotobank({
   // liggend is (de vakjes zelf snijden niet meer af sinds object-contain).
   const [maten, setMaten] = useState<Record<string, { w: number; h: number }>>({});
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<Set<string>>(new Set());
   const [melding, setMelding] = useState<string | null>(null);
@@ -81,20 +86,19 @@ export default function Fotobank({
   /** Rechtstreeks uploaden in de bank, zonder de chat. Verkleind op dezelfde
    * maat als via de chat, in de site bewaard en meteen online, zodat de link
    * direct te kopiëren is. Meerdere tegelijk kan; ze gaan één voor één. */
-  async function uploaden(lijst: File[]) {
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
+  const isFoto = (f: File) => f.type.startsWith("image/") || /\.(jpe?g|png|webp|gif|avif|heic)$/i.test(f.name);
+
+  async function uploaden(fotos: { bestand: File; naam: string }[]) {
     if (upload) return;
     setFout(null);
     setMelding(null);
-    const fotos = lijst.filter((f) => f.type.startsWith("image/") || /\.(jpe?g|png|webp|gif|avif|heic)$/i.test(f.name));
-    if (!fotos.length) {
-      setFout("Kies een foto (jpg, png, webp of heic).");
-      return;
-    }
+    if (!fotos.length) return;
     const nieuwe: string[] = [];
     const waarschuwingen: string[] = [];
     try {
       const { upload: naarOpslag } = await import("@vercel/blob/client");
-      for (const [i, f] of fotos.entries()) {
+      for (const [i, { bestand: f, naam: gekozen }] of fotos.entries()) {
         const teller = fotos.length > 1 ? ` (${i + 1} van ${fotos.length})` : "";
         setUpload(`Uploaden${teller}... 0%`);
         const blob = await naarOpslag(`bank/${Date.now()}-${f.name}`, f, {
@@ -107,7 +111,7 @@ export default function Fotobank({
         const r = (await fetch("/api/fotobank/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ siteId, blobUrl: blob.url, naam: f.name }),
+          body: JSON.stringify({ siteId, blobUrl: blob.url, naam: gekozen }),
         }).then((x) => x.json())) as { pad?: string; grootte?: number; adres?: string | null; live?: boolean; kwaliteit?: string | null; error?: string };
         if (!r.pad) throw new Error(r.error ?? "Opslaan lukte niet");
         const pad = r.pad;
@@ -132,8 +136,9 @@ export default function Fotobank({
     (async () => {
       try {
         const res = await fetch(`/api/fotobank?siteId=${siteId}`);
-        const data = (await res.json()) as { afbeeldingen?: Beeld[]; error?: string };
+        const data = (await res.json()) as { afbeeldingen?: Beeld[]; linkUitleg?: string | null; error?: string };
         if (weg) return;
+        setLinkUitleg(data.linkUitleg ?? null);
         if (data.afbeeldingen) setBeelden(data.afbeeldingen);
         else setFout(data.error ?? "Kon de fotobank niet laden.");
       } catch {
@@ -233,7 +238,30 @@ export default function Fotobank({
       {!vervangDoel && magUploaden && (
         <div className="mt-3 space-y-2">
           <OpenbaarMelding voorbeelden="zoals foto's van klanten zonder hun toestemming, of een foto van een document" />
-          <UploadKnop label="⬆ Foto's uploaden" accept="image/*" meerdere bezig={upload} onKies={(l) => void uploaden(l)} />
+          {teKiezen ? (
+            <NaamKiezer
+              bestanden={teKiezen}
+              extensie={() => ".webp"}
+              bestaat={(naam) => (beelden ?? []).some((b) => b.pad === `afbeeldingen/${naam}`)}
+              onUploaden={(lijst) => {
+                setTeKiezen(null);
+                void uploaden(lijst);
+              }}
+              onAnnuleren={() => setTeKiezen(null)}
+            />
+          ) : (
+            <UploadKnop
+              label="⬆ Foto's uploaden"
+              accept="image/*"
+              meerdere
+              bezig={upload}
+              onKies={(l) => {
+                const fotos = l.filter(isFoto);
+                if (!fotos.length) setFout("Kies een foto (jpg, png, webp of heic).");
+                else setTeKiezen(fotos);
+              }}
+            />
+          )}
           <p className="-mt-1 text-center text-[11px] text-stone-500">
             Ze worden verkleind voor het web en staan daarna meteen online, met een link om te kopiëren.
           </p>
@@ -261,7 +289,7 @@ export default function Fotobank({
         </label>
       </div>
 
-      {!beelden && !fout && <p className="mt-3 text-sm text-stone-500">Even ophalen...</p>}
+      {!beelden && !fout && <BankLaden vorm="tegels" />}
       {fout && <p className="mt-3 text-sm text-red-600">{fout}</p>}
       {beelden && getoond.length === 0 && (
         <p className="mt-3 text-sm text-stone-500">
@@ -304,10 +332,25 @@ export default function Fotobank({
               </div>
             )}
             <div className="p-2">
-              <p className="truncate text-[11px] text-stone-500" title={b.pad}>
+              <p className="text-[11px] text-stone-500 [overflow-wrap:anywhere]" title={b.pad}>
                 {nieuw.has(b.pad) && <span className="mr-1 rounded-full bg-violet-700 px-1.5 py-0.5 text-[9px] font-bold text-white">Nieuw</span>}
                 {b.pad.split("/").pop()}
               </p>
+              {/* Wat Google bij deze foto leest: de omschrijving (alt-tekst) */}
+              {b.alt && b.alt.teksten.length > 0 && (
+                <p className="mt-0.5 text-[10px] leading-snug text-stone-700">
+                  Google leest: &ldquo;{b.alt.teksten[0]}&rdquo;
+                  {b.alt.teksten.length > 1 ? ` (en ${b.alt.teksten.length - 1} andere)` : ""}
+                </p>
+              )}
+              {b.alt && b.alt.zonder > 0 && (
+                <p className="mt-0.5 text-[10px] font-semibold text-amber-700">
+                  Geen omschrijving op {b.alt.zonder === 1 ? "1 plek" : `${b.alt.zonder} plekken`}
+                </p>
+              )}
+              {b.alt && b.alt.teksten.length === 0 && b.alt.zonder === 0 && b.alt.leeg > 0 && (
+                <p className="mt-0.5 text-[10px] text-stone-500">Sierafbeelding: bewust zonder omschrijving</p>
+              )}
               {maten[b.pad] && (
                 <p className="text-[10px] text-stone-400">
                   {maten[b.pad].w} × {maten[b.pad].h} (
@@ -321,7 +364,16 @@ export default function Fotobank({
               )}
               {!vervangDoel && (
                 <div className="mt-1 flex flex-wrap gap-1">
-                  <KopieerLink adres={b.adres} live={b.live} />
+                  <KopieerLink adres={b.adres} live={b.live} uitleg={linkUitleg} />
+                  {onOpdracht && b.inGebruik && (
+                    <button
+                      type="button"
+                      onClick={() => onOpdracht(`Geef de foto /${b.pad} overal waar hij staat deze omschrijving (alt-tekst): `)}
+                      className="rounded-full border border-stone-300 px-3 py-1 text-xs font-medium text-stone-600 hover:border-violet-400 hover:text-violet-700 cursor-pointer"
+                    >
+                      Omschrijving aanpassen
+                    </button>
+                  )}
                 </div>
               )}
               {vervangDoel && (
