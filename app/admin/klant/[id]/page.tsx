@@ -414,7 +414,7 @@ export default async function KlantDetail({
 
       {livegang && (
         <div id="livegang" className="scroll-mt-24">
-          <LivegangChecklist checks={livegang} />
+          <LivegangChecklist checks={livegang} siteId={site.id} />
         </div>
       )}
 

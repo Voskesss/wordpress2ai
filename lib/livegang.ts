@@ -20,7 +20,23 @@ export type LivegangCheck = {
   uitleg: string;
   /** Iets dat nu al misgaat voor bezoekers (rood i.p.v. oranje) */
   dringend?: boolean;
+  /** Niet gemeten maar door de beheerder zelf afgevinkt */
+  handmatig?: boolean;
 };
+
+/** Sleutels die de beheerder zelf afvinkte, uit de kolom livegang_afgevinkt. */
+export const afgevinkteSleutels = (site: Pick<Site, "livegangAfgevinkt">) =>
+  (site.livegangAfgevinkt ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
+/**
+ * Zelf afvinken (wens Jos, 02-10-2026): sommige punten kunnen wij niet meten,
+ * zoals Search Console die de klant zelf via een bestand verifieerde. Dan wil
+ * je hem toch dicht kunnen zetten. Alleen wat nog open staat en niet dringend
+ * is: iets dat nu misgaat voor bezoekers, wegklikken mag niet.
+ */
+export function pasAfvinkenToe(checks: LivegangCheck[], afgevinkt: string[]): LivegangCheck[] {
+  return checks.map((c) => (!c.ok && !c.dringend && afgevinkt.includes(c.sleutel) ? { ...c, ok: true, handmatig: true } : c));
+}
 
 const isWorkersAdres = (d: string | null) => !d || /\.workers\.dev$/i.test(d);
 
@@ -348,5 +364,5 @@ export async function livegangChecks(
     }
   }
 
-  return checks;
+  return pasAfvinkenToe(checks, afgevinkteSleutels(site));
 }

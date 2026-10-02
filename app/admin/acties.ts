@@ -1066,6 +1066,23 @@ export async function resetWijzigingenTeller(formData: FormData) {
   revalidatePath(`/admin/klant/${siteId}`);
 }
 
+/** Een livegang-punt zelf afvinken of terugzetten (aan=1 of 0). */
+export async function zetLivegangAfgevinkt(formData: FormData) {
+  await requireAdmin();
+  const siteId = Number(formData.get("siteId"));
+  const sleutel = String(formData.get("sleutel") ?? "");
+  const aan = formData.get("aan") === "1";
+  if (!Number.isInteger(siteId) || !/^[a-z0-9-]{1,40}$/.test(sleutel)) return;
+  const [site] = await db.select({ livegangAfgevinkt: sites.livegangAfgevinkt }).from(sites).where(eq(sites.id, siteId));
+  if (!site) return;
+  const { afgevinkteSleutels } = await import("@/lib/livegang");
+  const rest = afgevinkteSleutels(site).filter((s) => s !== sleutel);
+  const nieuw = aan ? [...rest, sleutel] : rest;
+  await db.update(sites).set({ livegangAfgevinkt: nieuw.length ? nieuw.join(",") : null }).where(eq(sites.id, siteId));
+  revalidatePath(`/admin/klant/${siteId}`);
+  revalidatePath("/admin");
+}
+
 /** Eenmalig extra AI-ruimte voor deze maand. Vervalt vanzelf op de 1e van de
  * volgende maand, dus je hoeft hem niet terug te zetten. 0 = meteen weg. */
 export async function bewaarAiExtra(formData: FormData) {

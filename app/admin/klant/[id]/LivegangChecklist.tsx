@@ -1,7 +1,26 @@
 import type { LivegangCheck } from "@/lib/livegang";
+import { zetLivegangAfgevinkt } from "@/app/admin/acties";
+import ActieKnop from "./ActieKnop";
 
-/** Livegang-checklist bovenaan de klantpagina: controleert zichzelf, afvinken is niet nodig. */
-export default function LivegangChecklist({ checks }: { checks: LivegangCheck[] }) {
+/** Knopje om een punt zelf af te vinken of het afvinken terug te draaien. */
+function AfvinkKnop({ siteId, sleutel, aan }: { siteId: number; sleutel: string; aan: boolean }) {
+  return (
+    <form action={zetLivegangAfgevinkt} className="mt-1">
+      <input type="hidden" name="siteId" value={siteId} />
+      <input type="hidden" name="sleutel" value={sleutel} />
+      <input type="hidden" name="aan" value={aan ? "1" : "0"} />
+      <ActieKnop
+        label={aan ? "Zelf afvinken (ik heb het gecontroleerd)" : "Terugzetten"}
+        bezigLabel="Bezig..."
+        className="text-xs font-semibold text-violet-700 underline cursor-pointer"
+      />
+    </form>
+  );
+}
+
+/** Livegang-checklist bovenaan de klantpagina: controleert zichzelf. Wat wij
+ * niet kunnen meten (Search Console via een bestand bijvoorbeeld) vink je zelf af. */
+export default function LivegangChecklist({ checks, siteId }: { checks: LivegangCheck[]; siteId: number }) {
   const open = checks.filter((c) => !c.ok);
   const dringend = open.some((c) => c.dringend);
   const klaar = open.length === 0;
@@ -28,13 +47,17 @@ export default function LivegangChecklist({ checks }: { checks: LivegangCheck[] 
             <span className="shrink-0">{c.ok ? "✅" : c.dringend ? "🔴" : "⬜"}</span>
             <span>
               <span className={c.ok ? "text-stone-600" : "font-semibold text-stone-900"}>{c.label}</span>
+              {c.handmatig && <span className="ml-2 text-xs text-stone-500">zelf afgevinkt</span>}
               {!c.ok && c.uitleg && <span className={`block ${c.dringend ? "text-red-800" : "text-stone-600"}`}>{c.uitleg}</span>}
+              {!c.ok && !c.dringend && <AfvinkKnop siteId={siteId} sleutel={c.sleutel} aan />}
+              {c.handmatig && <AfvinkKnop siteId={siteId} sleutel={c.sleutel} aan={false} />}
             </span>
           </li>
         ))}
       </ul>
       <p className="mt-4 text-xs text-stone-500">
         Deze lijst controleert zichzelf bij elk bezoek aan deze pagina, ook of het domein echt de nieuwe site toont.
+        Wat wij niet kunnen meten, vink je zelf af; een rood punt kan dat niet.
       </p>
     </details>
   );
