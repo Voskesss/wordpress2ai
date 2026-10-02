@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.41.2 (2 oktober 2026)
+
+- De outreachpagina toont de prospects per 20, met onderaan "Toon meer". Elke kaart draagt een mailbewerker en drie complete mails mee; met de hele lijst duurde het zo'n 8 seconden voordat je in een tekstvak kon typen. De tellers bovenaan tellen nog steeds alles.
+
 ## 1.41.1 (2 oktober 2026)
 
 - De videopagina toont op een telefoon de staande versie van een filmpje (als die er is), op een groot scherm de vierkante. Nu voor "website-typen"; de staande WhatsApp-versie volgt.
