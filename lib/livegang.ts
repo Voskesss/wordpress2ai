@@ -331,7 +331,13 @@ export async function livegangChecks(
   // site te zien is: de website draait perfect terwijl de post stilstaat.
   if (domeinIngevuld && site.domein) {
     try {
-      for (const b of mailBevindingen(await mailFeiten(site.domein.replace(/^www\./, "")))) checks.push(b);
+      const { routeBDomeinenVan } = await import("@/lib/route-b");
+      const kaal = site.domein.replace(/^www\./, "").toLowerCase();
+      const routeB = (await routeBDomeinenVan(site.siteSlug).catch(() => [] as string[])).some(
+        (d) => d.replace(/^www\./, "").toLowerCase() === kaal,
+      );
+      const situatie = { routeB, smtpHost: site.smtpHost };
+      for (const b of mailBevindingen(await mailFeiten(kaal), situatie)) checks.push(b);
     } catch {
       checks.push({
         sleutel: "mail-opvragen",

@@ -28,6 +28,16 @@ export type MailFeiten = {
   dkimSelectors: string[];
 };
 
+/** Hoe de site live staat. Bij route B blijven DNS en mail bewust bij de
+ * hoster: dan is "mail draait bij de hoster" geen open punt maar de opzet.
+ * (Van den Berg, 02-10-2026: website bij ons, mail en DNS bij De Websmid,
+ * formulieren via zijn eigen SMTP. De checklist bleef daar onterecht open.) */
+export type MailSituatie = {
+  routeB?: boolean;
+  /** SMTP-server die de site voor formulieren gebruikt, als die ingesteld is */
+  smtpHost?: string | null;
+};
+
 export type MailBevinding = {
   sleutel: string;
   label: string;
@@ -72,9 +82,17 @@ export function spfRecords(txt: string[]): string[] {
   return txt.filter((t) => t.trim().toLowerCase().startsWith("v=spf1"));
 }
 
-export function mailBevindingen(f: MailFeiten): MailBevinding[] {
+/** Welke webhoster noemt de SPF? Bij een MX op het eigen domein
+ * (mail.klant.nl) is dat vaak de enige aanwijzing. */
+export function hosterUitSpf(txt: string[]): string | null {
+  const spf = spfRecords(txt).join(" ").toLowerCase();
+  return spf.match(WEBHOSTERS)?.[0] ?? null;
+}
+
+export function mailBevindingen(f: MailFeiten, situatie: MailSituatie = {}): MailBevinding[] {
   const uit: MailBevinding[] = [];
   const diagnose = mailDiagnose(f.mx);
+  const hoster = WEBHOSTERS.exec(f.mx.join(" ").toLowerCase())?.[0] ?? hosterUitSpf(f.txt);
 
   uit.push({
     sleutel: "mail-mx",
@@ -85,13 +103,29 @@ export function mailBevindingen(f: MailFeiten): MailBevinding[] {
   });
 
   if (f.mx.length) {
-    uit.push({
-      sleutel: "mail-waar",
-      label: "Waar de mail draait",
-      ok: diagnose.extern,
-      uitleg: diagnose.tekst,
-      dringend: false,
-    });
+    // Route B: de mail blijft bewust bij de hoster. Niets te doen, behalve
+    // die hosting niet opzeggen; dat blijft in de uitleg staan.
+    const smtp = situatie.smtpHost?.trim().toLowerCase();
+    uit.push(
+      situatie.routeB && !diagnose.extern
+        ? {
+            sleutel: "mail-waar",
+            label: "Waar de mail draait",
+            ok: true,
+            uitleg:
+              `Blijft bij de hoster${hoster ? ` (${hoster})` : ""}, net als de DNS: zo is route B bedoeld. Die hosting blijft dus nodig en mag niet opgezegd worden.` +
+              (smtp ? ` Formulieren versturen via zijn eigen SMTP (${smtp}).` : ""),
+          }
+        : {
+            sleutel: "mail-waar",
+            label: "Waar de mail draait",
+            ok: diagnose.extern,
+            uitleg: diagnose.extern || !hoster || WEBHOSTERS.test(f.mx.join(" ").toLowerCase())
+              ? diagnose.tekst
+              : `De SPF wijst naar ${hoster}: de mail draait waarschijnlijk bij die webhoster, vaak op dezelfde hosting als de oude website. Die hosting mag NIET opgezegd worden voordat de mail verhuisd is.`,
+            dringend: false,
+          },
+    );
     if (f.mxBereikbaar === false)
       uit.push({
         sleutel: "mail-bereikbaar",
@@ -119,7 +153,17 @@ export function mailBevindingen(f: MailFeiten): MailBevinding[] {
   // Het a-mechanisme wijst naar het A-record van het domein. Zodra de website
   // bij ons draait, geeft dat ONZE webserver toestemming om post te versturen
   // namens de klant. Niet kapot, wel rommelig.
-  if (spf.length === 1 && /(^|\s)[-~+?]?a(\s|$)/.test(spf[0]))
+  const metA = spf.length === 1 && /(^|\s)[-~+?]?a(\s|$)/.test(spf[0]);
+  // Route B: de DNS is van de hoster, niet van ons. Staan mx of include er
+  // ook in, dan loopt de post daarlangs en is 'a' alleen rommel.
+  if (metA && situatie.routeB && /(^|\s)[-~+?]?(mx|include:)/.test(spf[0]))
+    uit.push({
+      sleutel: "mail-spf-a",
+      label: "SPF: de 'a' is onschadelijk",
+      ok: true,
+      uitleg: "In de SPF staat nog 'a' (de server van de website). De post gaat via de mx en de include, dus het kan geen kwaad. De DNS is van de hoster: weghalen mag bij gelegenheid, hoeft niet voor de livegang.",
+    });
+  else if (metA)
     uit.push({
       sleutel: "mail-spf-a",
       label: "SPF verwijst niet meer naar de oude webserver",
