@@ -23,8 +23,32 @@ function viewport(apparaat: Apparaat) {
   return { width: 1280, height: 800, deviceScaleFactor: 1 };
 }
 
+/** Maakt de HTML klaar voor een opname van de hele pagina: zonder "lui
+ * laden" en "later uitpakken" op foto's. Cloudflare tekent zulke foto's
+ * buiten het eerste scherm niet bij een fullPage-opname; die stonden dan als
+ * leeg vak op de schermafbeelding, en de AI ging bij "Kijk zelf" foto's
+ * "repareren" die niets mankeerden (Vakbeursonline 02-10). Onze eigen
+ * nabewerking zet beide instellingen op bijna elke foto, dus dit raakte
+ * vrijwel elke site. Een <base> zorgt dat /afbeeldingen/... blijft kloppen. */
+export function htmlVoorOpname(html: string, url: string): string {
+  const basis = url.replace(/[?#].*$/, "");
+  return html
+    .replace(/\sloading=(["'])lazy\1/gi, "")
+    .replace(/\sdecoding=(["'])async\1/gi, "")
+    .replace(/<head([^>]*)>/i, `<head$1><base href="${basis}">`);
+}
+
 /** Volledige pagina als PNG. Gooit een fout als het na herkansingen niet lukt. */
 export async function maakSchermafbeelding(url: string, apparaat: Apparaat = "desktop"): Promise<Buffer> {
+  // Eerst de pagina zelf ophalen en klaarmaken; lukt dat niet, dan valt de
+  // opname terug op de gewone url (met het risico op lege fotovakken).
+  let bron: { html: string } | { url: string } = { url };
+  try {
+    const pagina = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (pagina.ok && (pagina.headers.get("content-type") ?? "").includes("html")) {
+      bron = { html: htmlVoorOpname(await pagina.text(), url) };
+    }
+  } catch {}
   let laatste: unknown = null;
   for (let poging = 0; poging < 4; poging++) {
     try {
@@ -35,7 +59,7 @@ export async function maakSchermafbeelding(url: string, apparaat: Apparaat = "de
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url,
+          ...bron,
           viewport: viewport(apparaat),
           screenshotOptions: { fullPage: true, type: "png" },
           gotoOptions: { waitUntil: "networkidle0", timeout: 25000 },
