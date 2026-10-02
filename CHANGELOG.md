@@ -20,7 +20,7 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
-## Nog niet uitgebracht (op dev): berichten op de telefoon
+## 1.40.3 (2 oktober 2026)
 
 - Op de telefoon staan de berichten via je formulieren nu als kaartjes onder elkaar, in plaats van een tabel waarvan het bericht rechts buiten beeld viel. Tik op "Hele bericht lezen" om alles te zien; de knoppen (afgehandeld, spam, verwijderen) staan eronder, binnen beeld. Op een groot scherm blijft de tabel.
 
