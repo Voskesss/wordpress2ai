@@ -39,13 +39,19 @@ const statusLabel: Record<string, [string, string]> = {
 const dagen = (d: Date | null) =>
   d ? Math.floor((Date.now() - d.getTime()) / 86_400_000) : null;
 
+const PER_KEER = 20;
+
 export default async function Outreach({
   searchParams,
 }: {
-  searchParams: Promise<{ toon?: string }>;
+  searchParams: Promise<{ toon?: string; aantal?: string }>;
 }) {
   await requireAdmin();
-  const { toon = "actie" } = await searchParams;
+  const { toon = "actie", aantal: aantalRuw } = await searchParams;
+  // Per keer een deel van de lijst: elke kaart draagt een bewerker en drie
+  // complete mails mee, en met honderden prospects duurde het ~8 seconden
+  // voordat je in een tekstvak kon typen (Jos, 02-10-2026).
+  const aantal = Math.max(PER_KEER, Math.min(5000, Number(aantalRuw) || PER_KEER));
   const alle = await db.select().from(prospects).orderBy(desc(prospects.id));
   const sjablonen = await db.select().from(mailSjablonen);
   const persoonlijk = await db.select().from(prospectMails);
@@ -229,7 +235,7 @@ export default async function Outreach({
               : "Niets in deze weergave — klik hierboven op een ander vakje."}
           </p>
         )}
-        {lijst.map((p) => {
+        {lijst.slice(0, aantal).map((p) => {
           const [label, kleur] = statusLabel[p.status] ?? statusLabel.nieuw;
           const laatste = p.mail3Op ?? p.mail2Op ?? p.mail1Op;
           const dagenStil = dagen(laatste);
@@ -539,6 +545,15 @@ export default async function Outreach({
             </div>
           );
         })}
+        {lijst.length > aantal && (
+          <Link
+            href={`/admin/outreach?toon=${toon}&aantal=${aantal + PER_KEER}`}
+            scroll={false}
+            className="block rounded-2xl border border-stone-300 bg-white px-4 py-3 text-center text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700"
+          >
+            Toon {Math.min(PER_KEER, lijst.length - aantal)} meer (nog {lijst.length - aantal} in deze weergave)
+          </Link>
+        )}
       </div>
 
       {/* Blokkeerlijst */}
