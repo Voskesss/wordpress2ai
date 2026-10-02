@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Video = { pad: string; poster: string | null; mb: number; inGebruik: boolean; bron?: "site" | "media"; adres?: string | null; live?: boolean };
 
@@ -159,7 +159,7 @@ export default function VideoBank({
           {videos && videos.length > 0 && zoek && zoekOpNaam(videos, zoek, (v) => v.pad).length === 0 && (
             <p className="mb-3 text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}
-          {!videos && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {!videos && !fout && <BankLaden vorm="kaarten" />}
           {videos?.length === 0 && (
             <p className="text-sm text-stone-500">
               Nog geen video&apos;s. Upload er hierboven een, of stuur hem mee in de chat via de 📎. Hij wordt

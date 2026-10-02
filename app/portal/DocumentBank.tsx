@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean; linkTeksten?: string[] };
 
@@ -153,7 +153,7 @@ export default function DocumentBank({
           </p>
           <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={docs?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
-          {!docs && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {!docs && !fout && <BankLaden vorm="regels" />}
           {docs && docs.length > 0 && zoek && zoekOpNaam(docs, zoek, (d) => d.pad).length === 0 && (
             <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}

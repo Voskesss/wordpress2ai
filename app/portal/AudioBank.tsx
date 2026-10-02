@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Link = { adres: string | null; live: boolean };
 
@@ -146,7 +146,7 @@ export default function AudioBank({
           )}
           <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={audio?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
-          {audio === null && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {audio === null && !fout && <BankLaden vorm="regels" />}
           {audio && audio.length > 0 && zoek && zoekOpNaam(audio, zoek, (n) => n).length === 0 && (
             <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}

@@ -308,6 +308,22 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await page.close();
     }
 
+    // 5. Tijdens het laden een rustige laadweergave in plaats van een kale zin
+    for (const [soort, api] of [["foto", "fotobank"], ["document", "documentbank"], ["video", "videobank"], ["audio", "audiobank"]]) {
+      const page = await nieuwePagina(1280, 900);
+      await page.route(`**/api/${api}?**`, async (r) => {
+        await new Promise((ok) => setTimeout(ok, 1500));
+        return r.fallback();
+      });
+      await page.evaluate((s) => window.mountBank(s), soort);
+      const laden = page.getByRole("status", { name: "Even laden" });
+      await laden.waitFor({ timeout: 1000 });
+      assert.ok(!(await page.getByText(/Even ophalen|Even kijken wat er staat/).count()), `${soort}: nog de oude laadzin`);
+      if (soort === "foto") await page.screenshot({ path: path.join(uitvoer, "bank-laden-foto.png") });
+      await laden.waitFor({ state: "detached", timeout: 5000 });
+      await page.close();
+    }
+
     assert.deepEqual(fouten, [], `fouten in de browser: ${fouten.join(" | ")}`);
     console.log("✓ portaal-ui: balk en werkweergave op 3 schermen + telefoon, tabbladen wisselen, vier banken");
   } finally {

@@ -189,3 +189,55 @@ export function NaamKiezer({
     </div>
   );
 }
+
+/**
+ * Rustige laadweergave voor de banken: lichte vlakken in de vorm van wat er
+ * komt, in plaats van een kale zin "Even ophalen..." (Jos, 02-10-2026). Zachte
+ * pulsering, en geen beweging voor wie dat in zijn instellingen uitzette.
+ */
+export function BankLaden({ vorm, aantal = 6 }: { vorm: "tegels" | "kaarten" | "regels"; aantal?: number }) {
+  const blok = "rounded-xl bg-stone-200/70 motion-safe:animate-pulse";
+  return (
+    <div role="status" aria-label="Even laden" aria-busy="true" className="mt-3">
+      {vorm === "tegels" && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Array.from({ length: aantal }, (_, i) => (
+            <div key={i} className="overflow-hidden rounded-xl border border-stone-100">
+              <div className={`h-24 ${blok} rounded-none`} />
+              <div className="space-y-1.5 p-2">
+                <div className={`h-2.5 w-3/4 ${blok}`} />
+                <div className={`h-2.5 w-1/2 ${blok}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {vorm === "kaarten" && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: Math.min(aantal, 4) }, (_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-stone-100">
+              <div className={`h-40 ${blok} rounded-none`} />
+              <div className="space-y-1.5 p-3">
+                <div className={`h-3 w-2/3 ${blok}`} />
+                <div className={`h-2.5 w-1/3 ${blok}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {vorm === "regels" && (
+        <div className="space-y-2.5">
+          {Array.from({ length: Math.min(aantal, 3) }, (_, i) => (
+            <div key={i} className="flex items-start gap-3 rounded-2xl border border-stone-100 p-3">
+              <div className={`h-7 w-6 shrink-0 ${blok}`} />
+              <div className="flex-1 space-y-1.5">
+                <div className={`h-3 w-3/5 ${blok}`} />
+                <div className={`h-2.5 w-2/5 ${blok}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

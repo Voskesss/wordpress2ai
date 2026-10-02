@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type AltStand = { teksten: string[]; zonder: number; leeg: number };
 type Beeld = { pad: string; stam: string; grootte: number; inGebruik: boolean; adres?: string | null; live?: boolean; alt?: AltStand | null };
@@ -289,7 +289,7 @@ export default function Fotobank({
         </label>
       </div>
 
-      {!beelden && !fout && <p className="mt-3 text-sm text-stone-500">Even ophalen...</p>}
+      {!beelden && !fout && <BankLaden vorm="tegels" />}
       {fout && <p className="mt-3 text-sm text-red-600">{fout}</p>}
       {beelden && getoond.length === 0 && (
         <p className="mt-3 text-sm text-stone-500">
