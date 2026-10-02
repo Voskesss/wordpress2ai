@@ -398,6 +398,9 @@ export default function Chat({
   const [suggestiesOpen, setSuggestiesOpen] = useState(false);
   // Zelf tekst aanpassen (aanwijzen → letterlijk vervangen, zonder AI)
   const [zelfTekst, setZelfTekst] = useState<string | null>(null);
+  // Wat er zelf wordt aangepast: de tekst van het aangewezen onderdeel, of de
+  // omschrijving (alt-tekst) van een aangewezen foto (wens Jos 02-10)
+  const [zelfModus, setZelfModus] = useState<"tekst" | "alt">("tekst");
   const [zelfBezig, setZelfBezig] = useState(false);
   // Na publiceren: even de kans geven om hem met één klik terug te draaien
   const [ongedaanKans, setOngedaanKans] = useState<number | null>(null);
@@ -1659,19 +1662,22 @@ export default function Chat({
 
   async function zelfToepassen() {
     if (!selectie || zelfTekst === null || zelfBezig) return;
+    const isAlt = zelfModus === "alt";
+    // Bij een foto is de huidige omschrijving de alt-tekst; die mag leeg zijn
     const oud = (selectie.tekst ?? "").trim();
     const nieuw = zelfTekst.trim();
-    if (!oud || !nieuw || oud === nieuw) return;
+    const altVan = isAlt ? selectie.html.match(/src=["']([^"']+)["']/)?.[1] : undefined;
+    if ((!oud && !isAlt) || !nieuw || oud === nieuw || (isAlt && !altVan)) return;
     setZelfBezig(true);
     setOplevering(null);
-    setLaderTekst("Even geduld — je tekst wordt aangepast...");
+    setLaderTekst(isAlt ? "Even geduld, de omschrijving wordt aangepast..." : "Even geduld — je tekst wordt aangepast...");
     try {
       const res = await metSlotWacht(
         () =>
           fetch("/api/tekst-wijzig", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ siteId, oud, nieuw, pad: selectie.pad }),
+            body: JSON.stringify({ siteId, oud, nieuw, pad: selectie.pad, altVan }),
           }),
         { opWacht: () => setLaderTekst(SLOT_WACHTTEKST) },
       );
@@ -1691,7 +1697,12 @@ export default function Chat({
         setZelfTekst(null);
         setBerichten((b) => [
           ...b,
-          { rol: "klant", tekst: `✏️ Zelf aangepast: "${oud.slice(0, 60)}" → "${nieuw.slice(0, 60)}"` },
+          {
+            rol: "klant",
+            tekst: isAlt
+              ? `📝 Omschrijving foto zelf aangepast: "${nieuw.slice(0, 80)}"`
+              : `✏️ Zelf aangepast: "${oud.slice(0, 60)}" → "${nieuw.slice(0, 60)}"`,
+          },
           { rol: "assistent", tekst: data.reply ?? "Aangepast!", metVerversTip: true },
         ]);
         setConcept({
@@ -1712,14 +1723,20 @@ export default function Chat({
         setLaderTekst(null);
         // Tekst niet eenduidig terug te vinden — de AI lost het veilig op
         setZelfTekst(null);
-        setInvoer(`Vervang de tekst "${oud}" door "${nieuw}"`);
+        setInvoer(
+          isAlt
+            ? `Verander de omschrijving (alt-tekst) van de aangewezen foto in "${nieuw}"`
+            : `Vervang de tekst "${oud}" door "${nieuw}"`,
+        );
         setChatOpen(true);
         setBerichten((b) => [
           ...b,
           {
             rol: "assistent",
             tekst:
-              (data.gevonden ?? 0) > 0
+              isAlt
+                ? "Ik kon deze foto niet 1-op-1 in je website terugvinden. Je wijziging staat klaar in de invoerbalk: verstuur hem, dan past de AI de omschrijving veilig aan."
+                : (data.gevonden ?? 0) > 0
                 ? "Deze tekst vond ik wel op de website, maar niet op de pagina die je nu bekijkt — dat kan ik niet zelf beslissen. Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig op de juiste plek aan."
                 : "Ik kon deze tekst niet 1-op-1 in de website terugvinden (hij staat er waarschijnlijk nét iets anders in). Je wijziging staat klaar in de invoerbalk — verstuur hem, dan past de AI hem veilig aan.",
           },
@@ -3472,10 +3489,26 @@ export default function Chat({
                 )}
                 {selectie.tekst && selectie.tag !== "img" && zelfTekst === null && (
                   <button
-                    onClick={() => setZelfTekst(selectie.tekst ?? "")}
+                    onClick={() => {
+                      setZelfModus("tekst");
+                      setZelfTekst(selectie.tekst ?? "");
+                    }}
                     className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 cursor-pointer"
                   >
                     ✏️ Zelf aanpassen
+                  </button>
+                )}
+                {selectie.tag === "img" && zelfTekst === null && (
+                  <button
+                    onClick={() => {
+                      setZelfModus("alt");
+                      setZelfTekst(selectie.tekst ?? "");
+                    }}
+                    disabled={bezig}
+                    title="De omschrijving die Google en schermlezers lezen (alt-tekst)"
+                    className="shrink-0 rounded-full border border-violet-400 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
+                  >
+                    📝 Omschrijving aanpassen
                   </button>
                 )}
                 <button
@@ -3492,9 +3525,9 @@ export default function Chat({
               {zelfTekst !== null && (
                 <div className="mt-2.5 border-t border-violet-200 pt-2.5">
                   <p className="text-xs font-semibold text-violet-800">
-                    Pas de tekst aan en klik op Toepassen — zonder AI, in een paar
-                    seconden. Je ziet hem eerst als voorbeeld; er gaat niets live
-                    zonder Publiceer.
+                    {zelfModus === "alt"
+                      ? "Pas de omschrijving van deze foto aan en klik op Toepassen. Bezoekers zien hem niet, maar Google en schermlezers wel: beschrijf kort wat er op de foto staat. Er gaat niets live zonder Publiceer."
+                      : "Pas de tekst aan en klik op Toepassen — zonder AI, in een paar seconden. Je ziet hem eerst als voorbeeld; er gaat niets live zonder Publiceer."}
                   </p>
                   <textarea
                     value={zelfTekst}

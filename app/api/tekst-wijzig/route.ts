@@ -71,10 +71,14 @@ export async function POST(req: Request) {
     pad?: string;
     // Kleur-modus: vervang de kleur OVERAL (zoals een colorpicker in een thema)
     kleur?: boolean;
+    // Alt-modus: src van de aangewezen foto; oud/nieuw zijn dan de oude en
+    // nieuwe omschrijving (alt-tekst). Een lege oude omschrijving mag.
+    altVan?: string;
   };
   const oud = (body.oud ?? "").trim();
   const nieuw = (body.nieuw ?? "").trim();
-  if (!oud || !nieuw || oud === nieuw) {
+  const altVan = typeof body.altVan === "string" && body.altVan.trim() ? body.altVan.trim() : null;
+  if ((!oud && !altVan) || !nieuw || oud === nieuw) {
     return NextResponse.json({ error: "Geen wijziging" }, { status: 400 });
   }
 
@@ -174,6 +178,9 @@ export async function POST(req: Request) {
         // rgba(r,g,b, → nieuwe kleur als rgba met behoud van de rest lukt niet in
         // één vervanging; vervang rgba-varianten door de nieuwe hex + komma-loze vorm
         vervanging = nieuw;
+      } else if (altVan) {
+        // Alt-modus telt en vervangt via lib/alt-tekst; dit patroon matcht nooit
+        patroon = /(?!)/g;
       } else {
         // Tolerant zoeken: witruimte in de bron mag afwijken van wat de browser toont
         patroon = new RegExp(
@@ -181,13 +188,16 @@ export async function POST(req: Request) {
           "g",
         );
       }
+      const altLib = altVan ? await import("@/lib/alt-tekst") : null;
       const htmlPaden = (await alleHtmlBestanden(werkmap)).concat(
         body.kleur ? await alleCssBestanden(werkmap) : [],
       );
       const treffers: { pad: string; inhoud: string; aantal: number }[] = [];
       for (const pad of htmlPaden) {
         const inhoud = await readFile(path.join(werkmap, pad), "utf8");
-        const aantal = (inhoud.match(patroon) ?? []).length;
+        const aantal = altLib
+          ? altLib.telFoto(inhoud, altVan!, oud)
+          : (inhoud.match(patroon) ?? []).length;
         if (aantal > 0) treffers.push({ pad, inhoud, aantal });
       }
       const totaal = treffers.reduce((som, t) => som + t.aantal, 0);
@@ -214,11 +224,13 @@ export async function POST(req: Request) {
 
       const gewijzigdePaden: { pad: string; inhoud: string }[] = [];
       for (const treffer of body.kleur ? treffers : gekozen ? [gekozen] : []) {
-        const nieuweInhoud = treffer.inhoud.replace(patroon, (m) =>
-          m.startsWith("rgba") || m.startsWith("RGBA")
-            ? `rgba(${hexNaarRgbTriplet(vervanging)},`
-            : vervanging,
-        );
+        const nieuweInhoud = altLib
+          ? altLib.vervangAltTekst(treffer.inhoud, altVan!, oud, nieuw).html
+          : treffer.inhoud.replace(patroon, (m) =>
+              m.startsWith("rgba") || m.startsWith("RGBA")
+                ? `rgba(${hexNaarRgbTriplet(vervanging)},`
+                : vervanging,
+            );
         await writeFile(path.join(werkmap, treffer.pad), nieuweInhoud);
         gewijzigdePaden.push({ pad: treffer.pad, inhoud: nieuweInhoud });
       }
@@ -237,7 +249,9 @@ export async function POST(req: Request) {
         pad: g.pad,
         inhoud: Buffer.from(g.inhoud),
       }));
-      const omschrijving = body.kleur
+      const omschrijving = altLib
+        ? `Omschrijving van foto ${altLib.bestandsnaamVan(altVan!)} aangepast: "${nieuw.slice(0, 50)}"`
+        : body.kleur
         ? `Kleur aangepast: ${oud.slice(0, 30)} → ${nieuw.slice(0, 30)} (${totaal}x op ${gewijzigdePaden.length} bestand(en))`
         : `Tekst aangepast: "${oud.slice(0, 40)}" → "${nieuw.slice(0, 40)}"`;
 
@@ -329,7 +343,13 @@ export async function POST(req: Request) {
       const elders = body.kleur
         ? []
         : treffers.filter((t) => t.pad !== treffer.pad).map((t) => alsPagina(t.pad));
-      const reply = body.kleur
+      const reply = altLib
+        ? `De omschrijving van deze foto is nu "${nieuw.slice(0, 80)}" (op ${alsPagina(treffer.pad)}). Die lezen Google en schermlezers; bezoekers zien hem niet.${
+            elders.length
+              ? `\n\n⚠️ **Let op:** dezelfde foto met de oude omschrijving staat óók nog op ${elders.slice(0, 3).join(" en ")}${elders.length > 3 ? ` en nog ${elders.length - 3} andere plekken` : ""}. Zal ik hem daar ook aanpassen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`
+              : ""
+          }`
+        : body.kleur
         ? `Kleur aangepast! ${oud.slice(0, 40)} is overal vervangen door ${nieuw.slice(0, 40)} (${totaal} plekken). Bekijk het voorbeeld en publiceer als je tevreden bent.`
         : elders.length
           ? `Aangepast! "${oud.slice(0, 60)}" is nu "${nieuw.slice(0, 60)}" op ${alsPagina(treffer.pad)}${gekozen && gekozen.aantal > 1 ? ` (alle ${gekozen.aantal} plekken op die pagina)` : ""}.\n\n⚠️ **Let op:** dezelfde tekst staat óók nog op ${elders.slice(0, 3).join(" en ")}${elders.length > 3 ? ` en nog ${elders.length - 3} andere plekken` : ""}. Zal ik hem daar ook aanpassen, of moest dit bewust alleen hier?\nKEUZES: Overal doorvoeren | Het moest alleen hier`

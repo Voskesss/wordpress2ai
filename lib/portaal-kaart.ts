@@ -18,6 +18,7 @@ export const KAART_NAMEN: [naam: string, bestand: string][] = [
   ["Berichten & mail", "PortaalSchil.tsx"],
   ["Account", "PortaalSchil.tsx"],
   ["Wijs aan", "Chat.tsx"],
+  ["Omschrijving aanpassen", "Chat.tsx"],
   ["Stap terug", "Chat.tsx"],
   ["Concept weggooien", "Chat.tsx"],
   ["Draai terug", "Chat.tsx"],
@@ -41,7 +42,7 @@ export const KAART_NAMEN: [naam: string, bestand: string][] = [
 
 export const PORTAAL_KAART = `
 PORTAAL (wat de eigenaar zelf kan; verwijs precies, verzin geen knoppen):
-- Balk bovenin, drie tabbladen. "Website bewerken": deze chat met voorbeeld; Wijs aan, Stap terug, Concept weggooien, na publiceren "Draai terug", Nieuw gesprek; via ⋯ kleur, icoontjes, links controleren en Vindbaarheid (titel, Google-omschrijving, webadres, deel-voorbeeld); vragen aan Jos via Hulp & support. "Berichten & mail": formulierberichten (zoeken, filteren, meerdere tegelijk afhandelen, Verversen; spam apart, twijfel met label Mogelijk spam en knoppen Spam/Geen spam), meldingsadres, handtekening en logo, Stuur je website een appje (WhatsApp), afspraken, Bevestigingsmails, eigen mailserver. "Account": facturen, Je website en gegevens meenemen (ook opzeggen), meelezen.
+- Balk bovenin, drie tabbladen. "Website bewerken": deze chat met voorbeeld; Wijs aan (bij een tekst Zelf aanpassen, bij een foto o.a. Vervang deze foto en Omschrijving aanpassen voor de alt-tekst), Stap terug, Concept weggooien, na publiceren "Draai terug", Nieuw gesprek; via ⋯ kleur, icoontjes, links controleren en Vindbaarheid (titel, Google-omschrijving, webadres, deel-voorbeeld); vragen aan Jos via Hulp & support. "Berichten & mail": formulierberichten (zoeken, filteren, meerdere tegelijk afhandelen, Verversen; spam apart, twijfel met label Mogelijk spam en knoppen Spam/Geen spam), meldingsadres, handtekening en logo, Stuur je website een appje (WhatsApp), afspraken, Bevestigingsmails, eigen mailserver. "Account": facturen, Je website en gegevens meenemen (ook opzeggen), meelezen.
 - Banken via 📎: Fotobank, Documentenbank, Videobank, Audiobank. Daar: zelf uploaden (eerst "Kies de naam voor Google"), zoeken, Link kopiëren voor mail of nieuwsbrief (alleen als het online staat), opruimen wat nergens staat. Alles daarin is openbaar. De fotobank toont per foto de alt-tekst; "Omschrijving aanpassen" geeft jou de opdracht: pas die foto's alt-tekst aan op elke plek.
 - Bestandsnamen wijzig je nooit (staan op meerdere pagina's, maten, nieuwsbrieven): laat opnieuw uploaden onder de goede naam en zet dat bestand op de gevraagde plekken; het oude blijft staan. Een opgeruimd bestand haalt alleen Jos terug (Hulp & support).
 `.trim();
