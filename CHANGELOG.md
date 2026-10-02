@@ -20,6 +20,16 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## Nog niet uitgebracht (op dev): verbruik op de klantpagina, livegang bij route B
+
+- De klantpagina in de admin toont het AI-verbruik deze maand als percentage,
+  bedrag en balkje, net als de klantenlijst. De instellingen voor een grens op
+  het aantal wijzigingen zijn weg: het AI-budget is de rem.
+- Livegang-checklist bij route B (domein en mail blijven bij de hoster): "Waar
+  de mail draait" en de 'a' in de SPF staan niet meer onterecht open. De
+  waarschuwing dat de hosting moet blijven staan, blijft wel. De hoster wordt
+  nu ook uit de SPF herkend als de mailserver op het eigen domein staat.
+
 ## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
 
 - De groep Live staat nu bovenaan de klantenlijst, In migratie daaronder.

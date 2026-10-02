@@ -53,6 +53,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import AudioBank from "./app/portal/AudioBank";
           import VideoBank from "./app/portal/VideoBank";
           import KlantenLijst from "./app/admin/KlantenLijst";
+          import { VerbruikBalk } from "./app/admin/VerbruikBalk";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -61,6 +62,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
               account={<div id="account-inhoud">Account</div>} />);
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
           window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
+          window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
             const leeg = () => {};
             if (soort === "document") bank(<DocumentBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} />);
@@ -331,6 +333,14 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       const koppen = await page.locator("text=/^(✅ Live|🚀 In migratie)/").allTextContents();
       assert.ok(koppen[0]?.startsWith("✅ Live") && koppen[1]?.startsWith("🚀 In migratie"), `admin: volgorde van de groepen klopt niet (${koppen.join(" | ")})`);
       await page.screenshot({ path: path.join(uitvoer, "admin-verbruik.png") });
+      // De klantpagina: dezelfde maat, groot, in de tegel bovenaan
+      await page.evaluate(() => window.mountKlantBalk());
+      await page.getByText("80%").waitFor();
+      assert.ok(await page.getByText("$3,20 van $4,00").isVisible(), "klantpagina: bedrag en budget staan er niet");
+      const breed = page.getByRole("progressbar", { name: "AI-verbruik deze maand" });
+      assert.equal(await breed.getAttribute("aria-valuenow"), "80");
+      assert.ok((await breed.boundingBox()).width > 200, "klantpagina: het balkje is niet over de hele tegel");
+      await page.screenshot({ path: path.join(uitvoer, "admin-klant-verbruik.png"), clip: { x: 0, y: 0, width: 360, height: 140 } });
       await page.close();
     }
 

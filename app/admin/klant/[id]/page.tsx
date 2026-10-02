@@ -1,6 +1,7 @@
 import HerstelMelding from "@/app/portal/HerstelMelding";
 import { createPreviewAccess } from "@/lib/preview-access";
-import { extraGeldt, huidigeMaand, maandbudgetVoor, vervaltOp, wijzigingenLimietVoor } from "@/lib/ai-budget";
+import { VerbruikBalk } from "@/app/admin/VerbruikBalk";
+import { extraGeldt, huidigeMaand, maandbudgetVoor, vervaltOp } from "@/lib/ai-budget";
 import { datumInWoorden } from "@/lib/opzegging";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -46,8 +47,6 @@ import {
   koppelAangevraagdNummer,
   verwijderWhatsappNummer,
   bewaarAiExtra,
-  bewaarWijzigingenLimiet,
-  bewaarWijzigingenExtra,
   resetWijzigingenTeller,
   siteResetten,
   sjabloonVastleggen,
@@ -220,10 +219,6 @@ export default async function KlantDetail({
   const maandNu = new Date().toISOString().slice(0, 7);
   const dezeMaand = huidigeMaand();
   const extraActief = extraGeldt(site, dezeMaand);
-  const wijzigingenLimiet = wijzigingenLimietVoor(site, dezeMaand);
-  const wijzigingenExtraActief = Boolean(
-    site.wijzigingenExtra && site.wijzigingenExtra > 0 && site.wijzigingenExtraMaand === dezeMaand,
-  );
   const usd = (micro: number) => `$${(micro / 1_000_000).toFixed(2)}`;
   const kostenDezeMaand = kostenRijen
     .filter((r) => r.maand === maandNu)
@@ -314,22 +309,17 @@ export default async function KlantDetail({
       </div>
 
       {/* Verbruik */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-3xl border border-stone-200 bg-white p-5">
-          <p className="text-sm text-stone-500">AI-kosten deze maand</p>
-          <p className="font-display mt-1 text-3xl font-semibold">
-            {usd(kostenDezeMaand)}
-          </p>
-          <p className="mt-1 text-xs text-stone-400">
-            {chatBeurtenMaand} chat-opdracht{chatBeurtenMaand === 1 ? "" : "en"} ·
+          <p className="text-sm text-stone-500">AI-verbruik deze maand</p>
+          {maandbudgetVoor(site, dezeMaand) > 0 ? (
+            <VerbruikBalk breed gebruikt={kostenDezeMaand / 1_000_000} budget={maandbudgetVoor(site, dezeMaand)} />
+          ) : (
+            <p className="font-display mt-1 text-3xl font-semibold">{usd(kostenDezeMaand)}</p>
+          )}
+          <p className="mt-2 text-xs text-stone-400">
+            {chatBeurtenMaand} chat-opdracht{chatBeurtenMaand === 1 ? "" : "en"} · {verbruik?.wijzigingen ?? 0} wijziging{(verbruik?.wijzigingen ?? 0) === 1 ? "" : "en"} ·
             totaal ooit {usd(kostenTotaal)} (incl. bouw)
-          </p>
-        </div>
-        <div className="rounded-3xl border border-stone-200 bg-white p-5">
-          <p className="text-sm text-stone-500">Wijzigingen deze maand</p>
-          <p className="font-display mt-1 text-3xl font-semibold">
-            {verbruik?.wijzigingen ?? 0}
-            <span className="text-base font-normal text-stone-400"> / {wijzigingenLimiet}</span>
           </p>
         </div>
         <div className="rounded-3xl border border-stone-200 bg-white p-5">
@@ -1145,7 +1135,7 @@ export default async function KlantDetail({
 
       {/* AI-maandbudget */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6">
-        <h2 id="ai-budget" className="scroll-mt-24 font-display text-xl font-semibold">🤖 AI-budget en wijzigingen per maand</h2>
+        <h2 id="ai-budget" className="scroll-mt-24 font-display text-xl font-semibold">🤖 AI-budget per maand</h2>
         <p className="mt-2 text-sm text-stone-600">
           Deze maand verbruikt: <strong>{usd(kostenDezeMaand)}</strong> van maximaal{" "}
           <strong>${maandbudgetVoor(site, dezeMaand)}</strong>
@@ -1178,15 +1168,11 @@ export default async function KlantDetail({
         </form>
 
         <div className="mt-5 border-t border-stone-200 pt-4">
+          {/* De wijzigingengrens is weg (Jos, 02-10-2026): het budget is de rem. */}
           <p className="text-sm text-stone-600">
-            Wijzigingen deze maand: <strong>{verbruik?.wijzigingen ?? 0}</strong> van{" "}
-            <strong>{wijzigingenLimiet}</strong>
-            {wijzigingenExtraActief && (
-              <> ({site.wijzigingenLimiet} vast + {site.wijzigingenExtra} eenmalig deze maand)</>
-            )}
-            . Dit getal begrenst niets meer — het pakket belooft fair use, geen streepjeslijst. Het telt alleen mee
-            hoe intensief deze klant zijn site gebruikt, zodat je ziet wanneer een gesprek over een passender pakket
-            logisch is. De échte rem is het AI-budget hierboven; die bepaalt wanneer de chat stopt.
+            Wijzigingen deze maand: <strong>{verbruik?.wijzigingen ?? 0}</strong>. Dit getal begrenst niets: het
+            pakket belooft fair use. Het laat alleen zien hoe intensief deze klant zijn site gebruikt, zodat je ziet
+            wanneer een gesprek over een passender pakket logisch is. De rem is het AI-budget hierboven.
           </p>
           {(verbruik?.wijzigingen ?? 0) > 0 && (
             <form action={resetWijzigingenTeller} className="mt-2">
@@ -1199,29 +1185,6 @@ export default async function KlantDetail({
               />
             </form>
           )}
-          <div className="mt-3 flex flex-wrap items-end gap-6">
-            <form action={bewaarWijzigingenLimiet} className="flex flex-wrap items-end gap-3">
-              <input type="hidden" name="siteId" value={site.id} />
-              <label className="block text-sm font-semibold">
-                Wijzigingen per maand
-                <input name="limiet" type="number" min={1} max={1000} defaultValue={site.wijzigingenLimiet} className={`${invoerStijl} w-28`} />
-              </label>
-              <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
-            </form>
-            <form action={bewaarWijzigingenExtra} className="flex flex-wrap items-end gap-3">
-              <input type="hidden" name="siteId" value={site.id} />
-              <label className="block text-sm font-semibold">
-                Eenmalig extra deze maand
-                <input name="extra" type="number" min={0} max={1000} defaultValue={wijzigingenExtraActief ? site.wijzigingenExtra : 0} className={`${invoerStijl} w-28`} />
-              </label>
-              <ActieKnop label="Opslaan" bezigLabel="Opslaan..." className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 hover:text-violet-700 cursor-pointer" />
-            </form>
-          </div>
-          <p className="mt-2 text-xs text-stone-500">
-            {wijzigingenExtraActief
-              ? `De eenmalige ${site.wijzigingenExtra} extra vervallen vanzelf op ${datumInWoorden(vervaltOp(dezeMaand))}. Op 0 zetten haalt ze meteen weg.`
-              : "De eenmalige extra komt bovenop het vaste aantal, geldt alleen deze maand en vervalt vanzelf op de 1e."}
-          </p>
         </div>
       </div>
 
