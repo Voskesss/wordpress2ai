@@ -9,7 +9,8 @@ import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
-import { documentAdres, staatLive, vrijPad } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, staatLive, vrijPad } from "@/lib/document-adres";
+import { linkTekstenPerDocument } from "@/lib/beeld-alt";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
  * menukaarten, brochures). Ze leven in de siterepo, in bestanden/, en gaan bij
@@ -51,7 +52,14 @@ export async function GET(req: Request) {
     const alle = await alleBestandenVan(werkmap);
     const bronnen = alle.filter((b) => /\.(html?|css|js)$/i.test(b));
     let inhoud = "";
-    for (const b of bronnen) inhoud += await readFile(path.join(werkmap, b), "utf8").catch(() => "");
+    const paginas: { inhoud: string }[] = [];
+    for (const b of bronnen) {
+      const tekst = await readFile(path.join(werkmap, b), "utf8").catch(() => "");
+      inhoud += tekst;
+      if (/\.html?$/i.test(b)) paginas.push({ inhoud: tekst });
+    }
+    // Met welke linktekst staat elk document op de site (wat Google als naam ziet)
+    const linkTeksten = linkTekstenPerDocument(paginas);
     const documenten = await Promise.all(
       alle
         .filter((b) => IS_DOCUMENT.test(b))
@@ -66,11 +74,12 @@ export async function GET(req: Request) {
             inGebruik: inhoud.includes(pad),
             adres,
             live: adres ? await staatLive(adres) : false,
+            linkTeksten: linkTeksten.get(pad) ?? [],
           };
         }),
     );
     documenten.sort((a, b) => Number(b.inGebruik) - Number(a.inGebruik) || a.pad.localeCompare(b.pad));
-    return NextResponse.json({ documenten });
+    return NextResponse.json({ documenten, linkUitleg: linkUitleg(site) });
   } catch (e) {
     console.error("Documentenbank laden:", e);
     return NextResponse.json({ error: "Kon de documentenbank niet laden." }, { status: 503 });
@@ -95,6 +104,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(body.siteId), userId);
   if (!site || site.isDemo) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (!IS_DOCUMENT.test(body.naam)) return NextResponse.json({ error: "Alleen pdf-bestanden." }, { status: 400 });
   const blobHost = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//;
   if (!blobHost.test(body.blobUrl)) return NextResponse.json({ error: "Ongeldig bestandsadres" }, { status: 400 });
@@ -169,6 +182,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(siteId), userId);
   if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (site.isDemo) return NextResponse.json({ error: "In de demo kun je niets verwijderen." }, { status: 403 });
 
   const release = await claimOperation(operationScope(site, userId));
@@ -206,7 +223,7 @@ export async function DELETE(req: Request) {
       {
         siteId: site.id,
         rol: "assistent" as const,
-        tekst: `Het document ${pad.split("/").pop()} is uit je documentenbank gehaald. Er linkte niets meer naartoe; via "Vorige versies" is het zo nodig nog terug te halen.`,
+        tekst: `Het document ${pad.split("/").pop()} is uit je documentenbank gehaald. Er linkte niets meer naartoe. Toch nodig? Laat het Jos weten via Hulp & support, dan haalt hij het terug.`,
         clerkUserId: userId,
       },
     ]);

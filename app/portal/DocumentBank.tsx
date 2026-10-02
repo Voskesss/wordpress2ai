@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
-type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean };
+type Doc = { pad: string; kb: number; inGebruik: boolean; adres?: string | null; live?: boolean; linkTeksten?: string[] };
 
 /** Documentenbank: de pdf's die op de site staan (vacature, voorwaarden,
  * menukaart, brochure). Opruimen kan zodra er nergens meer een downloadlink
@@ -26,12 +26,15 @@ export default function DocumentBank({
   const [wisVraag, setWisVraag] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<string | null>(null);
+  // Gekozen bestand dat nog een naam moet krijgen (vóór het uploaden)
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
 
   /** Rechtstreeks uploaden in de bank, zonder de chat. Zelfde weg als via de
    * chat (eerst naar de upload-opslag, dan in de site), en het document staat
    * daarna meteen online zodat de link direct te kopiëren is. */
-  async function uploaden(bestand: File) {
+  async function uploaden(bestand: File, naam?: string) {
     if (upload) return;
     setFout(null);
     if (!/\.pdf$/i.test(bestand.name)) {
@@ -51,7 +54,7 @@ export default function DocumentBank({
       const r = (await fetch("/api/documentbank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name, bron: "bank" }),
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: naam ?? bestand.name, bron: "bank" }),
       }).then((x) => x.json())) as { pad?: string; kb?: number; adres?: string | null; live?: boolean; error?: string };
       if (!r.pad) throw new Error(r.error ?? "Opslaan lukte niet");
       const pad = r.pad.replace(/^\//, "");
@@ -73,9 +76,11 @@ export default function DocumentBank({
       try {
         const r = (await fetch(`/api/documentbank?siteId=${siteId}`).then((x) => x.json())) as {
           documenten?: Doc[];
+          linkUitleg?: string | null;
           error?: string;
         };
         if (weg) return;
+        setLinkUitleg(r.linkUitleg ?? null);
         if (r.documenten) setDocs(r.documenten);
         else setFout(r.error ?? "Kon de documentenbank niet laden.");
       } catch {
@@ -129,13 +134,26 @@ export default function DocumentBank({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-2.5">
           <OpenbaarMelding voorbeelden="zoals een contract, offerte, dossier of verslag over een klant" />
-          <UploadKnop label="⬆ Document uploaden (pdf)" accept="application/pdf,.pdf" bezig={upload} onKies={(l) => void uploaden(l[0])} />
+          {teKiezen ? (
+            <NaamKiezer
+              bestanden={teKiezen}
+              extensie={() => ".pdf"}
+              bestaat={(naam) => (docs ?? []).some((d) => d.pad === `bestanden/${naam}`)}
+              onUploaden={(lijst) => {
+                setTeKiezen(null);
+                void uploaden(lijst[0].bestand, lijst[0].naam);
+              }}
+              onAnnuleren={() => setTeKiezen(null)}
+            />
+          ) : (
+            <UploadKnop label="⬆ Document uploaden (pdf)" accept="application/pdf,.pdf" bezig={upload} onKies={(l) => setTeKiezen(l.slice(0, 1))} />
+          )}
           <p className="-mt-1 text-center text-[11px] text-stone-500">
             Het staat daarna meteen online. Kopieer de link voor een mail of nieuwsbrief, of zet het op een pagina.
           </p>
           <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={docs?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
-          {!docs && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {!docs && !fout && <BankLaden vorm="regels" />}
           {docs && docs.length > 0 && zoek && zoekOpNaam(docs, zoek, (d) => d.pad).length === 0 && (
             <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}
@@ -166,6 +184,13 @@ export default function DocumentBank({
                   {d.kb} kB
                   {d.inGebruik ? " · staat op je site" : " · nergens op je site gelinkt"}
                 </span>
+                {/* Wat Google als naam van het document ziet: de tekst van de link */}
+                {d.linkTeksten && d.linkTeksten.length > 0 && (
+                  <span className="mt-0.5 block text-[11px] text-stone-600">
+                    Linktekst op je site: &ldquo;{d.linkTeksten[0]}&rdquo;
+                    {d.linkTeksten.length > 1 ? ` (en ${d.linkTeksten.length - 1} andere)` : ""}
+                  </span>
+                )}
               </span>
               </span>
               {previewAccess && (
@@ -178,7 +203,7 @@ export default function DocumentBank({
                   Openen
                 </a>
               )}
-              <KopieerLink adres={d.adres} live={d.live} />
+              <KopieerLink adres={d.adres} live={d.live} uitleg={linkUitleg} />
               <button
                 onClick={() => {
                   onGebruik(`/${d.pad}`);

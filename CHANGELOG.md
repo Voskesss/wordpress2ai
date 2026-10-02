@@ -20,6 +20,24 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
+
+- De groep Live staat nu bovenaan de klantenlijst, In migratie daaronder.
+- De klantenlijst in de admin toont per klant het AI-verbruik van deze maand zoals de klant het in zijn portaal ziet: een balkje met het percentage, en wat ze gebruikt hebben van wat ze mogen ($0,87 van $4,00). Groen, oranje vanaf 70 procent, rood als het op is. De oude telling "0/30 wijzigingen" is weg; die begrenst niets meer.
+
+## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
+
+- Wijs je een foto aan, dan kun je met "Omschrijving aanpassen" zelf de omschrijving van die foto veranderen (de alt-tekst die Google en schermlezers lezen). Zonder AI, in een paar seconden, en alleen precies die foto.
+- Tijdens het laden van een bank zie je lichte vlakken in de vorm van wat er komt (tegels voor foto's, kaarten voor video, regels voor documenten en audio) in plaats van de zin "Even ophalen...". Zonder beweging voor wie dat in zijn instellingen heeft uitgezet.
+- De chat weet wat je zelf in het portaal kunt en waar het staat (tabbladen, banken, berichten, mail, account), via een korte portaalkaart die alleen de klantchat meekrijgt. Een test koppelt die kaart aan het portaal: wordt een knop of tabblad hernoemd zonder de kaart bij te werken, dan gaat de testrit op rood. Verouderde verwijzingen ("onder de chat", "Formulier-inzendingen") zijn weg, en de banken beloven niet meer dat je een opgeruimd bestand via een knop "Vorige versies" terughaalt: die knop bestaat niet, Jos haalt het terug via Hulp & support.
+- Naam kiezen geldt bij elke upload: foto, video, audio en pdf, in de banken én bij de gewone upload in de chat (paperclip en slepen). Een geplakte schermafbeelding krijgt geen vraag, maar wel een nette naam.
+- De automatische naam is altijd netjes: kleine letters, een streepje voor elke spatie of elk vreemd teken, accenten weg, en geen tijdstempel of willekeurige code meer uit de opslag.
+- Een foto uit de chat overschreef een bestaande foto met dezelfde naam, overal op de site. Nu krijgt de nieuwe -2, net als in de banken. Video krijgt geen code meer achter de naam en wordt bij een tweede verzoek niet dubbel opgeslagen.
+- Bij het uploaden in de fotobank of documentenbank kies je eerst de naam. De naam van je bestand staat voorgevuld, je ziet hoe hij op je site komt te heten, en een naam die al bestaat wordt vooraf geweigerd. Een bestandsnaam achteraf wijzigen kan bewust niet: een bestand staat op meerdere plekken en dan ontstaan er kapotte plaatjes en links.
+- De fotobank toont bij elke foto de omschrijving die Google leest (alt-tekst), en meldt waar die ontbreekt. Met "Omschrijving aanpassen" zet je de opdracht klaar in de chat.
+- De documentenbank toont met welke linktekst een document op je site staat.
+- Vraag van Van den Berg Mediation.
+
 ## 1.39.2 (2 oktober 2026)
 
 - De bewaking kijkt nu elk kwartier naar de binnenkant: database, AI, mail, Cloudflare en GitHub, plus werk dat blijft hangen (een bouwopdracht die niet vordert, een WhatsApp-bericht dat op verwerking wacht, een publicatie die al een dag op mislukt staat). Gaat er iets kapot, dan volgt binnen een kwartier een mail en een appje; daarna blijft het stil tot het is opgelost, en dan komt er één herstelbericht. De dagelijkse controle van 5:20 blijft het volledige overzicht, en de kwartiercontrole bewaakt ook dat die dagelijkse ronde zelf nog draait. Nieuw is ook een tikje naar een externe wachter: blijft dat uit omdat ons eigen systeem plat ligt, dan waarschuwt die van buitenaf.

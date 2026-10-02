@@ -11,7 +11,8 @@ import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
-import { documentAdres, livePaden } from "@/lib/document-adres";
+import { documentAdres, linkUitleg, livePaden } from "@/lib/document-adres";
+import { altTekstenPerBeeld } from "@/lib/beeld-alt";
 
 export const maxDuration = 120;
 
@@ -64,7 +65,14 @@ export async function GET(req: Request) {
     const beelden = alle.filter((b) => IS_BEELD.test(b));
     const bronnen = alle.filter((b) => /\.(html?|css)$/i.test(b));
     let inhoud = "";
-    for (const b of bronnen) inhoud += await readFile(path.join(werkmap, b), "utf8");
+    const paginas: { inhoud: string }[] = [];
+    for (const b of bronnen) {
+      const tekst = await readFile(path.join(werkmap, b), "utf8");
+      inhoud += tekst;
+      if (/\.html?$/i.test(b)) paginas.push({ inhoud: tekst });
+    }
+    // Wat Google bij elke foto leest (alt-tekst), per plek waar hij staat
+    const alts = altTekstenPerBeeld(paginas);
     // Wat staat er echt live? Eén opvraging voor alle foto's samen. Alleen
     // dan is de link te kopiëren (voor een mail of nieuwsbrief).
     const live = site.isDemo ? new Set<string>() : await livePaden(site.siteSlug);
@@ -80,6 +88,7 @@ export async function GET(req: Request) {
           inGebruik: inhoud.includes(pad),
           adres: site.isDemo ? null : documentAdres(site, pad),
           live: live.has(pad),
+          alt: alts.get(pad) ?? null,
         };
       })
     );
@@ -91,7 +100,7 @@ export async function GET(req: Request) {
     lijst.sort(
       (a, b) => tijdVan(b.pad) - tijdVan(a.pad) || a.stam.localeCompare(b.stam) || Number(b.inGebruik) - Number(a.inGebruik)
     );
-    return NextResponse.json({ afbeeldingen: lijst });
+    return NextResponse.json({ afbeeldingen: lijst, linkUitleg: linkUitleg(site) });
   } finally {
     if (werkmap) await ruimWerkmapOp(werkmap).catch(() => {});
   }
@@ -334,6 +343,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const site = await magErbij(Number(siteId), userId);
   if (!site) return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (site.isDemo) return NextResponse.json({ error: "In de demo kun je niets verwijderen." }, { status: 403 });
 
   const release = await claimOperation(operationScope(site, userId));
@@ -379,7 +392,7 @@ export async function DELETE(req: Request) {
       {
         siteId: site.id,
         rol: "assistent" as const,
-        tekst: `De foto ${pad.split("/").pop()} is uit je fotobank gehaald. Hij stond nergens meer op je site; via "Vorige versies" is hij zo nodig nog terug te halen.`,
+        tekst: `De foto ${pad.split("/").pop()} is uit je fotobank gehaald. Hij stond nergens meer op je site. Toch nodig? Laat het Jos weten via Hulp & support, dan haalt hij hem terug.`,
         clerkUserId: userId,
       },
     ]);

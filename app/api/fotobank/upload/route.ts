@@ -21,6 +21,10 @@ export async function POST(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, Number(body.siteId)));
   if (!site || site.isDemo || (site.clerkUserId !== userId && !(await isBeheerder())))
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
+  {
+    const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
+    if (!magLiveSchrijven(site)) return NextResponse.json({ error: REM_MELDING, melding: REM_MELDING }, { status: 403 });
+  }
   if (!/^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//.test(body.blobUrl))
     return NextResponse.json({ error: "Ongeldig bestandsadres" }, { status: 400 });
 

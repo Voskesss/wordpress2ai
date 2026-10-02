@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zoekOpNaam } from "@/lib/bank-zoeken";
-import { KopieerLink, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
+import { BankLaden, KopieerLink, NaamKiezer, OpenbaarMelding, UploadKnop, Zoekveld } from "./BankHulp";
 
 type Link = { adres: string | null; live: boolean };
 
@@ -29,6 +29,7 @@ export default function AudioBank({
   const [wisVraag, setWisVraag] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<string, Link>>({});
   const [zoek, setZoek] = useState("");
+  const [linkUitleg, setLinkUitleg] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function AudioBank({
       setAudio(r.audio ?? []);
       setLimiet(r.limiet ?? null);
       setLinks(r.links ?? {});
+      setLinkUitleg(r.linkUitleg ?? null);
     } catch (e) {
       setFout(e instanceof Error ? e.message : "Kon de audiobank niet laden.");
     }
@@ -51,7 +53,8 @@ export default function AudioBank({
   /** Rechtstreeks uploaden in de bank, zonder de chat: zelfde weg als de
    * chat (upload-opslag, dan de media-map van de site). Audio staat daarna
    * meteen online, dus de link is direct te kopiëren. */
-  async function uploaden(bestand: File) {
+  const [teKiezen, setTeKiezen] = useState<File[] | null>(null);
+  async function uploaden(bestand: File, gekozenNaam?: string) {
     if (upload) return;
     setFout(null);
     if (!/\.(mp3|m4a|aac|ogg|wav)$/i.test(bestand.name)) {
@@ -71,7 +74,7 @@ export default function AudioBank({
       const r = (await fetch("/api/audiobank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: bestand.name }),
+        body: JSON.stringify({ siteId, blobUrl: blob.url, naam: gekozenNaam ?? bestand.name }),
       }).then((x) => x.json())) as { naam?: string; adres?: string | null; live?: boolean; error?: string };
       if (!r.naam) throw new Error(r.error ?? "Opslaan lukte niet");
       const naam = r.naam;
@@ -127,10 +130,23 @@ export default function AudioBank({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
           <OpenbaarMelding voorbeelden="zoals een opname van een gesprek met een klant" />
-          <UploadKnop label="⬆ Audio uploaden (mp3, m4a)" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" bezig={upload} onKies={(l) => void uploaden(l[0])} />
+          {teKiezen ? (
+            <NaamKiezer
+              bestanden={teKiezen}
+              extensie={(f) => f.name.match(/\.[a-z0-9]+$/i)?.[0]?.toLowerCase() ?? ""}
+              bestaat={(naam) => (audio ?? []).includes(naam)}
+              onUploaden={(lijst) => {
+                setTeKiezen(null);
+                void uploaden(lijst[0].bestand, lijst[0].naam);
+              }}
+              onAnnuleren={() => setTeKiezen(null)}
+            />
+          ) : (
+            <UploadKnop label="⬆ Audio uploaden (mp3, m4a)" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" bezig={upload} onKies={(l) => setTeKiezen(l.slice(0, 1))} />
+          )}
           <Zoekveld waarde={zoek} onWijzig={setZoek} aantal={audio?.length ?? 0} />
           {fout && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{fout}</p>}
-          {audio === null && !fout && <p className="text-sm text-stone-500">Even kijken wat er staat...</p>}
+          {audio === null && !fout && <BankLaden vorm="regels" />}
           {audio && audio.length > 0 && zoek && zoekOpNaam(audio, zoek, (n) => n).length === 0 && (
             <p className="text-sm text-stone-500">Niets gevonden met &ldquo;{zoek}&rdquo;.</p>
           )}
@@ -165,7 +181,7 @@ export default function AudioBank({
                 src={`/api/audiobank?siteId=${siteId}&bestand=${encodeURIComponent(naam)}`}
               />
               <div className="flex flex-wrap items-center gap-2">
-                <KopieerLink adres={links[naam]?.adres} live={links[naam]?.live} />
+                <KopieerLink adres={links[naam]?.adres} live={links[naam]?.live} uitleg={linkUitleg} />
                 <button
                   onClick={() => {
                     onGebruik(`/audio/${naam}`);

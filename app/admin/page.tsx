@@ -3,9 +3,9 @@ import Link from "next/link";
 import KlantenLijst from "./KlantenLijst";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { aiKosten, changes, chatFeedback, formulierInzendingen, messages, sites, usage } from "@/db/schema";
+import { aiKosten, changes, chatFeedback, formulierInzendingen, messages, sites } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { wijzigingenLimietVoor } from "@/lib/ai-budget";
+import { maandbudgetVoor } from "@/lib/ai-budget";
 import { aanvraagVerwerken } from "./acties";
 
 export const metadata: Metadata = {
@@ -85,10 +85,6 @@ export default async function Admin() {
 
   const rijen = await Promise.all(
     alleSites.map(async (site) => {
-      const [verbruik] = await db
-        .select()
-        .from(usage)
-        .where(and(eq(usage.siteId, site.id), eq(usage.maand, maand)));
       const alleChanges = await db
         .select()
         .from(changes)
@@ -109,7 +105,6 @@ export default async function Admin() {
       return {
         site,
         livegang: livegang ? { klaar: livegang.filter((c) => c.ok).length, totaal: livegang.length } : null,
-        wijzigingen: verbruik?.wijzigingen ?? 0,
         openConcepten: alleChanges.filter((c) => c.status === "concept" || c.status === "publicatie_mislukt").length,
         aiMicroUsd: kosten.reduce((s, r) => s + r.kostenMicroUsd, 0),
       };
@@ -223,7 +218,7 @@ export default async function Admin() {
       </div>
 
       <KlantenLijst
-        rijen={rijen.map(({ site, livegang, wijzigingen, openConcepten, aiMicroUsd }) => ({
+        rijen={rijen.map(({ site, livegang, openConcepten, aiMicroUsd }) => ({
           id: site.id,
           naam: site.naam,
           domein: site.domein,
@@ -232,9 +227,10 @@ export default async function Admin() {
           eigen: site.githubRepo === "wordswap",
           livegang,
           openConcepten,
-          wijzigingen,
-          wijzigingenLimiet: wijzigingenLimietVoor(site, new Date().toISOString().slice(0, 7)),
           aiUsd: aiMicroUsd / 1_000_000,
+          // Zelfde maat als de klant in zijn portaal ziet (lib/verbruik): wat
+          // er deze maand aan AI is gebruikt, als deel van zijn maandbudget
+          budgetUsd: site.isDemo ? 0 : maandbudgetVoor(site, new Date().toISOString().slice(0, 7)),
           offlineNa: site.offlineNa,
         }))}
       />
