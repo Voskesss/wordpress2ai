@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { aankondigingen } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import ActieKnop from "../klant/[id]/ActieKnop";
-import { aankondigingBijwerken, aankondigingPlaatsen } from "../acties";
+import { aankondigingBewerken, aankondigingBijwerken, aankondigingPlaatsen } from "../acties";
 
 export const metadata: Metadata = { title: "Aankondigingen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function Aankondigingen() {
       <form action={aankondigingPlaatsen} className="mt-8 rounded-3xl border-2 border-violet-200 bg-violet-50/40 p-6 grid gap-3">
         <h2 className="font-display text-xl font-semibold">Nieuwe aankondiging</h2>
         <label className="block text-sm font-semibold">Titel<input name="titel" required maxLength={120} placeholder="Nieuw: laat de AI zelf kijken" className={invoerStijl} /></label>
-        <label className="block text-sm font-semibold">Tekst<textarea name="tekst" required rows={3} maxLength={1000} placeholder="Klopt een wijziging niet? Klik onder het antwoord op 'Klopt het niet? Laat de AI zelf kijken'…" className={invoerStijl} /></label>
+        <label className="block text-sm font-semibold">Tekst<textarea name="tekst" required rows={5} maxLength={1000} placeholder="Klopt een wijziging niet? Klik onder het antwoord op 'Klopt het niet? Laat de AI zelf kijken'…" className={invoerStijl} /></label>
         <label className="block text-sm font-semibold">Link (optioneel)<input name="link" type="url" placeholder="https://wordswap.nl/…" className={invoerStijl} /></label>
         <div><ActieKnop label="Plaatsen" bezigLabel="Plaatsen..." klaarLabel="✓ Geplaatst" className="rounded-full bg-violet-700 px-6 py-2.5 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" /></div>
       </form>
@@ -41,6 +41,17 @@ export default async function Aankondigingen() {
                 <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{a.tekst}</p>
                 {a.link && <a href={a.link} className="mt-1 inline-block text-sm text-violet-700 hover:underline" target="_blank" rel="noopener">{a.link}</a>}
                 <p className="mt-1 text-xs text-stone-400">{a.aangemaakt.toLocaleString("nl-NL")} · {a.actief ? "zichtbaar" : "uit"}</p>
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-violet-700 hover:underline">Bewerken</summary>
+                  <form action={aankondigingBewerken} className="mt-3 grid gap-3">
+                    <input type="hidden" name="id" value={a.id} />
+                    <label className="block text-sm font-semibold">Titel<input name="titel" required maxLength={120} defaultValue={a.titel} className={invoerStijl} /></label>
+                    <label className="block text-sm font-semibold">Tekst<textarea name="tekst" required rows={8} maxLength={1000} defaultValue={a.tekst} className={invoerStijl} /></label>
+                    <label className="block text-sm font-semibold">Link (optioneel)<input name="link" type="url" defaultValue={a.link ?? ""} className={invoerStijl} /></label>
+                    <p className="text-xs text-stone-500">Wie hem al wegklikte, krijgt hem niet opnieuw te zien.</p>
+                    <div><ActieKnop label="Opslaan" bezigLabel="Opslaan..." klaarLabel="✓ Opgeslagen" className="rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer" /></div>
+                  </form>
+                </details>
               </div>
               <div className="flex gap-2">
                 <form action={aankondigingBijwerken}>

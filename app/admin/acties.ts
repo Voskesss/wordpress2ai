@@ -1344,6 +1344,21 @@ export async function aankondigingPlaatsen(formData: FormData) {
   revalidatePath("/portal");
 }
 
+/** Titel, tekst en link van een bestaande aankondiging aanpassen. Wie hem al
+ * wegklikte, krijgt hem niet opnieuw: een tikfout herstellen is geen nieuws. */
+export async function aankondigingBewerken(formData: FormData) {
+  await requireAdmin();
+  const { aankondigingen } = await import("@/db/schema");
+  const id = Number(formData.get("id"));
+  const titel = String(formData.get("titel") ?? "").trim().slice(0, 120);
+  const tekst = String(formData.get("tekst") ?? "").trim().slice(0, 1000);
+  const link = String(formData.get("link") ?? "").trim().slice(0, 300);
+  if (!Number.isInteger(id) || !titel || !tekst) return;
+  await db.update(aankondigingen).set({ titel, tekst, link: link || null }).where(eq(aankondigingen.id, id));
+  revalidatePath("/admin/aankondigingen");
+  revalidatePath("/portal");
+}
+
 /** Aankondiging aan/uit zetten of verwijderen. */
 export async function aankondigingBijwerken(formData: FormData) {
   await requireAdmin();
