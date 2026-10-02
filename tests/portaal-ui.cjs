@@ -330,17 +330,18 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         { id: 1, formulier: "gesprek", velden: { naam: "jos klijnhout", email: "jos@voorbeeld.nl", bericht: lang }, bijlagen: [], aangemaakt: "2026-10-02T13:08:00Z", gearchiveerd: false },
         { id: 2, formulier: "contact", velden: { naam: "Piet", bericht: "Kort" }, bijlagen: [], aangemaakt: "2026-10-01T10:00:00Z", gearchiveerd: false, spamStand: "waarschijnlijk", spamReden: "verdacht" },
       ]);
-      await page.getByText("jos klijnhout").waitFor();
+      const kaarten = page.locator("ul > li");
+      await kaarten.first().getByText("jos klijnhout").waitFor();
       assert.ok(!(await page.locator("table").isVisible()), "telefoon: de brede tabel staat er nog");
       const breedte = await page.evaluate(() => document.documentElement.scrollWidth);
       assert.ok(breedte <= 360, `telefoon: de pagina schuift horizontaal (${breedte}px)`);
-      await page.getByRole("button", { name: /Hele bericht lezen/ }).first().click();
-      const tekst = page.getByText(lang);
+      await kaarten.first().getByRole("button", { name: /Hele bericht lezen/ }).click();
+      const tekst = kaarten.first().getByText(lang);
       assert.ok(await tekst.isVisible(), "telefoon: het hele bericht is niet te lezen");
       const vak = await tekst.boundingBox();
       assert.ok(vak.x >= 0 && vak.x + vak.width <= 360, "telefoon: het bericht valt buiten beeld");
       for (const naam of ["✓ Afgehandeld", "Verwijderen", "Geen spam", "Spam"]) {
-        const k = page.getByRole("button", { name: naam, exact: true }).first();
+        const k = kaarten.getByRole("button", { name: naam, exact: true }).first();
         assert.ok(await k.isVisible(), `telefoon: knop ${naam} niet zichtbaar`);
         const b = await k.boundingBox();
         assert.ok(b.x + b.width <= 360, `telefoon: knop ${naam} valt buiten beeld`);
