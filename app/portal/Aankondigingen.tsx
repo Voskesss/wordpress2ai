@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Aankondiging = { id: number; titel: string; tekst: string; link: string | null };
+export type Aankondiging = { id: number; titel: string; tekst: string; link: string | null };
 
 /** Berichten van WordSwap: één keer schermvullend over de pagina heen (boven
  * de schermvullende chat, vandaar z-90), met een duidelijke sluitknop.
@@ -39,29 +39,32 @@ export default function Aankondigingen({ lijst }: { lijst: Aankondiging[] }) {
       body: JSON.stringify({ id }),
     }).catch(() => {});
   };
-  {
-    // Eén tegelijk, netjes in het midden; op een telefoon vult de kaart de
-    // breedte en blijft de tekst scrolbaar binnen het scherm.
-    const a = zichtbaar[0];
-    return (
-      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Aankondiging van WordSwap">
-        <div className="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-          <p className="text-3xl" aria-hidden>📣</p>
-          <h3 className="mt-2 text-lg font-semibold text-stone-900">{a.titel}</h3>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-stone-600">{a.tekst}</p>
-          {a.link && (
-            <a href={a.link} className="mt-2 inline-block text-sm font-semibold text-violet-700 underline underline-offset-2" target="_blank" rel="noopener">
-              Meer lezen
-            </a>
-          )}
-          <button
-            onClick={() => sluit(a.id)}
-            className="mt-5 w-full rounded-full bg-violet-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
-          >
-            Oké, ik heb het gezien
-          </button>
-        </div>
+  return <AankondigingVenster a={zichtbaar[0]} onSluit={() => sluit(zichtbaar[0].id)} />;
+}
+
+/** Het venster zelf. Ook gebruikt door het voorbeeld in de admin, zodat je
+ * precies ziet wat de klant ziet zonder dat het wegklikken onthouden wordt. */
+export function AankondigingVenster({ a, onSluit }: { a: Aankondiging; onSluit: () => void }) {
+  // Eén tegelijk, netjes in het midden; op een telefoon vult de kaart de
+  // breedte en blijft de tekst scrolbaar binnen het scherm.
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Aankondiging van WordSwap">
+      <div className="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+        <p className="text-3xl" aria-hidden>📣</p>
+        <h3 className="mt-2 text-lg font-semibold text-stone-900">{a.titel}</h3>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-stone-600">{a.tekst}</p>
+        {a.link && (
+          <a href={a.link} className="mt-2 inline-block text-sm font-semibold text-violet-700 underline underline-offset-2" target="_blank" rel="noopener">
+            Meer lezen
+          </a>
+        )}
+        <button
+          onClick={onSluit}
+          className="mt-5 w-full rounded-full bg-violet-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+        >
+          Oké, ik heb het gezien
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 }

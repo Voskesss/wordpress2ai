@@ -54,6 +54,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import VideoBank from "./app/portal/VideoBank";
           import KlantenLijst from "./app/admin/KlantenLijst";
           import { VerbruikBalk } from "./app/admin/VerbruikBalk";
+          import Voorbeeld from "./app/admin/aankondigingen/Voorbeeld";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -62,6 +63,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
               account={<div id="account-inhoud">Account</div>} />);
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
           window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
+          window.mountVoorbeeld = () => wortel().render(<Voorbeeld a={{ id: 7, titel: "Zelf de bestandsnaam kiezen", tekst: "Upload je een foto?", link: null }} />);
           window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
             const leeg = () => {};
@@ -341,6 +343,19 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       assert.equal(await breed.getAttribute("aria-valuenow"), "80");
       assert.ok((await breed.boundingBox()).width > 200, "klantpagina: het balkje is niet over de hele tegel");
       await page.screenshot({ path: path.join(uitvoer, "admin-klant-verbruik.png"), clip: { x: 0, y: 0, width: 360, height: 140 } });
+      // Voorbeeld van een aankondiging: zelfde venster als de klant ziet, maar
+      // wegklikken wordt niet onthouden (geen verzoek naar aankondiging-gezien)
+      const gezienVerzoeken = [];
+      page.on("request", (r) => r.url().includes("aankondiging-gezien") && gezienVerzoeken.push(r.url()));
+      await page.evaluate(() => window.mountVoorbeeld());
+      await page.getByRole("button", { name: "Voorbeeld" }).click();
+      const venster = page.getByRole("dialog", { name: "Aankondiging van WordSwap" });
+      assert.ok(await venster.getByText("Zelf de bestandsnaam kiezen").isVisible(), "voorbeeld: het venster verschijnt niet");
+      await page.screenshot({ path: path.join(uitvoer, "aankondiging-voorbeeld.png") });
+      await venster.getByRole("button", { name: "Oké, ik heb het gezien" }).click();
+      assert.equal(await venster.count(), 0, "voorbeeld: het venster gaat niet dicht");
+      await page.waitForTimeout(200);
+      assert.equal(gezienVerzoeken.length, 0, "voorbeeld: het wegklikken wordt toch onthouden");
       await page.close();
     }
 
