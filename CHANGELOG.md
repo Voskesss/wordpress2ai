@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.41.1 (2 oktober 2026)
+
+- De videopagina toont op een telefoon de staande versie van een filmpje (als die er is), op een groot scherm de vierkante. Nu voor "website-typen"; de staande WhatsApp-versie volgt.
+
 ## 1.41.0 (2 oktober 2026)
 
 - Filmpjes in mails. In de outreach-sjablonen en de Mailer zet je met een knop (of door [video:whatsapp] of [video:website-typen] te typen) een filmpje in de mail. De ontvanger ziet een beeld met een afspeelknop; een klik opent wordswap.nl/video/..., waar het filmpje meteen speelt, met daaronder "Kan dit ook voor mijn website?" en de demo. Een tekstlink eronder werkt ook als het mailprogramma beelden blokkeert. De AI-herschrijver laat de code staan.
