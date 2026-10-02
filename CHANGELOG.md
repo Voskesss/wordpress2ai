@@ -23,6 +23,7 @@ reparaties.
 
 ## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
 
+- Wijs je een foto aan, dan kun je met "Omschrijving aanpassen" zelf de omschrijving van die foto veranderen (de alt-tekst die Google en schermlezers lezen). Zonder AI, in een paar seconden, en alleen precies die foto.
 - Tijdens het laden van een bank zie je lichte vlakken in de vorm van wat er komt (tegels voor foto's, kaarten voor video, regels voor documenten en audio) in plaats van de zin "Even ophalen...". Zonder beweging voor wie dat in zijn instellingen heeft uitgezet.
 - De chat weet wat je zelf in het portaal kunt en waar het staat (tabbladen, banken, berichten, mail, account), via een korte portaalkaart die alleen de klantchat meekrijgt. Een test koppelt die kaart aan het portaal: wordt een knop of tabblad hernoemd zonder de kaart bij te werken, dan gaat de testrit op rood. Verouderde verwijzingen ("onder de chat", "Formulier-inzendingen") zijn weg, en de banken beloven niet meer dat je een opgeruimd bestand via een knop "Vorige versies" terughaalt: die knop bestaat niet, Jos haalt het terug via Hulp & support.
 - Naam kiezen geldt bij elke upload: foto, video, audio en pdf, in de banken én bij de gewone upload in de chat (paperclip en slepen). Een geplakte schermafbeelding krijgt geen vraag, maar wel een nette naam.
