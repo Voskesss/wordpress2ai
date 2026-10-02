@@ -215,7 +215,7 @@ export async function DELETE(req: Request) {
       {
         siteId: site.id,
         rol: "assistent" as const,
-        tekst: `Het document ${pad.split("/").pop()} is uit je documentenbank gehaald. Er linkte niets meer naartoe; via "Vorige versies" is het zo nodig nog terug te halen.`,
+        tekst: `Het document ${pad.split("/").pop()} is uit je documentenbank gehaald. Er linkte niets meer naartoe. Toch nodig? Laat het Jos weten via Hulp & support, dan haalt hij het terug.`,
         clerkUserId: userId,
       },
     ]);

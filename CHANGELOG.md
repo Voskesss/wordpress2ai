@@ -23,6 +23,7 @@ reparaties.
 
 ## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
 
+- De chat weet wat je zelf in het portaal kunt en waar het staat (tabbladen, banken, berichten, mail, account), via een korte portaalkaart die alleen de klantchat meekrijgt. Een test koppelt die kaart aan het portaal: wordt een knop of tabblad hernoemd zonder de kaart bij te werken, dan gaat de testrit op rood. Verouderde verwijzingen ("onder de chat", "Formulier-inzendingen") zijn weg, en de banken beloven niet meer dat je een opgeruimd bestand via een knop "Vorige versies" terughaalt: die knop bestaat niet, Jos haalt het terug via Hulp & support.
 - Naam kiezen geldt bij elke upload: foto, video, audio en pdf, in de banken én bij de gewone upload in de chat (paperclip en slepen). Een geplakte schermafbeelding krijgt geen vraag, maar wel een nette naam.
 - De automatische naam is altijd netjes: kleine letters, een streepje voor elke spatie of elk vreemd teken, accenten weg, en geen tijdstempel of willekeurige code meer uit de opslag.
 - Een foto uit de chat overschreef een bestaande foto met dezelfde naam, overal op de site. Nu krijgt de nieuwe -2, net als in de banken. Video krijgt geen code meer achter de naam en wordt bij een tweede verzoek niet dubbel opgeslagen.

@@ -258,7 +258,7 @@ export async function DELETE(req: Request) {
       {
         siteId: site.id,
         rol: "assistent" as const,
-        tekst: `De video ${pad.split("/").pop()} is uit je videobank gehaald${poster ? " (met zijn voorbeeldplaatje)" : ""}. Hij stond nergens meer op je site; via "Vorige versies" is hij zo nodig nog terug te halen.`,
+        tekst: `De video ${pad.split("/").pop()} is uit je videobank gehaald${poster ? " (met zijn voorbeeldplaatje)" : ""}. Hij stond nergens meer op je site. Toch nodig? Laat het Jos weten via Hulp & support, dan haalt hij hem terug.`,
         clerkUserId: userId,
       },
     ]);
