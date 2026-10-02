@@ -29,6 +29,10 @@ reparaties.
   de mail draait" en de 'a' in de SPF staan niet meer onterecht open. De
   waarschuwing dat de hosting moet blijven staan, blijft wel. De hoster wordt
   nu ook uit de SPF herkend als de mailserver op het eigen domein staat.
+- Livegang-punten die wij niet kunnen meten (zoals Search Console die de
+  klant zelf via een bestand regelde) vink je nu zelf af, en zet je ook weer
+  terug. Rode punten, die nu misgaan voor bezoekers, kunnen dat niet.
+  Nieuwe kolom sites.livegang_afgevinkt: vóór main ook op productie draaien.
 
 ## Nog niet uitgebracht (op dev): AI-verbruik in de admin-klantenlijst
 
