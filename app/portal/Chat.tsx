@@ -3008,6 +3008,13 @@ export default function Chat({
             <Fotobank
               siteId={siteId}
               magUploaden={!isDemo}
+              // "Omschrijving aanpassen" zet een opdracht klaar in de chat
+              onOpdracht={(tekst) => {
+                setInvoer(tekst);
+                setFotobankOpen(false);
+                setChatOpen(true);
+                invoerRef.current?.focus();
+              }}
               // Aanklikken = toevoegen aan het stapeltje (nogmaals = eraf); de
               // bank blijft open zodat je meerdere foto's tegelijk kunt kiezen
               // ("zet deze drie in de galerij") — voorheen sloot hij na één

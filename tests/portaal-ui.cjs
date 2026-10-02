@@ -62,7 +62,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           window.mountBank = (soort) => {
             const leeg = () => {};
             if (soort === "document") bank(<DocumentBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} />);
-            if (soort === "foto") bank(<Fotobank siteId={1} magUploaden previewAccess="fixture" onKlaar={leeg} onSluit={leeg} onGebruik={leeg} gekozen={[]} />);
+            if (soort === "foto") bank(<Fotobank siteId={1} magUploaden onOpdracht={leeg} previewAccess="fixture" onKlaar={leeg} onSluit={leeg} onGebruik={leeg} gekozen={[]} />);
             if (soort === "audio") bank(<AudioBank siteId={1} onGebruik={leeg} onSluit={leeg} />);
             if (soort === "video") bank(<VideoBank siteId={1} previewAccess="fixture" onGebruik={leeg} onSluit={leeg} onUpload={leeg} />);
           };`,
@@ -96,12 +96,12 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         if (p === "/api/documentbank")
           return json({
             documenten: [
-              { pad: `bestanden/${LANG}`, kb: 1352, inGebruik: true, adres: `https://voorbeeld.nl/bestanden/${LANG}`, live: true },
+              { pad: `bestanden/${LANG}`, kb: 1352, inGebruik: true, adres: `https://voorbeeld.nl/bestanden/${LANG}`, live: true, linkTeksten: ["Download het rapport"] },
               { pad: "bestanden/vacature.pdf", kb: 63, inGebruik: false, adres: "https://voorbeeld.nl/bestanden/vacature.pdf", live: false },
             ],
           });
         if (p === "/api/fotobank")
-          return json({ afbeeldingen: [{ pad: "afbeeldingen/kantoor-lisse-voorkant.webp", stam: "afbeeldingen/kantoor-lisse-voorkant.webp", grootte: 120000, inGebruik: true, adres: "https://voorbeeld.nl/afbeeldingen/kantoor-lisse-voorkant.webp", live: true }, { pad: "afbeeldingen/team.webp", stam: "afbeeldingen/team.webp", grootte: 90000, inGebruik: false, adres: "https://voorbeeld.nl/afbeeldingen/team.webp", live: true }] });
+          return json({ afbeeldingen: [{ pad: "afbeeldingen/kantoor-lisse-voorkant.webp", stam: "afbeeldingen/kantoor-lisse-voorkant.webp", grootte: 120000, inGebruik: true, adres: "https://voorbeeld.nl/afbeeldingen/kantoor-lisse-voorkant.webp", live: true, alt: { teksten: ["Kantoor in Lisse, voorkant"], zonder: 1, leeg: 0 } }, { pad: "afbeeldingen/team.webp", stam: "afbeeldingen/team.webp", grootte: 90000, inGebruik: false, adres: "https://voorbeeld.nl/afbeeldingen/team.webp", live: true }] });
         if (p === "/api/audiobank" && !new URL(r.request().url()).searchParams.get("bestand"))
           return json({ audio: ["aflevering-1.mp3", "aflevering-2.mp3"], limiet: 10, links: { "aflevering-1.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-1.mp3", live: true }, "aflevering-2.mp3": { adres: "https://voorbeeld.nl/audio/aflevering-2.mp3", live: false } } });
         if (p === "/api/videobank" && !new URL(r.request().url()).searchParams.get("bestand"))
@@ -247,6 +247,30 @@ const uitvoer = path.join(__dirname, ".uitvoer");
         assert.ok(maat.breedte > 250, `documentenbank: de naam staat in een smal kolommetje (${Math.round(maat.breedte)}px)`);
         const meta = await page.getByText("1352 kB").evaluate((el) => el.getBoundingClientRect().height);
         assert.ok(meta < 40, `documentenbank: de gegevens vallen woord voor woord onder elkaar (${meta}px hoog)`);
+      }
+      // Wat Google leest, en de naam kiezen vóór het uploaden
+      if (soort === "document") assert.ok(await page.getByText(/Linktekst op je site: .Download het rapport/).isVisible(), "documentenbank: linktekst niet zichtbaar");
+      if (soort === "foto") {
+        assert.ok(await page.getByText(/Google leest: .Kantoor in Lisse, voorkant/).isVisible(), "fotobank: omschrijving niet zichtbaar");
+        assert.ok(await page.getByText("Geen omschrijving op 1 plek").isVisible(), "fotobank: ontbrekende omschrijving niet gemeld");
+        assert.ok(await page.getByRole("button", { name: "Omschrijving aanpassen" }).first().isVisible(), "fotobank: geen knop om de omschrijving aan te passen");
+      }
+      if (soort === "document" || soort === "foto") {
+        const [bestand, bestaand, goed] =
+          soort === "document" ? [{ name: "Boekje 2025 (def).pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") }, "vacature", "boekje-2025"] : [{ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff]) }, "team", "kantoor-achterkant"];
+        await page.locator('input[type="file"]').setInputFiles(bestand);
+        const naam = page.getByRole("textbox", { name: `Naam voor ${bestand.name}` });
+        await naam.waitFor();
+        assert.equal(await naam.inputValue(), soort === "document" ? "boekje-2025-def" : "img-2041", `${soort}: de naam is niet voorgevuld vanuit het bestand`);
+        await naam.fill(bestaand);
+        assert.ok(await page.getByText("Deze naam bestaat al in je bank").isVisible(), `${soort}: een bestaande naam wordt niet geweigerd`);
+        assert.ok(await page.getByRole("button", { name: "Uploaden", exact: true }).isDisabled(), `${soort}: uploaden kan met een bestaande naam`);
+        await naam.fill(`${goed} Nieuw`);
+        assert.ok(await page.getByText(`Wordt: ${goed}-nieuw${soort === "document" ? ".pdf" : ".webp"}`).isVisible(), `${soort}: de schone naam wordt niet getoond`);
+        assert.ok(await page.getByRole("button", { name: "Uploaden", exact: true }).isEnabled(), `${soort}: uploaden kan niet met een goede naam`);
+        await page.screenshot({ path: path.join(uitvoer, `naamkiezer-${soort}.png`) });
+        await page.getByRole("button", { name: "Annuleren" }).click();
+        assert.ok(await page.getByRole("button", { name: /uploaden/i }).first().isVisible(), `${soort}: na annuleren is de uploadknop er niet terug`);
       }
       await page.screenshot({ path: path.join(uitvoer, `bank-${soort}.png`) });
       await page.close();

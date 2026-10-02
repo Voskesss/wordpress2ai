@@ -12,6 +12,7 @@ import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 import { documentAdres, livePaden } from "@/lib/document-adres";
+import { altTekstenPerBeeld } from "@/lib/beeld-alt";
 
 export const maxDuration = 120;
 
@@ -64,7 +65,14 @@ export async function GET(req: Request) {
     const beelden = alle.filter((b) => IS_BEELD.test(b));
     const bronnen = alle.filter((b) => /\.(html?|css)$/i.test(b));
     let inhoud = "";
-    for (const b of bronnen) inhoud += await readFile(path.join(werkmap, b), "utf8");
+    const paginas: { inhoud: string }[] = [];
+    for (const b of bronnen) {
+      const tekst = await readFile(path.join(werkmap, b), "utf8");
+      inhoud += tekst;
+      if (/\.html?$/i.test(b)) paginas.push({ inhoud: tekst });
+    }
+    // Wat Google bij elke foto leest (alt-tekst), per plek waar hij staat
+    const alts = altTekstenPerBeeld(paginas);
     // Wat staat er echt live? Eén opvraging voor alle foto's samen. Alleen
     // dan is de link te kopiëren (voor een mail of nieuwsbrief).
     const live = site.isDemo ? new Set<string>() : await livePaden(site.siteSlug);
@@ -80,6 +88,7 @@ export async function GET(req: Request) {
           inGebruik: inhoud.includes(pad),
           adres: site.isDemo ? null : documentAdres(site, pad),
           live: live.has(pad),
+          alt: alts.get(pad) ?? null,
         };
       })
     );

@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+
+## Nog niet uitgebracht (op dev): naam kiezen bij uploaden, omschrijvingen zichtbaar
+
+- Bij het uploaden in de fotobank of documentenbank kies je eerst de naam. De naam van je bestand staat voorgevuld, je ziet hoe hij op je site komt te heten, en een naam die al bestaat wordt vooraf geweigerd. Een bestandsnaam achteraf wijzigen kan bewust niet: een bestand staat op meerdere plekken en dan ontstaan er kapotte plaatjes en links.
+- De fotobank toont bij elke foto de omschrijving die Google leest (alt-tekst), en meldt waar die ontbreekt. Met "Omschrijving aanpassen" zet je de opdracht klaar in de chat.
+- De documentenbank toont met welke linktekst een document op je site staat.
+- Vraag van Van den Berg Mediation.
+
 ## 1.39.0 (1 oktober 2026)
 
 **Het portaal heeft een vaste bovenbalk met tabbladen.** Na inloggen opende de werkweergave schermvullend over de pagina heen, en je berichten en instellingen zaten daarachter, bereikbaar via een rode knop "Volledig scherm uit". Klanten snapten niet dat ze terug konden. Nu staat bovenin altijd een balk met "Website bewerken", "Berichten & mail" en "Account", plus "Alle websites" en je account. De werkweergave begint onder die balk. Wisselen tussen tabbladen herlaadt niets: de chat werkt gewoon door als je even naar je berichten kijkt. Een link naar een tabblad werkt ook (?tab=berichten), en de link naar je afspraken uit de mail opent vanzelf het goede tabblad.

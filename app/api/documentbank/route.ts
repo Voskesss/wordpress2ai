@@ -10,6 +10,7 @@ import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 import { documentAdres, staatLive, vrijPad } from "@/lib/document-adres";
+import { linkTekstenPerDocument } from "@/lib/beeld-alt";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
  * menukaarten, brochures). Ze leven in de siterepo, in bestanden/, en gaan bij
@@ -51,7 +52,14 @@ export async function GET(req: Request) {
     const alle = await alleBestandenVan(werkmap);
     const bronnen = alle.filter((b) => /\.(html?|css|js)$/i.test(b));
     let inhoud = "";
-    for (const b of bronnen) inhoud += await readFile(path.join(werkmap, b), "utf8").catch(() => "");
+    const paginas: { inhoud: string }[] = [];
+    for (const b of bronnen) {
+      const tekst = await readFile(path.join(werkmap, b), "utf8").catch(() => "");
+      inhoud += tekst;
+      if (/\.html?$/i.test(b)) paginas.push({ inhoud: tekst });
+    }
+    // Met welke linktekst staat elk document op de site (wat Google als naam ziet)
+    const linkTeksten = linkTekstenPerDocument(paginas);
     const documenten = await Promise.all(
       alle
         .filter((b) => IS_DOCUMENT.test(b))
@@ -66,6 +74,7 @@ export async function GET(req: Request) {
             inGebruik: inhoud.includes(pad),
             adres,
             live: adres ? await staatLive(adres) : false,
+            linkTeksten: linkTeksten.get(pad) ?? [],
           };
         }),
     );
