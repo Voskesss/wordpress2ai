@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "WordPress-site traag? De 7 oorzaken en wat je eraan doet", "description": "Afbeeldingen, plugins, caching, hosting, thema, database en PHP. Dit zijn de zeven oorzaken van een trage WordPress-site, hoe je ze meet en wat je eraan kunt doen.", "alternates": {"canonical": "/wordpress-website-traag"}};
+export const metadata: Metadata = {"title": "WordPress-site traag? De 7 oorzaken en wat je eraan doet", "description": "Afbeeldingen, plugins, caching, hosting, thema, database en PHP: de zeven oorzaken van een trage WordPress-site, hoe je ze meet en wat je eraan doet.", "alternates": {"canonical": "/wordpress-website-traag"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Trage WordPress-site",
   "titel": "WordPress-site traag? Dit zijn de zeven oorzaken.",
