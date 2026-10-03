@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.41.3 (3 oktober 2026)
+
+- Beveiligingsupdates: Next.js 16.3.8 (lek in next/og, dat wij niet gebruiken, toch bijgewerkt), nodemailer 10.0.14 en mailparser 3.9.34 (o.a. een lek waarbij bij meerdere SMTP-servers inloggegevens konden uitlekken; wij mailen via de eigen server van klanten, dus dit raakte ons echt), ip-address 10.7.3.
+- Elke maandagochtend controleert GitHub de productiepakketten op bekende lekken (vanaf "high"). Bij rood komt er een mail.
+
 ## 1.41.2 (2 oktober 2026)
 
 - De outreachpagina toont de prospects per 20, met onderaan "Toon meer". Elke kaart draagt een mailbewerker en drie complete mails mee; met de hele lijst duurde het zo'n 8 seconden voordat je in een tekstvak kon typen. De tellers bovenaan tellen nog steeds alles.

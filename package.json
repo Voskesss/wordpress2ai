@@ -1,6 +1,6 @@
 {
   "name": "wordpress2ai",
-  "version": "1.41.2",
+  "version": "1.41.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -26,9 +26,9 @@
     "fast-xml-parser": "^5.11.0",
     "imapflow": "^2.0.5",
     "jszip": "^3.10.1",
-    "mailparser": "^3.9.28",
+    "mailparser": "^3.9.34",
     "next": "^16.3.5",
-    "nodemailer": "^9.0.6",
+    "nodemailer": "^10.0.14",
     "parse5": "^8.0.1",
     "pdf-lib": "^1.17.1",
     "react": "19.2.8",

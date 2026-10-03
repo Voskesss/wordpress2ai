@@ -1,0 +1,20 @@
+name: beveiligingscontrole
+# Elke maandagochtend: bekende lekken in de pakketten die op productie draaien.
+# Rood = GitHub mailt; dan `npm audit` draaien en bijwerken. Alleen productie-
+# pakketten en vanaf "high": ontwikkelgereedschap (drizzle-kit) draait nooit live.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --omit=dev --audit-level=high
