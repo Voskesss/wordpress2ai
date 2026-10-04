@@ -20,6 +20,15 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## Nog niet uitgebracht (op dev): teamleden
+
+- Meerdere mensen per website, elk met een eigen inlog. De eigenaar voegt in het tabblad Account bij "Team" iemand toe met naam en e-mailadres; die krijgt een mail en logt in met een code. Tot 3 teamleden zijn gratis.
+- Per teamlid stelt de eigenaar in of hij zelf mag publiceren en of hij de berichten van de formulieren mag zien. Zonder publiceerrecht wordt de knop "Vraag eigenaar om te publiceren": de eigenaar krijgt een mail. Weggooien van het concept mag alleen wie mag publiceren.
+- Iedereen werkt in één gedeeld concept. Werkte een ander ook aan het concept, dan zie je vóór het publiceren wie wat vroeg, met "Alles publiceren" of "Nog niet".
+- Logboek: wie deed wat (aanpassingen, publiceren, weggooien, terugdraaien, uploads, berichten afgehandeld, teamwijzigingen), in het portaal en op de klantpagina in de admin. Daar kan Jos het team ook beheren.
+- Facturen, opzeggen, akkoorden, privacy en mailinstellingen blijven van de eigenaar. WhatsApp per teamlid volgt in stap 2.
+- Nieuwe tabellen site_leden en site_activiteit (20261004-teamleden.sql): op dev gedraaid, vóór main ook op productie.
+
 ## 1.41.3 (3 oktober 2026)
 
 - Beveiligingsupdates: Next.js 16.3.8 (lek in next/og, dat wij niet gebruiken, toch bijgewerkt), nodemailer 10.0.14 en mailparser 3.9.34 (o.a. een lek waarbij bij meerdere SMTP-servers inloggegevens konden uitlekken; wij mailen via de eigen server van klanten, dus dit raakte ons echt), ip-address 10.7.3.

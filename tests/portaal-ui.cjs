@@ -61,6 +61,8 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import { VerbruikBalk } from "./app/admin/VerbruikBalk";
           import Voorbeeld from "./app/admin/aankondigingen/Voorbeeld";
           import InzendingenLijst from "./app/portal/InzendingenLijst";
+          import TeamUitnodigen from "./app/portal/TeamUitnodigen";
+          import TeamUitleg from "./app/portal/TeamUitleg";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -70,6 +72,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
           window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
           window.mountInzendingen = (rijen) => wortel().render(<div style={{ padding: "16px" }}><InzendingenLijst siteId={1} rijen={rijen} /></div>);
+          window.mountTeam = () => wortel().render(<div style={{ padding: "16px" }}><TeamUitnodigen siteId={1} vol={false} /><TeamUitleg /></div>);
           window.mountVoorbeeld = () => wortel().render(<Voorbeeld a={{ id: 7, titel: "Zelf de bestandsnaam kiezen", tekst: "Upload je een foto?", link: null }} />);
           window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
@@ -350,6 +353,20 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       // Op een breed scherm blijft de tabel
       await page.setViewportSize({ width: 1280, height: 760 });
       assert.ok(await page.locator("table").isVisible(), "breed scherm: de tabel is weg");
+      await page.close();
+    }
+
+    // 4a2. Team: uitnodigformulier en uitleg passen op een telefoon
+    {
+      const page = await nieuwePagina(360, 900);
+      await page.evaluate(() => window.mountTeam());
+      await page.getByRole("button", { name: "Toevoegen en uitnodigen" }).waitFor();
+      for (const label of ["Naam", "E-mailadres"]) assert.ok(await page.getByLabel(label).isVisible(), `team: veld ${label} ontbreekt`);
+      assert.ok(await page.getByText("Mag zelf publiceren.").isVisible() && await page.getByText("Mag de berichten zien.").isVisible(), "team: de twee rechten staan er niet");
+      assert.ok(await page.getByText("Publiceren zet alles live").isVisible(), "team: de uitleg over het gedeelde concept ontbreekt");
+      const breedte = await page.evaluate(() => document.documentElement.scrollWidth);
+      assert.ok(breedte <= 360, `team: schuift horizontaal op een telefoon (${breedte}px)`);
+      await page.screenshot({ path: path.join(uitvoer, "team-telefoon.png"), fullPage: true });
       await page.close();
     }
 
