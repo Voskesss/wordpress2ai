@@ -31,12 +31,17 @@ export function bepaalToegang(site: SiteKern, userId: string | null | undefined,
 }
 
 export async function lidVan(siteId: number, userId: string) {
-  const [lid] = await db
-    .select()
-    .from(siteLeden)
-    .where(and(eq(siteLeden.siteId, siteId), eq(siteLeden.clerkUserId, userId)))
-    .catch(() => []);
-  return lid ?? null;
+  // Lukt het opvragen niet (tabel nog niet gemigreerd, storing), dan is er
+  // geen teamlid: dan valt alles terug op eigenaar of beheerder, zoals vroeger.
+  try {
+    const [lid] = await db
+      .select()
+      .from(siteLeden)
+      .where(and(eq(siteLeden.siteId, siteId), eq(siteLeden.clerkUserId, userId)));
+    return lid ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** Toegang van de ingelogde gebruiker tot deze site, of null. */
@@ -55,19 +60,26 @@ export const magBerichten = async (site: SiteKern, userId: string | null | undef
 
 /** Site-id's waar deze gebruiker teamlid van is. */
 export async function siteIdsAlsLid(userId: string): Promise<number[]> {
-  const rijen = await db.select({ siteId: siteLeden.siteId }).from(siteLeden).where(eq(siteLeden.clerkUserId, userId)).catch(() => []);
-  return rijen.map((r) => r.siteId);
+  try {
+    const rijen = await db.select({ siteId: siteLeden.siteId }).from(siteLeden).where(eq(siteLeden.clerkUserId, userId));
+    return rijen.map((r) => r.siteId);
+  } catch {
+    return [];
+  }
 }
 
 /** Openstaande uitnodigingen koppelen zodra iemand met dat adres inlogt. */
 export async function koppelUitnodigingen(userId: string, emails: string[]) {
   if (!emails.length) return;
-  const { inArray, isNull } = await import("drizzle-orm");
-  await db
-    .update(siteLeden)
-    .set({ clerkUserId: userId })
-    .where(and(inArray(siteLeden.email, emails), isNull(siteLeden.clerkUserId)))
-    .catch(() => {});
+  try {
+    const { inArray, isNull } = await import("drizzle-orm");
+    await db
+      .update(siteLeden)
+      .set({ clerkUserId: userId })
+      .where(and(inArray(siteLeden.email, emails), isNull(siteLeden.clerkUserId)));
+  } catch {
+    /* koppelen is een gemak; lukt het niet, dan probeert de volgende inlog het opnieuw */
+  }
 }
 
 /** Naam voor in het logboek: teamlidnaam, anders Clerk-naam, anders e-mail. */

@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       .set({ status: "afgewezen" })
       .where(eq(changes.id, changeId));
     if (!rij.site.isDemo)
-      await logActiviteit(rij.site.id, userId, "teruggezet", `Gepubliceerde wijziging teruggedraaid: ${rij.change.promptTekst.slice(0, 160)}`, changeId);
+      await logActiviteit(rij.site.id, userId, "teruggezet", `Gepubliceerde wijziging teruggedraaid: ${(rij.change.promptTekst ?? "").slice(0, 160)}`, changeId);
     await db
       .insert(messages)
       .values({

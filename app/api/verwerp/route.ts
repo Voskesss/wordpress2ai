@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       .set({ status: "afgewezen" })
       .where(eq(changes.id, rij.change.id));
     if (!rij.site.isDemo)
-      await logActiviteit(rij.site.id, userId, "verworpen", `Concept weggegooid: ${rij.change.promptTekst.slice(0, 160)}`, rij.change.id);
+      await logActiviteit(rij.site.id, userId, "verworpen", `Concept weggegooid: ${(rij.change.promptTekst ?? "").slice(0, 160)}`, rij.change.id);
 
     return NextResponse.json({ ok: true });
   } finally {

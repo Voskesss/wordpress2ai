@@ -176,7 +176,7 @@ export async function POST(req: Request) {
       .set({ status: "gepubliceerd" })
       .where(eq(changes.id, changeId));
     if (!rij.site.isDemo)
-      await logActiviteit(rij.site.id, userId, "gepubliceerd", `Concept gepubliceerd: ${rij.change.promptTekst.slice(0, 160)}`, changeId);
+      await logActiviteit(rij.site.id, userId, "gepubliceerd", `Concept gepubliceerd: ${(rij.change.promptTekst ?? "").slice(0, 160)}`, changeId);
     // Cleanup cannot turn a successful publication into an apparent failure.
     if (!rij.site.isDemo)
       await verwijderBranch(rij.site.githubRepo, rij.change.branch).catch((e) =>
