@@ -220,9 +220,46 @@ const assert = require("node:assert/strict");
         .map((c) => JSON.parse(c.body).changeId),
       [42, 42],
     );
+    // Teamleden (04-10-2026): werkte een ander ook aan het concept, dan eerst
+    // een waarschuwing; pas na "Alles publiceren" gaat het verzoek de deur uit.
+    const concept = { changeId: 43, previewUrl: "/site-weergave/fixture/", prompt: "Test", paginas: ["contact.html"] };
+    const publicaties = () => calls.filter((c) => c.path === "/api/publiceer").length;
+    handlers["/api/concept-bijdragers"] = (r) =>
+      r.fulfill({ contentType: "application/json", body: JSON.stringify({ anderen: [{ naam: "Lisa de Vries", wat: ["Zet de openingstijden op zaterdag tot 17:00"] }] }) });
+    await mount({ openConcept: concept, metTeam: true });
+    const voor = publicaties();
+    await page.getByRole("button", { name: "Publiceer", exact: true }).click();
+    const waarschuwing = page.getByRole("dialog", { name: "Let op: ook werk van anderen" });
+    await waarschuwing.getByText("Lisa de Vries").waitFor();
+    assert.ok(await waarschuwing.getByText(/openingstijden op zaterdag/).isVisible(), "team: wat de ander vroeg staat er niet bij");
+    assert.equal(publicaties(), voor, "team: er werd al gepubliceerd vóór de bevestiging");
+    await waarschuwing.getByRole("button", { name: "Nog niet" }).click();
+    assert.equal(await waarschuwing.count(), 0, "team: Nog niet sluit de waarschuwing niet");
+    assert.equal(publicaties(), voor, "team: Nog niet publiceerde toch");
+    await page.getByRole("button", { name: "Publiceer", exact: true }).click();
+    await waarschuwing.getByRole("button", { name: "Alles publiceren" }).click();
+    await page.getByText(/Gepubliceerd!/).first().waitFor();
+    assert.equal(publicaties(), voor + 1, "team: na Alles publiceren ging er niets de deur uit");
+    // Niemand anders in het concept: gewoon meteen publiceren, geen vraag
+    handlers["/api/concept-bijdragers"] = (r) => r.fulfill({ contentType: "application/json", body: '{"anderen":[]}' });
+    await mount({ openConcept: concept, metTeam: true });
+    const voor2 = publicaties();
+    await page.getByRole("button", { name: "Publiceer", exact: true }).click();
+    await page.getByText(/Gepubliceerd!/).first().waitFor();
+    assert.equal(await page.getByRole("dialog", { name: "Let op: ook werk van anderen" }).count(), 0);
+    assert.equal(publicaties(), voor2 + 1);
+    // Teamlid zonder publiceerrecht: de knop vraagt de eigenaar, publiceert nooit
+    await mount({ openConcept: concept, metTeam: true, magPubliceren: false });
+    const voor3 = publicaties();
+    await page.getByRole("button", { name: "Vraag eigenaar", exact: true }).click();
+    await page.getByText(/Laat het de eigenaar zelf even weten|eigenaar gevraagd/).first().waitFor();
+    assert.equal(publicaties(), voor3, "teamlid zonder recht kon toch publiceren");
+    await page.getByRole("button", { name: "Concept weggooien" }).first().click();
+    await page.getByText(/weggooien kan alleen iemand die mag publiceren/).first().waitFor();
+    assert.equal(calls.filter((c) => c.path === "/api/verwerp").length, 0, "teamlid zonder recht kon het concept weggooien");
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept. No real APIs called.",
+      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner. No real APIs called.",
     );
   } finally {
     if (browser) await browser.close();

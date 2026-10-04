@@ -5,12 +5,12 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 import { documentAdres, linkUitleg, staatLive, vrijPad } from "@/lib/document-adres";
 import { linkTekstenPerDocument } from "@/lib/beeld-alt";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 /** De documentenbank: alle pdf's die op de site staan (vacatures, voorwaarden,
  * menukaarten, brochures). Ze leven in de siterepo, in bestanden/, en gaan bij
@@ -24,7 +24,7 @@ const IS_DOCUMENT = /\.pdf$/i;
 
 async function magErbij(siteId: number, userId: string) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))) return null;
+  if (!site || (!site.isDemo && !(await magBewerken(site, userId)))) return null;
   return site;
 }
 
@@ -167,6 +167,7 @@ export async function POST(req: Request) {
         },
       ])
       .catch((e) => console.error("Documentbank-berichten bewaren:", e));
+    await logActiviteit(site.id, userId, "upload", `Document geüpload: ${pad}`);
     return NextResponse.json({ ok: true, pad: `/${pad}`, kb, adres, live });
   } catch (e) {
     console.error("Document in de documentenbank zetten:", e);

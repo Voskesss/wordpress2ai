@@ -10,6 +10,7 @@ import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import DemoOpdrachten from "./DemoOpdrachten";
 import ConceptStripMobiel from "./ConceptStripMobiel";
+import { vraagPublicatie } from "./acties-team";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { parseKeuzesBeeld } from "@/lib/keuze-beeld";
@@ -196,6 +197,8 @@ export default function Chat({
   verbruik = null,
   startVolledig = true,
   metBalk = false,
+  magPubliceren = true,
+  metTeam = false,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
@@ -226,11 +229,17 @@ export default function Chat({
   /** Aandeel van de maandruimte dat op is (balkje bij het gesprek); null =
    * niet tonen (demo, of geen budget ingesteld) */
   verbruik?: { procent: number } | null;
+  /** Teamlid zonder publiceerrecht: Publiceer wordt "Vraag de eigenaar" */
+  magPubliceren?: boolean;
+  /** De site heeft teamleden: vóór het publiceren kijken of anderen in het concept werkten */
+  metTeam?: boolean;
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   // Tellertje "X van Y wijzigingen deze maand": beginstand van de server,
   // na elke beurt vers uit het klaar-event
   const [verbruikStand, setVerbruikStand] = useState(verbruik);
+  // Waarschuwing vóór publiceren: anderen in het team werkten ook aan dit concept
+  const [teamWaarschuwing, setTeamWaarschuwing] = useState<{ naam: string; wat: string[] }[] | null>(null);
   const [invoer, setInvoer] = useState("");
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
@@ -2082,8 +2091,34 @@ export default function Chat({
     invoerRef.current?.focus();
   }
 
-  async function conceptVerwerken(actie: "publiceer" | "verwerp") {
+  async function conceptVerwerken(actie: "publiceer" | "verwerp", bevestigd = false) {
     if (!concept || conceptActie || bezigRef.current || nieuwBezigRef.current) return;
+    // Teamlid zonder publiceerrecht: de eigenaar vragen in plaats van live zetten.
+    // Weggooien raakt ook het werk van anderen in het gedeelde concept, dus dat
+    // mag alleen wie mag publiceren.
+    if (!magPubliceren) {
+      if (actie === "verwerp") {
+        setBerichten((b) => [...b, { rol: "assistent", tekst: "Het concept weggooien kan alleen iemand die mag publiceren: er kan ook werk van anderen in zitten. De laatste stap draai je terug met \"Laatste stap terug\"." }]);
+        setChatOpen(true);
+        return;
+      }
+      setConceptActie("publiceer");
+      const uitslag = (await vraagPublicatie(siteId).catch(() => null)) ?? { ok: false, melding: "Dat lukte niet. Laat het de eigenaar zelf even weten." };
+      setConceptActie(null);
+      setBerichten((b) => [...b, { rol: "assistent", tekst: uitslag.ok ? "Ik heb de eigenaar gevraagd dit concept te publiceren. Je ziet het live staan zodra dat gebeurd is." : uitslag.melding }]);
+      setChatOpen(true);
+      return;
+    }
+    // Werkten anderen ook aan dit concept? Dan eerst zeggen dat hun werk mee live gaat.
+    if (actie === "publiceer" && metTeam && !bevestigd) {
+      const data = (await fetch(`/api/concept-bijdragers?changeId=${concept.changeId}`)
+        .then((r) => r.json())
+        .catch(() => ({ anderen: [] }))) as { anderen?: { naam: string; wat: string[] }[] };
+      if (data.anderen?.length) {
+        setTeamWaarschuwing(data.anderen);
+        return;
+      }
+    }
     setHerstelFout(null);
     setConceptActie(actie);
     const res = await fetch(`/api/${actie}`, {
@@ -3191,6 +3226,42 @@ export default function Chat({
             />
           )}
 
+          {teamWaarschuwing && (
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Let op: ook werk van anderen">
+              <div className="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+                <h3 className="text-lg font-semibold text-stone-900">Let op: in dit concept zit ook werk van anderen</h3>
+                <p className="mt-2 text-sm text-stone-600">Publiceer je nu, dan gaat dit ook live:</p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {teamWaarschuwing.map((p) => (
+                    <li key={p.naam} className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                      <strong className="text-amber-950">{p.naam}</strong>
+                      <ul className="mt-1 list-disc pl-5 text-amber-900">
+                        {p.wat.slice(-5).map((w, i) => (
+                          <li key={i} className="[overflow-wrap:anywhere]">{w}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-stone-500">Twijfel je? Overleg eerst even, of bekijk het concept nog een keer.</p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setTeamWaarschuwing(null);
+                      void conceptVerwerken("publiceer", true);
+                    }}
+                    className="rounded-full bg-violet-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+                  >
+                    Alles publiceren
+                  </button>
+                  <button onClick={() => setTeamWaarschuwing(null)} className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 cursor-pointer">
+                    Nog niet
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Concept-strip */}
           {/* Op een telefoon de ingeklapte strook, voor de demo én voor
               klanten: het gewone blok kost daar 176 van de 844 pixels. */}
@@ -3204,6 +3275,7 @@ export default function Chat({
               onPubliceer={() => conceptVerwerken("publiceer")}
               onStapTerug={stapTerug}
               onVerwerp={() => conceptVerwerken("verwerp")}
+              publiceerLabel={magPubliceren ? "Publiceer" : "Vraag eigenaar"}
             />
           )}
           {concept && !isMobiel && (
@@ -3241,7 +3313,7 @@ export default function Chat({
                   disabled={conceptActie !== null || bezig || nieuwBezig}
                   className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
                 >
-                  {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
+                  {conceptActie === "publiceer" ? "Bezig..." : magPubliceren ? "Publiceer" : "Vraag eigenaar om te publiceren"}
                 </button>
                 {conceptActie === "publiceer" && (
                   <span className="basis-full text-xs text-amber-800">

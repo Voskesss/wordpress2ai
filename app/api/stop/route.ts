@@ -3,8 +3,8 @@ import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { operationScope } from "@/lib/operation-guards";
+import { magBewerken } from "@/lib/toegang";
 
 /** Stoppen dat écht stopt. Het afbreken van het verzoek in de browser bereikt
  * de serverloze functie niet altijd: die werkt dan door en houdt het
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (
     !site ||
-    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+    (!site.isDemo && !(await magBewerken(site, userId)))
   )
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
 

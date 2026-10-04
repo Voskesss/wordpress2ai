@@ -22,6 +22,7 @@ export default function ConceptStripMobiel({
   onPubliceer,
   onStapTerug,
   onVerwerp,
+  publiceerLabel = "Publiceer",
 }: {
   conceptActie: string | null;
   bezig: boolean;
@@ -31,6 +32,8 @@ export default function ConceptStripMobiel({
   onPubliceer: () => void;
   onStapTerug: () => void;
   onVerwerp: () => void;
+  /** Teamlid zonder publiceerrecht: "Vraag eigenaar" */
+  publiceerLabel?: string;
 }) {
   const [meerOpen, setMeerOpen] = useState(false);
   const bezetVoorActie = conceptActie !== null || bezig || nieuwBezig;
@@ -87,7 +90,7 @@ export default function ConceptStripMobiel({
           disabled={bezetVoorActie}
           className="shrink-0 rounded-full bg-violet-700 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
         >
-          {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
+          {conceptActie === "publiceer" ? "Bezig..." : publiceerLabel}
         </button>
         <button
           type="button"

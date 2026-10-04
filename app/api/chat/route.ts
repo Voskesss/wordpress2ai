@@ -31,6 +31,7 @@ import {
   maakSnapshot,
   ruimWerkmapOp,
 } from "@/lib/werkmap";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 // Pro-abonnement: langere functies mogen. 800 s dekt ook grote klussen
 // (galerij met veel foto's); de tijdbewaker hieronder stopt de agent zelf
@@ -384,7 +385,7 @@ export async function POST(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (
     !site ||
-    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+    (!site.isDemo && !(await magBewerken(site, userId)))
   ) {
     return NextResponse.json({ error: "Site niet gevonden" }, { status: 404 });
   }
@@ -1703,6 +1704,8 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
                 .values({ siteId: site.id, maand, wijzigingen: 1 });
             }
 
+            // Logboek: wie vroeg wat in dit (gedeelde) concept
+            if (!site.isDemo && changeRowId) void logActiviteit(site.id, userId, "concept", bericht, changeRowId);
             stuur({ type: "status", tekst: "Ik werk mijn voorbeeld bij — een paar tellen nog..." });
             await deployKlaar;
 

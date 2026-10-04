@@ -3,8 +3,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { documentAdres, schoneNaamDelen, staatLive, vrijeNaam } from "@/lib/document-adres";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 /** Een foto rechtstreeks in de fotobank zetten, zonder de chat. Verkleind op
  * dezelfde maat als een foto uit de chat (1600px breed, webp q78), in de site
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { siteId?: number; blobUrl?: string; naam?: string } | null;
   if (!body?.siteId || !body.blobUrl || !body.naam) return NextResponse.json({ error: "Onvolledig verzoek" }, { status: 400 });
   const [site] = await db.select().from(sites).where(eq(sites.id, Number(body.siteId)));
-  if (!site || site.isDemo || (site.clerkUserId !== userId && !(await isBeheerder())))
+  if (!site || site.isDemo || (!(await magBewerken(site, userId))))
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   {
     const { magLiveSchrijven, REM_MELDING } = await import("@/lib/omgeving");
@@ -82,6 +82,7 @@ export async function POST(req: Request) {
         },
       ])
       .catch((e) => console.error("Fotobank-berichten bewaren:", e));
+    await logActiviteit(site.id, userId, "upload", `Foto geüpload: ${pad}`);
     return NextResponse.json({ ok: true, pad, grootte: data.length, adres, live, kwaliteit });
   } catch (e) {
     console.error("Foto in de fotobank zetten:", e);

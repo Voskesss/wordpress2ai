@@ -3,8 +3,8 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { messages, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { documentAdres, linkUitleg, staatLive, vrijeNaam } from "@/lib/document-adres";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 /** De audiobank van een site: afleveringen in de media-map in R2, los van de
  * GitHub-repo en de deploy-sync. Verwijderen is hier een bewuste actie; een
@@ -15,7 +15,7 @@ export const maxDuration = 300; // een aflevering van 150 MB verhuizen kost even
 async function magErbij(siteId: number, userId: string) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site || site.isDemo) return null;
-  if (site.clerkUserId !== userId && !(await isBeheerder())) return null;
+  if (!(await magBewerken(site, userId))) return null;
   return site;
 }
 
@@ -133,6 +133,7 @@ export async function POST(req: Request) {
     ])
     .catch((e) => console.error("Audiobank-berichten bewaren:", e));
   const adres = documentAdres(site, `audio/${naam}`);
+  await logActiviteit(site.id, userId, "upload", `Audio geüpload: ${naam}`);
   return NextResponse.json({ ok: true, naam, pad: `/audio/${naam}`, adres, live: adres ? await staatLive(adres) : false });
 }
 
@@ -189,5 +190,6 @@ export async function DELETE(req: Request) {
 
   const { verwijderAudio } = await import("@/lib/media");
   await verwijderAudio(site.siteSlug, body.naam);
+  await logActiviteit(site.id, userId, "upload", `Audio opgeruimd: ${body.naam}`);
   return NextResponse.json({ ok: true });
 }

@@ -732,3 +732,44 @@ export const afspraken = pgTable("afspraken", {
   aangemaakt: timestamp("aangemaakt", { withTimezone: true }).notNull().defaultNow(),
   bevestigdOp: timestamp("bevestigd_op", { withTimezone: true }),
 });
+
+// Teamleden van een site naast de eigenaar (Jos, 04-10-2026). De eigenaar
+// nodigt uit per e-mail; clerk_user_id wordt gevuld zodra die persoon inlogt
+// (zelfde koppeling als sites.uitnodiging_email). Per lid stelt de eigenaar in
+// of hij zelf mag publiceren en of hij de formulierberichten mag zien.
+export const siteLeden = pgTable(
+  "site_leden",
+  {
+    id: serial("id").primaryKey(),
+    siteId: integer("site_id")
+      .notNull()
+      .references(() => sites.id),
+    email: text("email").notNull(),
+    naam: text("naam").notNull(),
+    clerkUserId: text("clerk_user_id"),
+    magPubliceren: boolean("mag_publiceren").notNull().default(false),
+    magBerichten: boolean("mag_berichten").notNull().default(false),
+    uitgenodigdDoor: text("uitgenodigd_door"),
+    aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  },
+  (t) => [unique("site_leden_site_email").on(t.siteId, t.email), index("site_leden_gebruiker").on(t.clerkUserId)],
+);
+
+// Logboek: wie deed wat op een site. Ook de bron om bij het publiceren te
+// zeggen wie er nog meer aan het concept werkte (change_id).
+export const siteActiviteit = pgTable(
+  "site_activiteit",
+  {
+    id: serial("id").primaryKey(),
+    siteId: integer("site_id")
+      .notNull()
+      .references(() => sites.id),
+    clerkUserId: text("clerk_user_id"),
+    naam: text("naam").notNull(),
+    soort: text("soort").notNull(),
+    omschrijving: text("omschrijving").notNull(),
+    changeId: integer("change_id"),
+    aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
+  },
+  (t) => [index("site_activiteit_site").on(t.siteId, t.aangemaakt), index("site_activiteit_change").on(t.changeId)],
+);

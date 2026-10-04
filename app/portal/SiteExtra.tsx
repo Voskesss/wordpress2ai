@@ -28,6 +28,7 @@ export default async function SiteExtra({
   mailKleur,
   mailNaamVerbergen,
   online = true,
+  alleenBerichten = false,
 }: {
   siteId: number;
   siteRepo: string;
@@ -40,6 +41,8 @@ export default async function SiteExtra({
   mailNaamVerbergen?: boolean | null;
   /** Staat de site online (worker bestaat)? Anders kan er geen logo geladen of geüpload worden. */
   online?: boolean;
+  /** Teamlid met "berichten zien": alleen de lijst, geen instellingen (die zijn van de eigenaar). */
+  alleenBerichten?: boolean;
 }) {
   // Nog geen logo ingesteld? Dan kijken we of de site er zelf een heeft.
   const gevondenLogo = !mailLogoUrl && online && domein ? await zoekLogo(domein) : null;
@@ -81,6 +84,20 @@ export default async function SiteExtra({
       spamReden: i.spamReden,
       spamStand: i.spamStand,
     }));
+
+  if (alleenBerichten)
+    return (
+      <div data-site-extra className="mt-6 grid gap-6">
+        <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 sm:p-6">
+          <h3 className="font-display text-lg font-semibold">Berichten via je formulieren</h3>
+          {klantZietBerichten(privacy) ? (
+            <InzendingenLijst siteId={siteId} rijen={rijen} />
+          ) : (
+            <p className="mt-2 text-sm text-stone-600">Op deze site worden berichten niet bewaard; ze gaan alleen per mail naar de eigenaar.</p>
+          )}
+        </div>
+      </div>
+    );
 
   return (
     // Eén kolom over de volle breedte: de berichtenlijst is een tabel en heeft

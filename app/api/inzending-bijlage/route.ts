@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { formulierInzendingen, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
+import { magBerichten } from "@/lib/toegang";
 
 /** Bijlage van een formulier-inzending downloaden. Het opslagadres staat alleen
  * in de database en komt nooit in een pagina: wie het bestand wil, vraagt het
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
     .select()
     .from(sites)
     .where(eq(sites.githubRepo, inzending.siteRepo));
-  if (!site || (site.clerkUserId !== userId && !(await isBeheerder())))
+  if (!site || (!(await magBerichten(site, userId))))
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
 
   const bijlagen = (

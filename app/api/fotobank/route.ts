@@ -13,6 +13,7 @@ import { maakBranch, pushBestanden } from "@/lib/github";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
 import { documentAdres, linkUitleg, livePaden } from "@/lib/document-adres";
 import { altTekstenPerBeeld } from "@/lib/beeld-alt";
+import { magBewerken } from "@/lib/toegang";
 
 export const maxDuration = 120;
 
@@ -25,7 +26,7 @@ function stamVan(pad: string): string {
 
 async function magErbij(siteId: number, userId: string) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))) return null;
+  if (!site || (!site.isDemo && !(await magBewerken(site, userId)))) return null;
   return site;
 }
 

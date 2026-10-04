@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
+import { magBewerken } from "@/lib/toegang";
 
 /** Foto-upload buiten de server om. Een verzoek aan onze eigen functies mag
  * hooguit ~4,5 MB zijn; daarboven weigert het platform het vóór onze code.
@@ -43,8 +43,7 @@ export async function POST(req: Request) {
         if (
           !site ||
           (!site.isDemo &&
-            site.clerkUserId !== userId &&
-            !(await isBeheerder()))
+            !(await magBewerken(site, userId)))
         )
           throw new Error("Niet gevonden");
         // Demo: geen eigen foto's (zelfde regel als in de chat)

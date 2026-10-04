@@ -3,9 +3,9 @@ import { gebruikerVanVerzoek } from "@/lib/intern-verzoek";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { isBeheerder } from "@/lib/auth";
 import { changes, sites } from "@/db/schema";
 import { gh, GITHUB_ORG, verwijderBranch } from "@/lib/github";
+import { magPubliceren, logActiviteit } from "@/lib/toegang";
 
 export async function POST(req: Request) {
   // Browser via Clerk, of een ondertekend intern verzoek (WhatsApp-kanaal)
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   if (
     rij.site.isDemo
       ? rij.change.clerkUserId !== userId
-      : rij.site.clerkUserId !== userId && !(await isBeheerder())
+      : !(await magPubliceren(rij.site, userId))
   ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
@@ -102,6 +102,8 @@ export async function POST(req: Request) {
       .update(changes)
       .set({ status: "afgewezen" })
       .where(eq(changes.id, rij.change.id));
+    if (!rij.site.isDemo)
+      await logActiviteit(rij.site.id, userId, "verworpen", `Concept weggegooid: ${rij.change.promptTekst.slice(0, 160)}`, rij.change.id);
 
     return NextResponse.json({ ok: true });
   } finally {

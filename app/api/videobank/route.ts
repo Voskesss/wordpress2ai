@@ -6,10 +6,10 @@ import { NextResponse } from "next/server";
 import { documentAdres, linkUitleg, staatLive } from "@/lib/document-adres";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { alsPagina } from "@/lib/consistentie";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
 import { alleBestandenVan, laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 /** De videobank: alle video's die op de site staan, met hun poster-afbeelding.
  * Video's leven (anders dan audio) in de siterepo zelf, omdat ze na het
@@ -23,7 +23,7 @@ const IS_VIDEO = /\.(mp4|webm|mov)$/i;
 
 async function magErbij(siteId: number, userId: string) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))) return null;
+  if (!site || (!site.isDemo && !(await magBewerken(site, userId)))) return null;
   return site;
 }
 
@@ -200,6 +200,7 @@ export async function POST(req: Request) {
         },
       ])
       .catch((e) => console.error("Videobank-berichten bewaren:", e));
+    await logActiviteit(site.id, userId, "upload", `Video geüpload: ${naam}`);
     return NextResponse.json({ ok: true, pad: `/${videoPad}`, naam });
   } catch (e) {
     console.error("Video in de videobank zetten:", e);

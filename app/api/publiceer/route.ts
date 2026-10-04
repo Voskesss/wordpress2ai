@@ -16,6 +16,7 @@ import {
   deployRepoNaarCloudflareRef,
 } from "@/lib/cloudflare";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
+import { magPubliceren, logActiviteit } from "@/lib/toegang";
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
   if (
     initial.site.isDemo
       ? initial.change.clerkUserId !== userId
-      : initial.site.clerkUserId !== userId && !(await isBeheerder())
+      : !(await magPubliceren(initial.site, userId))
   )
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   const release = await claimOperation(operationScope(initial.site, userId));
@@ -174,6 +175,8 @@ export async function POST(req: Request) {
       .update(changes)
       .set({ status: "gepubliceerd" })
       .where(eq(changes.id, changeId));
+    if (!rij.site.isDemo)
+      await logActiviteit(rij.site.id, userId, "gepubliceerd", `Concept gepubliceerd: ${rij.change.promptTekst.slice(0, 160)}`, changeId);
     // Cleanup cannot turn a successful publication into an apparent failure.
     if (!rij.site.isDemo)
       await verwijderBranch(rij.site.githubRepo, rij.change.branch).catch((e) =>

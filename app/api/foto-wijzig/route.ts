@@ -12,6 +12,7 @@ import { alsPagina } from "@/lib/consistentie";
 import { deployMapNaarCloudflare } from "@/lib/cloudflare";
 import { maakBranch, pushBestanden } from "@/lib/github";
 import { laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { magBewerken, logActiviteit } from "@/lib/toegang";
 
 export const maxDuration = 120;
 
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (
     !site ||
-    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+    (!site.isDemo && !(await magBewerken(site, userId)))
   ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
@@ -372,6 +373,7 @@ export async function POST(req: Request) {
         },
       ]);
 
+      if (!site.isDemo) await logActiviteit(site.id, userId, "concept", omschrijving, changeId);
       await wvDeploy;
       return NextResponse.json({
         ok: true,
