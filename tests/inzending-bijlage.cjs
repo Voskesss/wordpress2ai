@@ -35,13 +35,13 @@ const path = require("node:path");
                   "exports.auth=async()=>({userId:globalThis.state.user});",
                 "next/server":
                   "exports.NextResponse={json:(v,o)=>Response.json(v,o)};",
-                "drizzle-orm": "exports.eq=()=>true;",
+                "drizzle-orm": "exports.eq=()=>true;exports.and=()=>true;",
                 "@/db/schema":
-                  'exports.formulierInzendingen={soort:"inzending"};exports.sites={soort:"site"};',
+                  'exports.formulierInzendingen={soort:"inzending"};exports.sites={soort:"site"};exports.siteLeden={soort:"lid"};exports.siteActiviteit={soort:"log"};',
                 "@/lib/auth":
                   "exports.isBeheerder=async()=>globalThis.state.admin;",
                 "@/db":
-                  'exports.db={select:()=>({from:(t)=>({where:async()=>[t.soort==="inzending"?globalThis.state.inzending:globalThis.state.site]})})};',
+                  'exports.db={select:()=>({from:(t)=>({where:async()=>t.soort==="lid"?(globalThis.state.lid?[globalThis.state.lid]:[]):[t.soort==="inzending"?globalThis.state.inzending:globalThis.state.site]})})};',
               }[a.path],
             }));
           },
@@ -95,6 +95,14 @@ const path = require("node:path");
     reset({ user: "vreemde", admin: true });
     assert.equal((await vraag()).status, 200);
 
+    // 3b) Teamlid (04-10-2026): alleen met "berichten zien" aan
+    reset({ user: "lisa", lid: { clerkUserId: "lisa", magPubliceren: false, magBerichten: true } });
+    assert.equal((await vraag()).status, 200, "teamlid met berichtenrecht krijgt de bijlage niet");
+    reset({ user: "lisa", lid: { clerkUserId: "lisa", magPubliceren: true, magBerichten: false } });
+    res = await vraag();
+    assert.equal(res.status, 404, "teamlid zonder berichtenrecht krijgt de bijlage toch");
+    assert.equal(globalThis.state.opgehaald, null);
+
     // 4) Niet ingelogd
     reset({ user: null });
     assert.equal((await vraag()).status, 401);
@@ -107,7 +115,7 @@ const path = require("node:path");
 
     globalThis.fetch = echteFetch;
     console.log(
-      "PASS: eigenaar downloadt met juiste bestandsnaam, vreemde krijgt 404 zonder dat de opslag wordt benaderd of het adres lekt, beheerder mag wel, uitgelogd geweigerd, onbekende bijlage en onzin-invoer netjes afgehandeld.",
+      "PASS: eigenaar downloadt met juiste bestandsnaam, vreemde krijgt 404 zonder dat de opslag wordt benaderd of het adres lekt, beheerder mag wel, teamlid alleen met berichtenrecht, uitgelogd geweigerd, onbekende bijlage en onzin-invoer netjes afgehandeld.",
     );
   } finally {
     await rm(dir, { recursive: true, force: true });
