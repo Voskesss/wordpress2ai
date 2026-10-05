@@ -107,11 +107,14 @@ for (const naam of ["Laatste stap terugdraaien", "Concept weggooien", "Waar best
   assert.ok(strook.includes(`aria-label="${naam}"`), `knop zonder naam voor een schermlezer: ${naam}`);
 assert.ok((strook.match(/aria-label=/g) ?? []).length >= 4, "niet elke pictogramknop heeft een naam voor een schermlezer");
 assert.ok(strook.includes("aria-expanded"), "het uitklapmenu meldt niet of het open staat");
-// De twee pictogrammen staan in de balk zelf, niet alleen achter de puntjes
+// Sinds 05-10-2026 (Jos: "kan dat geel stuk slimmer?") staat in de balk zelf
+// alleen: wat zit erin, Bekijk, Publiceer/Vraag eigenaar en ⋯. Stap terug en
+// weggooien staan voluit onder ⋯, zodat de balk op een telefoon één regel blijft.
 const balk = strook.slice(strook.indexOf("<div className=\"flex items-center"), strook.indexOf("meerOpen && ("));
-for (const [wat, teken] of [["stap terug", "↩"], ["weggooien", "✕"]] as const) {
-  assert.ok(balk.includes(teken), `${wat} staat niet als pictogram in de balk zelf`);
-}
+for (const zoek of ["onClick={onInhoud}", "onClick={onBekijk}", "onClick={onPubliceer}", "setMeerOpen"])
+  assert.ok(balk.includes(zoek), `de balk mist ${zoek}`);
+const menu = strook.slice(strook.indexOf("meerOpen && ("));
+assert.ok(menu.includes("Stap terug") && menu.includes("Concept weggooien"), "stap terug of weggooien is op een telefoon niet meer te vinden");
 assert.ok(!strook.includes("—"), "lang streepje in de conceptstrook");
 
 // 13. Weggooien is niet terug te draaien en staat op een telefoon als klein
@@ -125,8 +128,7 @@ assert.ok(
 );
 assert.ok(!strook.includes("onClick={onVerwerp}"), "ergens gooit een knop nog zonder navraag weg");
 
-// 14. Vingers zijn geen muisaanwijzers: de pictogrammen zijn minstens 40px
-const maat = strook.match(/h-(\d+) w-\1 shrink-0/)?.[1];
-assert.ok(Number(maat) >= 10, `pictogramknoppen van h-${maat} (${Number(maat) * 4}px) zijn te klein om te raken`);
+// 14. Vingers zijn geen muisaanwijzers: de ⋯-knop en de menuregels zijn ruim
+assert.ok(/px-1\.5 py-1\.5 text-lg/.test(strook) && /px-2 py-1\.5 text-left/.test(strook), "knoppen in de strook zijn te klein om te raken");
 
 console.log("demo-opdrachten: ok");
