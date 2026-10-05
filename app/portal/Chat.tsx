@@ -2726,6 +2726,7 @@ export default function Chat({
                   onClick={nieuwGesprek}
                   disabled={bezig || nieuwBezig || conceptActie !== null}
                   title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
+                  aria-label={mobielChat ? "🧹 Nieuw gesprek" : undefined}
                   className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
                 >
                   {nieuwBezig ? "Gesprek starten..." : mobielChat ? "🧹 Nieuw" : "🧹 Nieuw gesprek"}
