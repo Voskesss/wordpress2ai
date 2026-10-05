@@ -70,6 +70,12 @@ for (const r of ["portal/factuur/[nummer]", "portal/meenemen/gegevens", "portal/
 for (const [r, soort] of [["chat", "concept"], ["publiceer", "gepubliceerd"], ["verwerp", "verworpen"], ["ongedaan", "teruggezet"], ["fotobank/upload", "upload"]])
   assert.ok((await lees(`app/api/${r}/route.ts`)).includes(`"${soort}"`), `${r}: schrijft niets in het logboek`);
 
+// 6b. Teamvenster: elke stap onthoudt welke bestanden hij raakte
+assert.ok((await lees("app/api/chat/route.ts")).includes('"concept", bericht, changeRowId, gewijzigd)'), "chat: pagina's per stap worden niet bewaard");
+for (const r of ["tekst-wijzig", "foto-wijzig", "foto-ordenen"])
+  assert.ok((await lees(`app/api/${r}/route.ts`)).includes("changeId, bestanden.map((b) => b.pad))"), `${r}: pagina's per stap worden niet bewaard`);
+assert.match(await lees("db/migrations/20261005-activiteit-bestanden.sql"), /ADD COLUMN IF NOT EXISTS bestanden jsonb/);
+
 // 7. Portaal: uitnodiging koppelen, team en logboek tonen, migratie bestaat
 const portaal = await lees("app/portal/page.tsx");
 assert.ok(portaal.includes("koppelUitnodigingen(userId, emails)"), "een uitgenodigd teamlid wordt niet gekoppeld");

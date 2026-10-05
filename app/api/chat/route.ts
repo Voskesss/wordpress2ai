@@ -1705,7 +1705,7 @@ Houd je antwoord kort — het leest op een telefoonscherm. Een KEUZES-regel mag 
             }
 
             // Logboek: wie vroeg wat in dit (gedeelde) concept
-            if (!site.isDemo && changeRowId) void logActiviteit(site.id, userId, "concept", bericht, changeRowId);
+            if (!site.isDemo && changeRowId) void logActiviteit(site.id, userId, "concept", bericht, changeRowId, gewijzigd);
             stuur({ type: "status", tekst: "Ik werk mijn voorbeeld bij — een paar tellen nog..." });
             await deployKlaar;
 

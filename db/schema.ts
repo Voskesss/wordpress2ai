@@ -769,6 +769,8 @@ export const siteActiviteit = pgTable(
     soort: text("soort").notNull(),
     omschrijving: text("omschrijving").notNull(),
     changeId: integer("change_id"),
+    // Welke bestanden deze stap raakte: voor het teamvenster bij het concept
+    bestanden: jsonb("bestanden"),
     aangemaakt: timestamp("aangemaakt").notNull().defaultNow(),
   },
   (t) => [index("site_activiteit_site").on(t.siteId, t.aangemaakt), index("site_activiteit_change").on(t.changeId)],

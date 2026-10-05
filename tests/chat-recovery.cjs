@@ -248,6 +248,33 @@ const assert = require("node:assert/strict");
     await page.getByText(/Gepubliceerd!/).first().waitFor();
     assert.equal(await page.getByRole("dialog", { name: "Let op: ook werk van anderen" }).count(), 0);
     assert.equal(publicaties(), voor2 + 1);
+    // Teamvenster (05-10-2026): per stap wie, wat en welke pagina, klikbaar
+    handlers["/api/concept-bijdragers"] = (r) =>
+      r.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          anderen: [],
+          stappen: [
+            { naam: "Lisa de Vries", jij: false, wat: "Zet de openingstijden op zaterdag tot 17:00", paginas: ["contact.html", "afbeeldingen/x.webp"], tijd: "2026-10-05T09:00:00Z" },
+            { naam: "Piet", jij: true, wat: "Maak de kop korter", paginas: ["index.html"], tijd: "2026-10-05T09:05:00Z" },
+          ],
+        }),
+      });
+    await mount({ openConcept: concept, metTeam: true });
+    await page.getByRole("button", { name: "Uitleg bij deze knoppen" }).click();
+    await page.getByRole("button", { name: "👥 Wie deed wat in dit concept" }).click();
+    const venster = page.getByRole("dialog", { name: "Wie deed wat in dit concept" });
+    await venster.getByText("Lisa de Vries").waitFor();
+    assert.ok(await venster.getByText("Jij", { exact: true }).isVisible(), "teamvenster: eigen stap staat er niet als Jij");
+    assert.ok(await venster.getByText(/openingstijden op zaterdag/).isVisible(), "teamvenster: wat Lisa vroeg ontbreekt");
+    assert.ok(await venster.getByText(/1 bestand/).isVisible(), "teamvenster: bestanden die geen pagina zijn worden niet geteld");
+    await page.screenshot({ path: "tests/.uitvoer/teamvenster.png" });
+    const paginaKnoppen = await venster.getByRole("button").allTextContents();
+    assert.ok(paginaKnoppen.length >= 3, `teamvenster: te weinig knoppen (${paginaKnoppen.join(" | ")})`);
+    await venster.getByRole("button").first().click();
+    assert.equal(await venster.count(), 0, "teamvenster: klik op een pagina sluit het venster niet");
+    await page.waitForFunction(() => [...document.querySelectorAll("iframe")].some((f) => (f.getAttribute("src") || "").includes("contact.html")));
+
     // Teamlid zonder publiceerrecht: de knop vraagt de eigenaar, publiceert nooit
     await mount({ openConcept: concept, metTeam: true, magPubliceren: false });
     const voor3 = publicaties();
@@ -259,7 +286,7 @@ const assert = require("node:assert/strict");
     assert.equal(calls.filter((c) => c.path === "/api/verwerp").length, 0, "teamlid zonder recht kon het concept weggooien");
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner. No real APIs called.",
+      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner; team window shows who changed which page. No real APIs called.",
     );
   } finally {
     if (browser) await browser.close();

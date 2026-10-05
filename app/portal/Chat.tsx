@@ -240,6 +240,15 @@ export default function Chat({
   const [verbruikStand, setVerbruikStand] = useState(verbruik);
   // Waarschuwing vóór publiceren: anderen in het team werkten ook aan dit concept
   const [teamWaarschuwing, setTeamWaarschuwing] = useState<{ naam: string; wat: string[] }[] | null>(null);
+  // Teamvenster: alle stappen in het concept, met wie en welke pagina's
+  const [teamStappen, setTeamStappen] = useState<{ naam: string; jij: boolean; wat: string; paginas: string[]; tijd: string }[] | null>(null);
+  async function openTeamvenster() {
+    if (!concept) return;
+    const data = (await fetch(`/api/concept-bijdragers?changeId=${concept.changeId}`)
+      .then((r) => r.json())
+      .catch(() => ({ stappen: [] }))) as { stappen?: { naam: string; jij: boolean; wat: string; paginas: string[]; tijd: string }[] };
+    setTeamStappen(data.stappen ?? []);
+  }
   const [invoer, setInvoer] = useState("");
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
@@ -3257,7 +3266,67 @@ export default function Chat({
                   <button onClick={() => setTeamWaarschuwing(null)} className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 cursor-pointer">
                     Nog niet
                   </button>
+                  <button
+                    onClick={() => {
+                      setTeamWaarschuwing(null);
+                      void openTeamvenster();
+                    }}
+                    className="rounded-full px-3 py-2.5 text-sm font-semibold text-violet-700 hover:underline cursor-pointer"
+                  >
+                    Bekijk welke pagina's
+                  </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {teamStappen && (
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Wie deed wat in dit concept">
+              <div className="w-full max-w-lg max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+                <h3 className="text-lg font-semibold text-stone-900">👥 Wie deed wat in dit concept</h3>
+                {teamStappen.length === 0 ? (
+                  <p className="mt-3 text-sm text-stone-600">Hier staat nog niets bij: dit concept is gemaakt voordat we bijhielden wie wat deed.</p>
+                ) : (
+                  <ol className="mt-4 space-y-3">
+                    {teamStappen.map((st, i) => {
+                      const paginas = st.paginas.filter(isEchtePagina);
+                      const overig = st.paginas.length - paginas.length;
+                      return (
+                        <li key={i} className={`rounded-2xl border px-4 py-3 text-sm ${st.jij ? "border-violet-200 bg-violet-50/60" : "border-amber-200 bg-amber-50"}`}>
+                          <p>
+                            <strong className="text-stone-900">{st.jij ? "Jij" : st.naam}</strong>{" "}
+                            <span className="text-xs text-stone-500">
+                              {new Date(st.tijd).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </p>
+                          <p className="mt-1 text-stone-700 [overflow-wrap:anywhere]">{st.wat}</p>
+                          {(paginas.length > 0 || overig > 0) && (
+                            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-stone-600">
+                              Aangepast:
+                              {paginas.map((pad) => (
+                                <button
+                                  key={pad}
+                                  onClick={() => {
+                                    setTeamStappen(null);
+                                    gaNaar(pad);
+                                  }}
+                                  className="rounded-full border border-stone-300 bg-white px-2.5 py-0.5 font-semibold text-violet-700 hover:border-violet-400 cursor-pointer"
+                                >
+                                  {paginaLabel(pad)}
+                                </button>
+                              ))}
+                              {overig > 0 && <span>{`${paginas.length ? "en " : ""}${overig} bestand${overig === 1 ? "" : "en"}`}</span>}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                <p className="mt-4 text-xs text-stone-500">Klik op een pagina om die in het voorbeeld te bekijken. Publiceren zet alles hierboven live.</p>
+                <button onClick={() => setTeamStappen(null)} className="mt-4 rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 cursor-pointer">
+                  Sluiten
+                </button>
               </div>
             </div>
           )}
@@ -3276,6 +3345,7 @@ export default function Chat({
               onStapTerug={stapTerug}
               onVerwerp={() => conceptVerwerken("verwerp")}
               publiceerLabel={magPubliceren ? "Publiceer" : "Vraag eigenaar"}
+              onTeam={metTeam ? openTeamvenster : undefined}
             />
           )}
           {concept && !isMobiel && (
@@ -3308,6 +3378,14 @@ export default function Chat({
                 Controleer het voorbeeld vóór je publiceert.
               </p>
               <div className="flex flex-wrap gap-2">
+                {metTeam && (
+                  <button
+                    onClick={openTeamvenster}
+                    className="rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                  >
+                    👥 Wie deed wat
+                  </button>
+                )}
                 <button
                   onClick={() => conceptVerwerken("publiceer")}
                   disabled={conceptActie !== null || bezig || nieuwBezig}

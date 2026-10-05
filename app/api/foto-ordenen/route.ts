@@ -305,7 +305,7 @@ export async function POST(req: Request) {
         },
       ]);
 
-      if (!site.isDemo) await logActiviteit(site.id, userId, "concept", omschrijving, changeId);
+      if (!site.isDemo) await logActiviteit(site.id, userId, "concept", omschrijving, changeId, bestanden.map((b) => b.pad));
       await wvDeploy;
       return NextResponse.json({
         ok: true,

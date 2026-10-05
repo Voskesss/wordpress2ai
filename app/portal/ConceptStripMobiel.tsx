@@ -23,6 +23,7 @@ export default function ConceptStripMobiel({
   onStapTerug,
   onVerwerp,
   publiceerLabel = "Publiceer",
+  onTeam,
 }: {
   conceptActie: string | null;
   bezig: boolean;
@@ -34,6 +35,8 @@ export default function ConceptStripMobiel({
   onVerwerp: () => void;
   /** Teamlid zonder publiceerrecht: "Vraag eigenaar" */
   publiceerLabel?: string;
+  /** Site met teamleden: knop "Wie deed wat" in het uitklapmenu */
+  onTeam?: () => void;
 }) {
   const [meerOpen, setMeerOpen] = useState(false);
   const bezetVoorActie = conceptActie !== null || bezig || nieuwBezig;
@@ -111,6 +114,15 @@ export default function ConceptStripMobiel({
           >
             Bekijk het concept op je site
           </button>
+          {onTeam && (
+            <button
+              type="button"
+              onClick={onTeam}
+              className="rounded-lg px-2 py-1.5 text-left text-xs font-medium text-amber-950 hover:bg-amber-100"
+            >
+              👥 Wie deed wat in dit concept
+            </button>
+          )}
           <button
             type="button"
             onClick={onStapTerug}

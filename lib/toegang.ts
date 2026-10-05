@@ -107,6 +107,7 @@ export async function logActiviteit(
   soort: "concept" | "gepubliceerd" | "verworpen" | "teruggezet" | "upload" | "berichten" | "team" | "verzoek",
   omschrijving: string,
   changeId?: number | null,
+  bestanden?: string[],
 ) {
   try {
     await db.insert(siteActiviteit).values({
@@ -116,6 +117,7 @@ export async function logActiviteit(
       soort,
       omschrijving: omschrijving.slice(0, 300),
       changeId: changeId ?? null,
+      bestanden: bestanden?.length ? bestanden.slice(0, 50) : null,
     });
   } catch (e) {
     console.error("Logboek schrijven mislukt:", e);
@@ -145,3 +147,25 @@ export function groepeerBijdragen(rijen: { clerkUserId: string | null; naam: str
   return [...per.values()];
 }
 
+
+export type ConceptStap = { naam: string; jij: boolean; wat: string; paginas: string[]; tijd: string };
+
+/** Alle stappen in dit concept, met wie, wat en welke pagina's: het teamvenster. */
+export async function stappenInConcept(changeId: number, userId: string): Promise<ConceptStap[]> {
+  try {
+    const rijen = await db
+      .select()
+      .from(siteActiviteit)
+      .where(and(eq(siteActiviteit.changeId, changeId), eq(siteActiviteit.soort, "concept")))
+      .orderBy(siteActiviteit.id);
+    return rijen.map((r) => ({
+      naam: r.naam,
+      jij: r.clerkUserId === userId,
+      wat: r.omschrijving,
+      paginas: Array.isArray(r.bestanden) ? (r.bestanden as string[]) : [],
+      tijd: r.aangemaakt.toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}

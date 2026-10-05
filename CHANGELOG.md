@@ -27,7 +27,9 @@ reparaties.
 - Iedereen werkt in één gedeeld concept. Werkte een ander ook aan het concept, dan zie je vóór het publiceren wie wat vroeg, met "Alles publiceren" of "Nog niet".
 - Logboek: wie deed wat (aanpassingen, publiceren, weggooien, terugdraaien, uploads, berichten afgehandeld, teamwijzigingen), in het portaal en op de klantpagina in de admin. Daar kan Jos het team ook beheren.
 - Facturen, opzeggen, akkoorden, privacy en mailinstellingen blijven van de eigenaar. WhatsApp per teamlid volgt in stap 2.
-- Nieuwe tabellen site_leden en site_activiteit (20261004-teamleden.sql): op dev gedraaid, vóór main ook op productie.
+- Nieuwe tabellen site_leden en site_activiteit (20261004-teamleden.sql): op dev en productie gedraaid.
+- Teamvenster bij het concept: "👥 Wie deed wat" (op de telefoon in het ⋯-menu van de conceptstrook) toont per stap wie het vroeg, wat, wanneer en welke pagina's het raakte; klik op een pagina en je ziet hem in het voorbeeld. Ook vanuit de waarschuwing vóór het publiceren, en het logboek noemt de pagina's. Kolom site_activiteit.bestanden (20261005-activiteit-bestanden.sql): dev gedraaid, vóór main ook op productie.
+- Op de telefoon staan geen tips meer onder de chat: die kostten te veel ruimte voor het gesprek.
 
 ## 1.41.3 (3 oktober 2026)
 
