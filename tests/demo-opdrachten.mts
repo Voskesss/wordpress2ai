@@ -103,11 +103,9 @@ for (const [wat, zoek] of [
 }
 // Elke knop moet een naam hebben voor een schermlezer: de twee pictogrammen
 // zeggen zonder label niets.
-assert.equal(
-  (strook.match(/aria-label=/g) ?? []).length,
-  3,
-  "niet elke pictogramknop heeft een naam voor een schermlezer",
-);
+for (const naam of ["Laatste stap terugdraaien", "Concept weggooien", "Waar bestaat dit concept uit?"])
+  assert.ok(strook.includes(`aria-label="${naam}"`), `knop zonder naam voor een schermlezer: ${naam}`);
+assert.ok((strook.match(/aria-label=/g) ?? []).length >= 4, "niet elke pictogramknop heeft een naam voor een schermlezer");
 assert.ok(strook.includes("aria-expanded"), "het uitklapmenu meldt niet of het open staat");
 // De twee pictogrammen staan in de balk zelf, niet alleen achter de puntjes
 const balk = strook.slice(strook.indexOf("<div className=\"flex items-center"), strook.indexOf("meerOpen && ("));
