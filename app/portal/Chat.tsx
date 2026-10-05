@@ -238,6 +238,8 @@ export default function Chat({
   // Tellertje "X van Y wijzigingen deze maand": beginstand van de server,
   // na elke beurt vers uit het klaar-event
   const [verbruikStand, setVerbruikStand] = useState(verbruik);
+  // Telefoon: Hulp & support achter een knop in de kop in plaats van een vaste balk
+  const [hulpMobiel, setHulpMobiel] = useState(false);
   // Waarschuwing vóór publiceren: anderen in het team werkten ook aan dit concept
   const [teamWaarschuwing, setTeamWaarschuwing] = useState<{ naam: string; wat: string[] }[] | null>(null);
   // Teamvenster: alle stappen in het concept, met wie en welke pagina's
@@ -2227,7 +2229,7 @@ export default function Chat({
         )}
         {/* Mobiel: wisselaar tussen chat en site */}
         {isMobiel && (
-          <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1.5">
+          <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1">
             {(
               [
                 ["chat", "💬 Chat"],
@@ -2240,7 +2242,7 @@ export default function Chat({
                   setMobielWeergave(sleutel);
                   setMobielVol(true);
                 }}
-                className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold cursor-pointer ${
+                className={`flex-1 rounded-full px-3 py-1.5 text-sm font-semibold cursor-pointer ${
                   mobielWeergave === sleutel
                     ? "bg-violet-700 text-white shadow"
                     : "text-stone-600"
@@ -2635,7 +2637,8 @@ export default function Chat({
                   // blok hieronder, en dat heeft die kwaal niet.
                   // overflow-x-hidden: zonder rem liet één element dat een paar
                   // pixels te breed is het hele gesprek opzij schuiven.
-                  "flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden bg-white p-3"
+                  // Weinig rand: op een telefoon telt elke pixel voor het gesprek (05-10)
+                  "flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden bg-white px-1.5 pt-0 pb-1.5"
                 : isMobiel
                   ? "hidden"
                 : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
@@ -2646,9 +2649,13 @@ export default function Chat({
           {/* mt-auto op het eerste blok duwt alles naar de onderkant, net als
               justify-end deed, maar zonder de klem aan de bovenkant. Op de
               computer staat hier "contents", dus daar verandert er niets. */}
-          <div className={mobielChat ? "mt-auto" : "contents"}>
-            <ChatHulp onInChat={hulpvraagInChat} />
-          </div>
+          {/* Op de telefoon staat Hulp & support niet als vaste balk boven het
+              gesprek (dat kostte ruimte), maar achter de knop 🛟 in de kop. */}
+          {mobielChat ? <div className="mt-auto" /> : (
+            <div className="contents">
+              <ChatHulp onInChat={hulpvraagInChat} />
+            </div>
+          )}
           {herstelFout && (
             <div role="alert" className="mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-950">
               <p>{herstelFout.tekst}</p>
@@ -2673,8 +2680,8 @@ export default function Chat({
           <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
           {(chatOpen || splitModus || mobielChat) && (
-            <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus || mobielChat ? "flex min-h-0 flex-1 flex-col" : ""}`}>
-              <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2">
+            <div className={mobielChat ? "mb-1.5 flex min-h-0 flex-1 flex-col bg-white" : `mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
+              <div className={`flex items-center justify-between border-b border-stone-100 ${mobielChat ? "px-2 py-1" : "px-4 py-2"}`}>
                 <span className="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-400">
                   Gesprek
                   {verbruikStand && (
@@ -2706,13 +2713,22 @@ export default function Chat({
                   )}
                 </span>
                 <div className="flex items-center gap-1">
+                {mobielChat && (
+                  <button
+                    onClick={() => setHulpMobiel((o) => !o)}
+                    aria-expanded={hulpMobiel}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium cursor-pointer ${hulpMobiel ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"}`}
+                  >
+                    🛟 Hulp
+                  </button>
+                )}
                 <button
                   onClick={nieuwGesprek}
                   disabled={bezig || nieuwBezig || conceptActie !== null}
                   title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
                   className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
                 >
-                  {nieuwBezig ? "Gesprek starten..." : "🧹 Nieuw gesprek"}
+                  {nieuwBezig ? "Gesprek starten..." : mobielChat ? "🧹 Nieuw" : "🧹 Nieuw gesprek"}
                 </button>
                 <button
                   onClick={() => { setRedenVoor(redenVoor === "algemeen" ? null : "algemeen"); setRedenTekst(""); setRedenKlaar(false); }}
@@ -2735,12 +2751,16 @@ export default function Chat({
               </div>
               <div
                 ref={scrollRef}
+                data-gesprek
                 className={
-                  splitModus || mobielChat
+                  mobielChat
+                    ? "flex-1 min-h-0 overflow-y-auto px-2 py-3 space-y-3"
+                    : splitModus
                     ? "flex-1 min-h-0 overflow-y-auto p-4 space-y-3"
                     : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
                 }
               >
+                {mobielChat && hulpMobiel && <ChatHulp onInChat={hulpvraagInChat} beginOpen />}
                 {!isDemo && berichten.length <= 2 && (
                   <MeelezenMelding siteId={siteId} meelezenUit={meelezenUit} />
                 )}

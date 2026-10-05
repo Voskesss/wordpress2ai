@@ -236,6 +236,14 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       assert.equal(m.werkBoven, 56, `telefoon: werkweergave begint niet onder de balk (${m.werkBoven})`);
       assert.ok(m.zichtbaar && m.veldHoogte >= 36 && m.veldOnder <= m.schermHoogte, `telefoon: typveld niet goed in beeld (${m.veldHoogte}px, onder ${m.veldOnder})`);
       assert.ok(await page.getByRole("tab", { name: /Berichten/ }).isVisible(), "telefoon: tabbladen niet zichtbaar");
+      const gesprekHoogte = await page.locator("[data-gesprek]").evaluate((el) => Math.round(el.getBoundingClientRect().height));
+      // Meer ruimte voor het gesprek op de telefoon (Jos 05-10-2026): was 512px
+      assert.ok(gesprekHoogte >= 580, `telefoon: te weinig ruimte voor het gesprek (${gesprekHoogte}px, minimaal 580)`);
+      // Hulp & support staat achter de knop 🛟 Hulp, en is daar wel te vinden
+      assert.ok(!(await page.getByText("Hulp & support").first().isVisible()), "telefoon: Hulp & support staat weer als vaste balk boven het gesprek");
+      await page.getByRole("button", { name: "🛟 Hulp" }).click();
+      assert.ok(await page.getByText(/Vertel wat en waar/).isVisible(), "telefoon: Hulp & support niet bereikbaar via de knop");
+      await page.getByRole("button", { name: "🛟 Hulp" }).click();
       // Geen tips op de telefoon: die kostten te veel ruimte voor het gesprek (05-10-2026)
       assert.equal(await page.locator("[data-tip]").count(), 1, "telefoon: tip-blok ontbreekt helemaal (test klopt niet meer)");
       assert.ok(!(await page.locator("[data-tip]").isVisible()), "telefoon: de tips staan er nog");

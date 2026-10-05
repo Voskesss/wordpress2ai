@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function ChatHulp({ onInChat }: { onInChat?: (vraag: string) => void }) {
+export default function ChatHulp({ onInChat, beginOpen = false }: { onInChat?: (vraag: string) => void; beginOpen?: boolean }) {
   const [vraag, setVraag] = useState("");
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState<{ goed: boolean; tekst: string } | null>(null);
@@ -38,7 +38,7 @@ export default function ChatHulp({ onInChat }: { onInChat?: (vraag: string) => v
   }
 
   return (
-    <details className="mb-2 shrink-0 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700">
+    <details open={beginOpen || undefined} className="mb-2 shrink-0 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700">
       <summary className="cursor-pointer font-semibold">
         🛟 Hulp &amp; support{" "}
         <span className="font-normal text-stone-500">
