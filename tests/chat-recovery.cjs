@@ -302,6 +302,20 @@ const assert = require("node:assert/strict");
     await venster.getByRole("button", { name: "Venster sluiten" }).click();
     assert.equal(await venster.count(), 0, "conceptvenster: kruisje sluit niet");
 
+    // Feedback op de telefoon: venster in beeld, ook als je onderaan het gesprek zit
+    await mount({ historie: Array.from({ length: 30 }, (_, i) => ({ rol: i % 2 ? "assistent" : "klant", tekst: `Bericht ${i + 1} met wat tekst om het gesprek lang te maken` })) });
+    await page.getByRole("button", { name: "💬 Feedback" }).click();
+    const fbVenster = page.getByRole("dialog", { name: "Feedback geven" });
+    const tekstvak = fbVenster.getByRole("textbox", { name: "Je feedback" });
+    await tekstvak.waitFor();
+    const fbVak = await fbVenster.locator("> div").boundingBox();
+    assert.ok(fbVak.y >= 0 && fbVak.y + fbVak.height <= 950, `telefoon: feedbackvenster valt buiten beeld (${JSON.stringify(fbVak)})`);
+    await tekstvak.fill("De knop was lastig te vinden");
+    handlers["/api/portal/chat-feedback"] = (r) => r.fulfill({ contentType: "application/json", body: '{"ok":true}' });
+    await fbVenster.getByRole("button", { name: "Verstuur" }).click();
+    await fbVenster.getByText(/feedback is bij Jos beland/).waitFor();
+    assert.ok(calls.some((c) => c.path === "/api/portal/chat-feedback" && (c.body || "").includes("lastig te vinden")), "telefoon: feedback niet verstuurd");
+
     // Teamlid zonder publiceerrecht: de knop vraagt de eigenaar, publiceert nooit
     await mount({ openConcept: concept, metTeam: true, magPubliceren: false });
     const voor3 = publicaties();
@@ -314,7 +328,7 @@ const assert = require("node:assert/strict");
     assert.equal(calls.filter((c) => c.path === "/api/verwerp").length, 0, "teamlid zonder recht kon het concept weggooien");
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner; concept window shows who changed which page and scrolls on a phone. No real APIs called.",
+      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner; concept window shows who changed which page and scrolls on a phone; feedback opens as a dialog. No real APIs called.",
     );
   } finally {
     if (browser) await browser.close();

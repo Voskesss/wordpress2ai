@@ -30,6 +30,7 @@ reparaties.
 - Nieuwe tabellen site_leden en site_activiteit (20261004-teamleden.sql): op dev en productie gedraaid.
 - "Waar bestaat dit concept uit?": een link in de gele conceptstrook (op de telefoon tik je op "Concept · wat zit erin?") opent een venster met per stap wie het vroeg, wat, wanneer en welke pagina's het raakte; klik op een pagina en je ziet hem in het voorbeeld. Het venster scrolt binnen het scherm, met het sluitkruisje altijd bovenin. Werkt voor iedereen, ook zonder team; bij een ouder concept staan de aangepaste pagina's er. Ook bereikbaar vanuit de waarschuwing vóór het publiceren, en het logboek noemt de pagina's. Kolom site_activiteit.bestanden (20261005-activiteit-bestanden.sql): dev gedraaid, vóór main ook op productie.
 - Meer ruimte voor het gesprek op de telefoon (op 390x844 van 512 naar 600 pixels): geen tips meer onder de chat, geen rand en schaduw om het gesprek, Hulp & support achter de knop 🛟 Hulp in de kop in plaats van een vaste balk, en smallere balken bovenin. De gele conceptstrook is één compacte regel ("Concept, niet live / Wat zit erin?", Bekijk, Publiceer of Vraag eigenaar, ⋯); stap terug en weggooien staan voluit onder ⋯. De kop van het gesprek loopt niet meer over.
+- Feedback geven opent nu als venster midden in beeld, op de telefoon en op de computer. Eerst verscheen het bovenin het gesprek, en wie onderaan zat zag het niet.
 
 ## 1.41.3 (3 oktober 2026)
 

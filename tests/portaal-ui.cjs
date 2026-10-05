@@ -258,6 +258,15 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       await page.evaluate(() => window.mountPortaal("website"));
       await page.waitForSelector(VELD, { state: "attached" });
       assert.ok(await page.locator("[data-tip]").isVisible(), "computer: de tips zijn verdwenen");
+      // Feedback opent als venster midden in beeld, niet ergens bovenin het gesprek (05-10-2026)
+      await page.getByRole("button", { name: "💬 Feedback" }).click();
+      const fb = page.getByRole("dialog", { name: "Feedback geven" });
+      await fb.getByRole("textbox", { name: "Je feedback" }).waitFor();
+      const vak = await fb.locator("> div").boundingBox();
+      assert.ok(vak.y >= 0 && vak.y + vak.height <= 900 && vak.x > 200, `computer: feedbackvenster niet midden in beeld (${JSON.stringify(vak)})`);
+      await page.screenshot({ path: path.join(uitvoer, "feedback-computer.png") });
+      await fb.getByRole("button", { name: "Annuleren" }).click();
+      assert.equal(await fb.count(), 0, "computer: Annuleren sluit het feedbackvenster niet");
       await page.locator('input[type="file"][accept*="image/*"]').first().setInputFiles({ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
       const naam = page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" });
       await naam.waitFor();
