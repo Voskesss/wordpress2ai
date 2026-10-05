@@ -3281,11 +3281,37 @@ export default function Chat({
           )}
 
           {teamStappen && (
-            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Wie deed wat in dit concept">
-              <div className="w-full max-w-lg max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-                <h3 className="text-lg font-semibold text-stone-900">👥 Wie deed wat in dit concept</h3>
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Waar bestaat dit concept uit?">
+              <div className="w-full max-w-lg max-h-[85dvh] overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl sm:p-6">
+                <div className="sticky -top-5 z-10 -mx-5 -mt-5 flex items-start justify-between gap-3 bg-white px-5 pt-5 pb-2 sm:-top-6 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6">
+                  <h3 className="text-lg font-semibold text-stone-900">Waar bestaat dit concept uit?</h3>
+                  <button
+                    onClick={() => setTeamStappen(null)}
+                    aria-label="Venster sluiten"
+                    className="-mr-1 shrink-0 rounded-full px-2 py-0.5 text-lg leading-none text-stone-500 hover:bg-stone-100 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="mt-1 text-sm text-stone-500">Elke stap, wie hem vroeg en welke pagina&apos;s hij raakte. Nog niets hiervan is live.</p>
                 {teamStappen.length === 0 ? (
-                  <p className="mt-3 text-sm text-stone-600">Hier staat nog niets bij: dit concept is gemaakt voordat we bijhielden wie wat deed.</p>
+                  <div className="mt-4 text-sm text-stone-600">
+                    <p>Van dit concept weten we niet per stap wie wat vroeg (het is ouder dan het logboek). Aangepast:</p>
+                    <p className="mt-2 flex flex-wrap gap-1.5">
+                      {(concept?.paginas ?? []).filter(isEchtePagina).map((pad) => (
+                        <button
+                          key={pad}
+                          onClick={() => {
+                            setTeamStappen(null);
+                            gaNaar(pad);
+                          }}
+                          className="rounded-full border border-stone-300 bg-white px-2.5 py-0.5 text-xs font-semibold text-violet-700 hover:border-violet-400 cursor-pointer"
+                        >
+                          {paginaLabel(pad)}
+                        </button>
+                      ))}
+                    </p>
+                  </div>
                 ) : (
                   <ol className="mt-4 space-y-3">
                     {teamStappen.map((st, i) => {
@@ -3345,13 +3371,19 @@ export default function Chat({
               onStapTerug={stapTerug}
               onVerwerp={() => conceptVerwerken("verwerp")}
               publiceerLabel={magPubliceren ? "Publiceer" : "Vraag eigenaar"}
-              onTeam={metTeam ? openTeamvenster : undefined}
+              onInhoud={openTeamvenster}
             />
           )}
           {concept && !isMobiel && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
+                <button
+                  onClick={openTeamvenster}
+                  className="font-semibold underline decoration-amber-400 hover:text-amber-950 cursor-pointer"
+                >
+                  Waar bestaat dit concept uit?
+                </button>{" "}
                 {concept.paginas.length > 0 && (() => {
                   const paginas = concept.paginas.filter(isEchtePagina);
                   const overig = concept.paginas.length - paginas.length;
@@ -3378,14 +3410,6 @@ export default function Chat({
                 Controleer het voorbeeld vóór je publiceert.
               </p>
               <div className="flex flex-wrap gap-2">
-                {metTeam && (
-                  <button
-                    onClick={openTeamvenster}
-                    className="rounded-full border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
-                  >
-                    👥 Wie deed wat
-                  </button>
-                )}
                 <button
                   onClick={() => conceptVerwerken("publiceer")}
                   disabled={conceptActie !== null || bezig || nieuwBezig}

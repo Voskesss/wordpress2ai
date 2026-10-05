@@ -248,32 +248,48 @@ const assert = require("node:assert/strict");
     await page.getByText(/Gepubliceerd!/).first().waitFor();
     assert.equal(await page.getByRole("dialog", { name: "Let op: ook werk van anderen" }).count(), 0);
     assert.equal(publicaties(), voor2 + 1);
-    // Teamvenster (05-10-2026): per stap wie, wat en welke pagina, klikbaar
+    // "Waar bestaat dit concept uit?" (05-10-2026): vanuit de gele strook een
+    // venster met per stap wie, wat en welke pagina, dat op de telefoon scrolt
+    const stappen = Array.from({ length: 12 }, (_, i) => ({
+      naam: i % 2 ? "Piet" : "Lisa de Vries",
+      jij: i % 2 === 1,
+      wat: i === 0 ? "Zet de openingstijden op zaterdag tot 17:00" : `Stap ${i + 1}: maak de tekst over onderhoud wat korter en vriendelijker`,
+      paginas: i === 0 ? ["contact.html", "afbeeldingen/x.webp"] : ["index.html"],
+      tijd: "2026-10-05T09:00:00Z",
+    }));
     handlers["/api/concept-bijdragers"] = (r) =>
-      r.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({
-          anderen: [],
-          stappen: [
-            { naam: "Lisa de Vries", jij: false, wat: "Zet de openingstijden op zaterdag tot 17:00", paginas: ["contact.html", "afbeeldingen/x.webp"], tijd: "2026-10-05T09:00:00Z" },
-            { naam: "Piet", jij: true, wat: "Maak de kop korter", paginas: ["index.html"], tijd: "2026-10-05T09:05:00Z" },
-          ],
-        }),
-      });
-    await mount({ openConcept: concept, metTeam: true });
-    await page.getByRole("button", { name: "Uitleg bij deze knoppen" }).click();
-    await page.getByRole("button", { name: "👥 Wie deed wat in dit concept" }).click();
-    const venster = page.getByRole("dialog", { name: "Wie deed wat in dit concept" });
-    await venster.getByText("Lisa de Vries").waitFor();
-    assert.ok(await venster.getByText("Jij", { exact: true }).isVisible(), "teamvenster: eigen stap staat er niet als Jij");
-    assert.ok(await venster.getByText(/openingstijden op zaterdag/).isVisible(), "teamvenster: wat Lisa vroeg ontbreekt");
-    assert.ok(await venster.getByText(/1 bestand/).isVisible(), "teamvenster: bestanden die geen pagina zijn worden niet geteld");
-    await page.screenshot({ path: "tests/.uitvoer/teamvenster.png" });
-    const paginaKnoppen = await venster.getByRole("button").allTextContents();
-    assert.ok(paginaKnoppen.length >= 3, `teamvenster: te weinig knoppen (${paginaKnoppen.join(" | ")})`);
-    await venster.getByRole("button").first().click();
-    assert.equal(await venster.count(), 0, "teamvenster: klik op een pagina sluit het venster niet");
+      r.fulfill({ contentType: "application/json", body: JSON.stringify({ anderen: [], stappen }) });
+    await mount({ openConcept: concept });
+    await page.getByRole("button", { name: "Waar bestaat dit concept uit?" }).first().click();
+    const venster = page.getByRole("dialog", { name: "Waar bestaat dit concept uit?" });
+    await venster.getByText("Lisa de Vries").first().waitFor();
+    assert.ok(await venster.getByText("Jij", { exact: true }).first().isVisible(), "conceptvenster: eigen stap staat er niet als Jij");
+    assert.ok(await venster.getByText(/openingstijden op zaterdag/).isVisible(), "conceptvenster: wat Lisa vroeg ontbreekt");
+    assert.ok(await venster.getByText(/1 bestand/).isVisible(), "conceptvenster: bestanden die geen pagina zijn worden niet geteld");
+    // Scrolt binnen het scherm: past niet, maar de laatste stap is bereikbaar
+    const kader = venster.locator("> div");
+    const maat = await kader.evaluate((el) => ({ scroll: el.scrollHeight, zicht: el.clientHeight, onder: el.getBoundingClientRect().bottom, scherm: window.innerHeight }));
+    assert.ok(maat.scroll > maat.zicht, `conceptvenster: test heeft te weinig stappen om te scrollen (${maat.scroll}/${maat.zicht})`);
+    assert.ok(maat.onder <= maat.scherm, "conceptvenster: loopt onder het scherm uit");
+    await venster.getByText("Stap 12:").scrollIntoViewIfNeeded();
+    assert.ok(await venster.getByText("Stap 12:", { exact: false }).isVisible(), "conceptvenster: laatste stap niet bereikbaar door te scrollen");
+    assert.ok(await venster.getByRole("button", { name: "Sluiten", exact: true }).isVisible(), "conceptvenster: Sluiten niet bereikbaar");
+    // Het kruisje bovenin blijft staan, ook na het scrollen
+    assert.ok(await venster.getByRole("button", { name: "Venster sluiten" }).isVisible(), "conceptvenster: sluitkruisje scrolt weg");
+    await page.screenshot({ path: "tests/.uitvoer/conceptvenster-gescrold.png" });
+    await kader.evaluate((el) => el.scrollTo(0, 0));
+    await page.screenshot({ path: "tests/.uitvoer/conceptvenster.png" });
+    await venster.getByRole("button", { name: "contact" }).click();
+    assert.equal(await venster.count(), 0, "conceptvenster: klik op een pagina sluit het venster niet");
     await page.waitForFunction(() => [...document.querySelectorAll("iframe")].some((f) => (f.getAttribute("src") || "").includes("contact.html")));
+    // Ouder concept zonder stappen: dan de aangepaste pagina's van het concept
+    handlers["/api/concept-bijdragers"] = (r) => r.fulfill({ contentType: "application/json", body: '{"anderen":[],"stappen":[]}' });
+    await mount({ openConcept: concept });
+    await page.getByRole("button", { name: "Waar bestaat dit concept uit?" }).first().click();
+    await venster.getByText(/ouder dan het logboek/).waitFor();
+    assert.ok(await venster.getByRole("button", { name: "contact" }).isVisible(), "conceptvenster: pagina's van een ouder concept ontbreken");
+    await venster.getByRole("button", { name: "Venster sluiten" }).click();
+    assert.equal(await venster.count(), 0, "conceptvenster: kruisje sluit niet");
 
     // Teamlid zonder publiceerrecht: de knop vraagt de eigenaar, publiceert nooit
     await mount({ openConcept: concept, metTeam: true, magPubliceren: false });
@@ -286,7 +302,7 @@ const assert = require("node:assert/strict");
     assert.equal(calls.filter((c) => c.path === "/api/verwerp").length, 0, "teamlid zonder recht kon het concept weggooien");
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner; team window shows who changed which page. No real APIs called.",
+      "PASS: failed new conversation preserves history; reset success; HTTP chat error; photo and draft recovery; queued edits pause after failure; publication retries the same concept; team warning before publishing others' work; teammate without rights asks the owner; concept window shows who changed which page and scrolls on a phone. No real APIs called.",
     );
   } finally {
     if (browser) await browser.close();
