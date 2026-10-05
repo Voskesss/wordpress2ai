@@ -204,10 +204,10 @@ const assert = require("node:assert/strict");
       .getByText(/Geen bevestiging/)
       .waitFor();
     // Het concept staat nog open (niet als gepubliceerd behandeld). Op dit
-    // telefoonformaat is dat de compacte conceptbalk (sinds 1.24.0), op een
-    // computer het gele blok; beide hebben de knop "Concept weggooien".
+    // telefoonformaat is dat de compacte conceptbalk (sinds 1.24.0); sinds
+    // 05-10 staat weggooien daar onder de drie puntjes.
     await page
-      .getByRole("button", { name: "Concept weggooien" })
+      .getByRole("button", { name: "Waar bestaat dit concept uit?" })
       .first()
       .waitFor();
     handlers["/api/publiceer"] = (r) =>
@@ -259,6 +259,17 @@ const assert = require("node:assert/strict");
     }));
     handlers["/api/concept-bijdragers"] = (r) =>
       r.fulfill({ contentType: "application/json", body: JSON.stringify({ anderen: [], stappen }) });
+    await mount({ openConcept: concept, magPubliceren: false, verbruik: { procent: 8 } });
+    // Telefoon (05-10-2026): de gele strook blijft één compacte regel, ook met
+    // de lange knop "Vraag eigenaar", en de kop van het gesprek loopt niet over
+    const strook = page.getByRole("button", { name: "Waar bestaat dit concept uit?" }).first().locator("xpath=ancestor::div[contains(@class,'border-amber-400')][1]");
+    const strookHoogte = await strook.evaluate((el) => el.getBoundingClientRect().height);
+    assert.ok(strookHoogte <= 64, `telefoon: gele strook is ${strookHoogte}px hoog (max 64)`);
+    for (const naam of ["🛟 Hulp", "🧹 Nieuw gesprek", "💬 Feedback"]) {
+      const h = await page.getByRole("button", { name: naam, exact: true }).evaluate((el) => el.getBoundingClientRect().height);
+      assert.ok(h <= 30, `telefoon: knop ${naam} loopt over twee regels (${h}px)`);
+    }
+    await page.screenshot({ path: "tests/.uitvoer/telefoon-strook.png" });
     await mount({ openConcept: concept });
     await page.getByRole("button", { name: "Waar bestaat dit concept uit?" }).first().click();
     const venster = page.getByRole("dialog", { name: "Waar bestaat dit concept uit?" });
@@ -297,6 +308,7 @@ const assert = require("node:assert/strict");
     await page.getByRole("button", { name: "Vraag eigenaar", exact: true }).click();
     await page.getByText(/Laat het de eigenaar zelf even weten|eigenaar gevraagd/).first().waitFor();
     assert.equal(publicaties(), voor3, "teamlid zonder recht kon toch publiceren");
+    await page.getByRole("button", { name: "Uitleg bij deze knoppen" }).click();
     await page.getByRole("button", { name: "Concept weggooien" }).first().click();
     await page.getByText(/weggooien kan alleen iemand die mag publiceren/).first().waitFor();
     assert.equal(calls.filter((c) => c.path === "/api/verwerp").length, 0, "teamlid zonder recht kon het concept weggooien");

@@ -9,9 +9,10 @@ import { useState } from "react";
  * het scherm, precies waar de chat hoort te staan. Deze strook doet hetzelfde
  * werk in 48.
  *
- * Alle vier de acties staan in de balk zelf, twee als pictogram. Wie niet weet
- * wat een pijltje of een kruisje betekent, klapt met de drie puntjes uit en
- * leest ze voluit. Niets zit dus alléén achter dat menu verstopt.
+ * In de balk zelf: wat zit erin, Bekijk en Publiceer (of Vraag eigenaar).
+ * Stap terug en weggooien staan voluit onder de drie puntjes: als pictogram
+ * in de balk drukten ze de tekst op een telefoon naar vier regels (Jos,
+ * 05-10-2026), en ze zijn minder vaak nodig.
  */
 export default function ConceptStripMobiel({
   conceptActie,
@@ -40,14 +41,8 @@ export default function ConceptStripMobiel({
 }) {
   const [meerOpen, setMeerOpen] = useState(false);
   const bezetVoorActie = conceptActie !== null || bezig || nieuwBezig;
-  // 40 pixels: een vinger is geen muisaanwijzer. Op 32 zaten twee knoppen met
-  // heel verschillende gevolgen te dicht op elkaar.
-  const pictogram =
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm disabled:opacity-40";
-
   /** Weggooien is niet terug te draaien en staat naast "stap terug", dus
-   * vragen we het één keer na. Op de computer staat er een woord op de knop;
-   * hier een kruisje, en een mistik kost je al je werk. */
+   * vragen we het één keer na: een mistik kost je al je werk. */
   function weggooienMetVraag() {
     if (window.confirm("Het concept weggooien? Je site blijft dan zoals hij nu is, en je wijziging is weg.")) {
       onVerwerp();
@@ -64,34 +59,14 @@ export default function ConceptStripMobiel({
             aria-label="Waar bestaat dit concept uit?"
             className="min-w-0 flex-1 text-left text-xs font-semibold leading-tight text-amber-950"
           >
-            Concept <span className="font-medium">· niet live</span>
-            <span className="block text-[10px] font-medium underline decoration-amber-400">Wat zit erin?</span>
+            <span className="block truncate">Concept, niet live</span>
+            <span className="block truncate text-[11px] font-medium underline decoration-amber-400">Wat zit erin?</span>
           </button>
         ) : (
           <span className="min-w-0 flex-1 text-xs font-semibold leading-tight text-amber-950">
             Concept<span className="block text-[10px] font-medium">Niet live</span>
           </span>
         )}
-        <button
-          type="button"
-          onClick={onStapTerug}
-          disabled={conceptActie !== null || stapTerugBezig || bezig}
-          aria-label="Laatste stap terugdraaien"
-          title="Laatste stap terugdraaien"
-          className={`${pictogram} border-amber-300 text-amber-950`}
-        >
-          {stapTerugBezig ? "…" : "↩"}
-        </button>
-        <button
-          type="button"
-          onClick={weggooienMetVraag}
-          disabled={bezetVoorActie}
-          aria-label="Concept weggooien"
-          title="Concept weggooien"
-          className={`${pictogram} border-red-300 text-red-700`}
-        >
-          {conceptActie === "verwerp" ? "…" : "✕"}
-        </button>
         <button
           type="button"
           onClick={onBekijk}
@@ -130,17 +105,19 @@ export default function ConceptStripMobiel({
             type="button"
             onClick={onStapTerug}
             disabled={conceptActie !== null || stapTerugBezig || bezig}
+            aria-label="Laatste stap terugdraaien"
             className="rounded-lg px-2 py-1.5 text-left text-xs font-medium text-amber-950 hover:bg-amber-100 disabled:opacity-50"
           >
-            ↩ Stap terug: draait alleen je laatste stap terug
+            {stapTerugBezig ? "Bezig..." : "↩ Stap terug: draait alleen de laatste stap terug"}
           </button>
           <button
             type="button"
             onClick={weggooienMetVraag}
             disabled={bezetVoorActie}
+            aria-label="Concept weggooien"
             className="rounded-lg px-2 py-1.5 text-left text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
           >
-            ✕ Concept weggooien: je site blijft zoals hij was
+            {conceptActie === "verwerp" ? "Bezig..." : "✕ Concept weggooien: je site blijft zoals hij was"}
           </button>
         </div>
       )}

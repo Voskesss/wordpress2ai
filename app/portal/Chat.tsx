@@ -2683,14 +2683,15 @@ export default function Chat({
             <div className={mobielChat ? "mb-1.5 flex min-h-0 flex-1 flex-col bg-white" : `mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
               <div className={`flex items-center justify-between border-b border-stone-100 ${mobielChat ? "px-2 py-1" : "px-4 py-2"}`}>
                 <span className="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-400">
-                  Gesprek
+                  {/* Telefoon: geen woord "Gesprek", de knoppen hebben de ruimte nodig (05-10) */}
+                  {!mobielChat && "Gesprek"}
                   {verbruikStand && (
                     <Tip
                       tekst={`Je pakket bevat elke maand een vaste hoeveelheid AI-werk. Grote klussen (een nieuwe pagina, een galerij) gebruiken meer dan een tekstje aanpassen; op de 1e van de maand begin je weer opnieuw. Bijna op en nog van alles te doen? Stuur ons even een berichtje.`}
                       plaats="onder"
                     >
                       <span className="flex items-center gap-1.5 normal-case tracking-normal">
-                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-stone-200 sm:w-24">
+                        <span className={`h-1.5 overflow-hidden rounded-full bg-stone-200 ${mobielChat ? "w-10" : "w-16 sm:w-24"}`}>
                           <span
                             className={`block h-full rounded-full ${
                               verbruikStand.procent >= 100
@@ -2717,7 +2718,7 @@ export default function Chat({
                   <button
                     onClick={() => setHulpMobiel((o) => !o)}
                     aria-expanded={hulpMobiel}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium cursor-pointer ${hulpMobiel ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"}`}
+                    className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium cursor-pointer ${hulpMobiel ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"}`}
                   >
                     🛟 Hulp
                   </button>
@@ -2727,18 +2728,18 @@ export default function Chat({
                   disabled={bezig || nieuwBezig || conceptActie !== null}
                   title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
                   aria-label={mobielChat ? "🧹 Nieuw gesprek" : undefined}
-                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
+                  className={`whitespace-nowrap rounded-full py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer ${mobielChat ? "px-2" : "px-2.5"}`}
                 >
                   {nieuwBezig ? "Gesprek starten..." : mobielChat ? "🧹 Nieuw" : "🧹 Nieuw gesprek"}
                 </button>
                 <button
                   onClick={() => { setRedenVoor(redenVoor === "algemeen" ? null : "algemeen"); setRedenTekst(""); setRedenKlaar(false); }}
                   title="We verbeteren de chatbeleving continu — vertel wat er beter kan"
-                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer"
+                  className={`whitespace-nowrap rounded-full py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer ${mobielChat ? "px-2" : "px-2.5"}`}
                 >
                   💬 Feedback
                 </button>
-                <button
+                {!mobielChat && <button
                   onClick={() => setChatOpen(false)}
                   aria-label="Gesprek inklappen"
                   title="Gesprek inklappen"
@@ -2747,7 +2748,7 @@ export default function Chat({
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" transform="rotate(180 12 12)" />
                   </svg>
-                </button>
+                </button>}
                 </div>
               </div>
               <div
