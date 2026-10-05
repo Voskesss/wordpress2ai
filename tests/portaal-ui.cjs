@@ -236,6 +236,9 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       assert.equal(m.werkBoven, 56, `telefoon: werkweergave begint niet onder de balk (${m.werkBoven})`);
       assert.ok(m.zichtbaar && m.veldHoogte >= 36 && m.veldOnder <= m.schermHoogte, `telefoon: typveld niet goed in beeld (${m.veldHoogte}px, onder ${m.veldOnder})`);
       assert.ok(await page.getByRole("tab", { name: /Berichten/ }).isVisible(), "telefoon: tabbladen niet zichtbaar");
+      // Geen tips op de telefoon: die kostten te veel ruimte voor het gesprek (05-10-2026)
+      assert.equal(await page.locator("[data-tip]").count(), 1, "telefoon: tip-blok ontbreekt helemaal (test klopt niet meer)");
+      assert.ok(!(await page.locator("[data-tip]").isVisible()), "telefoon: de tips staan er nog");
       await page.screenshot({ path: path.join(uitvoer, "portaal-telefoon.png") });
       await page.close();
     }
@@ -246,6 +249,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       const page = await nieuwePagina(1440, 900);
       await page.evaluate(() => window.mountPortaal("website"));
       await page.waitForSelector(VELD, { state: "attached" });
+      assert.ok(await page.locator("[data-tip]").isVisible(), "computer: de tips zijn verdwenen");
       await page.locator('input[type="file"][accept*="image/*"]').first().setInputFiles({ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
       const naam = page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" });
       await naam.waitFor();

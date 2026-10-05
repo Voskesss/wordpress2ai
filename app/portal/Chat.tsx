@@ -4280,8 +4280,10 @@ export default function Chat({
           {/* Wisselende tip: mensen weten vaak niet dat ze gewoon mogen práten
               tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
               keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
+          {/* Op de telefoon geen tips: daar kostte het blok een flink deel van
+              de ruimte voor het gesprek (Jos, 05-10-2026). */}
           {!tipWeg && !bezig && (
-            <div className="mt-2.5 flex shrink-0 justify-center px-2">
+            <div data-tip className="mt-2.5 hidden shrink-0 justify-center px-2 sm:flex">
               <div className="flex w-full max-w-[46rem] items-start gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/90 px-4 py-2.5 shadow-sm backdrop-blur">
                 <span aria-hidden className="mt-0.5 text-base leading-none">💡</span>
                 <button
