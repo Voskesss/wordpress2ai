@@ -15,6 +15,7 @@ import {
   laadWerkmap,
   ruimWerkmapOp,
 } from "@/lib/werkmap";
+import { magBewerken } from "@/lib/toegang";
 
 export const maxDuration = 120;
 
@@ -73,7 +74,7 @@ export async function GET(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (
     !site ||
-    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+    (!site.isDemo && !(await magBewerken(site, userId)))
   ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
@@ -151,7 +152,7 @@ export async function POST(req: Request) {
   const [site] = await db.select().from(sites).where(eq(sites.id, body.siteId));
   if (
     !site ||
-    (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))
+    (!site.isDemo && !(await magBewerken(site, userId)))
   ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }

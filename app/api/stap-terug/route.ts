@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { gh, GITHUB_ORG } from "@/lib/github";
 import { deployRepoNaarCloudflareRef } from "@/lib/cloudflare";
+import { magBewerken } from "@/lib/toegang";
 
 export const maxDuration = 120;
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   if (
     rij.site.isDemo
       ? rij.change.clerkUserId !== userId
-      : rij.site.clerkUserId !== userId && !(await isBeheerder())
+      : !(await magBewerken(rij.site, userId))
   ) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }

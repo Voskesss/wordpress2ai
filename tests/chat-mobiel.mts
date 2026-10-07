@@ -35,7 +35,8 @@ assert.ok(klassen.includes("overflow-x-hidden"), "zonder rem laat één te breed
 
 // 3. Alles staat nog steeds onderaan, via het eerste blok
 assert.ok(
-  chat.includes('className={mobielChat ? "mt-auto" : "contents"}'),
+  // Sinds 05-10 is dat eerste blok op de telefoon een leeg mt-auto-blok (Hulp zit achter een knop)
+  chat.includes('{mobielChat ? <div className="mt-auto" /> : ('),
   "zonder mt-auto op het eerste blok plakt het gesprek niet meer aan de onderkant",
 );
 

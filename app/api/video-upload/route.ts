@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { sites } from "@/db/schema";
 import { isBeheerder } from "@/lib/auth";
 import { rendiComprimeer, rendiStatus } from "@/lib/rendi";
+import { magBewerken } from "@/lib/toegang";
 
 export const maxDuration = 60;
 
@@ -14,7 +15,7 @@ const MAX_VIDEO = 500 * 1024 * 1024;
 
 async function magErbij(siteId: number, userId: string) {
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))) return null;
+  if (!site || (!site.isDemo && !(await magBewerken(site, userId)))) return null;
   return site;
 }
 

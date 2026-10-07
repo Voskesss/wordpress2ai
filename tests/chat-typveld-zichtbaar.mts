@@ -10,10 +10,12 @@ import { readFile } from "node:fs/promises";
 const chat = await readFile("app/portal/Chat.tsx", "utf8");
 const balk = chat.slice(chat.indexOf("{/* Invoerbalk */}"), chat.indexOf("{/* Invoerbalk */}") + 1200);
 assert.ok(/className=\{`shrink-0 \$\{smalleBalk/.test(balk), "de invoerbalk mag krimpen, dan valt het typveld weg");
-assert.ok(chat.includes('<div className="mt-2.5 flex shrink-0 justify-center px-2">'), "de tip mag krimpen en drukt het typveld weg");
+// Sinds 05-10 staat de tip alleen op een groter scherm (sm:flex), maar ook daar mag hij niet krimpen
+assert.ok(/<div data-tip className="[^"]*\bshrink-0\b[^"]*"/.test(chat), "de tip mag krimpen en drukt het typveld weg");
 assert.ok(/"flex w-\[26rem\][^"]*overflow-y-auto overflow-x-hidden/.test(chat), "de kolom krijgt een horizontale schuifbalk");
 // Het gesprek zelf moet wél kunnen krimpen en scrollen
-assert.ok(chat.includes('splitModus || mobielChat ? "flex min-h-0 flex-1 flex-col" : ""'), "het gesprek kan niet meer krimpen");
+// Sinds 05-10 heeft de telefoon een eigen, randloze klassenregel; beide moeten kunnen krimpen
+assert.ok(chat.includes('mobielChat ? "mb-1.5 flex min-h-0 flex-1 flex-col bg-white"') && chat.includes('splitModus ? "flex min-h-0 flex-1 flex-col" : ""'), "het gesprek kan niet meer krimpen");
 
 // Tweede oorzaak (01-10, schermafbeelding zonder voorbeeldtekst): de chat blijft
 // gemount in een verborgen tabblad. Daar is scrollHeight 0, en het veld werd

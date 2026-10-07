@@ -12,6 +12,9 @@ import { geefWebsiteAkkoord } from "./acties";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
 import Aankondigingen from "./Aankondigingen";
+import Logboek from "./Logboek";
+import TeamBlok from "./TeamBlok";
+import TeamUitleg from "./TeamUitleg";
 import { demoWorker } from "@/lib/demo";
 import SiteExtra from "./SiteExtra";
 import EigenMailserver from "./EigenMailserver";
@@ -54,14 +57,27 @@ export default async function Portal({
       .catch(() => {});
   }
 
+  // Teamleden: uitnodiging koppelen en de sites waar je aan meewerkt erbij
+  const { koppelUitnodigingen, siteIdsAlsLid, toegangTot } = await import("@/lib/toegang");
+  await koppelUitnodigingen(userId, emails);
+  const lidIds = await siteIdsAlsLid(userId);
+  const { inArray: inLijst } = await import("drizzle-orm");
   let mijnSites = await db
     .select()
     .from(sites)
-    .where(or(eq(sites.clerkUserId, userId), eq(sites.isDemo, true)));
+    .where(
+      or(
+        eq(sites.clerkUserId, userId),
+        eq(sites.isDemo, true),
+        ...(lidIds.length ? [inLijst(sites.id, lidIds)] : []),
+      ),
+    );
+  const isEigenOfLid = (s: (typeof mijnSites)[number]) => !s.isDemo && (s.clerkUserId === userId || lidIds.includes(s.id));
   // Echte klanten zien hun eigen site(s), niet ook nog de probeer-demo
   const heeftEigenSite = mijnSites.some(
     (s) => !s.isDemo && s.clerkUserId === userId,
   );
+  const werktMee = mijnSites.some((s) => !s.isDemo && lidIds.includes(s.id));
 
   // Meekijk-modus: een beheerder opent via ?site= elke klantsite precies zoals
   // de klant hem ziet (gele balk erboven). Zo hoeft een site nooit eerst aan
@@ -99,17 +115,24 @@ export default async function Portal({
   // Meerdere websites? Eén tegelijk tonen, met een keuzebalk erboven.
   // Standaard de eigen site (niet de demo), anders de eerste.
   const gekozenId = Number(gekozenParam);
-  if (heeftEigenSite) mijnSites = mijnSites.filter((s) => !s.isDemo);
+  if (heeftEigenSite || werktMee) mijnSites = mijnSites.filter((s) => !s.isDemo);
   // Meerdere websites zonder keuze in het adres? Dan eerst een overzicht,
   // niet meteen in de eerste website belanden.
   const toonOverzicht = mijnSites.length > 1 && !mijnSites.some((s) => s.id === gekozenId);
   const getoondeSite = toonOverzicht
     ? undefined
     : (mijnSites.find((s) => s.id === gekozenId) ??
-      mijnSites.find((s) => !s.isDemo && s.clerkUserId === userId) ??
+      mijnSites.find((s) => isEigenOfLid(s)) ??
       mijnSites[0]);
   const herstelMap: Record<number, number> = {};
   const getoondeSites = getoondeSite ? [getoondeSite] : [];
+  // Wat mag deze gebruiker op de getoonde site: eigenaar, teamlid of beheerder
+  const toegang = getoondeSite && !getoondeSite.isDemo ? await toegangTot(getoondeSite, userId) : null;
+  const isTeamlid = toegang?.rol === "meewerker";
+  const { siteLeden: ledenTabel } = await import("@/db/schema");
+  const heeftTeam = getoondeSite && !getoondeSite.isDemo
+    ? (await db.select({ id: ledenTabel.id }).from(ledenTabel).where(eq(ledenTabel.siteId, getoondeSite.id)).limit(1).catch(() => [])).length > 0
+    : false;
 
   // Site in opbouw en nog geen akkoord op de oplevering? Eerst het akkoordscherm,
   // tenzij de klant koos om eerst uit te proberen (dan een balkje bovenaan).
@@ -253,7 +276,19 @@ export default async function Portal({
         </>
       }
       berichten={
-        metTabs && getoondeSite ? (
+        metTabs && getoondeSite && isTeamlid ? (
+          <div className={tabHouder}>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Berichten</h1>
+            <p className="mt-1 text-stone-500">Wat bezoekers via de formulieren sturen. {getoondeSite.naam}</p>
+            {toegang?.magBerichten ? (
+              <SiteExtra siteId={getoondeSite.id} siteRepo={getoondeSite.githubRepo} siteNaam={getoondeSite.naam} notificatieEmail={null} alleenBerichten />
+            ) : (
+              <p className="mt-6 rounded-2xl border border-stone-200 bg-white p-5 text-sm text-stone-600">
+                De berichten van de formulieren staan voor jou uit. De eigenaar kan dat aanzetten in het tabblad Account, bij Team.
+              </p>
+            )}
+          </div>
+        ) : metTabs && getoondeSite ? (
           <div className={tabHouder}>
             <h1 className="font-display text-3xl font-semibold tracking-tight">Berichten &amp; mail</h1>
             <p className="mt-1 text-stone-500">
@@ -291,10 +326,31 @@ export default async function Portal({
         metTabs && getoondeSite ? (
           <div className={tabHouder}>
             <h1 className="font-display text-3xl font-semibold tracking-tight">Account</h1>
-            <p className="mt-1 text-stone-500">Facturen, je gegevens meenemen en privacy. {getoondeSite.naam}</p>
-            <KlantFacturen siteId={getoondeSite.id} />
-            <MeenemenBlok siteId={getoondeSite.id} />
-            <MeelezenRegel siteId={getoondeSite.id} meelezenUit={getoondeSite.meelezenUit} />
+            {isTeamlid ? (
+              <>
+                <p className="mt-1 text-stone-500">Je werkt mee aan {getoondeSite.naam}.</p>
+                <section className="mt-6 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
+                  <h2 className="font-display text-xl font-semibold">👥 Jij in het team</h2>
+                  <ul className="mt-3 space-y-1 text-sm text-stone-700">
+                    <li>✓ De website aanpassen via de chat</li>
+                    <li>{toegang?.magPubliceren ? "✓ Zelf publiceren" : "✕ Zelf publiceren: je vraagt de eigenaar om je concept live te zetten"}</li>
+                    <li>{toegang?.magBerichten ? "✓ De berichten van de formulieren zien" : "✕ De berichten van de formulieren zien"}</li>
+                  </ul>
+                  <p className="mt-3 text-xs text-stone-500">Wat je mag, stelt de eigenaar in. Facturen en instellingen blijven bij de eigenaar.</p>
+                  <TeamUitleg />
+                </section>
+                <Logboek siteId={getoondeSite.id} />
+              </>
+            ) : (
+              <>
+                <p className="mt-1 text-stone-500">Facturen, je team, je gegevens meenemen en privacy. {getoondeSite.naam}</p>
+                <TeamBlok siteId={getoondeSite.id} />
+                <Logboek siteId={getoondeSite.id} />
+                <KlantFacturen siteId={getoondeSite.id} />
+                <MeenemenBlok siteId={getoondeSite.id} />
+                <MeelezenRegel siteId={getoondeSite.id} meelezenUit={getoondeSite.meelezenUit} />
+              </>
+            )}
           </div>
         ) : null
       }
@@ -464,6 +520,8 @@ export default async function Portal({
                         : null
                   }
                   openConcept={openConceptMap[site.id]}
+                  magPubliceren={site.id === getoondeSite?.id ? (toegang?.magPubliceren ?? true) : true}
+                  metTeam={site.id === getoondeSite?.id && heeftTeam}
                   suggesties={
                     site.isDemo
                       ? [

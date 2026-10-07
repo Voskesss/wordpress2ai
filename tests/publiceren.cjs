@@ -42,6 +42,8 @@ const path = require("node:path");
                         ? `export const db={select(fields){const q={from(){return q},innerJoin(){return q},where(){return q},orderBy(){return q},limit(){return q},then(resolve,reject){const s=globalThis.testState;return Promise.resolve(!s.row?[]:fields?.change?[s.row]:!fields?[s.row.change]:[{id:s.row.change.id}]).then(resolve,reject)}};return q},update(){return {set(value){return {where(){globalThis.testState.updates.push(value);Object.assign(globalThis.testState.row.change,value);return Promise.resolve()}}}}},insert(){return {values(){return Promise.resolve()}}}};`
                         : a.path === "@/lib/auth"
                           ? `export async function isBeheerder(){return false}`
+                          : a.path === "@/lib/toegang"
+                            ? `const lid=(site,u)=>{const s=globalThis.testState;return s.lid&&s.lid.user===u?s.lid:null};export async function magBewerken(site,u){return site.clerkUserId===u||Boolean(lid(site,u))};export async function magPubliceren(site,u){return site.clerkUserId===u||Boolean(lid(site,u)?.magPubliceren)};export async function logActiviteit(siteId,u,soort,tekst){(globalThis.testState.logs??=[]).push({u,soort,tekst})};`
                           : a.path === "@/lib/operation-guards"
                             ? `export const operationScope=()=>''; export async function claimOperation(){return globalThis.testState.busy?null:async()=>{globalThis.testState.released++}};`
                             : a.path === "@/lib/github"
@@ -109,6 +111,14 @@ const path = require("node:path");
     assert.equal(testState.deleted, 1);
     assert.equal((await publish(req())).status, 200);
     assert.equal(testState.deploys, 2);
+    assert.ok((testState.logs ?? []).some((l) => l.soort === "gepubliceerd" && l.u === "owner"), "publiceren staat niet in het logboek");
+    // Teamleden (04-10-2026): zonder publiceerrecht geweigerd, mét recht mag het
+    reset({ user: "lisa", lid: { user: "lisa", magPubliceren: false } });
+    assert.equal((await publish(req())).status, 404, "teamlid zonder publiceerrecht kon publiceren");
+    assert.equal(testState.merges, 0);
+    reset({ user: "lisa", lid: { user: "lisa", magPubliceren: true } });
+    assert.equal((await publish(req())).status, 200, "teamlid met publiceerrecht kon niet publiceren");
+    assert.ok(testState.logs.some((l) => l.u === "lisa" && l.soort === "gepubliceerd"));
     reset({ failCleanup: true });
     assert.equal((await publish(req())).status, 200);
     reset();

@@ -10,6 +10,7 @@ import ChatHulp from "./ChatHulp";
 import MeelezenMelding from "./MeelezenMelding";
 import DemoOpdrachten from "./DemoOpdrachten";
 import ConceptStripMobiel from "./ConceptStripMobiel";
+import { vraagPublicatie } from "./acties-team";
 import { readChatResponse } from "@/lib/chat-response";
 import { metSlotWacht, SLOT_WACHTTEKST } from "@/lib/slot-wacht";
 import { parseKeuzesBeeld } from "@/lib/keuze-beeld";
@@ -196,6 +197,8 @@ export default function Chat({
   verbruik = null,
   startVolledig = true,
   metBalk = false,
+  magPubliceren = true,
+  metTeam = false,
 }: {
   siteId: number;
   /** Probeer-demo: foto's meesturen in de chat kan daar niet (wel: foto vervangen via aanwijzen) */
@@ -226,11 +229,28 @@ export default function Chat({
   /** Aandeel van de maandruimte dat op is (balkje bij het gesprek); null =
    * niet tonen (demo, of geen budget ingesteld) */
   verbruik?: { procent: number } | null;
+  /** Teamlid zonder publiceerrecht: Publiceer wordt "Vraag de eigenaar" */
+  magPubliceren?: boolean;
+  /** De site heeft teamleden: vóór het publiceren kijken of anderen in het concept werkten */
+  metTeam?: boolean;
 }) {
   const [berichten, setBerichten] = useState<Bericht[]>(historie);
   // Tellertje "X van Y wijzigingen deze maand": beginstand van de server,
   // na elke beurt vers uit het klaar-event
   const [verbruikStand, setVerbruikStand] = useState(verbruik);
+  // Telefoon: Hulp & support achter een knop in de kop in plaats van een vaste balk
+  const [hulpMobiel, setHulpMobiel] = useState(false);
+  // Waarschuwing vóór publiceren: anderen in het team werkten ook aan dit concept
+  const [teamWaarschuwing, setTeamWaarschuwing] = useState<{ naam: string; wat: string[] }[] | null>(null);
+  // Teamvenster: alle stappen in het concept, met wie en welke pagina's
+  const [teamStappen, setTeamStappen] = useState<{ naam: string; jij: boolean; wat: string; paginas: string[]; tijd: string }[] | null>(null);
+  async function openTeamvenster() {
+    if (!concept) return;
+    const data = (await fetch(`/api/concept-bijdragers?changeId=${concept.changeId}`)
+      .then((r) => r.json())
+      .catch(() => ({ stappen: [] }))) as { stappen?: { naam: string; jij: boolean; wat: string; paginas: string[]; tijd: string }[] };
+    setTeamStappen(data.stappen ?? []);
+  }
   const [invoer, setInvoer] = useState("");
   const [nieuwBezig, setNieuwBezig] = useState(false);
   const nieuwBezigRef = useRef(false);
@@ -2082,8 +2102,34 @@ export default function Chat({
     invoerRef.current?.focus();
   }
 
-  async function conceptVerwerken(actie: "publiceer" | "verwerp") {
+  async function conceptVerwerken(actie: "publiceer" | "verwerp", bevestigd = false) {
     if (!concept || conceptActie || bezigRef.current || nieuwBezigRef.current) return;
+    // Teamlid zonder publiceerrecht: de eigenaar vragen in plaats van live zetten.
+    // Weggooien raakt ook het werk van anderen in het gedeelde concept, dus dat
+    // mag alleen wie mag publiceren.
+    if (!magPubliceren) {
+      if (actie === "verwerp") {
+        setBerichten((b) => [...b, { rol: "assistent", tekst: "Het concept weggooien kan alleen iemand die mag publiceren: er kan ook werk van anderen in zitten. De laatste stap draai je terug met \"Laatste stap terug\"." }]);
+        setChatOpen(true);
+        return;
+      }
+      setConceptActie("publiceer");
+      const uitslag = (await vraagPublicatie(siteId).catch(() => null)) ?? { ok: false, melding: "Dat lukte niet. Laat het de eigenaar zelf even weten." };
+      setConceptActie(null);
+      setBerichten((b) => [...b, { rol: "assistent", tekst: uitslag.ok ? "Ik heb de eigenaar gevraagd dit concept te publiceren. Je ziet het live staan zodra dat gebeurd is." : uitslag.melding }]);
+      setChatOpen(true);
+      return;
+    }
+    // Werkten anderen ook aan dit concept? Dan eerst zeggen dat hun werk mee live gaat.
+    if (actie === "publiceer" && metTeam && !bevestigd) {
+      const data = (await fetch(`/api/concept-bijdragers?changeId=${concept.changeId}`)
+        .then((r) => r.json())
+        .catch(() => ({ anderen: [] }))) as { anderen?: { naam: string; wat: string[] }[] };
+      if (data.anderen?.length) {
+        setTeamWaarschuwing(data.anderen);
+        return;
+      }
+    }
     setHerstelFout(null);
     setConceptActie(actie);
     const res = await fetch(`/api/${actie}`, {
@@ -2183,7 +2229,7 @@ export default function Chat({
         )}
         {/* Mobiel: wisselaar tussen chat en site */}
         {isMobiel && (
-          <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1.5">
+          <div className="flex shrink-0 items-center gap-1 border-b border-stone-200 bg-stone-50 p-1">
             {(
               [
                 ["chat", "💬 Chat"],
@@ -2196,7 +2242,7 @@ export default function Chat({
                   setMobielWeergave(sleutel);
                   setMobielVol(true);
                 }}
-                className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold cursor-pointer ${
+                className={`flex-1 rounded-full px-3 py-1.5 text-sm font-semibold cursor-pointer ${
                   mobielWeergave === sleutel
                     ? "bg-violet-700 text-white shadow"
                     : "text-stone-600"
@@ -2591,7 +2637,8 @@ export default function Chat({
                   // blok hieronder, en dat heeft die kwaal niet.
                   // overflow-x-hidden: zonder rem liet één element dat een paar
                   // pixels te breed is het hele gesprek opzij schuiven.
-                  "flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden bg-white p-3"
+                  // Weinig rand: op een telefoon telt elke pixel voor het gesprek (05-10)
+                  "flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden bg-white px-1.5 pt-0 pb-1.5"
                 : isMobiel
                   ? "hidden"
                 : // Desktop: invoerbalk als vast blok onder het voorbeeld; het
@@ -2602,9 +2649,13 @@ export default function Chat({
           {/* mt-auto op het eerste blok duwt alles naar de onderkant, net als
               justify-end deed, maar zonder de klem aan de bovenkant. Op de
               computer staat hier "contents", dus daar verandert er niets. */}
-          <div className={mobielChat ? "mt-auto" : "contents"}>
-            <ChatHulp onInChat={hulpvraagInChat} />
-          </div>
+          {/* Op de telefoon staat Hulp & support niet als vaste balk boven het
+              gesprek (dat kostte ruimte), maar achter de knop 🛟 in de kop. */}
+          {mobielChat ? <div className="mt-auto" /> : (
+            <div className="contents">
+              <ChatHulp onInChat={hulpvraagInChat} />
+            </div>
+          )}
           {herstelFout && (
             <div role="alert" className="mb-2 shrink-0 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-950">
               <p>{herstelFout.tekst}</p>
@@ -2629,17 +2680,18 @@ export default function Chat({
           <div className={splitModus || isMobiel ? "contents" : "absolute bottom-full left-0 right-0"}>
           {/* Gespreksvenster (inklapbaar; in splitmodus altijd open en vullend) */}
           {(chatOpen || splitModus || mobielChat) && (
-            <div className={`mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus || mobielChat ? "flex min-h-0 flex-1 flex-col" : ""}`}>
-              <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2">
+            <div className={mobielChat ? "mb-1.5 flex min-h-0 flex-1 flex-col bg-white" : `mb-3 rounded-3xl border border-stone-200 bg-white/95 shadow-2xl backdrop-blur ${splitModus ? "flex min-h-0 flex-1 flex-col" : ""}`}>
+              <div className={`flex items-center justify-between border-b border-stone-100 ${mobielChat ? "px-2 py-1" : "px-4 py-2"}`}>
                 <span className="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-400">
-                  Gesprek
+                  {/* Telefoon: geen woord "Gesprek", de knoppen hebben de ruimte nodig (05-10) */}
+                  {!mobielChat && "Gesprek"}
                   {verbruikStand && (
                     <Tip
                       tekst={`Je pakket bevat elke maand een vaste hoeveelheid AI-werk. Grote klussen (een nieuwe pagina, een galerij) gebruiken meer dan een tekstje aanpassen; op de 1e van de maand begin je weer opnieuw. Bijna op en nog van alles te doen? Stuur ons even een berichtje.`}
                       plaats="onder"
                     >
                       <span className="flex items-center gap-1.5 normal-case tracking-normal">
-                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-stone-200 sm:w-24">
+                        <span className={`h-1.5 overflow-hidden rounded-full bg-stone-200 ${mobielChat ? "w-10" : "w-16 sm:w-24"}`}>
                           <span
                             className={`block h-full rounded-full ${
                               verbruikStand.procent >= 100
@@ -2662,22 +2714,32 @@ export default function Chat({
                   )}
                 </span>
                 <div className="flex items-center gap-1">
+                {mobielChat && (
+                  <button
+                    onClick={() => setHulpMobiel((o) => !o)}
+                    aria-expanded={hulpMobiel}
+                    className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium cursor-pointer ${hulpMobiel ? "bg-stone-100 text-stone-800" : "text-stone-500 hover:bg-stone-100"}`}
+                  >
+                    🛟 Hulp
+                  </button>
+                )}
                 <button
                   onClick={nieuwGesprek}
                   disabled={bezig || nieuwBezig || conceptActie !== null}
                   title="Nieuw gesprek: de AI vergeet het eerdere gesprek (je site blijft zoals hij is)"
-                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer"
+                  aria-label={mobielChat ? "🧹 Nieuw gesprek" : undefined}
+                  className={`whitespace-nowrap rounded-full py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 disabled:opacity-50 cursor-pointer ${mobielChat ? "px-2" : "px-2.5"}`}
                 >
-                  {nieuwBezig ? "Gesprek starten..." : "🧹 Nieuw gesprek"}
+                  {nieuwBezig ? "Gesprek starten..." : mobielChat ? "🧹 Nieuw" : "🧹 Nieuw gesprek"}
                 </button>
                 <button
                   onClick={() => { setRedenVoor(redenVoor === "algemeen" ? null : "algemeen"); setRedenTekst(""); setRedenKlaar(false); }}
                   title="We verbeteren de chatbeleving continu — vertel wat er beter kan"
-                  className="rounded-full px-2.5 py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer"
+                  className={`whitespace-nowrap rounded-full py-1 text-xs font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer ${mobielChat ? "px-2" : "px-2.5"}`}
                 >
                   💬 Feedback
                 </button>
-                <button
+                {!mobielChat && <button
                   onClick={() => setChatOpen(false)}
                   aria-label="Gesprek inklappen"
                   title="Gesprek inklappen"
@@ -2686,17 +2748,21 @@ export default function Chat({
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" transform="rotate(180 12 12)" />
                   </svg>
-                </button>
+                </button>}
                 </div>
               </div>
               <div
                 ref={scrollRef}
+                data-gesprek
                 className={
-                  splitModus || mobielChat
+                  mobielChat
+                    ? "flex-1 min-h-0 overflow-y-auto px-2 py-3 space-y-3"
+                    : splitModus
                     ? "flex-1 min-h-0 overflow-y-auto p-4 space-y-3"
                     : `${concept ? "max-h-[22dvh]" : "max-h-[40dvh]"} sm:max-h-72 overflow-y-auto p-4 space-y-3`
                 }
               >
+                {mobielChat && hulpMobiel && <ChatHulp onInChat={hulpvraagInChat} beginOpen />}
                 {!isDemo && berichten.length <= 2 && (
                   <MeelezenMelding siteId={siteId} meelezenUit={meelezenUit} />
                 )}
@@ -2731,48 +2797,6 @@ export default function Chat({
                       <li><span className="font-semibold text-stone-700">🎨 Kleur</span> en <span className="font-semibold text-stone-700">SEO</span> — zelf aanpassen zonder te wachten op de AI.</li>
                       <li><span className="font-semibold text-stone-700">↩︎ Fout gegaan?</span> Gebruik “Stap terug” voor je laatste conceptwijziging. Na publicatie kun je de vorige versie herstellen.</li>
                     </ul>
-                  </div>
-                )}
-                {redenVoor === "algemeen" && (
-                  <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-3 text-sm">
-                    {redenKlaar ? (
-                      <p className="font-medium text-emerald-700">Dank je wel! Je feedback is bij Jos beland. 🙏</p>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-stone-700">
-                          We verbeteren de chatbeleving continu — wat kan er beter?
-                        </p>
-                        <textarea
-                          value={redenTekst}
-                          onChange={(e) => setRedenTekst(e.target.value)}
-                          rows={2}
-                          placeholder="Vertel wat er niet goed ging of anders moet..."
-                          className="mt-2 w-full resize-none rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
-                        />
-                        <div className="mt-2 flex gap-2">
-                          <button
-                            onClick={async () => {
-                              if (redenTekst.trim().length < 3 || redenBezig) return;
-                              setRedenBezig(true);
-                              await stuurFeedback("algemeen", { reden: redenTekst });
-                              setRedenBezig(false);
-                              setRedenKlaar(true);
-                              setTimeout(() => { setRedenVoor(null); setRedenKlaar(false); }, 2500);
-                            }}
-                            disabled={redenBezig || redenTekst.trim().length < 3}
-                            className="rounded-full bg-violet-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
-                          >
-                            {redenBezig ? "Versturen..." : "Verstuur"}
-                          </button>
-                          <button
-                            onClick={() => setRedenVoor(null)}
-                            className="rounded-full px-3 py-1.5 text-xs font-medium text-stone-500 hover:bg-stone-100 cursor-pointer"
-                          >
-                            Annuleren
-                          </button>
-                        </div>
-                      </>
-                    )}
                   </div>
                 )}
                 {berichten.map((m, i) => {
@@ -3191,6 +3215,182 @@ export default function Chat({
             />
           )}
 
+          {teamWaarschuwing && (
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Let op: ook werk van anderen">
+              <div className="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+                <h3 className="text-lg font-semibold text-stone-900">Let op: in dit concept zit ook werk van anderen</h3>
+                <p className="mt-2 text-sm text-stone-600">Publiceer je nu, dan gaat dit ook live:</p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {teamWaarschuwing.map((p) => (
+                    <li key={p.naam} className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                      <strong className="text-amber-950">{p.naam}</strong>
+                      <ul className="mt-1 list-disc pl-5 text-amber-900">
+                        {p.wat.slice(-5).map((w, i) => (
+                          <li key={i} className="[overflow-wrap:anywhere]">{w}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-stone-500">Twijfel je? Overleg eerst even, of bekijk het concept nog een keer.</p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setTeamWaarschuwing(null);
+                      void conceptVerwerken("publiceer", true);
+                    }}
+                    className="rounded-full bg-violet-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-600 cursor-pointer"
+                  >
+                    Alles publiceren
+                  </button>
+                  <button onClick={() => setTeamWaarschuwing(null)} className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-violet-400 cursor-pointer">
+                    Nog niet
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTeamWaarschuwing(null);
+                      void openTeamvenster();
+                    }}
+                    className="rounded-full px-3 py-2.5 text-sm font-semibold text-violet-700 hover:underline cursor-pointer"
+                  >
+                    Bekijk welke pagina's
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Algemene feedback als venster, op elk scherm: inline bovenin het
+              gesprek zag je hem niet als je onderaan zat (Jos, 05-10-2026) */}
+          {redenVoor === "algemeen" && (
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Feedback geven">
+              <div className="w-full max-w-md max-h-[85dvh] overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl sm:p-6">
+                {redenKlaar ? (
+                  <p className="font-medium text-emerald-700">Dank je wel! Je feedback is bij Jos beland. 🙏</p>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-stone-900">💬 Feedback</h3>
+                      <button
+                        onClick={() => setRedenVoor(null)}
+                        aria-label="Venster sluiten"
+                        className="-mr-1 shrink-0 rounded-full px-2 py-0.5 text-lg leading-none text-stone-500 hover:bg-stone-100 cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="mt-1 text-sm text-stone-600">We verbeteren de chat continu. Wat kan er beter?</p>
+                    <textarea
+                      value={redenTekst}
+                      onChange={(e) => setRedenTekst(e.target.value)}
+                      rows={4}
+                      autoFocus
+                      aria-label="Je feedback"
+                      placeholder="Vertel wat er niet goed ging of anders moet..."
+                      className="mt-3 w-full resize-none rounded-xl border border-stone-300 bg-white px-3 py-2 text-base focus:border-violet-500 focus:outline-none sm:text-sm"
+                    />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={async () => {
+                          if (redenTekst.trim().length < 3 || redenBezig) return;
+                          setRedenBezig(true);
+                          await stuurFeedback("algemeen", { reden: redenTekst });
+                          setRedenBezig(false);
+                          setRedenKlaar(true);
+                          setTimeout(() => { setRedenVoor(null); setRedenKlaar(false); }, 2500);
+                        }}
+                        disabled={redenBezig || redenTekst.trim().length < 3}
+                        className="rounded-full bg-violet-700 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
+                      >
+                        {redenBezig ? "Versturen..." : "Verstuur"}
+                      </button>
+                      <button onClick={() => setRedenVoor(null)} className="rounded-full px-4 py-2 text-sm font-medium text-stone-500 hover:bg-stone-100 cursor-pointer">
+                        Annuleren
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {teamStappen && (
+            <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-900/40 p-4" role="dialog" aria-label="Waar bestaat dit concept uit?">
+              <div className="w-full max-w-lg max-h-[85dvh] overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl sm:p-6">
+                <div className="sticky -top-5 z-10 -mx-5 -mt-5 flex items-start justify-between gap-3 bg-white px-5 pt-5 pb-2 sm:-top-6 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6">
+                  <h3 className="text-lg font-semibold text-stone-900">Waar bestaat dit concept uit?</h3>
+                  <button
+                    onClick={() => setTeamStappen(null)}
+                    aria-label="Venster sluiten"
+                    className="-mr-1 shrink-0 rounded-full px-2 py-0.5 text-lg leading-none text-stone-500 hover:bg-stone-100 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="mt-1 text-sm text-stone-500">Elke stap, wie hem vroeg en welke pagina&apos;s hij raakte. Nog niets hiervan is live.</p>
+                {teamStappen.length === 0 ? (
+                  <div className="mt-4 text-sm text-stone-600">
+                    <p>Van dit concept weten we niet per stap wie wat vroeg (het is ouder dan het logboek). Aangepast:</p>
+                    <p className="mt-2 flex flex-wrap gap-1.5">
+                      {(concept?.paginas ?? []).filter(isEchtePagina).map((pad) => (
+                        <button
+                          key={pad}
+                          onClick={() => {
+                            setTeamStappen(null);
+                            gaNaar(pad);
+                          }}
+                          className="rounded-full border border-stone-300 bg-white px-2.5 py-0.5 text-xs font-semibold text-violet-700 hover:border-violet-400 cursor-pointer"
+                        >
+                          {paginaLabel(pad)}
+                        </button>
+                      ))}
+                    </p>
+                  </div>
+                ) : (
+                  <ol className="mt-4 space-y-3">
+                    {teamStappen.map((st, i) => {
+                      const paginas = st.paginas.filter(isEchtePagina);
+                      const overig = st.paginas.length - paginas.length;
+                      return (
+                        <li key={i} className={`rounded-2xl border px-4 py-3 text-sm ${st.jij ? "border-violet-200 bg-violet-50/60" : "border-amber-200 bg-amber-50"}`}>
+                          <p>
+                            <strong className="text-stone-900">{st.jij ? "Jij" : st.naam}</strong>{" "}
+                            <span className="text-xs text-stone-500">
+                              {new Date(st.tijd).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </p>
+                          <p className="mt-1 text-stone-700 [overflow-wrap:anywhere]">{st.wat}</p>
+                          {(paginas.length > 0 || overig > 0) && (
+                            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-stone-600">
+                              Aangepast:
+                              {paginas.map((pad) => (
+                                <button
+                                  key={pad}
+                                  onClick={() => {
+                                    setTeamStappen(null);
+                                    gaNaar(pad);
+                                  }}
+                                  className="rounded-full border border-stone-300 bg-white px-2.5 py-0.5 font-semibold text-violet-700 hover:border-violet-400 cursor-pointer"
+                                >
+                                  {paginaLabel(pad)}
+                                </button>
+                              ))}
+                              {overig > 0 && <span>{`${paginas.length ? "en " : ""}${overig} bestand${overig === 1 ? "" : "en"}`}</span>}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                <p className="mt-4 text-xs text-stone-500">Klik op een pagina om die in het voorbeeld te bekijken. Publiceren zet alles hierboven live.</p>
+                <button onClick={() => setTeamStappen(null)} className="mt-4 rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold text-stone-700 hover:border-violet-400 cursor-pointer">
+                  Sluiten
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Concept-strip */}
           {/* Op een telefoon de ingeklapte strook, voor de demo én voor
               klanten: het gewone blok kost daar 176 van de 844 pixels. */}
@@ -3204,12 +3404,20 @@ export default function Chat({
               onPubliceer={() => conceptVerwerken("publiceer")}
               onStapTerug={stapTerug}
               onVerwerp={() => conceptVerwerken("verwerp")}
+              publiceerLabel={magPubliceren ? "Publiceer" : "Vraag eigenaar"}
+              onInhoud={openTeamvenster}
             />
           )}
           {concept && !isMobiel && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50/95 px-4 py-2.5 shadow-2xl backdrop-blur">
               <p className="min-w-0 flex-1 text-sm text-amber-950">
                 <span className="font-semibold">Concept klaar — nog niet live.</span>{" "}
+                <button
+                  onClick={openTeamvenster}
+                  className="font-semibold underline decoration-amber-400 hover:text-amber-950 cursor-pointer"
+                >
+                  Waar bestaat dit concept uit?
+                </button>{" "}
                 {concept.paginas.length > 0 && (() => {
                   const paginas = concept.paginas.filter(isEchtePagina);
                   const overig = concept.paginas.length - paginas.length;
@@ -3241,7 +3449,7 @@ export default function Chat({
                   disabled={conceptActie !== null || bezig || nieuwBezig}
                   className="rounded-full bg-violet-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-600 disabled:opacity-50 cursor-pointer"
                 >
-                  {conceptActie === "publiceer" ? "Bezig..." : "Publiceer"}
+                  {conceptActie === "publiceer" ? "Bezig..." : magPubliceren ? "Publiceer" : "Vraag eigenaar om te publiceren"}
                 </button>
                 {conceptActie === "publiceer" && (
                   <span className="basis-full text-xs text-amber-800">
@@ -4208,8 +4416,10 @@ export default function Chat({
           {/* Wisselende tip: mensen weten vaak niet dat ze gewoon mogen práten
               tegen de chat, of dat inspreken en aanwijzen kan. Eén regel per
               keer, klikken geeft de volgende, en wie ze kent klikt ze weg. */}
+          {/* Op de telefoon geen tips: daar kostte het blok een flink deel van
+              de ruimte voor het gesprek (Jos, 05-10-2026). */}
           {!tipWeg && !bezig && (
-            <div className="mt-2.5 flex shrink-0 justify-center px-2">
+            <div data-tip className="mt-2.5 hidden shrink-0 justify-center px-2 sm:flex">
               <div className="flex w-full max-w-[46rem] items-start gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/90 px-4 py-2.5 shadow-sm backdrop-blur">
                 <span aria-hidden className="mt-0.5 text-base leading-none">💡</span>
                 <button

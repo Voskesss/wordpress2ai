@@ -61,6 +61,8 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           import { VerbruikBalk } from "./app/admin/VerbruikBalk";
           import Voorbeeld from "./app/admin/aankondigingen/Voorbeeld";
           import InzendingenLijst from "./app/portal/InzendingenLijst";
+          import TeamUitnodigen from "./app/portal/TeamUitnodigen";
+          import TeamUitleg from "./app/portal/TeamUitleg";
           const wortel = () => createRoot(document.getElementById("root"));
           window.mountPortaal = (beginTab) => wortel().render(
             <PortaalSchil isDev={false} isAdmin={false} meerdereSites={false} siteNaam="Van den Berg Mediation" metTabs beginTab={beginTab}
@@ -70,6 +72,7 @@ const uitvoer = path.join(__dirname, ".uitvoer");
           const bank = (el) => wortel().render(<div style={{ position: "relative", height: "860px" }}>{el}</div>);
           window.mountKlanten = (rijen) => wortel().render(<KlantenLijst rijen={rijen} />);
           window.mountInzendingen = (rijen) => wortel().render(<div style={{ padding: "16px" }}><InzendingenLijst siteId={1} rijen={rijen} /></div>);
+          window.mountTeam = () => wortel().render(<div style={{ padding: "16px" }}><TeamUitnodigen siteId={1} vol={false} /><TeamUitleg /></div>);
           window.mountVoorbeeld = () => wortel().render(<Voorbeeld a={{ id: 7, titel: "Zelf de bestandsnaam kiezen", tekst: "Upload je een foto?", link: null }} />);
           window.mountKlantBalk = () => wortel().render(<div style={{ width: "300px", padding: "20px" }}><VerbruikBalk breed gebruikt={3.2} budget={4} /></div>);
           window.mountBank = (soort) => {
@@ -233,6 +236,17 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       assert.equal(m.werkBoven, 56, `telefoon: werkweergave begint niet onder de balk (${m.werkBoven})`);
       assert.ok(m.zichtbaar && m.veldHoogte >= 36 && m.veldOnder <= m.schermHoogte, `telefoon: typveld niet goed in beeld (${m.veldHoogte}px, onder ${m.veldOnder})`);
       assert.ok(await page.getByRole("tab", { name: /Berichten/ }).isVisible(), "telefoon: tabbladen niet zichtbaar");
+      const gesprekHoogte = await page.locator("[data-gesprek]").evaluate((el) => Math.round(el.getBoundingClientRect().height));
+      // Meer ruimte voor het gesprek op de telefoon (Jos 05-10-2026): was 512px
+      assert.ok(gesprekHoogte >= 580, `telefoon: te weinig ruimte voor het gesprek (${gesprekHoogte}px, minimaal 580)`);
+      // Hulp & support staat achter de knop 🛟 Hulp, en is daar wel te vinden
+      assert.ok(!(await page.getByText("Hulp & support").first().isVisible()), "telefoon: Hulp & support staat weer als vaste balk boven het gesprek");
+      await page.getByRole("button", { name: "🛟 Hulp" }).click();
+      assert.ok(await page.getByText(/Vertel wat en waar/).isVisible(), "telefoon: Hulp & support niet bereikbaar via de knop");
+      await page.getByRole("button", { name: "🛟 Hulp" }).click();
+      // Geen tips op de telefoon: die kostten te veel ruimte voor het gesprek (05-10-2026)
+      assert.equal(await page.locator("[data-tip]").count(), 1, "telefoon: tip-blok ontbreekt helemaal (test klopt niet meer)");
+      assert.ok(!(await page.locator("[data-tip]").isVisible()), "telefoon: de tips staan er nog");
       await page.screenshot({ path: path.join(uitvoer, "portaal-telefoon.png") });
       await page.close();
     }
@@ -243,6 +257,16 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       const page = await nieuwePagina(1440, 900);
       await page.evaluate(() => window.mountPortaal("website"));
       await page.waitForSelector(VELD, { state: "attached" });
+      assert.ok(await page.locator("[data-tip]").isVisible(), "computer: de tips zijn verdwenen");
+      // Feedback opent als venster midden in beeld, niet ergens bovenin het gesprek (05-10-2026)
+      await page.getByRole("button", { name: "💬 Feedback" }).click();
+      const fb = page.getByRole("dialog", { name: "Feedback geven" });
+      await fb.getByRole("textbox", { name: "Je feedback" }).waitFor();
+      const vak = await fb.locator("> div").boundingBox();
+      assert.ok(vak.y >= 0 && vak.y + vak.height <= 900 && vak.x > 200, `computer: feedbackvenster niet midden in beeld (${JSON.stringify(vak)})`);
+      await page.screenshot({ path: path.join(uitvoer, "feedback-computer.png") });
+      await fb.getByRole("button", { name: "Annuleren" }).click();
+      assert.equal(await fb.count(), 0, "computer: Annuleren sluit het feedbackvenster niet");
       await page.locator('input[type="file"][accept*="image/*"]').first().setInputFiles({ name: "IMG 2041.JPG", mimeType: "image/jpeg", buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
       const naam = page.getByRole("textbox", { name: "Naam voor IMG 2041.JPG" });
       await naam.waitFor();
@@ -350,6 +374,20 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       // Op een breed scherm blijft de tabel
       await page.setViewportSize({ width: 1280, height: 760 });
       assert.ok(await page.locator("table").isVisible(), "breed scherm: de tabel is weg");
+      await page.close();
+    }
+
+    // 4a2. Team: uitnodigformulier en uitleg passen op een telefoon
+    {
+      const page = await nieuwePagina(360, 900);
+      await page.evaluate(() => window.mountTeam());
+      await page.getByRole("button", { name: "Toevoegen en uitnodigen" }).waitFor();
+      for (const label of ["Naam", "E-mailadres"]) assert.ok(await page.getByLabel(label).isVisible(), `team: veld ${label} ontbreekt`);
+      assert.ok(await page.getByText("Mag zelf publiceren.").isVisible() && await page.getByText("Mag de berichten zien.").isVisible(), "team: de twee rechten staan er niet");
+      assert.ok(await page.getByText("Publiceren zet alles live").isVisible(), "team: de uitleg over het gedeelde concept ontbreekt");
+      const breedte = await page.evaluate(() => document.documentElement.scrollWidth);
+      assert.ok(breedte <= 360, `team: schuift horizontaal op een telefoon (${breedte}px)`);
+      await page.screenshot({ path: path.join(uitvoer, "team-telefoon.png"), fullPage: true });
       await page.close();
     }
 

@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { db } from "@/db";
 import { sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { MAX_AUDIO_BYTES } from "@/lib/media";
+import { magBewerken } from "@/lib/toegang";
 
 /** Upload van grote bestanden (audio en pdf) buiten de server om, zelfde weg als foto's en
  * video: een aflevering is zo 30–100 MB en een verzoek aan onze eigen functies
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
           .select()
           .from(sites)
           .where(eq(sites.id, Number(siteId)));
-        if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder())))
+        if (!site || (!site.isDemo && !(await magBewerken(site, userId))))
           throw new Error("Niet gevonden");
         if (site.isDemo) throw new Error("In de demo kun je geen audio meesturen.");
         return {

@@ -227,8 +227,11 @@ export async function inzendingVerwerken(formData: FormData) {
     .filter((n) => Number.isInteger(n) && n > 0);
   const siteId = Number(formData.get("siteId"));
   if (!ids.length || !Number.isInteger(siteId)) return;
-  const site = await eigenSite(siteId);
+  // Ook een teamlid met "berichten zien" mag afhandelen
+  const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
   if (!site) return;
+  const { magBerichten, logActiviteit } = await import("@/lib/toegang");
+  if (!(await magBerichten(site, userId))) return;
 
   const { formulierInzendingen } = await import("@/db/schema");
   const { and, inArray } = await import("drizzle-orm");
@@ -250,6 +253,8 @@ export async function inzendingVerwerken(formData: FormData) {
   } else {
     await db.update(formulierInzendingen).set({ gearchiveerd: actie !== "terug" }).where(vanDezeSite);
   }
+  const wat = { verwijder: "verwijderd", "geen-spam": "als geen spam gemarkeerd", "wel-spam": "als spam gemarkeerd", terug: "teruggezet naar open" }[actie] ?? "afgehandeld";
+  await logActiviteit(site.id, userId, "berichten", `${ids.length} bericht${ids.length === 1 ? "" : "en"} ${wat}`);
   revalidatePath("/portal");
   revalidatePath(`/admin/klant/${siteId}`);
 }

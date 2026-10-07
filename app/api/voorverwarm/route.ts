@@ -3,8 +3,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { laadWerkmap, ruimWerkmapOp } from "@/lib/werkmap";
+import { magBewerken } from "@/lib/toegang";
 
 export const maxDuration = 60;
 
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
   const { siteId } = (await req.json()) as { siteId: number };
   const [site] = await db.select().from(sites).where(eq(sites.id, Number(siteId)));
-  if (!site || (!site.isDemo && site.clerkUserId !== userId && !(await isBeheerder()))) {
+  if (!site || (!site.isDemo && !(await magBewerken(site, userId)))) {
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   }
   const [openConcept] = await db

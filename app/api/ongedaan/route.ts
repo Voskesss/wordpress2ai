@@ -3,9 +3,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { changes, messages, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
 import { gh, GITHUB_ORG, zetTerugNaarVersie } from "@/lib/github";
 import { claimOperation, operationScope } from "@/lib/operation-guards";
+import { magPubliceren, logActiviteit } from "@/lib/toegang";
 export const maxDuration = 300;
 
 /** Persist the restore target BEFORE changing Git. Retrying never steps back twice. */
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     !rij ||
     (rij.site.isDemo
       ? rij.change.clerkUserId !== userId
-      : rij.site.clerkUserId !== userId && !(await isBeheerder()))
+      : !(await magPubliceren(rij.site, userId)))
   )
     return NextResponse.json({ error: "Niet gevonden" }, { status: 404 });
   const release = await claimOperation(operationScope(rij.site, userId));
@@ -139,6 +139,8 @@ export async function POST(req: Request) {
       .update(changes)
       .set({ status: "afgewezen" })
       .where(eq(changes.id, changeId));
+    if (!rij.site.isDemo)
+      await logActiviteit(rij.site.id, userId, "teruggezet", `Gepubliceerde wijziging teruggedraaid: ${(rij.change.promptTekst ?? "").slice(0, 160)}`, changeId);
     await db
       .insert(messages)
       .values({

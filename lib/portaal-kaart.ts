@@ -38,11 +38,14 @@ export const KAART_NAMEN: [naam: string, bestand: string][] = [
   ["Bevestigingsmails", "BevestigingsMails.tsx"],
   ["Stuur je website een appje", "WhatsappBlok.tsx"],
   ["Je website en gegevens meenemen", "MeenemenBlok.tsx"],
+  ["Team", "TeamBlok.tsx"],
+  ["Logboek", "Logboek.tsx"],
+  ["Vraag eigenaar om te publiceren", "Chat.tsx"],
 ];
 
 export const PORTAAL_KAART = `
 PORTAAL (wat de eigenaar zelf kan; verwijs precies, verzin geen knoppen):
-- Balk bovenin, drie tabbladen. "Website bewerken": deze chat met voorbeeld; Wijs aan (bij een tekst Zelf aanpassen, bij een foto o.a. Vervang deze foto en Omschrijving aanpassen voor de alt-tekst), Stap terug, Concept weggooien, na publiceren "Draai terug", Nieuw gesprek; via ⋯ kleur, icoontjes, links controleren en Vindbaarheid (titel, Google-omschrijving, webadres, deel-voorbeeld); vragen aan Jos via Hulp & support. "Berichten & mail": formulierberichten (zoeken, filteren, meerdere tegelijk afhandelen, Verversen; spam apart, twijfel met label Mogelijk spam en knoppen Spam/Geen spam), meldingsadres, handtekening en logo, Stuur je website een appje (WhatsApp), afspraken, Bevestigingsmails, eigen mailserver. "Account": facturen, Je website en gegevens meenemen (ook opzeggen), meelezen.
-- Banken via 📎: Fotobank, Documentenbank, Videobank, Audiobank. Daar: zelf uploaden (eerst "Kies de naam voor Google"), zoeken, Link kopiëren voor mail of nieuwsbrief (alleen als het online staat), opruimen wat nergens staat. Alles daarin is openbaar. De fotobank toont per foto de alt-tekst; "Omschrijving aanpassen" geeft jou de opdracht: pas die foto's alt-tekst aan op elke plek.
-- Bestandsnamen wijzig je nooit (staan op meerdere pagina's, maten, nieuwsbrieven): laat opnieuw uploaden onder de goede naam en zet dat bestand op de gevraagde plekken; het oude blijft staan. Een opgeruimd bestand haalt alleen Jos terug (Hulp & support).
+- Balk bovenin, drie tabbladen. "Website bewerken": deze chat met voorbeeld; Wijs aan (bij een tekst Zelf aanpassen, bij een foto o.a. Vervang deze foto en Omschrijving aanpassen voor de alt-tekst), Stap terug, Concept weggooien, na publiceren "Draai terug", Nieuw gesprek; via ⋯ kleur, icoontjes, links controleren en Vindbaarheid (titel, omschrijving, webadres); vragen aan Jos via Hulp & support. "Berichten & mail": formulierberichten (zoeken, filteren, samen afhandelen, Verversen; spam apart, twijfel: Mogelijk spam, knoppen Spam/Geen spam), meldingsadres, handtekening en logo, Stuur je website een appje (WhatsApp), afspraken, Bevestigingsmails, eigen mailserver. "Account": Team (3 gratis, eigen inlog, per persoon publiceren/berichten aan), Logboek, facturen, Je website en gegevens meenemen (ook opzeggen), meelezen. Eén gedeeld concept: publiceren zet ook werk van anderen live; zonder recht: "Vraag eigenaar om te publiceren".
+- Banken via 📎: Fotobank, Documentenbank, Videobank, Audiobank. Daar: zelf uploaden (eerst "Kies de naam voor Google"), zoeken, Link kopiëren voor mail of nieuwsbrief (alleen als het online staat), opruimen. Alles is openbaar. De fotobank toont per foto de alt-tekst; "Omschrijving aanpassen" geeft jou de opdracht: pas die foto's alt-tekst aan op elke plek.
+- Bestandsnamen wijzig je nooit (staan op meerdere plekken): laat opnieuw uploaden onder de goede naam en zet dat bestand op de gevraagde plekken; het oude blijft staan. Een opgeruimd bestand haalt alleen Jos terug (Hulp & support).
 `.trim();

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { formulierInzendingen, sites } from "@/db/schema";
-import { isBeheerder } from "@/lib/auth";
+import { magBerichten } from "@/lib/toegang";
 
 /** Download van alle formulier-inzendingen van een site als CSV die Excel
  * direct netjes opent (puntkomma's en een BOM voor de Nederlandse Excel).
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Ongeldige site" }, { status: 400 });
   }
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
-  if (!site || (site.clerkUserId !== userId && !(await isBeheerder()))) {
+  if (!site || (!(await magBerichten(site, userId)))) {
     return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
   }
 

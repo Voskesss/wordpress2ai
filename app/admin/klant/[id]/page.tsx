@@ -22,6 +22,8 @@ import { klantEmailVoorSite } from "@/lib/klant-email";
 import { requireAdmin } from "@/lib/auth";
 import { toonNummer } from "@/lib/whatsapp/berichten";
 import ActieKnop from "./ActieKnop";
+import TeamBlok from "@/app/portal/TeamBlok";
+import Logboek from "@/app/portal/Logboek";
 import UitnodigingVoorbeeldKnop from "./UitnodigingVoorbeeldKnop";
 import BevestigKnop from "./BevestigKnop";
 import MailVoorbeeldKnop from "./MailVoorbeeldKnop";
@@ -771,6 +773,14 @@ export default async function KlantDetail({
           className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
         />
       </form>
+
+      {/* Team en logboek: wie werkt er mee en wie deed wat */}
+      {!site.isDemo && (
+        <div className="mt-6">
+          <TeamBlok siteId={site.id} />
+          <Logboek siteId={site.id} />
+        </div>
+      )}
 
       {/* Laatste wijzigingen */}
       <div className="mt-6 rounded-3xl border border-stone-200 bg-white overflow-hidden">
