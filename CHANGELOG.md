@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.43.0 (9 oktober 2026)
+
+- Nieuwe algemene voorwaarden staan online en gelden vanaf 9 november 2026 (een maand aankondiging, art. 13). Aangevuld voor de beroepsaansprakelijkheidsverzekering: inspanningsverplichting (ook voor AI-voorstellen), vrijwaring voor inhoud van de klant, aansprakelijkheid in elk geval beperkt tot wat de verzekering uitkeert en ook voor wie voor ons werkt, fouten melden binnen 30 dagen met eerst een kans op herstel, claims vervallen na twaalf maanden, eigendom en geheimhouding, en een artikel voor particulieren. Tot de ingangsdatum staat er een melding boven, met een link naar de vorige versie (/voorwaarden/17-september-2026, niet in Google).
+- Aantoonbaar akkoord: bij het akkoord op de nieuwe website en bij elke betaling via een betaallink staat nu een verplicht vinkje voor de algemene voorwaarden en de verwerkersovereenkomst. We leggen vast wie, welke versie, waar en wanneer; de klantpagina in de admin toont het onder "Akkoord op de algemene voorwaarden". Zonder vinkje start er geen betaling.
+
 ## 1.42.0 (7 oktober 2026)
 
 Teamleden per website, een venster dat laat zien waar een concept uit bestaat, en meer ruimte op de telefoon.
