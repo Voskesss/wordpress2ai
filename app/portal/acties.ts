@@ -403,11 +403,15 @@ export async function geefWebsiteAkkoord(formData: FormData) {
   if (!site) return;
   const { userId } = await auth();
   if (!userId) return;
+  // Zonder vinkje bij de voorwaarden geen akkoord (de browser dwingt het al af)
+  const { vinkjeGezet, legVoorwaardenAkkoordVast } = await import("@/lib/voorwaarden-akkoord");
+  if (!vinkjeGezet(formData.get("voorwaarden"))) return;
   const { akkoorden } = await import("@/db/schema");
   const { OPLEVERING_SOORT, opleveringVersie, bouwAkkoordBevestiging } = await import("@/lib/website-akkoord");
   const { mailVanJos, ontsnap } = await import("@/lib/wordswap-mail");
   const { currentUser } = await import("@clerk/nextjs/server");
   const email = (await currentUser())?.emailAddresses?.[0]?.emailAddress ?? null;
+  await legVoorwaardenAkkoordVast({ clerkUserId: userId, email, plek: "oplevering" });
   const nieuw = await db
     .insert(akkoorden)
     .values({ clerkUserId: userId, email, soort: OPLEVERING_SOORT, versie: opleveringVersie(site.id) })

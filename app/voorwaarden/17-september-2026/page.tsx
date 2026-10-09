@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { nieuweVersieGeldt, VORIGE_PAD } from "@/lib/voorwaarden-versie";
-
-// Dagelijks opnieuw opbouwen: na de ingangsdatum verdwijnt de melding vanzelf
-export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "Algemene voorwaarden",
+  title: "Algemene voorwaarden (versie 17 september 2026)",
+  robots: { index: false, follow: true },
   description:
     "De algemene voorwaarden van WordSwap: wat we leveren, no cure no pay, aansprakelijkheid en opzegging.",
 };
 
-const bijgewerkt = "9 oktober 2026";
+const bijgewerkt = "17 september 2026";
 
 function Artikel({ nr, kop, children }: { nr: number; kop: string; children: React.ReactNode }) {
   return (
@@ -24,26 +21,19 @@ function Artikel({ nr, kop, children }: { nr: number; kop: string; children: Rea
   );
 }
 
-export default function Voorwaarden() {
+export default function VoorwaardenVorigeVersie() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-20">
       <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight">
         Algemene voorwaarden
       </h1>
-      <p className="mt-4 text-stone-500 text-sm">Laatst bijgewerkt: {bijgewerkt}</p>
-      {!nieuweVersieGeldt() && (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <strong>Deze voorwaarden gelden vanaf 9 november 2026.</strong> Tot die datum gelden de{" "}
-          <Link href={VORIGE_PAD} className="underline underline-offset-2">voorwaarden van 17 september 2026</Link>.
-          Ben je het niet eens met de nieuwe versie, dan kun je tot 9 november kosteloos opzeggen.
-        </p>
-      )}
+      <p className="mt-4 text-stone-500 text-sm">Versie van {bijgewerkt}. Geldt tot 9 november 2026; daarna gelden de{" "}
+        <Link href="/voorwaarden" className="text-violet-700 underline underline-offset-2">nieuwe voorwaarden</Link>.
+      </p>
       <p className="mt-6 text-lg text-stone-600 leading-relaxed">
         Dit zijn de voorwaarden waaronder WordSwap (&ldquo;wij&rdquo;) werkt
         voor opdrachtgevers (&ldquo;jij&rdquo;). Door een opdracht te geven of
-        onze diensten te gebruiken, ga je hiermee akkoord. Bij het akkoord op je
-        nieuwe website en bij je eerste betaling vragen we je dat ook uitdrukkelijk
-        aan te vinken; we bewaren welke versie je hebt geaccepteerd en wanneer.
+        onze diensten te gebruiken, ga je hiermee akkoord.
       </p>
       <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
         <strong>WordSwap</strong> is een handelsnaam van J.K. Klijnhout Holding
@@ -59,16 +49,9 @@ export default function Voorwaarden() {
           doorgeeft. De omzetting is gericht op een zo getrouw mogelijke kopie
           van de zichtbare inhoud en vormgeving; kleine afwijkingen kunnen
           voorkomen. Webshops, ledenportalen met inlog en vergelijkbare
-          dynamische systemen vallen buiten de dienst; dat melden we vooraf
+          dynamische systemen vallen buiten de dienst — dat melden we vooraf
           bij de gratis check. Inbedding van externe diensten (zoals een
           boekingssysteem) en ander maatwerk kan in overleg.
-        </p>
-        <p>
-          Bij al onze diensten hebben we een inspanningsverplichting: we doen
-          wat je redelijkerwijs mag verwachten van een zorgvuldige
-          dienstverlener, maar we garanderen geen bepaald resultaat. Dat geldt
-          ook voor wat de AI voorstelt: dat is een voorstel, dat jij controleert
-          voordat het live gaat.
         </p>
       </Artikel>
 
@@ -108,13 +91,6 @@ export default function Voorwaarden() {
           inhoud van je website. Je domeinnaam blijft van jou, waar hij ook
           geregistreerd is. Staat hij nog niet op jouw naam, dan helpen we je
           daarbij.
-        </p>
-        <p>
-          Spreekt iemand anders ons aan op de inhoud van jouw website,
-          bijvoorbeeld omdat een foto of tekst zonder toestemming is gebruikt,
-          dan vrijwaar je ons daarvoor en vergoed je de redelijke kosten die we
-          daardoor maken. Dat geldt niet voor inhoud die wij zonder jouw
-          verzoek of goedkeuring hebben toegevoegd.
         </p>
       </Artikel>
 
@@ -170,53 +146,12 @@ export default function Voorwaarden() {
           aansprakelijk voor schade door onjuiste of onvolledige inhoud die door
           jou is aangeleverd of door jou is goedgekeurd, door storingen bij
           externe leveranciers, of door zaken rondom e-mail en domeinregistratie
-          bij derden.
-        </p>
-        <p>
-          Is er toch schade waarvoor we aansprakelijk zijn, dan is die in elk
-          geval beperkt tot het bedrag dat onze beroepsaansprakelijkheidsverzekering
-          in dat geval uitkeert, vermeerderd met het eigen risico. Keert de
-          verzekering niets uit, dan geldt het maximum van de eerste alinea.
-        </p>
-        <p>
-          Deze beperkingen gelden ook voor iedereen die voor ons werkt of die we
-          inschakelen bij de uitvoering. Ze gelden niet bij opzet of bewuste
+          bij derden. Deze beperkingen gelden niet bij opzet of bewuste
           roekeloosheid van onze kant.
         </p>
       </Artikel>
 
-      <Artikel nr={8} kop="Fouten melden en termijnen">
-        <p>
-          Zie je een fout of ben je ergens niet tevreden over, meld het ons dan
-          zo snel mogelijk, uiterlijk binnen 30 dagen nadat je het ontdekte,
-          per e-mail aan info@wordswap.nl. Geef ons eerst de kans om het binnen
-          een redelijke termijn te herstellen. Lukt dat niet, dan kun je ons
-          aanspreken op schade.
-        </p>
-        <p>
-          Een vordering op ons vervalt als je die niet binnen twaalf maanden
-          nadat je de schade ontdekte, of redelijkerwijs had kunnen ontdekken,
-          schriftelijk bij ons hebt gemeld.
-        </p>
-      </Artikel>
-
-      <Artikel nr={9} kop="Eigendom en geheimhouding">
-        <p>
-          De inhoud van je website (teksten, beelden, ontwerp en
-          websitebestanden) is en blijft van jou. Het WordSwap-platform, de
-          software, het portaal en de manier waarop we websites omzetten
-          blijven van ons; je krijgt het recht ze te gebruiken zolang de
-          overeenkomst loopt.
-        </p>
-        <p>
-          We gaan vertrouwelijk om met wat je ons toevertrouwt en wat we bij
-          het werk aan je website zien, en verwachten hetzelfde van jou over
-          ons platform. Dat geldt niet voor wat al openbaar is, zoals je
-          gepubliceerde website.
-        </p>
-      </Artikel>
-
-      <Artikel nr={10} kop="Duur en opzegging">
+      <Artikel nr={8} kop="Duur en opzegging">
         <p>
           De AI-koppeling is maandelijks opzegbaar, zonder opzegtermijn langer
           dan één maand; opzeggen kan rechtstreeks in je portaal. Bij opzegging
@@ -232,17 +167,7 @@ export default function Voorwaarden() {
         </p>
       </Artikel>
 
-      <Artikel nr={11} kop="Als je particulier bent">
-        <p>
-          Gebruik je WordSwap niet voor een bedrijf of beroep, maar als
-          particulier, dan gelden de regels die de wet voor consumenten
-          voorschrijft. Waar deze voorwaarden daarvan afwijken in jouw nadeel,
-          zoals bij de beperking van onze aansprakelijkheid of de termijnen in
-          artikel 8, gaan de wettelijke regels voor.
-        </p>
-      </Artikel>
-
-      <Artikel nr={12} kop="Toepasselijk recht">
+      <Artikel nr={9} kop="Toepasselijk recht">
         <p>
           Op alle overeenkomsten is Nederlands recht van toepassing. Geschillen
           leggen we eerst aan elkaar voor om samen op te lossen; lukt dat niet,
@@ -250,7 +175,7 @@ export default function Voorwaarden() {
         </p>
       </Artikel>
 
-      <Artikel nr={13} kop="Wijzigingen">
+      <Artikel nr={10} kop="Wijzigingen">
         <p>
           We kunnen deze voorwaarden wijzigen. Wezenlijke wijzigingen kondigen
           we minimaal een maand vooraf aan; ben je het er niet mee eens, dan kun

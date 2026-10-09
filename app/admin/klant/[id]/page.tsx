@@ -199,6 +199,8 @@ export default async function KlantDetail({
       })
     : null;
   const versies = await lijstVersies(site.githubRepo).catch(() => []);
+  const { voorwaardenAkkoordenVan } = await import("@/lib/voorwaarden-akkoord");
+  const voorwaardenAkkoorden = site.clerkUserId !== admin.id ? await voorwaardenAkkoordenVan(site.clerkUserId) : [];
   // Alleen jouw eigen gesprek: precies wat de AI in de chatroute als historie meekrijgt.
   // Gesprekken van de klant staan per persoon onder Chatgeschiedenis.
   const { vanafLaatsteNieuwGesprek } = await import("@/lib/gesprek");
@@ -773,6 +775,31 @@ export default async function KlantDetail({
           className="mt-3 rounded-full bg-violet-700 px-5 py-2 text-white text-sm font-semibold hover:bg-violet-600 cursor-pointer"
         />
       </form>
+
+      {/* Bewijs van akkoord op de algemene voorwaarden (verzekering, 09-10-2026) */}
+      {!site.isDemo && (
+        <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-5 text-sm">
+          <h2 className="font-display text-lg font-semibold">📜 Akkoord op de algemene voorwaarden</h2>
+          {voorwaardenAkkoorden.length === 0 ? (
+            <p className="mt-2 text-stone-500">
+              Nog geen vastgelegd akkoord. Dat gebeurt bij het akkoord op de website of bij de eerste betaling.
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-1 text-stone-700">
+              {voorwaardenAkkoorden.map((a) => {
+                const [versie, plek] = a.versie.split("#");
+                return (
+                  <li key={a.id}>
+                    Versie {versie} · {plek === "betaling" ? "bij de betaling" : plek === "oplevering" ? "bij het akkoord op de website" : "onbekend"} ·{" "}
+                    {a.aangemaakt.toLocaleString("nl-NL", { timeZone: "Europe/Amsterdam" })}
+                    {a.email ? ` · ${a.email}` : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Team en logboek: wie werkt er mee en wie deed wat */}
       {!site.isDemo && (

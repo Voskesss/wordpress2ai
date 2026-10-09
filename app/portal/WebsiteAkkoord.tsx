@@ -1,4 +1,5 @@
 import { geefWebsiteAkkoord, meldWebsiteOpmerking, websiteAkkoordLater } from "./acties";
+import VoorwaardenVinkje from "@/app/VoorwaardenVinkje";
 import { TELEFOON } from "@/lib/persoonlijk";
 
 /** Eerste inlog op een site in opbouw: bekijken en akkoord geven op de oplevering,
@@ -48,7 +49,10 @@ export default function WebsiteAkkoord({
           <p className="mt-1 flex-1 text-sm leading-relaxed text-stone-600">
             Je geeft akkoord op je nieuwe website. Jos neemt daarna contact op om je domeinnaam te koppelen en de laatste afspraken te maken.
           </p>
-          <button type="submit" className="button-primary mt-4 cursor-pointer justify-center">
+          <div className="mt-4">
+            <VoorwaardenVinkje />
+          </div>
+          <button type="submit" className="button-primary mt-3 cursor-pointer justify-center">
             ✓ Ik geef akkoord
           </button>
         </form>

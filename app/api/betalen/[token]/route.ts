@@ -7,14 +7,19 @@ import { euro, inclBtwCent, mollie, SITE_URL, type MolliePayment } from "@/lib/m
 export const dynamic = "force-dynamic";
 
 /** Maakt pas bij het klikken een verse Mollie-betaling, zodat de gemailde link nooit verloopt. */
-export async function POST(_req: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const pagina = `${SITE_URL}/betalen/${token}`;
   const [v] = await db.select().from(betaalverzoeken).where(eq(betaalverzoeken.token, token));
   if (!v || v.wijze !== "link") return new NextResponse("Niet gevonden", { status: 404 });
   if (v.status !== "open") return NextResponse.redirect(pagina, 303);
+  // Aantoonbaar akkoord op de voorwaarden: zonder vinkje geen betaling
+  const { vinkjeGezet, legVoorwaardenAkkoordVast } = await import("@/lib/voorwaarden-akkoord");
+  const formulier = await req.formData().catch(() => null);
+  if (!vinkjeGezet(formulier?.get("voorwaarden") ?? null)) return NextResponse.redirect(`${pagina}?fout=akkoord`, 303);
 
   const [site] = await db.select().from(sites).where(eq(sites.id, v.siteId));
+  if (site) await legVoorwaardenAkkoordVast({ clerkUserId: site.clerkUserId, email: v.klantEmail, plek: "betaling" });
   let [abo] = await db.select().from(abonnementen).where(eq(abonnementen.siteId, v.siteId));
   const bedragIncl = inclBtwCent(v.bedragExclCent);
 

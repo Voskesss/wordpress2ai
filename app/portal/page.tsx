@@ -8,6 +8,7 @@ import { vanafLaatsteNieuwGesprek } from "@/lib/gesprek";
 import { isBeheerder, requireUser } from "@/lib/auth";
 import VerwerkersAkkoord from "./VerwerkersAkkoord";
 import WebsiteAkkoord from "./WebsiteAkkoord";
+import VoorwaardenVinkje from "@/app/VoorwaardenVinkje";
 import { geefWebsiteAkkoord } from "./acties";
 import Chat from "./Chat";
 import DemoWelkom from "./DemoWelkom";
@@ -448,6 +449,7 @@ export default async function Portal({
                 ) : null}
                 <strong>Je hebt nog geen akkoord gegeven op je nieuwe website.</strong> Probeer gerust eerst alles uit.
               </p>
+              <VoorwaardenVinkje klein />
               <button type="submit" className="rounded-full bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 cursor-pointer">
                 ✓ Akkoord geven
               </button>

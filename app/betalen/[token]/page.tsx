@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+import VoorwaardenVinkje from "@/app/VoorwaardenVinkje";
 
 export default async function Betalen({
   params,
@@ -63,19 +64,23 @@ export default async function Betalen({
               altijd per maand.
             </p>
           )}
-          <p className="mt-3 text-sm leading-relaxed text-stone-600">
-            Door te betalen ga je akkoord met{" "}
-            {v.soort === "eerste" && <>de opdrachtbevestiging (in je mail), </>}de{" "}
-            <a href="/voorwaarden" className="text-emerald-800 underline underline-offset-2">algemene voorwaarden</a> en de{" "}
-            <a href="/verwerkersovereenkomst" className="text-emerald-800 underline underline-offset-2">verwerkersovereenkomst</a>.
-            We leggen datum en betaling vast als bevestiging.
-          </p>
+          {v.soort === "eerste" && (
+            <p className="mt-3 text-sm leading-relaxed text-stone-600">
+              Met je betaling ga je ook akkoord met de opdrachtbevestiging in je mail.
+            </p>
+          )}
           {fout && (
             <p className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-800">
-              Het starten van de betaling lukte niet. Probeer het zo nog eens, of mail jos@wordswap.nl.
+              {fout === "akkoord"
+                ? "Vink eerst aan dat je akkoord gaat met de algemene voorwaarden en de verwerkersovereenkomst."
+                : "Het starten van de betaling lukte niet. Probeer het zo nog eens, of mail jos@wordswap.nl."}
             </p>
           )}
           <form action={`/api/betalen/${token}`} method="post" className="mt-6">
+            <div className="mb-4">
+              <VoorwaardenVinkje />
+              <p className="mt-1.5 pl-6 text-xs text-stone-500">We leggen vast welke versie je accepteert en wanneer.</p>
+            </div>
             <button type="submit" className="button-primary w-full justify-center cursor-pointer">
               {v.soort === "eerste" ? "Betalen via iDEAL / Wero" : "Betalen"} →
             </button>
