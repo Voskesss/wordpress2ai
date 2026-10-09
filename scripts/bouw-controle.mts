@@ -221,6 +221,95 @@ if (!zonderMobiel) {
   } else {
     bevindingen.push({ ernst: "waarschuwing", regel: "mobiel", waar: "/", detail: "Geen hamburgermenu-knop gevonden op 375px." });
   }
+  // ---- Beeldscherpte op desktopbreedte (VGK 09-10: hero-foto's van 1200px
+  // werden op ~1009 CSS-px getoond — op een retina-scherm is dat 2018px nodig,
+  // dus zichtbaar vaag; de poort zei er niets over). Elke <img> en elke grote
+  // CSS-achtergrond wordt gemeten: kleiner dan de getoonde breedte is een
+  // fout (zelfs op een gewoon scherm opgeschaald), kleiner dan 1,5x een
+  // waarschuwing (vaag op retina). Logo's/kleine beelden (<200px) en svg's
+  // (schalen verliesvrij) tellen niet mee; per beeld één melding.
+  const desktop = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const scherpteGemeld = new Set<string>();
+  const scherpteGevallen: { pagina: string; naam: string; natuurlijk: number; getoond: number }[] = [];
+  for (const p of paginas.sort()) {
+    await desktop.goto(`http://localhost:${poort}${p}`, { waitUntil: "networkidle", timeout: 30000 }).catch(() => null);
+    // Als string, niet als functie: tsx/esbuild stopt anders een
+    // __name-helper in de geserialiseerde functie die in de pagina niet bestaat.
+    const vaag = (await desktop
+      .evaluate(`(async () => {
+        const uit = [];
+        const meet = (bron, natuurlijk, getoond) => {
+          if (!bron || !natuurlijk || getoond < 200) return;
+          if (/\\.svg($|[?#])/i.test(bron) || bron.startsWith("data:")) return;
+          if (natuurlijk < getoond * 1.5)
+            uit.push({ bron, natuurlijk, getoond: Math.round(getoond) });
+        };
+        document.querySelectorAll("img").forEach((img) => {
+          const r = img.getBoundingClientRect();
+          if (r.width >= 200) meet(img.currentSrc || img.src, img.naturalWidth, r.width);
+        });
+        const klussen = [];
+        document.querySelectorAll("*").forEach((el) => {
+          const stijl = getComputedStyle(el);
+          const m = stijl.backgroundImage.match(/url\\(["']?([^"')]+)/);
+          if (!m) return;
+          const r = el.getBoundingClientRect();
+          if (r.width < 200 || r.height < 120) return;
+          if (stijl.backgroundRepeat.includes("repeat") && stijl.backgroundSize === "auto") return;
+          klussen.push(new Promise((klaar) => {
+            const b = new Image();
+            b.onload = () => { meet(m[1], b.naturalWidth, r.width); klaar(); };
+            b.onerror = () => klaar();
+            b.src = m[1];
+          }));
+        });
+        await Promise.all(klussen);
+        return uit;
+      })()`)
+      .catch(() => [])) as { bron: string; natuurlijk: number; getoond: number }[];
+    for (const v of vaag) {
+      const naam = v.bron.split("/").pop()?.split("?")[0] ?? v.bron;
+      if (scherpteGemeld.has(naam)) continue;
+      scherpteGemeld.add(naam);
+      scherpteGevallen.push({ pagina: p, naam, natuurlijk: v.natuurlijk, getoond: v.getoond });
+    }
+  }
+  await desktop.close();
+
+  // Fors opgeschaald (minder dan driekwart van de getoonde breedte) blokkeert;
+  // "aan de krappe kant voor retina" is een werklijstje. Oude WordPress-sites
+  // bewaren originelen vaak op 1200px, dus een volbrede achtergrond komt daar
+  // per definitie iets tekort — daarom alleen de ergste 15 met naam en toenaam,
+  // de rest als telling.
+  scherpteGevallen.sort((a, b) => a.natuurlijk / a.getoond - b.natuurlijk / b.getoond);
+  const krap: typeof scherpteGevallen = [];
+  for (const g of scherpteGevallen) {
+    if (g.natuurlijk < g.getoond * 0.75) {
+      bevindingen.push({
+        ernst: "fout",
+        regel: "beeldscherpte",
+        waar: g.pagina,
+        detail: `${g.naam} is ${g.natuurlijk}px breed maar wordt op ${g.getoond}px getoond — zichtbaar opgeschaald. Haal een groter origineel op of toon hem kleiner.`,
+      });
+    } else if (g.natuurlijk < g.getoond * 1.4) {
+      krap.push(g);
+    }
+  }
+  for (const g of krap.slice(0, 15))
+    bevindingen.push({
+      ernst: "waarschuwing",
+      regel: "beeldscherpte",
+      waar: g.pagina,
+      detail: `${g.naam} is ${g.natuurlijk}px breed bij ${g.getoond}px getoond — vaag op retina-schermen als er een groter origineel bestaat.`,
+    });
+  if (krap.length > 15)
+    bevindingen.push({
+      ernst: "waarschuwing",
+      regel: "beeldscherpte",
+      waar: "hele site",
+      detail: `Nog ${krap.length - 15} beelden zijn aan de krappe kant voor retina (zelfde patroon als hierboven).`,
+    });
+
   await browser.close();
   server.close();
   await rm(kopie, { recursive: true, force: true });
