@@ -395,12 +395,13 @@ const uitvoer = path.join(__dirname, ".uitvoer");
     //     (zelfde maat als de klant), niet meer "0/30 wijzigingen"
     {
       const page = await nieuwePagina(1280, 700);
-      const basisRij = { domein: "voorbeeld.nl", status: "actief", isDemo: false, eigen: false, livegang: null, openConcepten: 0, offlineNa: null };
+      const basisRij = { domein: "voorbeeld.nl", status: "actief", isDemo: false, eigen: false, livegang: null, openConcepten: 0, offlineNa: null, gekoppeld: true, laatstInPortaal: null, laatsteChat: null };
+      const dagenTerug = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
       await page.evaluate((rijen) => window.mountKlanten(rijen), [
-        { ...basisRij, id: 1, naam: "Weinig gebruikt", aiUsd: 0.87, budgetUsd: 4 },
-        { ...basisRij, id: 2, naam: "Bijna op", aiUsd: 3.2, budgetUsd: 4 },
-        { ...basisRij, id: 3, naam: "Op", aiUsd: 5.1, budgetUsd: 4 },
-        { ...basisRij, id: 4, naam: "Nog in migratie", status: "migratie", aiUsd: 0, budgetUsd: 4 },
+        { ...basisRij, id: 1, naam: "Weinig gebruikt", aiUsd: 0.87, budgetUsd: 4, laatstInPortaal: dagenTerug(0), laatsteChat: dagenTerug(3) },
+        { ...basisRij, id: 2, naam: "Bijna op", aiUsd: 3.2, budgetUsd: 4, laatstInPortaal: dagenTerug(45) },
+        { ...basisRij, id: 3, naam: "Op", aiUsd: 5.1, budgetUsd: 4, laatstInPortaal: dagenTerug(8), laatsteChat: dagenTerug(8) },
+        { ...basisRij, id: 4, naam: "Nog in migratie", status: "migratie", aiUsd: 0, budgetUsd: 4, gekoppeld: false },
       ]);
       await page.getByText("Weinig gebruikt").waitFor();
       assert.ok(await page.getByText("$0,87 van $4,00").isVisible(), "admin: bedrag en budget staan er niet");
@@ -411,7 +412,20 @@ const uitvoer = path.join(__dirname, ".uitvoer");
       // Live staat boven In migratie
       const koppen = await page.locator("text=/^(✅ Live|🚀 In migratie)/").allTextContents();
       assert.ok(koppen[0]?.startsWith("✅ Live") && koppen[1]?.startsWith("🚀 In migratie"), `admin: volgorde van de groepen klopt niet (${koppen.join(" | ")})`);
+      // Per klant in de lijst: laatst in het portaal en laatste chat (Jos, 10-10-2026)
+      const regels = await page.locator("[data-activiteit]").allTextContents();
+      assert.deepEqual(regels.map((r) => r.replace(/\s+/g, " ").trim()), [
+        "👤 portaal vandaag💬 chat 3 dagen geleden",
+        "👤 portaal 6 weken geleden💬 chat nooit",
+        "👤 portaal 8 dagen geleden💬 chat 8 dagen geleden",
+      ], "admin: activiteit per klant klopt niet");
+      assert.ok(await page.getByText("nog geen klantaccount gekoppeld").isVisible(), "admin: site zonder klantaccount toont toch een inlogdatum");
       await page.screenshot({ path: path.join(uitvoer, "admin-verbruik.png") });
+      // Langst stil bovenaan: binnen Live komt de klant van 6 weken geleden eerst
+      await page.getByLabel("Volgorde").selectOption("stil");
+      const namen = await page.locator("ul > li a p.font-semibold").allTextContents();
+      assert.deepEqual(namen.slice(0, 3), ["Bijna op", "Op", "Weinig gebruikt"], `admin: volgorde "langst stil" klopt niet (${namen.join(", ")})`);
+      await page.getByLabel("Volgorde").selectOption("standaard");
       // De klantpagina: dezelfde maat, groot, in de tegel bovenaan
       await page.evaluate(() => window.mountKlantBalk());
       await page.getByText("80%").waitFor();

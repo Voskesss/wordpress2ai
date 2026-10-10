@@ -83,6 +83,13 @@ export default async function Admin() {
   const siteNaamVan = (id: number) => alleSites.find((s) => s.id === id)?.naam ?? `site ${id}`;
   const maand = new Date().toISOString().slice(0, 7);
 
+  // Laatst in het portaal en laatste chat, voor alle klanten in één keer
+  const { laatsteChatPerSite, laatstInPortaal } = await import("@/lib/klant-activiteit");
+  const [chatPerSite, portaalPerGebruiker] = await Promise.all([
+    laatsteChatPerSite(admin.id),
+    laatstInPortaal(alleSites.filter((s) => !s.isDemo && s.clerkUserId !== admin.id).map((s) => s.clerkUserId)),
+  ]);
+
   const rijen = await Promise.all(
     alleSites.map(async (site) => {
       const alleChanges = await db
@@ -232,6 +239,10 @@ export default async function Admin() {
           // er deze maand aan AI is gebruikt, als deel van zijn maandbudget
           budgetUsd: site.isDemo ? 0 : maandbudgetVoor(site, new Date().toISOString().slice(0, 7)),
           offlineNa: site.offlineNa,
+          // Alleen bij een gekoppelde klant: staat de site nog op jouw naam, dan zegt jouw eigen inlog niets
+          gekoppeld: !site.isDemo && site.clerkUserId !== admin.id,
+          laatstInPortaal: portaalPerGebruiker.get(site.clerkUserId) ?? null,
+          laatsteChat: chatPerSite.get(site.id) ?? null,
         }))}
       />
 
