@@ -241,7 +241,8 @@ export default async function Admin() {
           offlineNa: site.offlineNa,
           // Alleen bij een gekoppelde klant: staat de site nog op jouw naam, dan zegt jouw eigen inlog niets
           gekoppeld: !site.isDemo && site.clerkUserId !== admin.id,
-          laatstInPortaal: portaalPerGebruiker.get(site.clerkUserId) ?? null,
+          portaalOnbekend: portaalPerGebruiker === null,
+          laatstInPortaal: portaalPerGebruiker?.get(site.clerkUserId) ?? null,
           laatsteChat: chatPerSite.get(site.id) ?? null,
         }))}
       />

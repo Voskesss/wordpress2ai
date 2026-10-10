@@ -24,6 +24,8 @@ export type KlantRij = {
   /** ISO-tijd: laatst in het portaal (Clerk) en laatste chatbericht van de klantkant */
   laatstInPortaal: string | null;
   laatsteChat: string | null;
+  /** De inlogdienst gaf geen antwoord: dan tonen we "onbekend", niet "nooit" */
+  portaalOnbekend?: boolean;
 };
 
 /** Eén regel activiteit: wanneer in het portaal, wanneer de chat gebruikt.
@@ -44,7 +46,7 @@ function Activiteit({ r }: { r: KlantRij }) {
   };
   return (
     <p data-activiteit className="mt-0.5 flex flex-wrap gap-x-3 text-[11px]">
-      {stuk("👤", "portaal", r.laatstInPortaal)}
+      {r.portaalOnbekend ? <span className="text-stone-400">👤 portaal onbekend</span> : stuk("👤", "portaal", r.laatstInPortaal)}
       {stuk("💬", "chat", r.laatsteChat)}
     </p>
   );

@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.43.1 (10 oktober 2026)
+
+- De klantenlijst in de admin toont per klant wanneer hij voor het laatst in het portaal was en wanneer de chat voor het laatst gebruikt is (ook via WhatsApp of door een teamlid, zonder je eigen berichten). Na een maand stilte kleurt het oranje. Met "Volgorde: langst stil bovenaan" zie je in één oogopslag wie niets meer doet.
+
 ## 1.43.0 (9 oktober 2026)
 
 - Nieuwe algemene voorwaarden staan online en gelden vanaf 9 november 2026 (een maand aankondiging, art. 13). Aangevuld voor de beroepsaansprakelijkheidsverzekering: inspanningsverplichting (ook voor AI-voorstellen), vrijwaring voor inhoud van de klant, aansprakelijkheid in elk geval beperkt tot wat de verzekering uitkeert en ook voor wie voor ons werkt, fouten melden binnen 30 dagen met eerst een kans op herstel, claims vervallen na twaalf maanden, eigendom en geheimhouding, en een artikel voor particulieren. Tot de ingangsdatum staat er een melding boven, met een link naar de vorige versie (/voorwaarden/17-september-2026, niet in Google).

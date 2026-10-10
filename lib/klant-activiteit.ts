@@ -33,7 +33,9 @@ export function laatsteMoment(u: { lastSignInAt?: number | null; lastActiveAt?: 
 }
 
 /** Laatst in het portaal per gebruiker, uit Clerk, in porties van 100. */
-export async function laatstInPortaal(userIds: string[]): Promise<Map<string, string>> {
+/** Geeft null als Clerk niet te bereiken is: dan weten we het niet, en dat is
+ * iets anders dan "nooit ingelogd". */
+export async function laatstInPortaal(userIds: string[]): Promise<Map<string, string> | null> {
   const uit = new Map<string, string>();
   const uniek = [...new Set(userIds.filter(Boolean))];
   if (!uniek.length) return uit;
@@ -50,6 +52,7 @@ export async function laatstInPortaal(userIds: string[]): Promise<Map<string, st
     }
   } catch (e) {
     console.error("Laatste inlog uit Clerk opvragen mislukt:", e);
+    return null;
   }
   return uit;
 }
