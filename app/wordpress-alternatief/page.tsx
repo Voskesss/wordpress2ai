@@ -5,7 +5,7 @@ export const metadata: Metadata = {"title": "Alternatief voor WordPress zonder o
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Alternatief voor WordPress",
   "titel": "Een alternatief voor WordPress, zonder dat je opnieuw hoeft te beginnen.",
-  "intro": "Wie een alternatief voor WordPress zoekt, is zelden ontevreden over zijn website. Het zit in alles eromheen: updates die iets stukmaken, plugins die elkaar in de weg zitten, een site die trager wordt, en een webbouwer die je moet mailen voor twee zinnen tekst. Hieronder staan de alternatieven eerlijk naast elkaar, met wat ze je kosten aan werk, en één route waarbij je je huidige website gewoon houdt.",
+  "intro": "Wie een alternatief voor WordPress zoekt, is zelden ontevreden over zijn website. Het zit in alles eromheen: updates die iets stukmaken, plugins die elkaar in de weg zitten, een site die trager wordt, en een webbouwer die je moet mailen voor twee zinnen tekst. Hieronder staan de alternatieven eerlijk naast elkaar, met wat ze je kosten aan werk, en een route waarbij je je huidige website gewoon houdt of er een nieuwe laat maken.",
   "blokken": [
     {
       "kop": "Waarom mensen een alternatief voor WordPress zoeken",
@@ -22,6 +22,10 @@ export default function Pagina(){ return <SeoLanding data={{
     {
       "kop": "De route van WordSwap: je website houden, WordPress loslaten",
       "tekst": "WordSwap is een alternatief voor WordPress waarbij je niet opnieuw begint. We zetten je bestaande website om naar een statische versie: zelfde ontwerp, zelfde teksten, zelfde adressen. Er draait daarna geen database en geen plugin meer, dus er valt niets bij te werken. Wijzigingen typ je in gewone taal in een AI-chat op je eigen website; je ziet eerst een voorbeeld en zet het zelf live. Hoe de overstap loopt, lees je bij [WordPress overzetten](/wordpress-overzetten)."
+    },
+    {
+      "kop": "Liever een nieuwe website? Dat kan ook",
+      "tekst": "WordSwap is niet alleen voor wie zijn oude site wil houden. Heb je nog geen website, of ben je toe aan iets nieuws, dan maken wij [een nieuwe website](/nieuwe-website) voor je, in jouw stijl en zonder WordPress eronder. Het verschil met een bouwdoos als Wix: daar bouw je zelf, blokje voor blokje. Bij ons vertel je wat je wilt, krijg je een voorstel te zien en beslis je daarna pas. Een nieuw ontwerp is er vanaf €250. Bijhouden gaat op dezelfde manier: je typt wat er anders moet."
     },
     {
       "kop": "Wat wordt er precies anders?",
@@ -44,7 +48,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "faq": [
     {
       "vraag": "Wat is het beste alternatief voor WordPress?",
-      "antwoord": "Dat hangt af van wat je wilt houden. Wil je helemaal opnieuw beginnen met een nieuw ontwerp, dan is een bouwdoos als Wix of Squarespace het eenvoudigst. Wil je je huidige website en je plek in Google houden, maar van updates en plugins af, dan is een statische versie van je bestaande site de kleinste stap. Dat laatste is wat WordSwap doet."
+      "antwoord": "Dat hangt af van wat je wilt houden en hoeveel je zelf wilt doen. Bouw je graag zelf en begin je opnieuw, dan is een bouwdoos als Wix of Squarespace een logische keuze. Wil je je huidige website en je plek in Google houden, maar van updates en plugins af, dan is een statische versie van je bestaande site de kleinste stap. Wil je iets nieuws zonder het zelf te bouwen, dan kan dat ook. Die laatste twee doet WordSwap."
     },
     {
       "vraag": "Kan ik mijn WordPress-website meenemen naar een alternatief?",

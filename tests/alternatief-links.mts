@@ -27,6 +27,8 @@ assert.ok(meta.title.length <= 60, `titel te lang voor Google (${meta.title.leng
 assert.ok(meta.description.length <= 155 && /alternatief voor WordPress/i.test(meta.description), "omschrijving te lang of zonder zoekwoord");
 assert.match(pagina, /"titel": "Een alternatief voor WordPress/, "de H1 mist het zoekwoord");
 assert.ok((pagina.match(/alternatief voor WordPress/gi) ?? []).length >= 6, "het zoekwoord komt te weinig voor");
+// Ook een nieuwe website kan, en dan bouwen wij (Jos, 11-10: niet alleen overstappen)
+assert.ok(pagina.includes("[een nieuwe website](/nieuwe-website)") && pagina.includes("daar bouw je zelf"), "de pagina zegt niet dat een nieuwe website ook kan");
 for (const eerlijk of ["Wix", "Squarespace", "Wanneer blijf je liever bij WordPress?"]) assert.ok(pagina.includes(eerlijk), `de vergelijking mist: ${eerlijk}`);
 assert.ok(!pagina.includes("—"), "lang streepje op de pagina");
 
