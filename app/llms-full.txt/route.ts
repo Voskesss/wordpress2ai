@@ -4,6 +4,8 @@ const inhoud = `# WordSwap — aanbod en praktische informatie
 
 ## Wat doet WordSwap?
 ${aanbod.omschrijving}
+
+${aanbod.inHetKort}
 De chat is voor de website-eigenaar, niet een chatbot voor bezoekers. WordPress wordt bij de overstap vervangen. Er wordt niet alleen een plugin geïnstalleerd.
 
 ## Voor wie?

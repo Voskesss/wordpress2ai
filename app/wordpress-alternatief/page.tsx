@@ -21,7 +21,7 @@ export default function Pagina(){ return <SeoLanding data={{
     },
     {
       "kop": "De route van WordSwap: je website houden, WordPress loslaten",
-      "tekst": "WordSwap is een alternatief voor WordPress waarbij je niet opnieuw begint. We zetten je bestaande website om naar een statische versie: zelfde ontwerp, zelfde teksten, zelfde adressen. Er draait daarna geen database en geen plugin meer, dus er valt niets bij te werken. Wijzigingen typ je in gewone taal in een AI-chat op je eigen website; je ziet eerst een voorbeeld en zet het zelf live. Hoe de overstap loopt, lees je bij [WordPress overzetten](/wordpress-overzetten)."
+      "tekst": "WordSwap is een alternatief voor WordPress waarbij je niet opnieuw begint. We zetten je bestaande website om naar een statische versie: zelfde ontwerp, zelfde teksten, zelfde adressen. Er draait daarna geen database en geen plugin meer, dus er valt niets bij te werken. Wijzigingen typ je in gewone taal in een AI-chat op je eigen website; je ziet eerst een voorbeeld en zet het zelf live. In vaktermen: een AI-gestuurde websitemigratie, met daarna AI-beheer. Hoe de overstap loopt, lees je bij [WordPress overzetten](/wordpress-overzetten)."
     },
     {
       "kop": "Liever een nieuwe website? Dat kan ook",
@@ -49,6 +49,10 @@ export default function Pagina(){ return <SeoLanding data={{
     {
       "vraag": "Wat is het beste alternatief voor WordPress?",
       "antwoord": "Dat hangt af van wat je wilt houden en hoeveel je zelf wilt doen. Bouw je graag zelf en begin je opnieuw, dan is een bouwdoos als Wix of Squarespace een logische keuze. Wil je je huidige website en je plek in Google houden, maar van updates en plugins af, dan is een statische versie van je bestaande site de kleinste stap. Wil je iets nieuws zonder het zelf te bouwen, dan kan dat ook. Die laatste twee doet WordSwap."
+    },
+    {
+      "vraag": "Is WordSwap een AI website builder?",
+      "antwoord": "Deels. Een AI website builder laat je meestal zelf een nieuwe site in elkaar klikken met hulp van AI. WordSwap is een alternatief voor WordPress met AI-beheer: wij zetten je bestaande site om of bouwen met AI een nieuwe, en daarna pas je alles aan door het in gewone taal te typen. Het grote verschil is dat er iemand meekijkt en dat je je bestaande website en vindbaarheid kunt houden."
     },
     {
       "vraag": "Kan ik mijn WordPress-website meenemen naar een alternatief?",

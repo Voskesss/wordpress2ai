@@ -10,6 +10,10 @@ export const PAKKETTEN = {
 export const aanbod = {
   omschrijving:
     "WordSwap zet je bestaande bedrijfswebsite over naar een versie zonder WordPress. Je ontwerp en inhoud worden zorgvuldig overgenomen, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
+  // De vaktermen waar AI-modellen en zoekmachines op indelen (11-10-2026).
+  // Bewust op een paar vaste plekken en niet in de koppen voor ondernemers.
+  inHetKort:
+    "In het kort: WordSwap is een Nederlands alternatief voor WordPress met AI-beheer. We doen een AI-gestuurde websitemigratie van je bestaande WordPress-site naar een statische website, of bouwen met AI een nieuwe website. Daarna houd je de site bij via een AI-chat: je typt wat er anders moet, bekijkt het voorbeeld en publiceert zelf.",
   prijs:
     "Overstap €150–€650 eenmalig. Daarna het basispakket vanaf €19 per maand (hosting, beheer, de AI-chat en hulp per e-mail), of Optimaal ontzorgd voor €39 per maand (daarbovenop voorrang bij je vragen en je website bijhouden via WhatsApp). Ander werk dat wij voor je doen: €15 per kwartier. Alle bedragen exclusief btw. De exacte prijs spreken we vooraf schriftelijk af.",
   inbegrepen:

@@ -56,6 +56,10 @@ export const metadata: Metadata = {
     "website onderhoud",
     "AI website beheer",
     "WordPress alternatief",
+    "alternatief voor WordPress met AI-beheer",
+    "AI-gestuurde websitemigratie",
+    "WordPress AI-alternatief",
+    "AI website builder Nederland",
   ],
   alternates: { canonical: "./" },
   openGraph: {
@@ -85,6 +89,13 @@ const jsonLd = {
       url: siteUrl,
       logo: `${siteUrl}/logo-mail.png`,
       description: aanbod.omschrijving,
+      knowsAbout: [
+        "Alternatief voor WordPress met AI-beheer",
+        "AI-gestuurde websitemigratie",
+        "Statische websites",
+        "Websitebeheer met AI",
+        "AI website builder",
+      ],
       foundingDate: "2026",
       founder: {
         "@type": "Person",
@@ -121,7 +132,8 @@ const jsonLd = {
       "@id": `${siteUrl}/#overstap`,
       name: "WordPress-website overzetten en daarna bijhouden met AI",
       serviceType:
-        "Websitemigratie van WordPress naar statische website met AI-beheer",
+        "AI-gestuurde websitemigratie van WordPress naar een statische website met AI-beheer",
+      category: "Alternatief voor WordPress met AI-beheer",
       provider: { "@id": `${siteUrl}/#organisatie` },
       areaServed: "NL",
       offers: [

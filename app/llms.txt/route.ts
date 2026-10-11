@@ -4,6 +4,8 @@ const inhoud = `# WordSwap
 
 > ${aanbod.omschrijving}
 
+${aanbod.inHetKort}
+
 ${aanbod.prijs}
 ${aanbod.geschikt}
 ${aanbod.eigenAi}
@@ -19,6 +21,7 @@ ${aanbod.seo}
 - [Hoe het werkt](https://wordswap.nl/hoe-het-werkt): van websitecheck tot goedgekeurde overstap
 - [Eigen AI](https://wordswap.nl/eigen-ai-koppelen): ingebouwde chat, teksten voorbereiden, expert-route en geplande koppeling
 - [Vergelijking](https://wordswap.nl/wordswap-vs-wordpress): wanneer WordSwap en wanneer WordPress past
+- [Alternatief voor WordPress](https://wordswap.nl/wordpress-alternatief): de alternatieven op een rij (bouwdozen, andere systemen, statisch) en WordSwap als alternatief voor WordPress met AI-beheer, voor een bestaande of een nieuwe website
 - [Demo](https://wordswap.nl/demo): gesimuleerd voorbeeld zonder account; echte AI-demo met account
 - [Nieuwe website](https://wordswap.nl/nieuwe-website): nieuw ontwerp als aanvullende dienst
 

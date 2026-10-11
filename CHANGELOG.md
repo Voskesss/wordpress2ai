@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.43.5 (11 oktober 2026)
+
+- Vaktermen voor AI-modellen en zoekmachines op vaste plekken: llms.txt en llms-full.txt beginnen met één kernzin ("een Nederlands alternatief voor WordPress met AI-beheer", "AI-gestuurde websitemigratie", "bouwen met AI een nieuwe website"), de structured data noemt ze, en de alternatief-pagina heeft een vraag "Is WordSwap een AI website builder?". De koppen voor ondernemers blijven in gewone taal. llms.txt verwijst nu ook naar de alternatief-pagina.
+
 ## 1.43.4 (11 oktober 2026)
 
 - /wordpress-alternatief: bij de nieuwe website staat nu dat wij hem met AI bouwen, waardoor het snel gaat en betaalbaar blijft.
