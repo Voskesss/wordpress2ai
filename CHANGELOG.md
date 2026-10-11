@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.43.2 (11 oktober 2026)
+
+- De pagina /wordpress-alternatief is inhoudelijk herschreven rond het zoekwoord "alternatief voor WordPress": waarom mensen zoeken, de alternatieven eerlijk op een rij (bouwdozen, andere systemen, statisch), wat ze gemeen hebben (opnieuw beginnen) en de route waarbij je je website houdt. Met twee nieuwe vragen onderaan.
+- Vanuit de lopende tekst linken nu de homepage, WordSwap vs. WordPress, de pagina's over een trage site, onderhoud en overzetten naar deze pagina, met "alternatief voor WordPress" als linktekst. Landingspagina's kunnen daarvoor nu links in de tekst hebben.
+
 ## 1.43.1 (10 oktober 2026)
 
 - De klantenlijst in de admin toont per klant wanneer hij voor het laatst in het portaal was en wanneer de chat voor het laatst gebruikt is (ook via WhatsApp of door een teamlid, zonder je eigen berichten). Na een maand stilte kleurt het oranje. Met "Volgorde: langst stil bovenaan" zie je in één oogopslag wie niets meer doet.
