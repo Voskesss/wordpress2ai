@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.43.4 (11 oktober 2026)
+
+- /wordpress-alternatief: bij de nieuwe website staat nu dat wij hem met AI bouwen, waardoor het snel gaat en betaalbaar blijft.
+
 ## 1.43.3 (11 oktober 2026)
 
 - /wordpress-alternatief zegt nu ook dat een nieuwe website kan: wij maken hem (vanaf €250), anders dan bij een bouwdoos als Wix waar je zelf bouwt. Met een link naar /nieuwe-website.

@@ -25,7 +25,7 @@ export default function Pagina(){ return <SeoLanding data={{
     },
     {
       "kop": "Liever een nieuwe website? Dat kan ook",
-      "tekst": "WordSwap is niet alleen voor wie zijn oude site wil houden. Heb je nog geen website, of ben je toe aan iets nieuws, dan maken wij [een nieuwe website](/nieuwe-website) voor je, in jouw stijl en zonder WordPress eronder. Het verschil met een bouwdoos als Wix: daar bouw je zelf, blokje voor blokje. Bij ons vertel je wat je wilt, krijg je een voorstel te zien en beslis je daarna pas. Een nieuw ontwerp is er vanaf €250. Bijhouden gaat op dezelfde manier: je typt wat er anders moet."
+      "tekst": "WordSwap is niet alleen voor wie zijn oude site wil houden. Heb je nog geen website, of ben je toe aan iets nieuws, dan bouwen wij met AI [een nieuwe website](/nieuwe-website) voor je, in jouw stijl en zonder WordPress eronder. Daardoor gaat het snel en blijft het betaalbaar. Het verschil met een bouwdoos als Wix: daar bouw je zelf, blokje voor blokje. Bij ons vertel je wat je wilt, krijg je een voorstel te zien en beslis je daarna pas. Een nieuw ontwerp is er vanaf €250. Bijhouden gaat op dezelfde manier: je typt wat er anders moet."
     },
     {
       "kop": "Wat wordt er precies anders?",
