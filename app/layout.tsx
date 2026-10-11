@@ -307,7 +307,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   ["website-bouwbedrijf", "Voor bouwbedrijven"],
                   ["website-kapsalon", "Voor kappers"],
                   ["wordpress-overzetten", "WordPress overzetten"],
-                  ["wordpress-alternatief", "WordPress-alternatief"],
+                  ["wordpress-alternatief", "Alternatief voor WordPress"],
                   ["website-zonder-onderhoud", "Zonder onderhoud"],
                   ["website-laten-onderhouden", "Laten onderhouden"],
                   ["website-zonder-cms", "Zonder CMS"],

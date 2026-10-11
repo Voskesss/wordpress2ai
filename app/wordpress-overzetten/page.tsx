@@ -22,6 +22,10 @@ export default function Pagina(){ return <SeoLanding data={{
     {
       "kop": "Welke functies kunnen mee?",
       "tekst": aanbod.geschikt
+    },
+    {
+      "kop": "Nog aan het vergelijken?",
+      "tekst": "Overzetten is niet de enige route. Wil je eerst weten welke opties er zijn en wat ze je aan werk kosten, lees dan over [een alternatief voor WordPress](/wordpress-alternatief). Daar staan bouwdozen, andere systemen en deze overstap naast elkaar."
     }
   ],
   "slug": "wordpress-overzetten",

@@ -2,6 +2,24 @@ import VerhaalBeeld, { type Onderwerp } from "./VerhaalBeeld";
 import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
+import { tekstDelen, zonderLinks } from "@/lib/tekst-links";
+
+/** Lopende tekst met interne links: [ankertekst](/pad) wordt een echte link. */
+function MetLinks({ tekst }: { tekst: string }) {
+  return (
+    <>
+      {tekstDelen(tekst).map((d, i) =>
+        d.naar ? (
+          <Link key={i} href={d.naar} className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900">
+            {d.tekst}
+          </Link>
+        ) : (
+          d.tekst
+        ),
+      )}
+    </>
+  );
+}
 
 export type LandingData = {
   nieuweWebsite?: boolean;
@@ -25,7 +43,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
     mainEntity: data.faq.map((f) => ({
       "@type": "Question",
       name: f.vraag,
-      acceptedAnswer: { "@type": "Answer", text: f.antwoord },
+      acceptedAnswer: { "@type": "Answer", text: zonderLinks(f.antwoord) },
     })),
   };
 
@@ -93,7 +111,9 @@ export default function SeoLanding({ data }: { data: LandingData }) {
             <h2 className="font-display text-2xl font-semibold tracking-tight">
               {b.kop}
             </h2>
-            <p className="mt-2.5 text-stone-600 leading-relaxed">{b.tekst}</p>
+            <p className="mt-2.5 text-stone-600 leading-relaxed">
+              <MetLinks tekst={b.tekst} />
+            </p>
           </section>
         ))}
       </div>
@@ -108,7 +128,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
               <div key={f.vraag}>
                 <h3 className="font-semibold text-lg">{f.vraag}</h3>
                 <p className="mt-1.5 text-stone-600 leading-relaxed">
-                  {f.antwoord}
+                  <MetLinks tekst={f.antwoord} />
                 </p>
               </div>
             ))}

@@ -104,6 +104,11 @@ export default function Vergelijking() {
         gewoon de betere keuze is. WordPress is een systeem dat je website
         beheert en dat onderhoud vraagt; WordSwap maakt van je site platte,
         snelle bestanden en laat een AI het beheer doen op jouw aanwijzing.
+        Zoek je breder en wil je ook de andere opties zien? Lees dan over{" "}
+        <Link href="/wordpress-alternatief" className="font-medium text-violet-700 underline underline-offset-2">
+          een alternatief voor WordPress
+        </Link>
+        .
       </p>
 
       <div className="mt-10 overflow-x-auto rounded-xl border border-stone-200 bg-white">

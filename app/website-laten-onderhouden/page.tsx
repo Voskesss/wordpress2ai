@@ -25,7 +25,7 @@ export default function Pagina(){ return <SeoLanding data={{
     },
     {
       "kop": "De andere route: de reden voor het onderhoud weghalen",
-      "tekst": aanbod.omschrijving
+      "tekst": "Er bestaat ook [een alternatief voor WordPress](/wordpress-alternatief) waarbij je je website gewoon houdt. " + aanbod.omschrijving
     },
     {
       "kop": "Automatisch is niet hetzelfde als alleen",

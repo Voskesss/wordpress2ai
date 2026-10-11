@@ -1,34 +1,58 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Een WordPress-alternatief voor wie zelf wil aanpassen", "description": "Wil je vooral teksten, foto’s en diensten actueel houden? WordSwap vervangt WordPress door een statische site die je via een AI-chat beheert.", "alternates": {"canonical": "/wordpress-alternatief"}};
+export const metadata: Metadata = {"title": "Alternatief voor WordPress zonder opnieuw te beginnen", "description": "Zoek je een alternatief voor WordPress? Vergelijk bouwdozen, andere systemen en een statische site die je met AI bijhoudt, zonder opnieuw te beginnen.", "alternates": {"canonical": "/wordpress-alternatief"}};
 export default function Pagina(){ return <SeoLanding data={{
-  "label": "WordPress-alternatief",
-  "titel": "Een WordPress-alternatief voor ondernemers die zelf willen aanpassen.",
-  "intro": "WordPress is flexibel. Maar als je vooral teksten, foto’s en diensten actueel wilt houden, kan het beheer meer werk zijn dan je wilt. WordSwap vervangt WordPress door een statische website die je via een ingebouwde AI-chat beheert.",
+  "label": "Alternatief voor WordPress",
+  "titel": "Een alternatief voor WordPress, zonder dat je opnieuw hoeft te beginnen.",
+  "intro": "Wie een alternatief voor WordPress zoekt, is zelden ontevreden over zijn website. Het zit in alles eromheen: updates die iets stukmaken, plugins die elkaar in de weg zitten, een site die trager wordt, en een webbouwer die je moet mailen voor twee zinnen tekst. Hieronder staan de alternatieven eerlijk naast elkaar, met wat ze je kosten aan werk, en één route waarbij je je huidige website gewoon houdt.",
   "blokken": [
     {
-      "kop": "Wat wordt anders?",
+      "kop": "Waarom mensen een alternatief voor WordPress zoeken",
+      "tekst": "WordPress is een draaiend systeem. De kern, je thema en vaak twintig tot veertig plugins krijgen elk hun eigen updates, en elke update kan iets breken of een lek openzetten. Daar komt bij dat een site met de jaren zwaarder wordt, dus [trager](/wordpress-website-traag). En voor kleine wijzigingen ben je vaak afhankelijk van iemand die het systeem kent. Veel ondernemers betalen daarom elke maand om [hun website te laten onderhouden](/website-laten-onderhouden), voor werk waar hun bedrijf zelf niets aan heeft."
+    },
+    {
+      "kop": "De alternatieven op een rij",
+      "tekst": "Grofweg zijn er drie soorten. Eén: bouwdozen zoals Wix, Squarespace en Jimdo. Alles zit in één pakket en je hoeft niets bij te werken, maar je bouwt je website opnieuw op in hun sjablonen en je zit daarna aan dat platform vast. Twee: een ander beheersysteem, zoals Webflow of Joomla. Krachtig, maar je leert een nieuw systeem en je begint ook dan opnieuw. Drie: een statische website, dus kant-en-klare pagina’s zonder database of plugins. Dat is de snelste en veiligste vorm, maar vroeger had je voor elke wijziging een programmeur nodig."
+    },
+    {
+      "kop": "Wat bijna elk alternatief gemeen heeft: je begint opnieuw",
+      "tekst": "Dat is het deel dat mensen onderschatten. Een nieuw platform betekent je teksten overzetten, je foto’s opnieuw plaatsen, je ontwerp nabouwen in andermans sjabloon en hopen dat je adressen in Google blijven kloppen. Voor een website die er goed uitziet en waar klanten je op vinden is dat veel werk, met een reëel risico op verlies van vindbaarheid. Het probleem was niet je website, het was het systeem erachter."
+    },
+    {
+      "kop": "De route van WordSwap: je website houden, WordPress loslaten",
+      "tekst": "WordSwap is een alternatief voor WordPress waarbij je niet opnieuw begint. We zetten je bestaande website om naar een statische versie: zelfde ontwerp, zelfde teksten, zelfde adressen. Er draait daarna geen database en geen plugin meer, dus er valt niets bij te werken. Wijzigingen typ je in gewone taal in een AI-chat op je eigen website; je ziet eerst een voorbeeld en zet het zelf live. Hoe de overstap loopt, lees je bij [WordPress overzetten](/wordpress-overzetten)."
+    },
+    {
+      "kop": "Wat wordt er precies anders?",
       "tekst": aanbod.omschrijving
     },
     {
-      "kop": "Wanneer is overstappen zinvol?",
-      "tekst": "Als je regelmatig kleine wijzigingen uitstelt, afhankelijk bent van een webbouwer of af wilt van WordPress-updates. Werkt je huidige site goed en past het beheer bij je? Dan is overstappen niet vanzelfsprekend nodig."
-    },
-    {
       "kop": "Wanneer blijf je liever bij WordPress?",
-      "tekst": "Voor een webshop, ledenomgeving of complexe redactionele workflow kan WordPress beter passen. Externe widgets bekijken we vooraf; niet iedere plugin is één op één te vervangen."
+      "tekst": "Voor een webshop, een ledenomgeving met inlog of een redactie met meerdere schrijvers en goedkeuringsstappen past WordPress vaak beter. Daar heb je een draaiend systeem voor nodig en dat is precies wat wij weghalen. Werkt je site goed en past het beheer bij je, dan is overstappen ook niet nodig. Een eerlijke vergelijking per onderdeel staat op [WordSwap vs. WordPress](/wordswap-vs-wordpress)."
     },
     {
-      "kop": "Vergelijk je totale kosten",
+      "kop": "Wat kost een alternatief voor WordPress?",
       "tekst": aanbod.prijs
+    },
+    {
+      "kop": "Wat betekent overstappen voor Google?",
+      "tekst": aanbod.seo
     }
   ],
   "slug": "wordpress-alternatief",
   "faq": [
     {
+      "vraag": "Wat is het beste alternatief voor WordPress?",
+      "antwoord": "Dat hangt af van wat je wilt houden. Wil je helemaal opnieuw beginnen met een nieuw ontwerp, dan is een bouwdoos als Wix of Squarespace het eenvoudigst. Wil je je huidige website en je plek in Google houden, maar van updates en plugins af, dan is een statische versie van je bestaande site de kleinste stap. Dat laatste is wat WordSwap doet."
+    },
+    {
+      "vraag": "Kan ik mijn WordPress-website meenemen naar een alternatief?",
+      "antwoord": "Bij de meeste alternatieven niet: je bouwt je site opnieuw op in het nieuwe systeem. Bij WordSwap wel. We nemen je ontwerp, teksten, foto’s en adressen over, en je krijgt eerst een kopie te zien voordat er iets verandert. Zonder akkoord betaal je niet voor de omzetting."
+    },
+    {
       "vraag": "Waarom heeft een site zonder WordPress geen updates nodig?",
-      "antwoord": "WordPress is een draaiend systeem: het bouwt elke pagina op het moment dat een bezoeker hem opvraagt, en al die draaiende onderdelen (kern, thema, plugins) moeten bijgehouden worden. Wij zetten je site om naar kant-en-klare pagina's die er gewoon stáán. Er draait niets meer dat kan verouderen, dus er valt ook niets bij te werken."
+      "antwoord": "WordPress is een draaiend systeem: het bouwt elke pagina op het moment dat een bezoeker hem opvraagt, en al die draaiende onderdelen (kern, thema, plugins) moeten bijgehouden worden. Wij zetten je site om naar kant-en-klare pagina's die er gewoon stáán. Er draait niets meer dat kan verouderen, dus er valt ook niets bij te werken. Meer daarover bij [een website zonder onderhoud](/website-zonder-onderhoud)."
     },
     {
       "vraag": "Wat gebeurt er met mijn plugins?",

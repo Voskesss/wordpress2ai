@@ -252,7 +252,11 @@ export default async function Home({
             Ben je tevreden met je uitstraling? Dan beginnen we daarmee. Je
             website wordt opnieuw opgebouwd zonder WordPress. Voor bezoekers
             blijft je bedrijf herkenbaar; jij krijgt een andere manier om de
-            inhoud bij te houden.
+            inhoud bij te houden. Zo is WordSwap een{" "}
+            <Link href="/wordpress-alternatief" style={{ textDecoration: "underline", textUnderlineOffset: 3, fontWeight: 600 }}>
+              alternatief voor WordPress
+            </Link>{" "}
+            waarbij je niet opnieuw hoeft te beginnen.
           </p>
           <Link href="/wordswap-vs-wordpress" className="button-text">
             Vergelijk WordSwap met WordPress →
