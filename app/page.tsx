@@ -8,7 +8,7 @@ import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
 import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
-  title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
+  title: "WordPress overzetten en bijhouden met AI",
   description:
     "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 en vanaf €19 per maand.",
   alternates: { canonical: "/" },
@@ -19,13 +19,15 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: "https://www.wordswap.nl",
     siteName: "WordSwap",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
+    title: "WordSwap: je WordPress-website overzetten en bijhouden met AI",
     description:
       "Zelfde ontwerp, teksten en plek in Google. Daarna vraag je gewoon wat er anders moet. Geen updates, geen plugins, geen gedoe.",
     images: [deelAfbeelding],
   },
 };
-const faq = aankoopVragen;
+// Het FAQPage-schema staat alleen op /veelgestelde-vragen: dezelfde twaalf
+// vragen op twee pagina's als gestructureerde data is dubbele inhoud.
+const faq = aankoopVragen.slice(0, 5);
 export default async function Home({
   searchParams,
 }: {
@@ -37,20 +39,6 @@ export default async function Home({
   const checkLink = hoek ? `/contact?hoek=${hoek.sleutel}` : "/contact";
   return (
     <div className="marketing-home">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faq.map(([name, text]) => ({
-              "@type": "Question",
-              name,
-              acceptedAnswer: { "@type": "Answer", text },
-            })),
-          }),
-        }}
-      />
       <section className="home-hero shell">
         <div className="hero-copy">
           <p className="eyebrow">
@@ -140,7 +128,7 @@ export default async function Home({
             </h2>
           </div>
           <p>
-            Je site ziet er prima uit — daar ligt het niet aan. Het is alles
+            Je site ziet er prima uit. Daar ligt het niet aan. Het is alles
             eromheen: updates, plugins, en dat ene tekstje dat wéér ergens diep
             in een menu verstopt zit.
           </p>
@@ -150,7 +138,7 @@ export default async function Home({
             [
               "01",
               "Waar zat het ook alweer?",
-              "Eén prijsje aanpassen betekent inloggen, zoeken door menu's en blokken, en hopen dat je niets anders verschuift. In WordSwap typ je gewoon wat er anders moet — zoeken doet de AI.",
+              "Eén prijsje aanpassen betekent inloggen, zoeken door menu's en blokken, en hopen dat je niets anders verschuift. In WordSwap typ je gewoon wat er anders moet; zoeken doet de AI.",
             ],
             [
               "02",
@@ -160,7 +148,7 @@ export default async function Home({
             [
               "03",
               "Ik durf er zelf niet aan te komen.",
-              "Dus blijft de site maanden hetzelfde, of wacht je op de webbouwer. Bij WordSwap verschijnt elke wijziging eerst als voorbeeld — en een eerdere versie terugzetten kan altijd.",
+              "Dus blijft de site maanden hetzelfde, of wacht je op de webbouwer. Bij WordSwap verschijnt elke wijziging eerst als voorbeeld, en een eerdere versie terugzetten kan altijd.",
             ],
           ].map(([n, t, d]) => (
             <article className="benefit" key={n}>
@@ -214,7 +202,7 @@ export default async function Home({
           <p>
             We hebben onlangs een WordPress-site overgezet en beide versies
             gemeten met Google&rsquo;s eigen meetlat (Lighthouse). Zelfde
-            ontwerp, zelfde inhoud — alleen de techniek eronder is anders.
+            ontwerp, zelfde inhoud: alleen de techniek eronder is anders.
           </p>
         </div>
         <div className="speed-bars" role="img" aria-label="Laadtijdvergelijking: WordPress-versie 6,2 seconden, WordSwap-versie 3,2 seconden">
@@ -234,7 +222,7 @@ export default async function Home({
           </div>
           <p className="speed-note">
             Grootste inhoud in beeld (LCP), gemeten in september 2026 bij één
-            overgezette site. Resultaten verschillen per website — daarom meten
+            overgezette site. Resultaten verschillen per website. Daarom meten
             we bij elke overstap de oude en nieuwe site en krijg je beide
             uitslagen te zien.
           </p>
@@ -441,7 +429,7 @@ export default async function Home({
           <h2>Je stapt over met hulp van Jos.</h2>
           <p>
             Ik zet je WordPress-website zelf over en controleer samen met jou
-            het resultaat. Daarna pas je je website aan met AI — en heb je een
+            het resultaat. Daarna pas je je website aan met AI, en heb je een
             vraag, dan krijg je mij aan de lijn. Geen ticketsysteem, geen
             wachtrij.
           </p>
@@ -473,7 +461,44 @@ export default async function Home({
               <p>{a}</p>
             </details>
           ))}
+          <Link href="/veelgestelde-vragen" className="button-text">
+            Alle veelgestelde vragen →
+          </Link>
         </div>
+      </section>
+      <section className="section-space shell" aria-labelledby="verder-kop">
+        <p className="eyebrow">WAAR WIL JE MEE VERDER?</p>
+        <h2 id="verder-kop">Kies wat bij jouw situatie past.</h2>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {[
+            ["/wordpress-overzetten", "WordPress overzetten", "Je huidige site houden, zonder WordPress-onderhoud. Vanaf €150."],
+            ["/nieuwe-website", "Een nieuwe website laten maken", "Wij bouwen hem met AI, jij houdt hem bij. Vanaf €250."],
+            ["/website-laten-onderhouden", "Website laten onderhouden", "Wat onderhoud kost, en hoe je de reden ervoor weghaalt."],
+            ["/website-koppelen-aan-ai", "Website aanpassen met AI", "Typ of app wat er anders moet, bekijk het en publiceer."],
+          ].map(([href, kop, tekst]) => (
+            <Link key={href} href={href} className="lift block rounded-xl border border-stone-200 bg-white p-5 hover:border-violet-300">
+              <span className="font-semibold text-violet-800">{kop} →</span>
+              <span className="mt-1 block text-sm text-stone-600">{tekst}</span>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-5 text-sm text-stone-600">
+          Speciaal voor{" "}
+          {[
+            ["/website-kapsalon", "kappers"],
+            ["/website-schildersbedrijf", "schilders"],
+            ["/website-hoveniersbedrijf", "hoveniers"],
+            ["/website-installatiebedrijf", "installateurs"],
+            ["/website-bouwbedrijf", "bouwbedrijven"],
+          ].map(([href, naam], i, alle) => (
+            <span key={href}>
+              <Link href={href} className="font-medium text-violet-700 underline underline-offset-2">
+                {naam}
+              </Link>
+              {i < alle.length - 2 ? ", " : i === alle.length - 2 ? " en " : "."}
+            </span>
+          ))}
+        </p>
       </section>
       <section className="shell">
         <div className="closing-cta">

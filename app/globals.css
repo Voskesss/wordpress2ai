@@ -848,24 +848,26 @@ main p {
   justify-content: space-between;
   gap: 20px;
 }
+/* Alle onderwerppagina's zichtbaar in de footer, gegroepeerd. Stond in een
+   ingeklapt blok; dan telt de link voor bezoekers niet en weegt hij voor
+   zoekmachines minder (SEO-ronde 14-10-2026). */
 .footer-resources {
-  font-size: 10px;
   border-top: 1px solid #dce3d1;
-  padding-block: 15px;
+  padding-block: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 22px;
+  font-size: 13px;
 }
-.footer-resources summary {
-  cursor: pointer;
-  /* De hele blok stond op 10px, ook deze kop. Dan zie je de knop niet en
-     klapt niemand hem open. De links eronder blijven wel klein. */
-  font-size: 15px;
+.footer-resources h3 {
+  font-size: 13px;
   font-weight: 600;
   color: #244b3d;
+  margin-bottom: 8px;
 }
-.footer-resources nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 15px;
+.footer-resources a {
+  display: block;
+  padding-block: 3px;
 }
 @media (min-width: 1024px) {
   main > div:not(.marketing-home):not(.clerk-pagina):first-child h1 {

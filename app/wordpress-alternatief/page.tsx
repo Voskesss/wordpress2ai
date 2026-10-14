@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Alternatief voor WordPress zonder opnieuw te beginnen", "description": "Zoek je een alternatief voor WordPress? Vergelijk bouwdozen, andere systemen en een statische site die je met AI bijhoudt, zonder opnieuw te beginnen.", "alternates": {"canonical": "/wordpress-alternatief"}};
+export const metadata: Metadata = {"title": "Alternatief voor WordPress met AI-beheer", "description": "Zoek je een alternatief voor WordPress? Vergelijk bouwdozen, andere systemen en een statische site die je met AI bijhoudt, zonder opnieuw te beginnen.", "alternates": {"canonical": "/wordpress-alternatief"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Alternatief voor WordPress",
   "titel": "Een alternatief voor WordPress, zonder dat je opnieuw hoeft te beginnen.",

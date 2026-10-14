@@ -15,7 +15,8 @@ import { dubbeleTeksten } from "../lib/seo-poort";
  */
 
 const overslaan = ["portal","admin","demo","sign-in","sign-up","afspraak","betalen","betaald","bedankt","check","api","site-weergave","preview","llms.txt","llms-full.txt","sitemap.xml","webinar"];
-const GRENS = { titel: 60, omschrijving: 155 };
+// Titel zonder " | WordSwap" (11 tekens); Google toont er ongeveer 60.
+const GRENS = { titel: 49, omschrijving: 155 };
 
 /** Leest een veld uit, ook als de waarde zelf een apostrof bevat. */
 const pak = (s: string, veld: string) =>

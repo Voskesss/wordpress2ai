@@ -115,17 +115,17 @@ export default function Privacy() {
           kracht:
         </p>
         <ul className="list-disc pl-5 space-y-1.5">
-          <li><strong>Vercel</strong> — hosting van wordswap.nl en het klantportaal</li>
-          <li><strong>Cloudflare</strong> — hosting van de klantwebsites</li>
-          <li><strong>Neon</strong> — database (accounts, chatgeschiedenis, formulierinzendingen)</li>
-          <li><strong>Clerk</strong> — inloggen en accountbeheer</li>
-          <li><strong>Anthropic</strong> — de AI die wijzigingen aan websites uitvoert en binnenkomende formulierberichten op spam controleert; chatberichten en formulierberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen. Site-eigenaren kunnen de spamcontrole uitzetten via de privacystand van hun formulieren</li>
-          <li><strong>Meta (WhatsApp Business Platform)</strong> — alleen als je je website via WhatsApp aanstuurt: het afleveren van berichten tussen jou en WordSwap</li>
-          <li><strong>OpenAI</strong> — alleen bij WhatsApp-spraakberichten: het omzetten van spraak naar tekst; de opname wordt niet gebruikt om AI-modellen te trainen</li>
-          <li><strong>Resend</strong> — het versturen van e-mail (bevestigingen en meldingen)</li>
-          <li><strong>Mollie</strong> (Amsterdam) — betalingen en automatische incasso&apos;s</li>
-          <li><strong>Soverin</strong> (Nederland) — onze eigen zakelijke mailbox</li>
-          <li><strong>GitHub</strong> — opslag van de websitebestanden (broncode, geen persoonsgegevens)</li>
+          <li><strong>Vercel</strong>: hosting van wordswap.nl en het klantportaal</li>
+          <li><strong>Cloudflare</strong>: hosting van de klantwebsites</li>
+          <li><strong>Neon</strong>: database (accounts, chatgeschiedenis, formulierinzendingen)</li>
+          <li><strong>Clerk</strong>: inloggen en accountbeheer</li>
+          <li><strong>Anthropic</strong>: de AI die wijzigingen aan websites uitvoert en binnenkomende formulierberichten op spam controleert; chatberichten en formulierberichten worden daarvoor aan Anthropic doorgegeven en niet gebruikt om AI-modellen te trainen. Site-eigenaren kunnen de spamcontrole uitzetten via de privacystand van hun formulieren</li>
+          <li><strong>Meta (WhatsApp Business Platform)</strong>: alleen als je je website via WhatsApp aanstuurt: het afleveren van berichten tussen jou en WordSwap</li>
+          <li><strong>OpenAI</strong>: alleen bij WhatsApp-spraakberichten: het omzetten van spraak naar tekst; de opname wordt niet gebruikt om AI-modellen te trainen</li>
+          <li><strong>Resend</strong>: het versturen van e-mail (bevestigingen en meldingen)</li>
+          <li><strong>Mollie</strong> (Amsterdam): betalingen en automatische incasso&apos;s</li>
+          <li><strong>Soverin</strong> (Nederland): onze eigen zakelijke mailbox</li>
+          <li><strong>GitHub</strong>: opslag van de websitebestanden (broncode, geen persoonsgegevens)</li>
         </ul>
         <p>
           Sommige van deze partijen verwerken gegevens buiten de EU (VS). Dat
@@ -150,8 +150,7 @@ export default function Privacy() {
           overdraagbaarheid en bezwaar. Stuur je verzoek via het{" "}
           <Link href="/contact" className="text-violet-700 underline underline-offset-2">
             contactformulier
-          </Link>{" "}
-          — we reageren binnen een maand. Niet tevreden met de afhandeling? Je
+          </Link>. We reageren binnen een maand. Niet tevreden met de afhandeling? Je
           kunt een klacht indienen bij de Autoriteit Persoonsgegevens.
         </p>
       </Blok>

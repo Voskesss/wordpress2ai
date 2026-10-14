@@ -3,8 +3,9 @@ import { appLink } from "@/lib/appen";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
 export const metadata: Metadata = {
-  title: "Wat kost WordSwap? Overstap, AI-chat en hosting",
-  description: aanbod.prijs,
+  title: "Prijzen: website vanaf €19 per maand",
+  description:
+    "Overstap eenmalig €150 tot €650, daarna vanaf €19 per maand inclusief hosting, onderhoud en AI-chat. Optimaal ontzorgd €39 per maand. Excl. btw.",
   alternates: { canonical: "/prijzen" },
 };
 const extra = [
@@ -14,7 +15,7 @@ const extra = [
   ],
   [
     "Wat betekent vanaf €19 per maand?",
-    "Het basispakket begint bij €19 per maand. Daarin zitten hosting, beveiliging, de AI-chat en hulp per e-mail, met fair use: ruimte voor het normale onderhoud van je website. Gebruik je er maand na maand veel meer dan gemiddeld, dan nemen we contact op en spreken we samen iets passends af — je site gaat nooit zomaar op slot. Een groot deel van de prijs verdien je vaak terug, omdat je je oude hosting (meestal zo’n €8 tot €15 per maand) na de overstap kunt opzeggen. Heeft je site meer nodig, dan spreken we dat vooraf af, tegelijk met de overstapprijs.",
+    "Het basispakket begint bij €19 per maand. Daarin zitten hosting, beveiliging, de AI-chat en hulp per e-mail, met fair use: ruimte voor het normale onderhoud van je website. Gebruik je er maand na maand veel meer dan gemiddeld, dan nemen we contact op en spreken we samen iets passends af. Je site gaat nooit zomaar op slot. Een groot deel van de prijs verdien je vaak terug, omdat je je oude hosting (meestal zo’n €8 tot €15 per maand) na de overstap kunt opzeggen. Heeft je site meer nodig, dan spreken we dat vooraf af, tegelijk met de overstapprijs.",
   ],
   [
     "Zit hulp bij het maandbedrag in?",

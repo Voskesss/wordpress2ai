@@ -19,7 +19,7 @@ export default function Bedankt() {
         Bedankt voor je bericht!
       </h1>
       <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-        We hebben het goed ontvangen — je krijgt zo ook een bevestiging per
+        We hebben het goed ontvangen. Je krijgt zo ook een bevestiging per
         e-mail. Binnen één werkdag hoor je van ons, met een eerlijk antwoord en
         een vaste prijs.
       </p>

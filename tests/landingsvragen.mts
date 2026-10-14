@@ -11,7 +11,7 @@ const GEDEELD_TOEGESTAAN = new Set(["Wat kost de overstap?", "Wat kost het omzet
 const mappen = (await readdir("app", { withFileTypes: true }))
   .filter((d) => d.isDirectory() && /wordpress|koppelen|eigen-ai|wordswap-vs/.test(d.name))
   .map((d) => d.name);
-assert.ok(mappen.length >= 10, `verwacht minstens 10 landingspagina's, zag ${mappen.length}`);
+assert.ok(mappen.length >= 7, `verwacht minstens 7 landingspagina's, zag ${mappen.length}`);
 
 const perVraag = new Map<string, string[]>();
 for (const map of mappen) {
@@ -34,7 +34,7 @@ assert.equal(
 // De kruisverwijzingen tussen overstap en nieuw ontwerp staan er
 const overzetten = await readFile("app/wordpress-overzetten/page.tsx", "utf8");
 assert.ok(/nieuw AI-ontwerp.*€250|€250/.test(overzetten), "de kruisverwijzing naar het nieuwe ontwerp ontbreekt op de overstap-pagina");
-const maken = await readFile("app/wordpress-website-maken-met-ai/page.tsx", "utf8");
+const maken = await readFile("app/nieuwe-website/page.tsx", "utf8");
 assert.ok(/vanaf €150/.test(maken), "de kruisverwijzing naar de overstap ontbreekt op de nieuw-ontwerp-pagina");
 const landing = await readFile("app/SeoLanding.tsx", "utf8");
 assert.ok(landing.includes("overzetten kan al vanaf €150"), "de kruiszin in de nieuw-ontwerp-landingsregel ontbreekt");

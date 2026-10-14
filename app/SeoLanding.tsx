@@ -3,6 +3,7 @@ import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import { aanbod } from "@/lib/aanbod";
 import { tekstDelen, zonderLinks } from "@/lib/tekst-links";
+import LeesOok from "./LeesOok";
 
 /** Lopende tekst met interne links: [ankertekst](/pad) wordt een echte link. */
 function MetLinks({ tekst }: { tekst: string }) {
@@ -117,6 +118,8 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           </section>
         ))}
       </div>
+
+      <LeesOok pad={`/${data.slug}`} />
 
       <div className="bg-[#eff3e8] border-y border-stone-200 mt-10">
         <div className="mx-auto max-w-3xl px-6 py-14">

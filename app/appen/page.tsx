@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import LeesOok from "../LeesOok";
 import Link from "next/link";
 import LeadForm from "../contact/LeadForm";
 import ContactVoorkeur from "../contact/ContactVoorkeur";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
-  title: "Je laatste project op je website? Stuur een appje.",
+  title: "Website aanpassen via WhatsApp",
   description:
     "Foto’s van je laatste project op je site zetten door ze te appen. Of via de chat van je eigen website. Jij drukt op publiceren.",
   alternates: { canonical: "/appen" },
@@ -398,6 +399,7 @@ export default function Appen() {
           ))}
         </div>
       </section>
+      <LeesOok pad="/appen" />
     </>
   );
 }

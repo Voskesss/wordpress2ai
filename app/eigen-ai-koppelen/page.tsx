@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import LeesOok from "../LeesOok";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Je eigen AI en WordSwap: wat kan er al?",
+  title: "ChatGPT of Claude koppelen aan je website",
   description:
     "Je website is van jou, ook voor je AI. Beheer hem via onze chat, laat je eigen assistent meehelpen, of werk rechtstreeks op de bestanden.",
   alternates: { canonical: "/eigen-ai-koppelen" },
@@ -18,13 +19,13 @@ const routes = [
   {
     kop: "2. Je eigen assistent laten meedenken",
     tekst:
-      "Gebruik je ChatGPT, Claude of een andere assistent? Laat die gerust je wijziging bedenken of je teksten schrijven, en plak het resultaat in de portaal-chat — onze AI voert het uit met hetzelfde vangnet. Een rechtstreekse koppeling waarmee je assistent zélf wijzigingen kan klaarzetten (en jij alleen nog goedkeurt) staat op de planning; laat het ons weten als je die wilt, dan schuift hij naar voren.",
+      "Gebruik je ChatGPT, Claude of een andere assistent? Laat die gerust je wijziging bedenken of je teksten schrijven, en plak het resultaat in de portaal-chat: onze AI voert het uit met hetzelfde vangnet. Een rechtstreekse koppeling waarmee je assistent zélf wijzigingen kan klaarzetten (en jij alleen nog goedkeurt) staat op de planning; laat het ons weten als je die wilt, dan schuift hij naar voren.",
     badge: "vandaag al bruikbaar",
   },
   {
     kop: "3. Expert: je eigen AI-tools rechtstreeks op de bestanden",
     tekst:
-      "Je website is bij ons geen black box maar een map met gewone web-bestanden, in een eigen omgeving die van jou is. Wil je zelf met AI-codetools werken — Claude Code, Cursor, of wat er volgende maand ook uitkomt — dan geven we je rechtstreekse toegang. Elke wijziging die je doorzet, zetten wij automatisch live op ons snelle netwerk, en de complete geschiedenis blijft bewaard zodat je elke stap kunt terugdraaien. Eerlijk erbij: op deze route werk je buiten ons voorbeeld-eerst-vangnet om — dat is precies de vrijheid die experts willen, met de versiegeschiedenis als achtervang.",
+      "Je website is bij ons geen black box maar een map met gewone web-bestanden, in een eigen omgeving die van jou is. Wil je zelf met AI-codetools werken (Claude Code, Cursor, of wat er volgende maand ook uitkomt), dan geven we je rechtstreekse toegang. Elke wijziging die je doorzet, zetten wij automatisch live op ons snelle netwerk, en de complete geschiedenis blijft bewaard zodat je elke stap kunt terugdraaien. Eerlijk erbij: op deze route werk je buiten ons voorbeeld-eerst-vangnet om. Dat is precies de vrijheid die experts willen, met de versiegeschiedenis als achtervang.",
     badge: "expert-optie",
   },
 ];
@@ -55,7 +56,7 @@ export default function EigenAiKoppelen() {
         assistent gewoon dingen dóén. Daar is een WordSwap-site voor gebouwd:
         hij bestaat uit gewone bestanden. De WordSwap-chat werkt nu al; een
         rechtstreekse koppeling met je eigen ChatGPT of Claude is nog gepland.
-        Er zijn drie manieren om er met AI aan te werken — van makkelijk tot
+        Er zijn drie manieren om er met AI aan te werken: van makkelijk tot
         volledig zelfstandig. Geen lock-in: welke AI er ook komt, jouw site is
         er klaar voor.
       </p>
@@ -83,7 +84,7 @@ export default function EigenAiKoppelen() {
         </h2>
         <p className="mt-3 leading-relaxed text-violet-100">
           Omdat een WordSwap-site geen draaiend systeem is maar platte, snelle
-          bestanden, kan élke AI ermee overweg — die van ons, die van jou, en
+          bestanden, kan élke AI ermee overweg: die van ons, die van jou, en
           die van volgend jaar. Wij leveren wat een AI zelf niet meebrengt: de
           hosting, de automatische doorzetting, het voorbeeld-vangnet, de
           versiegeschiedenis en een mens die meekijkt als het spannend wordt.
@@ -126,6 +127,7 @@ export default function EigenAiKoppelen() {
           </details>
         ))}
       </div>
+      <LeesOok pad="/eigen-ai-koppelen" />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import CookieKeuze from "./CookieKeuze";
 import InlogVenster from "./InlogVenster";
+import { SEO_PAGINAS, GROEP_KOP } from "@/lib/seo-paginas";
 import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
@@ -46,7 +47,7 @@ const inlogTeksten = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    default: "WordSwap: WordPress overzetten en bijhouden met AI",
     template: "%s | WordSwap",
   },
   description: aanbod.omschrijving,
@@ -65,15 +66,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "nl_NL",
-    url: siteUrl,
     siteName: "WordSwap",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
-    description: aanbod.omschrijving,
     images: [deelAfbeelding],
   },
   twitter: {
     card: "summary_large_image",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     images: [deelAfbeelding.url],
   },
   robots: { index: true, follow: true },
@@ -101,6 +98,9 @@ const jsonLd = {
         "@type": "Person",
         name: "Jos Klijnhout",
         jobTitle: "Oprichter",
+        url: `${siteUrl}/over-wordswap`,
+        image: `${siteUrl}/team/jos.webp`,
+        worksFor: { "@id": `${siteUrl}/#organisatie` },
       },
       parentOrganization: {
         "@type": "Organization",
@@ -156,6 +156,14 @@ const jsonLd = {
           name: "Basispakket: hosting, beheer en AI-chat",
           price: "19",
           priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "19",
+            priceCurrency: "EUR",
+            valueAddedTaxIncluded: false,
+            unitText: "maand",
+            referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+          },
           description:
             "vanaf €19 per maand excl. btw: hosting, beveiliging, AI-chat (fair use) en hulp per e-mail; maandelijks opzegbaar",
         },
@@ -164,6 +172,14 @@ const jsonLd = {
           name: "Optimaal ontzorgd",
           price: "39",
           priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "39",
+            priceCurrency: "EUR",
+            valueAddedTaxIncluded: false,
+            unitText: "maand",
+            referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+          },
           description:
             "€39 per maand excl. btw: basispakket plus voorrang bij je vragen en je website bijhouden via WhatsApp; maandelijks opzegbaar",
         },
@@ -309,40 +325,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/portal">{portalLabel}</Link>
               </nav>
             </div>
-            <details className="shell footer-resources">
-              <summary>Meer over eenvoudiger websitebeheer</summary>
-              <nav>
-                {[
-                  ["website-hoveniersbedrijf", "Voor hoveniers"],
-                  ["website-schildersbedrijf", "Voor schilders"],
-                  ["website-installatiebedrijf", "Voor installateurs"],
-                  ["website-bouwbedrijf", "Voor bouwbedrijven"],
-                  ["website-kapsalon", "Voor kappers"],
-                  ["wordpress-overzetten", "WordPress overzetten"],
-                  ["wordpress-alternatief", "Alternatief voor WordPress"],
-                  ["website-zonder-onderhoud", "Zonder onderhoud"],
-                  ["website-laten-onderhouden", "Laten onderhouden"],
-                  ["website-zonder-cms", "Zonder CMS"],
-                  ["wordpress-website-traag", "Trage website"],
-                  ["wordpress-website-maken-met-ai", "Website maken met AI"],
-                  [
-                    "wordpress-omzetten-naar-gewone-website",
-                    "WordPress omzetten",
-                  ],
-                  ["wordpress-aansturen-met-ai", "Aansturen met AI"],
-                  ["website-koppelen-aan-ai", "Website koppelen aan AI"],
-                  ["wordpress-koppelen-aan-ai", "WordPress en AI"],
-                  [
-                    "wordpress-omzetten-snel-en-ai-vriendelijk",
-                    "Snel & AI-vriendelijk",
-                  ],
-                ].map(([slug, label]) => (
-                  <Link key={slug} href={`/${slug}`}>
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </details>
+            <nav className="shell footer-resources" aria-label="Onderwerpen">
+              {(["overstappen", "nieuw", "bijhouden", "kennis", "branche"] as const).map((g) => (
+                <div key={g}>
+                  <h3>{GROEP_KOP[g]}</h3>
+                  {SEO_PAGINAS.filter((p) => p.groep === g).map((p) => (
+                    <Link key={p.pad} href={p.pad}>
+                      {p.naam}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </nav>
             <div className="shell footer-bottom">
               <span>
                 © {new Date().getFullYear()} WordSwap · KvK 09190650

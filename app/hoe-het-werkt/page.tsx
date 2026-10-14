@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Hoe het werkt",
+  title: "Hoe overstappen werkt: van check tot live",
   description:
     "Je bestaande WordPress-site zorgvuldig overzetten met URL’s, structuur en SEO-instellingen. Daarna zelf je website bijhouden met AI-chat.",
 };
@@ -39,7 +39,7 @@ const stappen = [
 const faq = [
   [
     "Kan de AI mijn site per ongeluk slopen?",
-    "De AI kan fouten maken. Daarom werkt die altijd eerst in een concept-versie. Jij ziet het resultaat vóórdat het live gaat, en alleen jij kunt publiceren. Bovendien bewaren we de complete geschiedenis van je site — elke eerdere versie kan altijd worden teruggezet.",
+    "De AI kan fouten maken. Daarom werkt die altijd eerst in een concept-versie. Jij ziet het resultaat vóórdat het live gaat, en alleen jij kunt publiceren. Bovendien bewaren we de complete geschiedenis van je site: elke eerdere versie kan altijd worden teruggezet.",
   ],
   [
     "Wat gebeurt er met mijn positie in Google?",

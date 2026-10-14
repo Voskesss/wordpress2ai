@@ -10,7 +10,7 @@ const examples = [
     before: "Ma–vr 09:00–18:00 · Za gesloten",
     detail: "Ma–vr 09:00–18:00 · Za 09:00–16:00",
     answer:
-      "Zeker! Zaterdag staat erbij. Kijk even of het zo klopt — daarna zet je het live.",
+      "Zeker! Zaterdag staat erbij. Kijk even of het zo klopt. Daarna zet je het live.",
   },
   {
     label: "Nieuwe dienst",

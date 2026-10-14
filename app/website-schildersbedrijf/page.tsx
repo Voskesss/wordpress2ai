@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je schildersbedrijf zonder onderhoud", "description": "Voor-en-na-foto's op je site zetten met een bericht vanaf de steiger. Je site gaat exact over, zonder WordPress eronder. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-schildersbedrijf"}};
+export const metadata: Metadata = {"title": "Website schilder laten maken, zonder onderhoud", "description": "Voor-en-na-foto's op je site zetten met een bericht vanaf de steiger. Je site gaat exact over, zonder WordPress eronder. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-schildersbedrijf"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-schildersbedrijf",
   "label": "Website voor schilders",

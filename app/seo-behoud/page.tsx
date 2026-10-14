@@ -2,7 +2,7 @@ import VerhaalBeeld from "../VerhaalBeeld";
 import type { Metadata } from "next";
 import Link from "next/link";
 export const metadata: Metadata = {
-  title: "WordPress overzetten met behoud van URL’s en SEO-inrichting",
+  title: "SEO behouden bij een overstap van WordPress",
   description:
     "Je bestaande URL’s, structuur, titels en meta-informatie meenemen. Lees wat we voor en na de WordSwap-overstap controleren.",
   alternates: { canonical: "/seo-behoud" },
@@ -96,8 +96,8 @@ export default function SeoBehoud() {
             <strong>Meekijken en verbeteren</strong>
             <p>
               Vindbaarheid is waar Jos zelf graag induikt. Zien we na de
-              overstap verbetering mogelijk — in Google óf in AI-chatbots zoals
-              ChatGPT, Copilot en Claude — dan stellen we die concreet voor.
+              overstap verbetering mogelijk (in Google óf in AI-chatbots zoals
+              ChatGPT, Copilot en Claude), dan stellen we die concreet voor.
               Behouden is de basis, beter worden is het doel.
             </p>
           </div>

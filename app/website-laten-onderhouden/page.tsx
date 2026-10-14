@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Website laten onderhouden: wat het kost en waar je op let", "description": "Onderhoud kost €12,50 tot €25 per maand. Wat zit erin, waar lopen mensen vast, en wanneer haal je beter de reden voor dat onderhoud weg?", "alternates": {"canonical": "/website-laten-onderhouden"}};
+export const metadata: Metadata = {"title": "Website laten onderhouden vanaf €19 per maand", "description": "Onderhoud kost €12,50 tot €25 per maand. Wat zit erin, waar lopen mensen vast, en wanneer haal je beter de reden voor dat onderhoud weg?", "alternates": {"canonical": "/website-laten-onderhouden"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Website laten onderhouden",
   "titel": "Je website laten onderhouden? Dit kost het, en dit zit erin.",

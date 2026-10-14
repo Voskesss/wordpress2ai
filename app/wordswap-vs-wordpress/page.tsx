@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import LeesOok from "../LeesOok";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "WordSwap vs. WordPress — de eerlijke vergelijking",
+  title: "WordSwap vs. WordPress: de eerlijke vergelijking",
   description:
     "WordPress of WordSwap? Vergelijk onderhoud, snelheid, veiligheid, kosten en het aanpassen van je site. Inclusief wanneer WordPress wél de betere keuze is.",
   alternates: { canonical: "/wordswap-vs-wordpress" },
@@ -47,7 +48,7 @@ const rijen: [string, string, string][] = [
   [
     "Webshop / ledenportaal",
     "Ja (WooCommerce, ledenplugins)",
-    "Nee — daarvoor is een draaiend systeem nodig",
+    "Nee, daarvoor is een draaiend systeem nodig",
   ],
   [
     "Eigendom en vertrek",
@@ -68,7 +69,7 @@ const faq: [string, string][] = [
   ],
   [
     "Verlies ik mijn Google-posities bij de overstap?",
-    "We nemen alles mee wat je vindbaarheid bepaalt — adressen, paginatitels, beschrijvingen, doorverwijzingen en sitemap — en vergelijken elke pagina na de overstap met het origineel. Daar stopt het niet: we kijken actief mee met je vindbaarheid en zien we verbetering mogelijk, dan stellen we die voor. Ook je zichtbaarheid in AI-chatbots zoals ChatGPT, Copilot en Claude nemen we daarin mee. Zoekposities garanderen kan niemand — wie dat wel doet, kun je beter wantrouwen.",
+    "We nemen alles mee wat je vindbaarheid bepaalt (adressen, paginatitels, beschrijvingen, doorverwijzingen en sitemap) en vergelijken elke pagina na de overstap met het origineel. Daar stopt het niet: we kijken actief mee met je vindbaarheid en zien we verbetering mogelijk, dan stellen we die voor. Ook je zichtbaarheid in AI-chatbots zoals ChatGPT, Copilot en Claude nemen we daarin mee. Zoekposities garanderen kan niemand. Wie dat wel doet, kun je beter wantrouwen.",
   ],
   [
     "Kan ik terug naar WordPress?",
@@ -76,7 +77,7 @@ const faq: [string, string][] = [
   ],
   [
     "Is een website zonder WordPress niet beperkt?",
-    "Voor een bedrijfssite niet: pagina's, blog, foto's, formulieren en vindbaarheid werken allemaal. Het enige dat verdwijnt is het beheerscherm — en de updates.",
+    "Voor een bedrijfssite niet: pagina's, blog, foto's, formulieren en vindbaarheid werken allemaal. Het enige dat verdwijnt is het beheerscherm, en de updates.",
   ],
 ];
 
@@ -100,7 +101,7 @@ export default function Vergelijking() {
         WordSwap vs. WordPress
       </h1>
       <p className="mt-5 max-w-2xl text-lg text-stone-600 leading-relaxed">
-        Een eerlijke vergelijking — inclusief de gevallen waarin WordPress
+        Een eerlijke vergelijking, inclusief de gevallen waarin WordPress
         gewoon de betere keuze is. WordPress is een systeem dat je website
         beheert en dat onderhoud vraagt; WordSwap maakt van je site platte,
         snelle bestanden en laat een AI het beheer doen op jouw aanwijzing.
@@ -163,6 +164,7 @@ export default function Vergelijking() {
           Probeer de demo
         </Link>
       </div>
+      <LeesOok pad="/wordswap-vs-wordpress" />
     </div>
   );
 }

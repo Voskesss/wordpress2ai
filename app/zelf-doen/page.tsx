@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Zelf je WordPress-site omzetten — de complete handleiding",
+  title: "WordPress omzetten naar statisch: handleiding",
   description:
     "Stap voor stap je WordPress-site zelf omzetten: export, hosting, formulieren, redirects en SEO-behoud. Gratis, en eerlijk over waar het lastig wordt.",
 };
@@ -23,9 +23,9 @@ const stappen: Stap[] = [
     duur: "± 15 min",
     niveau: "makkelijk",
     tekst:
-      "In WordPress: Extra → Exporteren → \"Alle content\". Je krijgt een XML-bestand met al je teksten. Download daarnaast via FTP of je hostingpaneel de map wp-content/uploads — daar staan al je afbeeldingen. Bewaar ook een lijst van al je pagina-adressen: open je sitemap (meestal /sitemap.xml) en sla die op. Die lijst heb je bij stap 5 keihard nodig.",
+      "In WordPress: Extra → Exporteren → \"Alle content\". Je krijgt een XML-bestand met al je teksten. Download daarnaast via FTP of je hostingpaneel de map wp-content/uploads: daar staan al je afbeeldingen. Bewaar ook een lijst van al je pagina-adressen: open je sitemap (meestal /sitemap.xml) en sla die op. Die lijst heb je bij stap 5 keihard nodig.",
     valkuil:
-      "Sla óók de HTML van je belangrijkste pagina's op (rechtermuisknop → pagina opslaan). De export bevat je teksten, maar niet hoe je site eruitziet — dat zit in je thema, en dat krijg je niet mee.",
+      "Sla óók de HTML van je belangrijkste pagina's op (rechtermuisknop → pagina opslaan). De export bevat je teksten, maar niet hoe je site eruitziet. Dat zit in je thema, en dat krijg je niet mee.",
     metAi:
       "Geef Claude je XML-export en vraag: \"maak per pagina een overzicht van titel, adres en tekst, en zet de afbeeldings-verwijzingen op een rij.\" Dan heb je in één keer je werklijst.",
   },
@@ -34,20 +34,20 @@ const stappen: Stap[] = [
     duur: "2 uur tot meerdere dagen",
     niveau: "lastig",
     tekst:
-      "Twee routes. De snelle: een plugin als Simply Static maakt een statische kopie van je hele site — inclusief alle WordPress-ballast (tientallen css/js-bestanden, div-torens van je pagebuilder), dus snel wordt hij daar maar beperkt van. De nette: bouw de pagina's opnieuw op in schone HTML en CSS met je eigen teksten en afbeeldingen. Dat geeft een écht snelle site, maar kost per pagina al gauw een uur of meer handwerk — of je laat een AI-codetool meehelpen.",
+      "Twee routes. De snelle: een plugin als Simply Static maakt een statische kopie van je hele site, inclusief alle WordPress-ballast (tientallen css/js-bestanden, div-torens van je pagebuilder), dus snel wordt hij daar maar beperkt van. De nette: bouw de pagina's opnieuw op in schone HTML en CSS met je eigen teksten en afbeeldingen. Dat geeft een écht snelle site, maar kost per pagina al gauw een uur of meer handwerk, of je laat een AI-codetool meehelpen.",
     valkuil:
-      "Vergeet je 404-pagina niet, en geef die absolute paden (/stijl.css in plaats van stijl.css) — een foutpagina verschijnt op elk willekeurig adres en anders laadt zijn opmaak niet. Wij trapten hier zelf in.",
+      "Vergeet je 404-pagina niet, en geef die absolute paden (/stijl.css in plaats van stijl.css): een foutpagina verschijnt op elk willekeurig adres en anders laadt zijn opmaak niet. Wij trapten hier zelf in.",
     metAi:
-      "Dit is de stap waar een AI het meeste scheelt. Geef Claude (bijvoorbeeld in Claude Code) de opgeslagen HTML van een pagina plus je teksten en vraag: \"bouw deze pagina na in schone HTML en CSS, zelfde uitstraling, zonder WordPress-ballast.\" Reken op een middag mét AI in plaats van dagen zonder — jij beoordeelt, de AI typt.",
+      "Dit is de stap waar een AI het meeste scheelt. Geef Claude (bijvoorbeeld in Claude Code) de opgeslagen HTML van een pagina plus je teksten en vraag: \"bouw deze pagina na in schone HTML en CSS, zelfde uitstraling, zonder WordPress-ballast.\" Reken op een middag mét AI in plaats van dagen zonder. Jij beoordeelt, de AI typt.",
   },
   {
     titel: "Regel je formulieren opnieuw",
     duur: "± 1 uur",
     niveau: "gemiddeld",
     tekst:
-      "Een statische site heeft geen server die je contactformulier kan verwerken — dat deed WordPress voor je. Je hebt een externe dienst nodig: Formspree, Web3Forms of Basin hebben gratis instapvarianten. Je wijzigt de action van je formulier naar hun adres en zij mailen de inzending door. Maak ook een nette bedanktpagina.",
+      "Een statische site heeft geen server die je contactformulier kan verwerken. Dat deed WordPress voor je. Je hebt een externe dienst nodig: Formspree, Web3Forms of Basin hebben gratis instapvarianten. Je wijzigt de action van je formulier naar hun adres en zij mailen de inzending door. Maak ook een nette bedanktpagina.",
     valkuil:
-      "Test het formulier écht, met een echte inzending. Een formulier dat er goed uitziet maar niets verstuurt is de meest voorkomende stille fout op overgezette sites — en je komt er pas achter als een klant belt waarom je nooit reageerde.",
+      "Test het formulier écht, met een echte inzending. Een formulier dat er goed uitziet maar niets verstuurt is de meest voorkomende stille fout op overgezette sites, en je komt er pas achter als een klant belt waarom je nooit reageerde.",
     metAi:
       "Vraag Claude: \"pas mijn contactformulier aan zodat het via Formspree verstuurt, en maak een bedanktpagina in de stijl van de site.\" Het testen blijft wél mensenwerk.",
   },
@@ -60,7 +60,7 @@ const stappen: Stap[] = [
     valkuil:
       "Zeg je oude hosting pas op als alles al weken goed draait op de nieuwe. De maand dubbel betalen is goedkoper dan één dag offline.",
     metAi:
-      "Claude kan je stap voor stap door de DNS-wijziging praten als je een screenshot van je registrar-paneel deelt — precies zeggen welk record je aanpast en welke je met rust laat.",
+      "Claude kan je stap voor stap door de DNS-wijziging praten als je een screenshot van je registrar-paneel deelt: precies zeggen welk record je aanpast en welke je met rust laat.",
   },
   {
     titel: "Bewaak je vindbaarheid: elke oude URL moet landen",
@@ -69,7 +69,7 @@ const stappen: Stap[] = [
     tekst:
       "Dit is de stap die bijna iedereen overslaat en die je Google-positie kost. Pak de lijst adressen uit stap 1 en controleer ze stuk voor stuk op de nieuwe site: bestaat elk adres nog exact, of verwijst het met een 301-redirect door naar de nieuwe plek? WordPress-adressen eindigen vaak op een slash of zitten in mappen die je nieuwe structuur niet heeft. Neem ook je paginatitels en meta-omschrijvingen letterlijk mee, en zet een nieuwe sitemap.xml neer.",
     valkuil:
-      "Elk oud adres dat een 404 geeft, is voor Google een verdwenen pagina — en je positie verdampt binnen weken. Toen wij ons eigen proces controleerden vonden we er 21 die stilletjes kapot waren, ondanks alle zorgvuldigheid. Check het dus twee keer.",
+      "Elk oud adres dat een 404 geeft, is voor Google een verdwenen pagina, en je positie verdampt binnen weken. Toen wij ons eigen proces controleerden vonden we er 21 die stilletjes kapot waren, ondanks alle zorgvuldigheid. Check het dus twee keer.",
     metAi:
       "Geef Claude je oude sitemap en de lijst nieuwe adressen en vraag: \"controleer per oud adres of het nog bestaat of een redirect nodig heeft, en genereer de redirect-regels.\" Machinewerk waar een AI beter in is dan een mens met een lijstje.",
   },
@@ -78,7 +78,7 @@ const stappen: Stap[] = [
     duur: "blijvend",
     niveau: "lastig",
     tekst:
-      "Hier verandert het karakter van de klus. Je site is nu snel, veilig en gratis gehost — maar er is geen beheerscherm meer. Nieuwe openingstijden, een foto vervangen, een blogbericht erbij: het betekent HTML-bestanden aanpassen en opnieuw uploaden. Ook dát kan met Claude — maar dan moet je er wel elke keer zelf voor gaan zitten: bestanden aanleveren, het resultaat controleren, uploaden, checken of er niets anders is meegewijzigd. Voor wie het leuk vindt is dat prima; voor de meeste ondernemers is het precies het klusje dat blijft liggen.",
+      "Hier verandert het karakter van de klus. Je site is nu snel, veilig en gratis gehost, maar er is geen beheerscherm meer. Nieuwe openingstijden, een foto vervangen, een blogbericht erbij: het betekent HTML-bestanden aanpassen en opnieuw uploaden. Ook dát kan met Claude, maar dan moet je er wel elke keer zelf voor gaan zitten: bestanden aanleveren, het resultaat controleren, uploaden, checken of er niets anders is meegewijzigd. Voor wie het leuk vindt is dat prima; voor de meeste ondernemers is het precies het klusje dat blijft liggen.",
   },
 ];
 
@@ -97,7 +97,7 @@ export default function ZelfDoen() {
             Zelf je WordPress-site omzetten
           </h1>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
-            Alles wat wij doen, kun je in principe zelf — zeker met een
+            Alles wat wij doen, kun je in principe zelf, zeker met een
             AI-hulp als Claude ernaast, die het meeste handwerk uit handen
             neemt. Hier staat precies hoe, zonder addertjes, inclusief de
             valkuilen waar wij zelf in zijn getrapt én de opdrachten die je de
@@ -149,7 +149,7 @@ export default function ZelfDoen() {
           </h2>
           <p className="mt-3 text-stone-600 leading-relaxed">
             Dit is geen samenvatting maar ons échte draaiboek: dezelfde regels
-            die wij aan onze eigen AI meegeven bij klantmigraties — van
+            die wij aan onze eigen AI meegeven bij klantmigraties: van
             SEO-manifest en 301-controle tot de valkuilen met lazy-loading en
             de 404-pagina. Zet het bestand in je project als{" "}
             <code className="rounded bg-white px-1.5 py-0.5 text-sm">.claude/skills/wordpress-migreren/SKILL.md</code>{" "}
@@ -164,7 +164,7 @@ export default function ZelfDoen() {
           </a>
           <p className="mt-3 text-xs text-stone-400">
             Vrij te gebruiken. Kom je er halverwege achter dat je dit liever
-            uitbesteedt — je weet ons te vinden, no cure no pay.
+            uitbesteedt: je weet ons te vinden, no cure no pay.
           </p>
         </div>
       </div>
@@ -176,14 +176,14 @@ export default function ZelfDoen() {
           </h2>
           <p className="mt-4 text-stone-600 leading-relaxed">
             Met een AI als Claude ernaast is dit voor een kleine site in een
-            dag of een weekend te doen — zonder AI eerder meerdere dagen. Ben
+            dag of een weekend te doen (zonder AI eerder meerdere dagen). Ben
             je handig en vind je dit leuk: doen! Je site wordt er echt beter
             van, en dit stappenplan brengt je er.
           </p>
           <p className="mt-4 text-stone-600 leading-relaxed">
             Wat wij toevoegen zit vooral in de laatste stap: bij ons zit
             diezelfde AI vást aan je site. Je typt in een chat wat er anders
-            moet, ziet het resultaat als concept en klikt op publiceer — geen
+            moet, ziet het resultaat als concept en klikt op publiceer: geen
             bestanden aanleveren, niets uploaden, wel controleren of er per
             ongeluk iets anders is meegewijzigd. Dat verschil voel je pas bij
             de tiende wijziging, en dat is het gemak waarop WordSwap zich richt.

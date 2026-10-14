@@ -7,7 +7,7 @@ import { Show } from "@clerk/nextjs";
 export const metadata: Metadata = {
   title: "Probeer de demo",
   description:
-    "Probeer gratis hoe je een website aanpast door het gewoon te typen. Geen WordPress, geen gedoe — chat met de AI-beheerder van onze demo-bakkerij.",
+    "Probeer gratis hoe je een website aanpast door het gewoon te typen. Geen WordPress, geen gedoe. Chat met de AI-beheerder van onze demo-bakkerij.",
 };
 
 const stappen = [
@@ -58,7 +58,7 @@ export default function DemoPagina() {
       >
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-[#31956B]">
-            Gratis proberen — geen betaalgegevens nodig
+            Gratis proberen, geen betaalgegevens nodig
           </p>
           <h2 className="font-display mt-3 text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.08]">
             Pas zelf een echte website aan.{" "}
@@ -66,7 +66,7 @@ export default function DemoPagina() {
           </h2>
           <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-xl">
             Wij hebben een demo-website klaargezet: Bakkerij Jansen. Jij krijgt
-            er de AI-beheerder bij — dezelfde die onze klanten gebruiken. Vraag
+            er de AI-beheerder bij, dezelfde die onze klanten gebruiken. Vraag
             een wijziging, bekijk het resultaat en zet hem live. Zo voel je in
             twee minuten hoe het is om nooit meer in WordPress te hoeven
             klikken.
@@ -95,8 +95,7 @@ export default function DemoPagina() {
               className="font-semibold text-[#245747] underline"
             >
               Neem contact op
-            </Link>{" "}
-            — wij zetten hem over vanaf €150.
+            </Link>: wij zetten hem over vanaf €150.
           </p>
         </div>
 

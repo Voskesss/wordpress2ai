@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je salon met prijzen die kloppen", "description": "Prijslijst en openingstijden in een minuut aangepast, zonder webbouwer. Je afsprakensysteem blijft gewoon werken. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-kapsalon"}};
+export const metadata: Metadata = {"title": "Website kapsalon laten maken, zelf bijhouden", "description": "Prijslijst en openingstijden in een minuut aangepast, zonder webbouwer. Je afsprakensysteem blijft gewoon werken. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-kapsalon"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-kapsalon",
   "label": "Website voor kappers en salons",

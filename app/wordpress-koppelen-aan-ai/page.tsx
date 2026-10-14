@@ -3,7 +3,7 @@ import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
-  title: "WordPress koppelen aan AI — blijven of overstappen?",
+  title: "AI in WordPress: blijven of overstappen?",
   description:
     "AI gebruiken binnen WordPress of je bestaande site overzetten naar WordSwap? Vergelijk de routes, het beheer en wat je behoudt.",
   alternates: {

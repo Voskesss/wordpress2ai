@@ -1,6 +1,7 @@
 import { aanbod, aankoopVragen } from "@/lib/aanbod";
+import { SEO_PAGINAS, urlVan } from "@/lib/seo-paginas";
 export const dynamic = "force-static";
-const inhoud = `# WordSwap — aanbod en praktische informatie
+const inhoud = `# WordSwap: aanbod en praktische informatie
 
 ## Wat doet WordSwap?
 ${aanbod.omschrijving}
@@ -41,17 +42,9 @@ ${aankoopVragen.map(([q, a]) => `### ${q}\n${a}`).join("\n\n")}
 Op /demo is een interactief, gesimuleerd voorbeeld zonder account beschikbaar. De echte AI-demo vereist een gratis account. Het voorbeeld is geen klantcase, review of bewijs van gemeten resultaten. Er worden hier geen gegarandeerde besparingen, laadtijden of zoekposities geclaimd.
 
 ## Bronnen
-- https://wordswap.nl/ — uitleg van aanbod en doelgroep
-- https://wordswap.nl/prijzen — inbegrepen diensten en aanvullende kosten
-- https://wordswap.nl/hoe-het-werkt — overstap en goedkeuring
-- https://wordswap.nl/over-wordswap — bedrijf en aanspreekpunt
-- https://wordswap.nl/eigen-ai-koppelen — beschikbare en geplande AI-routes
-- https://wordswap.nl/veiligheid — beveiliging en beperkingen
-- https://wordswap.nl/wordswap-vs-wordpress — vergelijking
-- https://wordswap.nl/demo — voorbeeld en echte demo
-- https://wordswap.nl/zelf-doen — handleiding voor experts
-- https://wordswap.nl/contact — gratis websitecheck
-- https://wordswap.nl/voorwaarden — afspraken
+${SEO_PAGINAS.filter((p) => p.groep !== "juridisch")
+  .map((p) => `- ${urlVan(p.pad)}: ${p.zin}`)
+  .join("\n")}
 `;
 export function GET() {
   return new Response(inhoud, {

@@ -25,8 +25,8 @@ const slugs = [
   "website-kapsalon",
 ];
 
-const sitemap = await readFile(new URL("../app/sitemap.ts", import.meta.url), "utf8");
-const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+const { SEO_PAGINAS } = await import("../lib/seo-paginas");
+const sitemap = SEO_PAGINAS.map((p) => `"${p.pad}"`).join(" ");
 
 for (const slug of slugs) {
   const pagina = await readFile(new URL(`../app/${slug}/page.tsx`, import.meta.url), "utf8");
@@ -43,7 +43,8 @@ for (const slug of slugs) {
   // 2. Vindbaar: in de sitemap en in het menu, anders bestaat de pagina wel
   //    maar komt er niemand
   assert.ok(sitemap.includes(`"/${slug}"`), `${slug} staat niet in de sitemap`);
-  assert.ok(layout.includes(`"${slug}"`), `${slug} staat in geen enkel menu`);
+  // De footer toont sinds 14-10 de groep "branche" uit lib/seo-paginas.ts
+  assert.ok(SEO_PAGINAS.some((p) => p.pad === `/${slug}` && p.groep === "branche"), `${slug} staat in geen enkel menu`);
 
   // 3. Dezelfde prijs als overal, en nergens een ander bedrag
   assert.ok(/150 euro/.test(pagina), `${slug} noemt het eenmalige bedrag niet`);

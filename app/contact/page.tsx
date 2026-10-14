@@ -7,7 +7,7 @@ import { appLink } from "@/lib/appen";
 import { vindHoek } from "@/lib/hoeken";
 
 export const metadata: Metadata = {
-  title: "Gratis WordPress-websitecheck: geschiktheid en prijs",
+  title: "Gratis websitecheck: kan jouw site mee?",
   description:
     "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We kijken gratis mee en je krijgt binnen één werkdag antwoord.",
 };
@@ -111,7 +111,7 @@ export default async function Contact({
               className="h-[4.5rem] w-[4.5rem] rounded-full border-4 border-white object-cover shadow-md"
             />
             <p className="text-sm text-stone-600 leading-snug">
-              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf — geen
+              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf. Geen
               ticketsysteem, geen supportafdeling.
             </p>
           </div>

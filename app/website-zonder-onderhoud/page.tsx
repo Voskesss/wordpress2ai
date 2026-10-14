@@ -3,7 +3,7 @@ import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
 
 export const metadata: Metadata = {
-  title: "Een website zonder onderhoud — bestaat dat?",
+  title: "Een website zonder onderhoud: bestaat dat?",
   description:
     "Geen WordPress- of plugin-updates meer. Houd je bestaande website en werk teksten en foto’s bij met AI. Wat WordSwap regelt en wat aandacht blijft vragen.",
   alternates: {
