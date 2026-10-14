@@ -112,9 +112,13 @@ export default function SeoLanding({ data }: { data: LandingData }) {
   // als kaarten, en blokken met stappen/tabellen over de volle tekstbreedte.
   // "Wat het kost" staat met foto al in de prijskaart bovenaan; niet dubbel
   const eenvoudig = data.blokken.filter((b) => isEenvoudig(b) && !/^wat (het|kost)/i.test(b.kop));
-  const eerste = eenvoudig.slice(0, 2);
-  const kaarten = eenvoudig.slice(2);
-  const rijk = data.blokken.filter((b) => !isEenvoudig(b));
+  // Staan er stappen of tabellen in, dan telt de volgorde (stap 1, 2, 3):
+  // alles in de oorspronkelijke volgorde en het filmpje erna. Alleen pagina's
+  // met gewone blokken krijgen "zo werkt het" plus kaarten.
+  const opVolgorde = data.blokken.some((b) => !isEenvoudig(b));
+  const eerste = opVolgorde ? [] : eenvoudig.slice(0, 2);
+  const kaarten = opVolgorde ? [] : eenvoudig.slice(2);
+  const rijk: Blok[] = [];
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -267,6 +271,39 @@ export default function SeoLanding({ data }: { data: LandingData }) {
                 ))}
               </div>
             </section>
+          )}
+          {opVolgorde && (
+            <>
+              <div className="mx-auto max-w-3xl px-6 py-12 space-y-10">
+                {data.blokken.map((b) => (
+                  <section key={b.kop}>
+                    <h2 className="font-display text-2xl font-semibold tracking-tight">{b.kop}</h2>
+                    <BlokInhoud b={b} />
+                  </section>
+                ))}
+              </div>
+              <section className="landing-kaarten-band">
+                <div className="shell landing-zo">
+                  <div className="space-y-5">
+                    <p className="landing-breed-label" style={{ color: "#36614f" }}>Zo werkt WordSwap</p>
+                    <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
+                      Je website aanpassen door te typen wat er anders moet
+                    </h2>
+                    <p className="text-stone-600 leading-relaxed">
+                      Geen updates, geen plug-ins, geen inlogpagina die aangevallen kan worden. Je typt of appt wat
+                      er moet veranderen, bekijkt het voorbeeld en zet het zelf live.
+                    </p>
+                    <Link href="/demo" className="landing-zo-link">
+                      Probeer het zelf in de demo →
+                    </Link>
+                  </div>
+                  <figure className="landing-video">
+                    <DemoVideo />
+                    <figcaption>Vier echte klussen in ruim 40 seconden.</figcaption>
+                  </figure>
+                </div>
+              </section>
+            </>
           )}
           {rijk.length > 0 && (
             <div className="mx-auto max-w-3xl px-6 py-10 space-y-10">
