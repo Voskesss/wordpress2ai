@@ -1,6 +1,6 @@
-import VerhaalBeeld from "./VerhaalBeeld";
 import Link from "next/link";
-import ProductPreview from "./ProductPreview";
+import Image from "next/image";
+import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo from "./DemoVideo";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
@@ -28,6 +28,18 @@ export const metadata: Metadata = {
 // Het FAQPage-schema staat alleen op /veelgestelde-vragen: dezelfde twaalf
 // vragen op twee pagina's als gestructureerde data is dubbele inhoud.
 const faq = aankoopVragen.slice(0, 5);
+
+// "Voor wie we werken": acht gezichten op de homepage, elk naar zijn eigen pagina
+const VOOR_WIE: [string, string][] = [
+  ["website-kapsalon", "Kappers"],
+  ["website-schildersbedrijf", "Schilders"],
+  ["website-hoveniersbedrijf", "Hoveniers"],
+  ["website-installatiebedrijf", "Installateurs"],
+  ["website-coach", "Coaches"],
+  ["website-adviesbureau", "Adviesbureaus"],
+  ["website-accountant", "Accountants"],
+  ["website-stichting", "Stichtingen"],
+];
 export default async function Home({
   searchParams,
 }: {
@@ -67,19 +79,11 @@ export default async function Home({
             </p>
           ) : (
           <p className="hero-intro">
-            <strong>Behoud je website. Vervang het gedoe.</strong> Je houdt je
-            huidige website: je ontwerp, je teksten en je plek in Google. Wij
-            vervangen de WordPress-techniek erachter (of die van een ander CMS)
-            door een razendsnelle versie zonder onderhoud. Daarna is één zin
-            als “Zet onze nieuwe openingstijden erop.” alles wat je hoeft te
-            doen.
+            <strong>Behoud je website. Vervang het gedoe.</strong> Wij zetten
+            je site over naar een snelle versie zonder WordPress. Daarna typ je
+            gewoon wat er anders moet.
           </p>
           )}
-          <p className="hero-definition">
-            Geen webbouwer meer mailen, geen updates, geen plugins. Je vraagt
-            het gewoon aan je website, bekijkt het voorstel en beslist zelf wat
-            live gaat.
-          </p>
           <div className="button-row">
             <Link className="button-primary" href={checkLink}>
               Kan mijn website overgezet worden? <span>↗</span>
@@ -161,8 +165,51 @@ export default async function Home({
           ))}
         </div>
       </section>
+      <section className="voor-wie" aria-labelledby="voor-wie-kop">
+        <div className="shell">
+          <p className="eyebrow">VOOR WIE WE WERKEN</p>
+          <h2 id="voor-wie-kop">Ondernemers die liever ondernemen dan hun website bijhouden.</h2>
+          <div className="voor-wie-grid">
+            {VOOR_WIE.map(([slug, naam]) => (
+              <Link key={slug} href={`/${slug}`} className="voor-wie-kaart lift">
+                <Image
+                  src={`/images/paginas/${slug}.webp`}
+                  alt={FOTO_ALT[slug]}
+                  width={1600}
+                  height={900}
+                  sizes="(max-width: 767px) 50vw, 25vw"
+                />
+                <span>{naam} →</span>
+              </Link>
+            ))}
+          </div>
+          <p className="voor-wie-meer">
+            Ook voor{" "}
+            {[
+              ["website-bouwbedrijf", "bouwbedrijven"],
+              ["website-mediator", "mediators"],
+              ["website-kunstenaar", "kunstenaars"],
+              ["website-detacheringsbureau", "detacheringsbureaus"],
+              ["website-financieel-adviseur", "financieel adviseurs"],
+            ].map(([slug, naam], i, alle) => (
+              <span key={slug}>
+                <Link href={`/${slug}`}>{naam}</Link>
+                {i < alle.length - 2 ? ", " : i === alle.length - 2 ? " en " : "."}
+              </span>
+            ))}
+          </p>
+        </div>
+      </section>
       <section className="shell verhaal-section">
-        <VerhaalBeeld onderwerp="ondernemer" />
+        <figure className="verhaal-beeld home-foto">
+          <Image
+            src="/images/paginas/website-koppelen-aan-ai.webp"
+            alt={FOTO_ALT["website-koppelen-aan-ai"]}
+            width={1600}
+            height={900}
+            sizes="(max-width: 767px) 100vw, 50vw"
+          />
+        </figure>
         <div className="verhaal-copy">
           <p className="eyebrow">HET KAN OOK ZO</p>
           <h2>
@@ -184,8 +231,8 @@ export default async function Home({
           <p>
             Je bekijkt de wijziging en zet hem zelf live. Meer is het niet.
           </p>
-          <Link href="#zo-werkt-aanpassen" className="button-text">
-            Bekijk een voorbeeld →
+          <Link href="/demo" className="button-text">
+            Probeer het zelf in de demo →
           </Link>
         </div>
       </section>
@@ -275,17 +322,6 @@ export default async function Home({
             </p>
           </div>
         </div>
-      </section>
-      <section className="shell demo-video-section" id="zo-werkt-aanpassen">
-        <div className="demo-video-tekst">
-          <p className="eyebrow">PROBEER HET ZELF</p>
-          <h2>Kies een vraag en kijk wat er gebeurt.</h2>
-          <p>
-            Zo voelt het om je website bij te houden. Je stelt een vraag, je
-            ziet het voorstel en je beslist zelf of het live gaat.
-          </p>
-        </div>
-        <ProductPreview />
       </section>
       <section className="shell decision-section">
         <div className="fit-yes">
@@ -469,44 +505,20 @@ export default async function Home({
       <section className="section-space shell" aria-labelledby="verder-kop">
         <p className="eyebrow">WAAR WIL JE MEE VERDER?</p>
         <h2 id="verder-kop">Kies wat bij jouw situatie past.</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="kies-grid">
           {[
-            ["/wordpress-overzetten", "WordPress overzetten", "Je huidige site houden, zonder WordPress-onderhoud. Vanaf €150."],
-            ["/nieuwe-website", "Een nieuwe website laten maken", "Wij bouwen hem met AI, jij houdt hem bij. Vanaf €250."],
-            ["/website-laten-onderhouden", "Website laten onderhouden", "Wat onderhoud kost, en hoe je de reden ervoor weghaalt."],
-            ["/website-koppelen-aan-ai", "Website aanpassen met AI", "Typ of app wat er anders moet, bekijk het en publiceer."],
-          ].map(([href, kop, tekst]) => (
-            <Link key={href} href={href} className="lift block rounded-xl border border-stone-200 bg-white p-5 hover:border-violet-300">
-              <span className="font-semibold text-violet-800">{kop} →</span>
-              <span className="mt-1 block text-sm text-stone-600">{tekst}</span>
+            ["wordpress-overzetten", "WordPress overzetten", "Je huidige site houden, zonder WordPress-onderhoud. Vanaf €150."],
+            ["nieuwe-website", "Een nieuwe website laten maken", "Wij bouwen hem met AI, jij houdt hem bij. Vanaf €250."],
+            ["website-laten-onderhouden", "Website laten onderhouden", "Wat onderhoud kost, en hoe je de reden ervoor weghaalt."],
+            ["website-koppelen-aan-ai", "Website aanpassen met AI", "Typ of app wat er anders moet, bekijk het en publiceer."],
+          ].map(([slug, kop, tekst]) => (
+            <Link key={slug} href={`/${slug}`} className="kies-kaart lift">
+              <Image src={`/images/paginas/${slug}.webp`} alt={FOTO_ALT[slug]} width={1600} height={900} sizes="(max-width: 767px) 100vw, 50vw" />
+              <span className="kies-kop">{kop} →</span>
+              <span className="kies-tekst">{tekst}</span>
             </Link>
           ))}
         </div>
-        <p className="mt-5 text-sm text-stone-600">
-          Speciaal voor{" "}
-          {[
-            ["/website-kapsalon", "kappers"],
-            ["/website-schildersbedrijf", "schilders"],
-            ["/website-hoveniersbedrijf", "hoveniers"],
-            ["/website-installatiebedrijf", "installateurs"],
-            ["/website-bouwbedrijf", "bouwbedrijven"],
-            ["/website-coach", "coaches"],
-            ["/website-mediator", "mediators"],
-            ["/website-kunstenaar", "kunstenaars"],
-            ["/website-adviesbureau", "adviesbureaus"],
-            ["/website-detacheringsbureau", "detacheringsbureaus"],
-            ["/website-accountant", "accountants"],
-            ["/website-financieel-adviseur", "financieel adviseurs"],
-            ["/website-stichting", "stichtingen"],
-          ].map(([href, naam], i, alle) => (
-            <span key={href}>
-              <Link href={href} className="font-medium text-violet-700 underline underline-offset-2">
-                {naam}
-              </Link>
-              {i < alle.length - 2 ? ", " : i === alle.length - 2 ? " en " : "."}
-            </span>
-          ))}
-        </p>
       </section>
       <section className="shell">
         <div className="closing-cta">

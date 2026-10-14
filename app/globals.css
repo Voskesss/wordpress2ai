@@ -1939,3 +1939,40 @@ main p {
 .landing-zo-label { color: #36614f; margin-bottom: -16px; }
 .landing-zo-link { display: inline-block; font-weight: 700; color: #244b3d; border-bottom: 2px solid #31956b; padding-bottom: 2px; }
 .landing-zo-link:hover { color: #31956b; }
+
+/* Homepage vrolijker (14-10-2026): gezichten, foto-kaarten en lichtere foto's.
+   De AI-foto's zijn aan de sombere kant; op de homepage tillen we ze iets op. */
+.voor-wie img, .kies-kaart img, .home-foto img { filter: brightness(1.08) saturate(1.12) contrast(.97); }
+.voor-wie { background: linear-gradient(180deg, #f3f7ef 0%, #fbf3e6 100%); border-block: 1px solid #e6ece0; padding-block: 72px; }
+.voor-wie h2 { margin-top: 12px; max-width: 760px; font-size: clamp(28px, 3vw, 40px); line-height: 1.15; letter-spacing: -.035em; }
+.voor-wie-grid { margin-top: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.voor-wie-kaart { position: relative; display: block; overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 10px 26px -18px rgba(36, 75, 61, .45); }
+.voor-wie-kaart img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .35s ease; }
+.voor-wie-kaart:hover img { transform: scale(1.04); }
+.voor-wie-kaart span { position: absolute; left: 10px; bottom: 10px; background: #fffdf8; color: #244b3d; font-weight: 700; font-size: 14px; padding: 6px 12px; border-radius: 999px; box-shadow: 0 4px 12px rgba(0, 0, 0, .12); }
+.voor-wie-meer { margin-top: 20px; font-size: 15px; color: #4f5a4b; }
+.voor-wie-meer a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home-foto img { aspect-ratio: 4 / 3; object-fit: cover; object-position: 70% center; border-radius: 18px; }
+.kies-grid { margin-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.kies-kaart { display: grid; grid-template-columns: 160px 1fr; grid-template-rows: auto 1fr; column-gap: 18px; align-items: start; background: #fff; border: 1px solid #e6e2d4; border-radius: 16px; padding: 12px; overflow: hidden; }
+.kies-kaart img { grid-row: span 2; width: 160px; height: 110px; object-fit: cover; border-radius: 10px; }
+.kies-kop { margin-top: 8px; font-weight: 700; color: #244b3d; font-size: 17px; }
+.kies-tekst { margin-top: 4px; font-size: 14px; color: #5b6657; line-height: 1.5; }
+.kies-kaart:hover { border-color: #b9d1b0; }
+@media (max-width: 1000px) {
+  .voor-wie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kies-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .voor-wie { padding-block: 48px; }
+  .kies-kaart { grid-template-columns: 110px 1fr; }
+  .kies-kaart img { width: 110px; height: 90px; }
+  /* Op de telefoon: eerst de kop, dan meteen het filmpje, dan de rest */
+  .home-hero { display: flex; flex-direction: column; }
+  .home-hero .hero-copy { display: contents; }
+  .home-hero .hero-copy > * { order: 3; }
+  .home-hero .hero-copy > .eyebrow { order: 1; }
+  .home-hero .hero-copy > h1 { order: 2; margin-bottom: 0; }
+  .home-hero .hero-example { order: 2; }
+  .home-hero .hero-example > .eyebrow { display: none; }
+}
