@@ -31,12 +31,26 @@ export default function Pagina() {
           {
             kop: "Stap 1: kijk in je mail, daar staat vaak al de oplossing",
             tekst:
-              "Sinds versie 5.2 stuurt WordPress bij zo’n fout automatisch een mail naar het beheerdersadres van de site. Dat is het adres dat ooit bij de installatie is ingevuld, dus misschien niet je dagelijkse mailbox. Het onderwerp is in het Nederlands iets als ‘[naam van je site] je site ervaart een technisch probleem’, in het Engels ‘Your Site is Experiencing a Technical Issue’. Kijk ook in je spam. In die mail staat welke plug-in of welk thema de fout veroorzaakte, plus een speciale link naar de herstelmodus. Klik die link aan en log in. In de herstelmodus is de foute plug-in alleen voor jou even stilgezet; bezoekers zien de fout nog wel. Ga in het menu naar Plugins, deactiveer de plug-in die in de mail genoemd wordt en klik daarna bovenin op de knop om de herstelmodus te verlaten. Open je site daarna in een privévenster om te zien of hij het weer doet.",
+              "Sinds versie 5.2 stuurt WordPress bij zo’n fout automatisch een mail naar het beheerdersadres van de site. Dat is het adres dat ooit bij de installatie is ingevuld, dus misschien niet je dagelijkse mailbox. In die mail staat welke plug-in of welk thema de fout veroorzaakte, plus een speciale link naar de herstelmodus. In de herstelmodus is de foute plug-in alleen voor jou even stilgezet; bezoekers zien de fout nog wel.",
+            stappen: [
+              "Zoek de mail. Het onderwerp is in het Nederlands iets als ‘[naam van je site] je site ervaart een technisch probleem’, in het Engels ‘Your Site is Experiencing a Technical Issue’. Kijk ook in je spam.",
+              "Klik de link naar de herstelmodus aan en log in.",
+              "Ga in het menu naar Plugins en deactiveer de plug-in die in de mail genoemd wordt.",
+              "Klik bovenin op de knop om de herstelmodus te verlaten.",
+              "Open je site in een privévenster om te zien of hij het weer doet.",
+            ],
           },
           {
             kop: "Wat zit er meestal achter?",
             tekst:
-              "Vraag jezelf eerst af: wat is er als laatste veranderd? Bijna altijd is het een van deze dingen. Een plug-in of thema is bijgewerkt en past niet meer bij de rest. Twee plug-ins bijten elkaar. WordPress zelf heeft een automatische update gedaan. Of je hostingpartij heeft de PHP-versie verhoogd en een oude plug-in kan daar niet mee overweg. Soms is het ook gewoon een plug-in die je net hebt geïnstalleerd. Weet je wat er veranderd is, dan weet je ook waar je moet zoeken, en dat scheelt veel gepuzzel. Schrijf het op voordat je verder gaat, zodat je het later aan een helpdesk kunt vertellen.",
+              "Vraag jezelf eerst af: wat is er als laatste veranderd? Weet je dat, dan weet je ook waar je moet zoeken, en dat scheelt veel gepuzzel. Schrijf het op voordat je verder gaat, zodat je het later aan een helpdesk kunt vertellen. Bijna altijd is het een van deze dingen:",
+            lijst: [
+              "Een plug-in of thema is bijgewerkt en past niet meer bij de rest.",
+              "Twee plug-ins bijten elkaar.",
+              "WordPress zelf heeft een automatische update gedaan.",
+              "Je hostingpartij heeft de PHP-versie verhoogd en een oude plug-in kan daar niet mee overweg.",
+              "Je hebt net een plug-in geïnstalleerd.",
+            ],
           },
           {
             kop: "Stap 2: vraag je hostingpartij om mee te kijken",
@@ -46,7 +60,15 @@ export default function Pagina() {
           {
             kop: "Stap 3: zet alle plug-ins in één keer uit via het bestandsbeheer",
             tekst:
-              "Dit is de bekende truc uit de WordPress-documentatie en hij is veilig, zolang je precies doet wat hier staat. Log in op het klantenpaneel van je hosting en open het bestandsbeheer (of gebruik een FTP-programma). Ga naar de map wp-content en zoek daarin de map plugins. Geef die map een andere naam, bijvoorbeeld plugins.uit. Daarmee staan alle plug-ins tegelijk uit, zonder dat er iets wordt verwijderd. Werkt je site nu weer, dan weet je dat het aan een plug-in ligt. Log in op je beheer, zet de map daarna terug naar de naam plugins en activeer de plug-ins één voor één. Kijk na elke plug-in even naar je site. Komt de fout terug, dan heb je de boosdoener gevonden. Laat die uit staan en zoek een bijgewerkte versie of een vervanger.",
+              "Dit is de bekende truc uit de WordPress-documentatie en hij is veilig, zolang je precies doet wat hier staat. Je zet alle plug-ins tegelijk uit, zonder dat er iets wordt verwijderd.",
+            stappen: [
+              "Log in op het klantenpaneel van je hosting en open het bestandsbeheer (of gebruik een FTP-programma).",
+              "Ga naar de map wp-content en zoek daarin de map plugins.",
+              "Geef die map een andere naam, bijvoorbeeld plugins.uit. Werkt je site nu weer, dan weet je dat het aan een plug-in ligt.",
+              "Log in op je beheer en zet de map daarna terug naar de naam plugins.",
+              "Activeer de plug-ins één voor één en kijk na elke plug-in even naar je site.",
+              "Komt de fout terug, dan heb je de boosdoener gevonden. Laat die uit staan en zoek een bijgewerkte versie of een vervanger.",
+            ],
           },
           {
             kop: "Stap 4: ligt het aan het thema?",

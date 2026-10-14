@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-installatiebedrijf",
   "label": "Website voor installateurs",
   "titel": "Een website voor je installatiebedrijf die altijd klopt",
+  "kort": "Website voor je installatiebedrijf",
   "intro": "Een verkeerd telefoonnummer of een oude spoeddienst op je site kost je direct werk. Wij zetten je site over zoals hij is, en daarna pas je hem aan door te typen wat er anders moet.",
   "blokken": [
     {

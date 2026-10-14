@@ -1846,3 +1846,34 @@ main p {
   .demo-video-staand { display: block !important; max-width: 340px; margin-inline: auto; }
   .demo-video-knop span { width: 76px; height: 76px; }
 }
+
+/* Landingspagina's (SEO-ronde 14-10-2026): herofoto, prijslabels in plaats
+   van een grijs blok kleine letters, en stappen, vinkjes en tabellen in de
+   lopende tekst. */
+.agency-landing-hero.met-foto { grid-template-columns: 1fr 1fr; align-items: center; }
+.landing-foto { margin: 0; min-width: 0; }
+.landing-foto img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 16px; box-shadow: 0 18px 40px -24px rgba(36, 75, 61, .45); }
+.landing-onderkop { margin-top: 14px; font-size: 19px; line-height: 1.5; font-weight: 600; color: #36614f; }
+.prijs-labels { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.prijs-labels li { border: 1px solid #cfdcc8; background: #f3f7ef; color: #244b3d; border-radius: 999px; padding: 6px 13px; font-size: 14px; font-weight: 600; }
+.prijs-labels li:last-child { background: transparent; border-color: transparent; color: #6b7466; font-weight: 500; padding-inline: 4px; }
+.landing-stappen { counter-reset: stap; list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; }
+.landing-stappen li { counter-increment: stap; position: relative; padding: 14px 16px 14px 56px; background: #fff; border: 1px solid #e3e8dd; border-radius: 12px; color: #44503f; line-height: 1.6; }
+.landing-stappen li::before { content: counter(stap); position: absolute; left: 14px; top: 13px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: #244b3d; color: #fff; font-weight: 700; font-size: 14px; }
+.landing-vinkjes { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
+.landing-vinkjes li { position: relative; padding-left: 28px; color: #44503f; line-height: 1.6; }
+.landing-vinkjes li::before { content: "✓"; position: absolute; left: 4px; color: #31956b; font-weight: 700; }
+.landing-tabel { margin-top: 18px; overflow-x: auto; border: 1px solid #e3e8dd; border-radius: 12px; background: #fff; }
+.landing-tabel table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 480px; }
+.landing-tabel th, .landing-tabel td { text-align: left; padding: 11px 14px; border-bottom: 1px solid #eef1ea; vertical-align: top; }
+.landing-tabel thead th { background: #f3f7ef; color: #244b3d; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.landing-tabel tbody th { font-weight: 600; color: #244b3d; }
+.landing-tabel tbody tr:last-child th, .landing-tabel tbody tr:last-child td { border-bottom: 0; }
+.landing-tabel-bron { padding: 8px 14px 10px; font-size: 12px; color: #6b7466; border-top: 1px solid #eef1ea; }
+@media (max-width: 767px) {
+  /* "Een herofoto bovenaan": op de telefoon eerst de foto, dan de kop */
+  .agency-landing-hero.met-foto { grid-template-columns: 1fr; gap: 22px; padding-top: 20px; }
+  .agency-landing-hero.met-foto .landing-foto { order: -1; }
+  .landing-foto img { aspect-ratio: 16 / 10; }
+  .landing-onderkop { font-size: 17px; }
+}

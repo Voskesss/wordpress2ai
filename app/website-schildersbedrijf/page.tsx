@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-schildersbedrijf",
   "label": "Website voor schilders",
   "titel": "Een website voor je schildersbedrijf zonder onderhoud",
+  "kort": "Website voor je schildersbedrijf",
   "intro": "Voor-en-na-foto's zijn het beste wat een schilder kan laten zien, en juist die blijven op de telefoon staan. Wij zetten je site over zoals hij is, en daarna zet je een klus erop met een appje vanaf de steiger.",
   "blokken": [
     {

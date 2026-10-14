@@ -15,6 +15,7 @@ export default function Pagina() {
         slug: "wordpress-backup-maken",
         label: "WordPress-backup",
         titel: "Een complete kopie van je WordPress-site maken in 10 minuten, gratis",
+        kort: "WordPress-back-up maken",
         intro:
           "Een echte backup van WordPress bestaat uit twee delen: de bestanden (thema, plugins, afbeeldingen) én de database (al je teksten en instellingen). Alleen met allebei kun je je site later ergens anders exact terugzetten. Zo maak je die kopie zelf, zonder technische kennis en zonder iemand je inloggegevens te geven. Wij laten elke klant dit doen vóór hij zijn oude hosting opzegt. Zo kun je bij WordSwap altijd terug.",
         blokken: [

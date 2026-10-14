@@ -5,15 +5,30 @@ export const metadata: Metadata = {"title": "Website laten onderhouden vanaf €
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Website laten onderhouden",
   "titel": "Je website laten onderhouden? Dit kost het, en dit zit erin.",
+  "kort": "Website laten onderhouden",
   "intro": "Een onderhoudspakket voor een WordPress-site kost in Nederland meestal tussen de €12,50 en €25 per maand. Daarvoor draait iemand je updates, maakt back-ups en houdt de beveiliging in de gaten. Hieronder staat precies wat je daarvoor krijgt, waar mensen in de praktijk op vastlopen, en één vraag die bijna niemand stelt: waaróm is dat onderhoud er eigenlijk?",
   "blokken": [
     {
       "kop": "Wat kost het om een website te laten onderhouden?",
-      "tekst": "De meeste Nederlandse onderhoudspakketten voor WordPress zitten tussen de €12,50 en €25 per maand. Daar krijg je doorgaans voor: de updates van WordPress, je thema en je plugins, een dagelijkse of wekelijkse back-up, een beveiligingsscan en controle of je site nog in de lucht is. Wat je er bijna nooit bij krijgt is het bijwerken van je eigen teksten en foto’s. Dat valt onder ‘wijzigingen’ en gaat per uur of per strippenkaart, meestal tussen de €60 en €95 per uur. Hou daar rekening mee: het maandbedrag is zelden wat je werkelijk kwijt bent."
+      "tekst": "De meeste Nederlandse onderhoudspakketten voor WordPress zitten tussen de €12,50 en €25 per maand. Wat je er bijna nooit bij krijgt is het bijwerken van je eigen teksten en foto’s: dat valt onder ‘wijzigingen’. Hou daar rekening mee: het maandbedrag is zelden wat je werkelijk kwijt bent.",
+      "tabel": {
+        "kop": ["Post", "Wat het kost", "Wat erin zit"],
+        "rijen": [
+          ["Onderhoudspakket", "€12,50 tot €25 per maand", "Updates van WordPress, je thema en je plugins, een dagelijkse of wekelijkse back-up, een beveiligingsscan en controle of je site nog in de lucht is"],
+          ["Wijzigingen", "Meestal €60 tot €95 per uur", "Je eigen teksten en foto’s bijwerken, per uur of per strippenkaart"]
+        ]
+      }
     },
     {
       "kop": "Wat zit er in een gewoon onderhoudspakket",
-      "tekst": "Updates draaien is het grootste deel van het werk. WordPress zelf krijgt een paar keer per jaar een nieuwe versie, je thema ook, en je plugins soms maandelijks. Elke update kan iets breken, dus hoort er een back-up vooraf bij en een controle achteraf. Daarnaast houdt een goede partij je PHP-versie bij, ruimt hij je database op en kijkt hij of je site nog snel genoeg laadt. Dat is echt werk en het is het geld waard als je WordPress houdt."
+      "tekst": "Updates draaien is het grootste deel van het werk. WordPress zelf krijgt een paar keer per jaar een nieuwe versie, je thema ook, en je plugins soms maandelijks. Elke update kan iets breken. Dat is echt werk en het is het geld waard als je WordPress houdt. Dit krijg je bij een goede partij:",
+      "lijst": [
+        "Updates van WordPress, je thema en je plugins",
+        "Een back-up vooraf en een controle achteraf bij elke update",
+        "Je PHP-versie bijgehouden",
+        "Je database opgeruimd",
+        "Controle of je site nog snel genoeg laadt"
+      ]
     },
     {
       "kop": "Waar mensen in de praktijk op vastlopen",

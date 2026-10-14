@@ -21,6 +21,7 @@ export default function Pagina() {
         slug: "wordpress-overzetten",
         label: "WordPress overzetten",
         titel: "Je WordPress-website overzetten naar een snelle, gewone website.",
+        kort: "WordPress overzetten",
         intro:
           "WordSwap zet je bestaande WordPress-site om naar een website zonder WordPress: zelfde ontwerp, zelfde teksten, zelfde pagina-adressen. Updates en plug-ins vervallen; hosting, beveiliging en formulieren regelen wij. Daarna houd je de inhoud bij door in een chat te typen wat er anders moet. Je bekijkt eerst de complete kopie, en pas na jouw akkoord stap je over.",
         blokken: [

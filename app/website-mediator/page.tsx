@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-mediator",
   "label": "Website voor mediators",
   "titel": "Een website voor je mediationpraktijk waar je kennis netjes blijft staan",
+  "kort": "Website voor je mediationpraktijk",
   "intro": "Mensen zoeken een mediator op een moment dat er veel speelt: een scheiding, een conflict op het werk, een ruzie over een erfenis. Ze lezen eerst rustig rond voordat ze contact opnemen. Je site moet dan kloppen, tot en met je tarieven en je registratie. Wij zetten je site over zoals hij is, inclusief al je artikelen, en daarna houd je hem zelf bij door te typen wat er anders moet.",
   "blokken": [
     {

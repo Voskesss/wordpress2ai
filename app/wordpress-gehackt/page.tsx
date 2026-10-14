@@ -22,13 +22,22 @@ export default function Pagina() {
         slug: "wordpress-gehackt",
         label: "WordPress gehackt",
         titel: "Je WordPress-site is gehackt. Dit doe je, in deze volgorde.",
+        kort: "WordPress gehackt?",
         intro:
           "Een gehackte website voelt als een inbraak, en zo moet je het ook aanpakken: eerst rustig vaststellen wat er is gebeurd, dan de deuren op slot, dan opruimen. Deze pagina loopt de stappen met je door in een volgorde die veilig is, ook als je geen techneut bent. Bij elke stap staat wat je zelf kunt doen en wanneer je beter iemand inschakelt. Er zijn geen garanties bij een hack, maar met deze volgorde maak je het in elk geval niet erger.",
         blokken: [
           {
             kop: "Hoe zie je dat je site gehackt is?",
             tekst:
-              "Een hack is lang niet altijd zichtbaar op je voorpagina. Let op deze signalen. Bezoekers worden doorgestuurd naar een andere site, soms alleen als ze via Google of op hun telefoon binnenkomen, zodat jij er zelf niets van merkt. In Google verschijnen pagina’s van jouw site met teksten over pillen, casino’s of in een vreemde taal; typ eens site:jouwdomein.nl in Google en kijk wat er voorbijkomt. Je browser of die van een klant toont een rode waarschuwing bij je site. Je hostingpartij meldt dat je site spam verstuurt of zet hem uit. In je WordPress staan beheerders of plug-ins die je niet kent. Of je kunt ineens niet meer inloggen. Eén signaal kan toeval zijn, twee of meer is reden om de stappen hieronder te volgen.",
+              "Een hack is lang niet altijd zichtbaar op je voorpagina. Eén signaal kan toeval zijn, twee of meer is reden om de stappen hieronder te volgen. Let op deze signalen:",
+            lijst: [
+              "Bezoekers worden doorgestuurd naar een andere site, soms alleen als ze via Google of op hun telefoon binnenkomen, zodat jij er zelf niets van merkt.",
+              "In Google verschijnen pagina’s van jouw site met teksten over pillen, casino’s of in een vreemde taal; typ eens site:jouwdomein.nl in Google en kijk wat er voorbijkomt.",
+              "Je browser of die van een klant toont een rode waarschuwing bij je site.",
+              "Je hostingpartij meldt dat je site spam verstuurt of zet hem uit.",
+              "In je WordPress staan beheerders of plug-ins die je niet kent.",
+              "Je kunt ineens niet meer inloggen.",
+            ],
           },
           {
             kop: "Eerst: geen paniek, en niets wissen",
@@ -58,12 +67,25 @@ export default function Pagina() {
           {
             kop: "Laat Google weten dat het opgelost is",
             tekst:
-              "Heeft Google de hack opgemerkt, dan zie je dat in Google Search Console bij het rapport Beveiligingsproblemen. Daar staat bijvoorbeeld of er gehackte inhoud of malware is gevonden. Heb je nog geen Search Console, dan kun je je site er gratis aanmelden. Is alles opgeschoond en getest, klik dan in dat rapport op Beoordeling aanvragen en beschrijf kort wat het probleem was en wat je hebt gedaan. Vraag het pas aan als echt alles schoon is, en dien niet meerdere verzoeken tegelijk in. Spampagina’s die in Google zijn beland, verdwijnen daarna niet meteen; dat kan even duren.",
+              "Heeft Google de hack opgemerkt, dan zie je dat in Google Search Console. Heb je nog geen Search Console, dan kun je je site er gratis aanmelden.",
+            stappen: [
+              "Open in Search Console het rapport Beveiligingsproblemen. Daar staat bijvoorbeeld of er gehackte inhoud of malware is gevonden.",
+              "Schoon alles op en test het. Vraag de beoordeling pas aan als echt alles schoon is.",
+              "Klik in dat rapport op Beoordeling aanvragen en beschrijf kort wat het probleem was en wat je hebt gedaan. Dien niet meerdere verzoeken tegelijk in.",
+              "Heb geduld: spampagina’s die in Google zijn beland, verdwijnen daarna niet meteen; dat kan even duren.",
+            ],
           },
           {
             kop: "Daarna: zet de deuren op slot",
             tekst:
-              "Veel WordPress-hacks komen binnen via een verouderde plug-in of thema, of via een zwak of gelekt wachtwoord. Werk daarom WordPress, thema en plug-ins voortaan bij zodra er een update is. Verwijder plug-ins en thema’s die je niet gebruikt; uitgeschakeld is niet genoeg, ook die bestanden staan nog op de server. Zet tweestapsverificatie aan voor elke beheerder, zodat een wachtwoord alleen niet genoeg is om binnen te komen. Geef niet meer mensen beheerdersrechten dan nodig. En zorg voor automatische back-ups die je zelf kunt terugzetten. Wil je dit niet zelf bijhouden, lees dan wat [website laten onderhouden](/website-laten-onderhouden) inhoudt.",
+              "Veel WordPress-hacks komen binnen via een verouderde plug-in of thema, of via een zwak of gelekt wachtwoord. Wil je dit niet zelf bijhouden, lees dan wat [website laten onderhouden](/website-laten-onderhouden) inhoudt.",
+            lijst: [
+              "Werk WordPress, thema en plug-ins voortaan bij zodra er een update is.",
+              "Verwijder plug-ins en thema’s die je niet gebruikt; uitgeschakeld is niet genoeg, ook die bestanden staan nog op de server.",
+              "Zet tweestapsverificatie aan voor elke beheerder, zodat een wachtwoord alleen niet genoeg is om binnen te komen.",
+              "Geef niet meer mensen beheerdersrechten dan nodig.",
+              "Zorg voor automatische back-ups die je zelf kunt terugzetten.",
+            ],
           },
           {
             kop: "Kunnen er persoonsgegevens gelekt zijn?",

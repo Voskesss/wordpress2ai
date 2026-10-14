@@ -1,9 +1,10 @@
 import VerhaalBeeld, { type Onderwerp } from "./VerhaalBeeld";
 import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
-import { aanbod } from "@/lib/aanbod";
 import { tekstDelen, zonderLinks } from "@/lib/tekst-links";
 import LeesOok from "./LeesOok";
+import Image from "next/image";
+import { fotoVoor } from "@/lib/pagina-fotos";
 
 /** Lopende tekst met interne links: [ankertekst](/pad) wordt een echte link. */
 function MetLinks({ tekst }: { tekst: string }) {
@@ -22,13 +23,26 @@ function MetLinks({ tekst }: { tekst: string }) {
   );
 }
 
+/** Een tekstblok, eventueel met stappen, een vinkjeslijst of een tabel
+ * erbij. Die vormen breken de tekstmuur en worden door zoekmachines en
+ * AI-assistenten graag letterlijk overgenomen. */
+export type Blok = {
+  kop: string;
+  tekst: string;
+  stappen?: string[];
+  lijst?: string[];
+  tabel?: { kop: string[]; rijen: string[][]; bron?: string };
+};
+
 export type LandingData = {
   nieuweWebsite?: boolean;
   slug: string;
   label: string; // korte naam voor menu's/footers
-  titel: string; // H1
+  titel: string; // H1 (of de regel onder de korte kop als `kort` er is)
+  /** Korte kop van 4 tot 6 woorden; dan wordt `titel` de regel eronder. */
+  kort?: string;
   intro: string;
-  blokken: { kop: string; tekst: string }[];
+  blokken: Blok[];
   /** Welk beeld bij deze pagina hoort. Stond hard op "ondernemer", waardoor
    *  alle landingspagina's dezelfde illustratie toonden: ook de pagina voor
    *  hoveniers liet een ondernemer in een atelier zien. */
@@ -38,6 +52,7 @@ export type LandingData = {
 
 /** Gedeelde opbouw voor SEO-landingspagina's: content, FAQ (+ structured data), CTA's. */
 export default function SeoLanding({ data }: { data: LandingData }) {
+  const foto = fotoVoor(data.slug);
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -54,29 +69,27 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <div className="shell agency-landing-hero">
+      <div className={`shell agency-landing-hero${foto ? " met-foto" : ""}`}>
         <div>
           <p className="eyebrow">{data.label} · WordSwap</p>
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
-            {data.titel}
+            {data.kort ?? data.titel}
           </h1>
+          {data.kort && <p className="landing-onderkop">{data.titel}</p>}
           <p className="mt-5 text-lg text-stone-600 leading-relaxed">
             {data.intro}
           </p>
-          <p className="mt-4 text-sm text-stone-500">
-            {data.nieuweWebsite
-              ? "Nieuw AI-ontwerp vanaf €250; daarna vanaf €19 per maand. Excl. btw. Domein, e-mail en maatwerk apart. Heb je al een website? Die overzetten kan al vanaf €150."
-              : aanbod.prijs}
-          </p>
-          <p className="landing-explanation">
-            <strong>
-              {data.nieuweWebsite
-                ? "Je nieuwe site draait zonder WordPress."
-                : "WordSwap vervangt WordPress."}
-            </strong>{" "}
-            Daarna houd je teksten, foto’s en pagina’s bij met AI. Eerst
-            bekijken, dan zelf publiceren.
-          </p>
+          <ul className="prijs-labels" aria-label="Prijzen">
+            {(data.nieuweWebsite
+              ? ["Nieuw ontwerp vanaf €250", "daarna vanaf €19 per maand", "excl. btw"]
+              : ["Overstap vanaf €150", "daarna vanaf €19 per maand", "excl. btw"]
+            ).map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+          {data.nieuweWebsite && (
+            <p className="mt-2 text-sm text-stone-500">Heb je al een website? Die overzetten kan al vanaf €150.</p>
+          )}
           <div className="mt-7 flex flex-wrap gap-4">
             <Link
               href={data.nieuweWebsite ? "/nieuwe-website#intake" : "/contact"}
@@ -99,7 +112,11 @@ export default function SeoLanding({ data }: { data: LandingData }) {
               : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
           </p>
         </div>
-        {data.nieuweWebsite ? (
+        {foto ? (
+          <figure className="landing-foto">
+            <Image src={foto.src} alt={foto.alt} width={1536} height={1024} priority sizes="(max-width: 767px) 100vw, 45vw" />
+          </figure>
+        ) : data.nieuweWebsite ? (
           <VerhaalBeeld onderwerp={data.beeld ?? "ondernemer"} />
         ) : (
           <OverstapVisual />
@@ -115,6 +132,47 @@ export default function SeoLanding({ data }: { data: LandingData }) {
             <p className="mt-2.5 text-stone-600 leading-relaxed">
               <MetLinks tekst={b.tekst} />
             </p>
+            {b.stappen && (
+              <ol className="landing-stappen">
+                {b.stappen.map((st) => (
+                  <li key={st}>
+                    <MetLinks tekst={st} />
+                  </li>
+                ))}
+              </ol>
+            )}
+            {b.lijst && (
+              <ul className="landing-vinkjes">
+                {b.lijst.map((l) => (
+                  <li key={l}>
+                    <MetLinks tekst={l} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {b.tabel && (
+              <div className="landing-tabel">
+                <table>
+                  <thead>
+                    <tr>
+                      {b.tabel.kop.map((k) => (
+                        <th key={k} scope="col">{k}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.tabel.rijen.map((r) => (
+                      <tr key={r.join("|")}>
+                        {r.map((c, i) =>
+                          i === 0 ? <th key={i} scope="row">{c}</th> : <td key={i}>{c}</td>,
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {b.tabel.bron && <p className="landing-tabel-bron">{b.tabel.bron}</p>}
+              </div>
+            )}
           </section>
         ))}
       </div>

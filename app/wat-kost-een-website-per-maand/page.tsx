@@ -21,6 +21,7 @@ export default function Pagina() {
         slug: "wat-kost-een-website-per-maand",
         label: "Kosten per maand",
         titel: "Wat kost een website per maand? Het eerlijke antwoord.",
+        kort: "Wat kost een website per maand?",
         intro:
           "Laat je de techniek voor je regelen, dan kost een gewone bedrijfswebsite meestal €20 tot €75 per maand, exclusief btw en e-mail. Bij WordSwap is dat €19 per maand voor het basispakket of €39 per maand voor Optimaal ontzorgd, met hosting, onderhoud, beveiliging en de AI-chat erin. Goedkoper kan alleen als je alles zelf doet: met een websitebouwer betaal je soms maar een paar euro per maand, maar dan bouw en onderhoud je de site zelf. Bovenaan de bandbreedte zit een WordPress-site waarvoor je hosting, een onderhoudspakket en af en toe een uur wijzigingen betaalt. Hieronder lees je per kostenpost wat je betaalt en waarom, en rekenen we vier routes door over drie jaar. Ook de route waarin WordSwap niet de goedkoopste is.",
         blokken: [
@@ -62,12 +63,49 @@ export default function Pagina() {
           {
             kop: "Rekensom: vier routes over drie jaar",
             tekst:
-              "We gaan uit van een kleine bedrijfssite die al bestaat, rekenen exclusief btw en laten e-mail weg. (a) Zelf WordPress met hosting en zelf onderhouden: hosting €290 tot €540, domein ongeveer €30, eventueel licenties tot €360. Totaal ongeveer €320 tot €930 over drie jaar, plus je eigen uren voor updates en het risico als het misgaat. (b) WordPress met een onderhoudspakket bij een bureau: hosting €290 tot €540, onderhoud €450 tot €900, domein €30 en vier uur wijzigingen per jaar à €60 tot €95, samen €720 tot €1.140. Totaal ongeveer €1.490 tot €2.610. (c) Een websitebouwer zoals Wix of JouwWeb: een betaald pakket met eigen domein kost ongeveer €5 tot €20 per maand, dus €180 tot €720 over drie jaar, plus de tijd om je site opnieuw op te bouwen en zelf bij te houden. (d) WordSwap: overstap eenmalig €150 tot €650 plus 36 maanden basispakket vanaf €19 is €684, met domein samen ongeveer €860 tot €1.360. Kleine wijzigingen doe je zelf in de chat. Kies je Optimaal ontzorgd voor €39 per maand, dan wordt het ongeveer €1.580 tot €2.080. Prijzen oktober 2026, check altijd bij de aanbieder.",
-          },
+              "We gaan uit van een kleine bedrijfssite die al bestaat, rekenen exclusief btw en laten e-mail weg. Zo ziet dat er over 36 maanden uit:",
+            tabel: {
+              kop: ["Route", "Over 3 jaar", "Wat je zelf nog doet"],
+              rijen: [
+                [
+                  "(a) Zelf WordPress met hosting en zelf onderhouden: hosting €290 tot €540, domein ongeveer €30, eventueel licenties tot €360",
+                  "Ongeveer €320 tot €930",
+                  "Je eigen uren voor updates, plus het risico als het misgaat",
+                ],
+                [
+                  "(b) WordPress met een onderhoudspakket bij een bureau: hosting €290 tot €540, onderhoud €450 tot €900, domein €30 en vier uur wijzigingen per jaar à €60 tot €95 (€720 tot €1.140)",
+                  "Ongeveer €1.490 tot €2.610",
+                  "Wijzigingen aanvragen en per uur betalen",
+                ],
+                [
+                  "(c) Een websitebouwer zoals Wix of JouwWeb: betaald pakket met eigen domein, ongeveer €5 tot €20 per maand",
+                  "€180 tot €720",
+                  "Je site opnieuw opbouwen en zelf bijhouden",
+                ],
+                [
+                  "(d) WordSwap basispakket: overstap eenmalig €150 tot €650 plus 36 maanden vanaf €19 (€684), met domein",
+                  "Ongeveer €860 tot €1.360",
+                  "Kleine wijzigingen zelf in de chat",
+                ],
+                [
+                  "(d) WordSwap Optimaal ontzorgd: zelfde overstap, €39 per maand",
+                  "Ongeveer €1.580 tot €2.080",
+                  "Kleine wijzigingen zelf in de chat",
+                ],
+              ],
+              bron: "Prijzen oktober 2026, excl. btw en e-mail. Check altijd bij de aanbieder.",
+            },          },
           {
             kop: "Zo vergelijk je je eigen kosten eerlijk",
             tekst:
-              "Pak de facturen van het afgelopen jaar erbij en tel alles bij elkaar: hosting, domein, onderhoudspakket, licenties en elke rekening voor een wijziging. Deel dat door twaalf en je weet wat je website je echt per maand kost. Vergelijk daarna niet alleen het maandbedrag, maar ook wat erin zit. Wie doet de updates? Wie betaalt als er iets misgaat? Hoe snel staat een nieuwe tekst online? En wat neem je mee als je stopt? Een goedkoop pakket met dure uurtjes kan duurder uitvallen dan een hoger maandbedrag waarin je wijzigingen zelf doet. Tel ook je eigen tijd mee: een uur per maand puzzelen met updates is voor een ondernemer ook geld.",
+              "Pak de facturen van het afgelopen jaar erbij en tel alles bij elkaar: hosting, domein, onderhoudspakket, licenties en elke rekening voor een wijziging. Deel dat door twaalf en je weet wat je website je echt per maand kost. Vergelijk daarna niet alleen het maandbedrag, maar ook wat erin zit. Een goedkoop pakket met dure uurtjes kan duurder uitvallen dan een hoger maandbedrag waarin je wijzigingen zelf doet. Vraag jezelf per aanbieder:",
+            lijst: [
+              "Wie doet de updates?",
+              "Wie betaalt als er iets misgaat?",
+              "Hoe snel staat een nieuwe tekst online?",
+              "Wat neem je mee als je stopt?",
+              "Hoeveel van je eigen tijd kost het? Een uur per maand puzzelen met updates is voor een ondernemer ook geld.",
+            ],
           },
           {
             kop: "Wanneer WordSwap niet de goedkoopste is",

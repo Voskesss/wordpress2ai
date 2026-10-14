@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-coach",
   "label": "Website voor coaches",
   "titel": "Een website voor je coachpraktijk die net zo persoonlijk blijft als jij",
+  "kort": "Website voor je coachpraktijk",
   "intro": "Als coach verkoop je vertrouwen. Iemand die op je site komt, wil voelen wie je bent voordat hij een kennismaking plant. Dat lukt niet met een site waar je workshop van vorig voorjaar nog bovenaan staat, of met een blog waar je al een jaar niets aan durft te veranderen omdat WordPress weer een update wil. Wij zetten je site over zoals hij is, en daarna pas je hem aan door te typen wat er anders moet.",
   "blokken": [
     {

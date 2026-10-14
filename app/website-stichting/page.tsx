@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-stichting",
   "label": "Website voor stichtingen en verenigingen",
   "titel": "Een website voor je stichting of vereniging die niet van één vrijwilliger afhangt",
+  "kort": "Website voor je stichting",
   "intro": "Bij veel stichtingen en verenigingen is er één iemand die weet hoe de website werkt. Dat gaat goed, tot die persoon verhuist, stopt in het bestuur of gewoon geen zin meer heeft in WordPress-updates. Dan blijft de site staan zoals hij is, met nieuws van twee jaar terug. Wij zetten je site over zoals hij is, en daarna kan iedereen die je toegang geeft hem bijhouden door te typen wat er anders moet.",
   "blokken": [
     {

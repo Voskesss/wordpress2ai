@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-kapsalon",
   "label": "Website voor kappers en salons",
   "titel": "Een website voor je salon met prijzen die kloppen",
+  "kort": "Website voor je kapsalon",
   "intro": "Een prijslijst van drie jaar geleden of openingstijden die niet meer kloppen, daar heb je elke week gesprekken over aan de balie. Wij zetten je site over zoals hij is, en daarna pas je hem aan door te typen wat er anders moet.",
   "blokken": [
     {

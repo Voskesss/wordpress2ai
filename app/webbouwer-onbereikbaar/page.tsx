@@ -22,6 +22,7 @@ export default function Pagina() {
         slug: "webbouwer-onbereikbaar",
         label: "Webbouwer onbereikbaar",
         titel: "Je webbouwer reageert niet meer. Zo krijg je de regie terug.",
+        kort: "Webbouwer reageert niet?",
         intro:
           "Je wilt een telefoonnummer aanpassen, of er gaat iets mis met je site, en de webbouwer die alles voor je regelde neemt niet meer op. Mails blijven onbeantwoord. Misschien is hij gestopt, ziek of gewoon druk. Wat de reden ook is: je wilt weer zelf bij je eigen website kunnen. Dat lukt vaak, maar je moet eerst weten wat er precies is en bij wie het ligt. Deze pagina helpt je dat stap voor stap uit te zoeken, zonder dat je technisch hoeft te zijn.",
         blokken: [
@@ -43,7 +44,13 @@ export default function Pagina() {
           {
             kop: "Domein verhuizen: de verhuiscode",
             tekst:
-              "Ben jij de houder, dan kun je de naam naar een andere registrar laten verhuizen. Daarvoor heb je een verhuiscode nodig, bij .nl heet dat het verhuistoken. Die vraag je aan bij de huidige registrar. Volgens SIDN moet de registrar je het token binnen vijf dagen geven als je erom vraagt. Gebeurt dat niet, dan kun je een herinnering sturen; SIDN heeft daar een voorbeeldbrief voor. Lukt het dan nog niet, dan kan je nieuwe registrar de oude namens jou benaderen, en als ook dat niets oplevert, kan die nieuwe registrar SIDN inschakelen. Je moet dan wel aantonen dat jij de houder bent, bijvoorbeeld met een legitimatiebewijs en een uittreksel van de KVK. Let op: zet bij een verhuizing de instellingen voor je website en e-mail goed, anders liggen die even plat.",
+              "Ben jij de houder, dan kun je de naam naar een andere registrar laten verhuizen. Daarvoor heb je een verhuiscode nodig, bij .nl heet dat het verhuistoken. Let op: zet bij een verhuizing de instellingen voor je website en e-mail goed, anders liggen die even plat.",
+            stappen: [
+              "Vraag het verhuistoken aan bij de huidige registrar. Volgens SIDN moet de registrar je het token binnen vijf dagen geven als je erom vraagt.",
+              "Gebeurt dat niet, stuur dan een herinnering; SIDN heeft daar een voorbeeldbrief voor.",
+              "Lukt het dan nog niet, dan kan je nieuwe registrar de oude namens jou benaderen.",
+              "Levert ook dat niets op, dan kan die nieuwe registrar SIDN inschakelen. Je moet dan wel aantonen dat jij de houder bent, bijvoorbeeld met een legitimatiebewijs en een uittreksel van de KVK.",
+            ],
           },
           {
             kop: "Staat de domeinnaam op naam van de webbouwer?",
@@ -63,12 +70,25 @@ export default function Pagina() {
           {
             kop: "Wat je nu al kunt veiligstellen",
             tekst:
-              "Wacht niet tot alles is uitgezocht. Je site staat nu nog online, en alles wat je kunt zien, kun je ook bewaren. Kopieer de teksten van je belangrijkste pagina’s naar een document. Sla de foto’s op die je zelf hebt aangeleverd of waar je de rechten van hebt. Noteer welke pagina’s er zijn en wat de adressen zijn, want die zijn belangrijk voor je vindbaarheid in Google. Schrijf op welke mailadressen je gebruikt en hoe je contactformulier werkt. Dan heb je in het slechtste geval in elk geval de inhoud nog, ook als de site zelf ooit verdwijnt.",
+              "Wacht niet tot alles is uitgezocht. Je site staat nu nog online, en alles wat je kunt zien, kun je ook bewaren. Dan heb je in het slechtste geval in elk geval de inhoud nog, ook als de site zelf ooit verdwijnt.",
+            lijst: [
+              "Kopieer de teksten van je belangrijkste pagina’s naar een document.",
+              "Sla de foto’s op die je zelf hebt aangeleverd of waar je de rechten van hebt.",
+              "Noteer welke pagina’s er zijn en wat de adressen zijn, want die zijn belangrijk voor je vindbaarheid in Google.",
+              "Schrijf op welke mailadressen je gebruikt en hoe je contactformulier werkt.",
+            ],
           },
           {
             kop: "Afspraken voor de volgende keer",
             tekst:
-              "Wie je site ook gaat beheren, leg een paar dingen vast. De domeinnaam staat op naam van jou of je bedrijf. Je hebt zelf een beheerdersaccount, ook als je er nooit in komt. Je weet bij welke partijen je hosting, domein en e-mail lopen, en wie de rekeningen betaalt. Je krijgt af en toe een complete kopie van je site, of weet waar je die kunt halen. En spreek af wat er gebeurt als de samenwerking stopt: hoe en binnen welke termijn je alles overgedragen krijgt. Dat voelt bij het begin wat ongemakkelijk, maar het voorkomt precies de situatie waar je nu in zit.",
+              "Wie je site ook gaat beheren, leg een paar dingen vast. Dat voelt bij het begin wat ongemakkelijk, maar het voorkomt precies de situatie waar je nu in zit.",
+            lijst: [
+              "De domeinnaam staat op naam van jou of je bedrijf.",
+              "Je hebt zelf een beheerdersaccount, ook als je er nooit in komt.",
+              "Je weet bij welke partijen je hosting, domein en e-mail lopen, en wie de rekeningen betaalt.",
+              "Je krijgt af en toe een complete kopie van je site, of weet waar je die kunt halen.",
+              "Je hebt afgesproken wat er gebeurt als de samenwerking stopt: hoe en binnen welke termijn je alles overgedragen krijgt.",
+            ],
           },
           {
             kop: "Hoe WordSwap je hierbij helpt",

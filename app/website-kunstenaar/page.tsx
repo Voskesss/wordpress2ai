@@ -5,6 +5,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-kunstenaar",
   "label": "Website voor kunstenaars",
   "titel": "Een website voor je werk, waar nieuw werk er snel bij staat",
+  "kort": "Website voor kunstenaars",
   "intro": "Als schilder, beeldhouwer of fotograaf is je site je etalage. Maar nieuw werk erop zetten voelt vaak als een klus: inloggen, foto verkleinen, plugin die moppert. Dus staat je nieuwste serie alleen op Instagram. Wij zetten je site over zoals hij is, met al je beelden, en daarna zet je nieuw werk erbij door een foto te sturen en te zeggen waar hij moet komen.",
   "blokken": [
     {

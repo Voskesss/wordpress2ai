@@ -20,6 +20,7 @@ export default function Pagina() {
         slug: "website-abonnement",
         label: "Website abonnement",
         titel: "Een website-abonnement met de prijs gewoon vooraan.",
+        kort: "Website-abonnement vanaf €19",
         intro:
           "Bij WordSwap betaal je één keer voor je website en daarna een vast bedrag per maand: vanaf €19 excl. btw voor hosting, beveiliging en een AI-chat waarmee je zelf alles bijhoudt. Geen offertegesprek om te horen wat het kost, geen jaarcontract, en je websitebestanden blijven van jou. Hieronder lees je wat er in het abonnement zit, wat er los van staat en wat er gebeurt als je ooit wilt stoppen.",
         blokken: [
@@ -36,17 +37,45 @@ export default function Pagina() {
           {
             kop: "Wat zit er in het basispakket?",
             tekst:
-              "Voor vanaf €19 per maand krijg je hosting, SSL (het slotje in de adresbalk), beveiliging, de koppeling met je domeinnaam, versiegeschiedenis en hulp per e-mail. En de AI-chat: daarin typ je in gewone woorden wat er anders moet, zoals een nieuwe openingstijd, een extra foto of een hele nieuwe pagina. Je ziet eerst een voorbeeld en zet het daarna zelf live. Updates en plug-ins bestaan bij ons niet, dus daar hoef je ook niet voor te betalen. Er geldt fair use: ruimte voor het normale onderhoud van je site. Hoe het bijhouden precies gaat, zie je bij [je website koppelen aan AI](/website-koppelen-aan-ai).",
+              "Voor vanaf €19 per maand krijg je alles wat je nodig hebt om je site zelf bij te houden. Updates en plug-ins bestaan bij ons niet, dus daar hoef je ook niet voor te betalen. Er geldt fair use: ruimte voor het normale onderhoud van je site.",
+            lijst: [
+              "Hosting",
+              "SSL (het slotje in de adresbalk)",
+              "Beveiliging",
+              "De koppeling met je domeinnaam",
+              "Versiegeschiedenis",
+              "Hulp per e-mail",
+              "De AI-chat: daarin typ je in gewone woorden wat er anders moet, zoals een nieuwe openingstijd, een extra foto of een hele nieuwe pagina. Je ziet eerst een voorbeeld en zet het daarna zelf live. Hoe dat precies gaat, zie je bij [je website koppelen aan AI](/website-koppelen-aan-ai).",
+            ],
           },
           {
             kop: "Optimaal ontzorgd: €39 per maand",
             tekst:
               "Wil je er nog minder naar omkijken, dan is er Optimaal ontzorgd. Je krijgt alles uit het basispakket, plus voorrang: heb je een vraag, dan helpen we jou als eerste. En je kunt je website bijhouden via WhatsApp. Je stuurt een tekst, foto of spraakbericht, je krijgt een voorbeeld terug en pas na jouw akkoord gaat het live. Hoe dat werkt, lees je bij [je website bijhouden via een appje](/appen). Storingen aan onze kant lossen we trouwens voor iedereen kosteloos op, ook in het basispakket.",
+            tabel: {
+              kop: ["Onderdeel", "Basispakket", "Optimaal ontzorgd"],
+              rijen: [
+                ["Per maand (excl. btw)", "Vanaf €19", "€39"],
+                ["Hosting, SSL, beveiliging en domeinkoppeling", "Ja", "Ja"],
+                ["AI-chat en versiegeschiedenis", "Ja", "Ja"],
+                ["Hulp per e-mail", "Ja", "Ja"],
+                ["Storingen aan onze kant kosteloos opgelost", "Ja", "Ja"],
+                ["Voorrang bij je vragen", "Nee", "Ja"],
+                ["Website bijhouden via WhatsApp", "Nee", "Ja"],
+              ],
+            },
           },
           {
             kop: "Wat zit er niet in het abonnement?",
             tekst:
-              "Eerlijk is eerlijk: niet alles zit in het maandbedrag. Je domeinnaam en je e-mail staan los van het pakket. Je domeinnaam blijft van jou, waar hij ook staat, en voor je e-mail kijken we eerst samen waar die nu draait voordat er iets verandert. Werk dat wij voor je doen buiten je pakket, zoals een wijziging, advies of een koppeling, rekenen we per kwartier: €15 excl. btw, altijd eerst in overleg. Maatwerk en extra functies spreken we apart af. Een webshop of een ledenomgeving met inlog hosten we niet; staat die bij een andere partij, dan linken we er gewoon naartoe.",
+              "Eerlijk is eerlijk: niet alles zit in het maandbedrag. Dit staat los van het pakket:",
+            lijst: [
+              "Je domeinnaam. Die blijft van jou, waar hij ook staat.",
+              "Je e-mail. Daarvoor kijken we eerst samen waar die nu draait voordat er iets verandert.",
+              "Werk dat wij voor je doen buiten je pakket, zoals een wijziging, advies of een koppeling: €15 per kwartier excl. btw, altijd eerst in overleg.",
+              "Maatwerk en extra functies: die spreken we apart af.",
+              "Een webshop of een ledenomgeving met inlog hosten we niet; staat die bij een andere partij, dan linken we er gewoon naartoe.",
+            ],
           },
           {
             kop: "Opzeggen: wat neem je mee?",
