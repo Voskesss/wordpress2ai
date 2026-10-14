@@ -1899,3 +1899,27 @@ main p {
   .landing-breed-inhoud { padding-block: 40px 32px; }
   .landing-breed-knoppen a { flex: 1 1 100%; text-align: center; }
 }
+
+/* Onder de brede hero: intro + prijskaart, "zo werkt het" naast de
+   illustratie, en de overige punten als kaarten (proef kapsalon) */
+.landing-band { background: #eff3e8; border-bottom: 1px solid #dfe7d8; }
+.landing-band-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: center; padding-block: 56px; }
+.landing-band-intro { font-size: clamp(19px, 1.7vw, 23px); line-height: 1.6; color: #2f3d33; }
+.landing-prijskaart { background: #fff; border: 1px solid #dfe7d8; border-radius: 16px; padding: 24px; box-shadow: 0 14px 30px -22px rgba(36, 75, 61, .45); }
+.landing-prijskaart-kop { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #36614f; }
+.landing-prijskaart dl { margin-top: 12px; }
+.landing-prijskaart dl div { display: flex; justify-content: space-between; gap: 12px; padding-block: 10px; border-bottom: 1px solid #eef1ea; }
+.landing-prijskaart dt { color: #5b6657; }
+.landing-prijskaart dd { font-weight: 700; color: #244b3d; text-align: right; }
+.landing-prijskaart-btw { margin-top: 10px; font-size: 13px; color: #6b7466; }
+.landing-prijskaart-vink { margin-top: 12px; font-size: 14px; font-weight: 600; color: #2f7d58; line-height: 1.5; }
+.landing-zo { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding-block: 72px; }
+.landing-zo > div:first-child p { font-size: 17px; }
+.landing-kaarten-band { background: #f6f4ec; border-block: 1px solid #ebe7da; }
+.landing-kaarten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-block: 64px; }
+.landing-kaart { position: relative; background: #fff; border: 1px solid #e6e2d4; border-radius: 16px; padding: 28px 28px 26px; }
+.landing-kaart-nr { display: inline-block; margin-bottom: 12px; font-family: var(--font-fraunces, serif); font-size: 15px; font-weight: 600; color: #fff; background: #244b3d; border-radius: 8px; padding: 3px 9px; }
+@media (max-width: 767px) {
+  .landing-band-grid, .landing-zo { grid-template-columns: 1fr; gap: 28px; padding-block: 40px; }
+  .landing-kaarten { grid-template-columns: 1fr; padding-block: 40px; }
+}

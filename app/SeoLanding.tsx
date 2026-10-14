@@ -34,6 +34,60 @@ export type Blok = {
   tabel?: { kop: string[]; rijen: string[][]; bron?: string };
 };
 
+/** Tekst van een blok, met eventueel stappen, vinkjes of een tabel. */
+function BlokInhoud({ b }: { b: Blok }) {
+  return (
+    <>
+      <p className="mt-2.5 text-stone-600 leading-relaxed">
+        <MetLinks tekst={b.tekst} />
+      </p>
+      {b.stappen && (
+        <ol className="landing-stappen">
+          {b.stappen.map((st) => (
+            <li key={st}>
+              <MetLinks tekst={st} />
+            </li>
+          ))}
+        </ol>
+      )}
+      {b.lijst && (
+        <ul className="landing-vinkjes">
+          {b.lijst.map((l) => (
+            <li key={l}>
+              <MetLinks tekst={l} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {b.tabel && (
+        <div className="landing-tabel">
+          <table>
+            <thead>
+              <tr>
+                {b.tabel.kop.map((k) => (
+                  <th key={k} scope="col">{k}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {b.tabel.rijen.map((r) => (
+                <tr key={r.join("|")}>
+                  {r.map((c, i) =>
+                    i === 0 ? <th key={i} scope="row">{c}</th> : <td key={i}>{c}</td>,
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {b.tabel.bron && <p className="landing-tabel-bron">{b.tabel.bron}</p>}
+        </div>
+      )}
+    </>
+  );
+}
+
+const isEenvoudig = (b: Blok) => !b.stappen && !b.lijst && !b.tabel;
+
 export type LandingData = {
   nieuweWebsite?: boolean;
   slug: string;
@@ -53,6 +107,13 @@ export type LandingData = {
 /** Gedeelde opbouw voor SEO-landingspagina's: content, FAQ (+ structured data), CTA's. */
 export default function SeoLanding({ data }: { data: LandingData }) {
   const foto = fotoVoor(data.slug);
+  // Met foto: de eerste twee gewone blokken naast de illustratie, de rest
+  // als kaarten, en blokken met stappen/tabellen over de volle tekstbreedte.
+  // "Wat het kost" staat met foto al in de prijskaart bovenaan; niet dubbel
+  const eenvoudig = data.blokken.filter((b) => isEenvoudig(b) && !/^wat (het|kost)/i.test(b.kop));
+  const eerste = eenvoudig.slice(0, 2);
+  const kaarten = eenvoudig.slice(2);
+  const rijk = data.blokken.filter((b) => !isEenvoudig(b));
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -90,22 +151,31 @@ export default function SeoLanding({ data }: { data: LandingData }) {
               </div>
             </div>
           </section>
-          <div className="mx-auto max-w-3xl px-6 pt-10 pb-10">
-            <p className="text-lg text-stone-600 leading-relaxed">{data.intro}</p>
-            <ul className="prijs-labels" aria-label="Prijzen">
-              {(data.nieuweWebsite
-                ? ["Nieuw ontwerp vanaf €250", "daarna vanaf €19 per maand", "excl. btw"]
-                : ["Overstap vanaf €150", "daarna vanaf €19 per maand", "excl. btw"]
-              ).map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-            <p className="mt-4 text-sm font-semibold text-emerald-700">
-              {data.nieuweWebsite
-                ? "✓ Eerst het voorstel bekijken, dan beslissen."
-                : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
-            </p>
-          </div>
+          <section className="landing-band">
+            <div className="shell landing-band-grid">
+              <p className="landing-band-intro">{data.intro}</p>
+              <aside className="landing-prijskaart" aria-label="Wat het kost">
+                <p className="landing-prijskaart-kop">Wat het kost</p>
+                <dl>
+                  {(data.nieuweWebsite
+                    ? [["Nieuw ontwerp", "vanaf €250"], ["Daarna", "vanaf €19 p/m"], ["Al een site?", "overzetten vanaf €150"]]
+                    : [["Overstap", "vanaf €150"], ["Daarna", "vanaf €19 p/m"], ["Met WhatsApp", "€39 p/m"]]
+                  ).map(([k, w]) => (
+                    <div key={k}>
+                      <dt>{k}</dt>
+                      <dd>{w}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="landing-prijskaart-btw">Alle bedragen excl. btw. Maandelijks opzegbaar.</p>
+                <p className="landing-prijskaart-vink">
+                  {data.nieuweWebsite
+                    ? "✓ Eerst het voorstel bekijken, dan beslissen."
+                    : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
+                </p>
+              </aside>
+            </div>
+          </section>
         </>
       ) : (
       <div className="shell agency-landing-hero">
@@ -159,59 +229,57 @@ export default function SeoLanding({ data }: { data: LandingData }) {
       </div>
       )}
 
-      <div className="mx-auto max-w-3xl px-6 pb-6 space-y-8">
-        {data.blokken.map((b) => (
-          <section key={b.kop}>
-            <h2 className="font-display text-2xl font-semibold tracking-tight">
-              {b.kop}
-            </h2>
-            <p className="mt-2.5 text-stone-600 leading-relaxed">
-              <MetLinks tekst={b.tekst} />
-            </p>
-            {b.stappen && (
-              <ol className="landing-stappen">
-                {b.stappen.map((st) => (
-                  <li key={st}>
-                    <MetLinks tekst={st} />
-                  </li>
+      {foto ? (
+        <>
+          {eerste.length > 0 && (
+            <section className="shell landing-zo">
+              <div className="space-y-8">
+                {eerste.map((b) => (
+                  <div key={b.kop}>
+                    <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{b.kop}</h2>
+                    <BlokInhoud b={b} />
+                  </div>
                 ))}
-              </ol>
-            )}
-            {b.lijst && (
-              <ul className="landing-vinkjes">
-                {b.lijst.map((l) => (
-                  <li key={l}>
-                    <MetLinks tekst={l} />
-                  </li>
-                ))}
-              </ul>
-            )}
-            {b.tabel && (
-              <div className="landing-tabel">
-                <table>
-                  <thead>
-                    <tr>
-                      {b.tabel.kop.map((k) => (
-                        <th key={k} scope="col">{k}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {b.tabel.rijen.map((r) => (
-                      <tr key={r.join("|")}>
-                        {r.map((c, i) =>
-                          i === 0 ? <th key={i} scope="row">{c}</th> : <td key={i}>{c}</td>,
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {b.tabel.bron && <p className="landing-tabel-bron">{b.tabel.bron}</p>}
               </div>
-            )}
-          </section>
-        ))}
-      </div>
+              {data.nieuweWebsite ? <VerhaalBeeld onderwerp={data.beeld ?? "ondernemer"} /> : <OverstapVisual />}
+            </section>
+          )}
+          {kaarten.length > 0 && (
+            <section className="landing-kaarten-band">
+              <div className="shell landing-kaarten">
+                {kaarten.map((b, n) => (
+                  <article key={b.kop} className="landing-kaart">
+                    <span className="landing-kaart-nr" aria-hidden>{String(n + 1).padStart(2, "0")}</span>
+                    <h2 className="font-display text-xl font-semibold tracking-tight">{b.kop}</h2>
+                    <BlokInhoud b={b} />
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+          {rijk.length > 0 && (
+            <div className="mx-auto max-w-3xl px-6 py-10 space-y-10">
+              {rijk.map((b) => (
+                <section key={b.kop}>
+                  <h2 className="font-display text-2xl font-semibold tracking-tight">{b.kop}</h2>
+                  <BlokInhoud b={b} />
+                </section>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="mx-auto max-w-3xl px-6 pb-6 space-y-8">
+          {data.blokken.map((b) => (
+            <section key={b.kop}>
+              <h2 className="font-display text-2xl font-semibold tracking-tight">
+                {b.kop}
+              </h2>
+              <BlokInhoud b={b} />
+            </section>
+          ))}
+        </div>
+      )}
 
       <LeesOok pad={`/${data.slug}`} />
 
