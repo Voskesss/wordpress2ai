@@ -51,67 +51,73 @@ export default async function Home({
   const checkLink = hoek ? `/contact?hoek=${hoek.sleutel}` : "/contact";
   return (
     <div className="marketing-home">
-      <section className="home-hero shell">
-        <div className="hero-copy">
-          <p className="eyebrow">
-            <span className="status-dot" /> VOOR ONDERNEMERS MET EEN
-            WORDPRESS-WEBSITE
-          </p>
-          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-            <h1 className="hero-hoek">
-              {hoek.kop}
-              <br />
-              <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
-            </h1>
-          ) : (
-            <h1>
-              Mijn website regelt het.
-              <br />
-              <em>Ik hoef het alleen maar te vragen.</em>
-            </h1>
-          )}
-          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-            <p className="hero-intro">
-              {hoek.tekst}
-              <strong className="hero-hoek-slot">
-                Behoud je website. Vervang het gedoe.
-              </strong>
+      {/* Hero over de volle breedte (wens Jos 14-10-2026): vrolijke foto,
+          de belofte in wit, en het filmpje er meteen naast. */}
+      <section className="home-hero-blok">
+      <div className="home-hero-foto">
+        <Image
+          src="/images/paginas/home.webp"
+          alt={FOTO_ALT["home"]}
+          fill
+          priority
+          sizes="100vw"
+          className="landing-breed-foto"
+        />
+        <div className="landing-breed-schaduw" aria-hidden />
+        <div className="shell home-hero-grid">
+          <div className="home-hero-tekst">
+            <p className="landing-breed-label">Voor ondernemers met een website</p>
+            {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
+              <h1 className="hero-hoek">
+                {hoek.kop}
+                <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
+              </h1>
+            ) : (
+              <h1>
+                Mijn website regelt het.
+                <em>Ik hoef het alleen maar te vragen.</em>
+              </h1>
+            )}
+            <div className="landing-breed-knoppen">
+              <Link className="lift landing-breed-hoofdknop" href={checkLink}>
+                Kan mijn website overgezet worden? ↗
+              </Link>
+              <Link className="lift landing-breed-tweede" href="#bekijk-de-video">
+                Bekijk de video →
+              </Link>
+            </div>
+            <p className="home-hero-zeker">Gratis en vrijblijvend · Antwoord binnen twee werkdagen</p>
+          </div>
+        </div>
+      </div>
+      <div className="home-intro">
+        <div className="shell home-intro-grid">
+          <div>
+            <h2>Behoud je website. Vervang het gedoe.</h2>
+            <p>
+              {hoek && hoek.sleutel !== "regelt-zichzelf"
+                ? hoek.tekst
+                : "Je houdt je huidige website: je ontwerp, je teksten en je plek in Google. Wij zetten hem over naar een snelle versie zonder WordPress. Daarna typ je gewoon wat er anders moet, bekijk je het voorbeeld en zet je het zelf live."}
             </p>
-          ) : (
-          <p className="hero-intro">
-            <strong>Behoud je website. Vervang het gedoe.</strong> Wij zetten
-            je site over naar een snelle versie zonder WordPress. Daarna typ je
-            gewoon wat er anders moet.
-          </p>
-          )}
-          <div className="button-row">
-            <Link className="button-primary" href={checkLink}>
-              Kan mijn website overgezet worden? <span>↗</span>
-            </Link>
-            <Link className="button-text" href="#bekijk-de-video">
-              Bekijk de video <span>→</span>
-            </Link>
+            <div className="hero-price">
+              <span>
+                Overstappen vanaf <strong>€150 eenmalig</strong>
+              </span>
+              <span>
+                Daarna <strong>vanaf €19 / maand</strong>
+              </span>
+              <small>
+                Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
+                €8–€15 per maand) kun je daarna meestal opzeggen
+              </small>
+            </div>
           </div>
-          <p className="hero-assurance">
-            Gratis en vrijblijvend · Antwoord binnen twee werkdagen
-          </p>
-          <div className="hero-price">
-            <span>
-              Overstappen vanaf <strong>€150 eenmalig</strong>
-            </span>
-            <span>
-              Daarna <strong>vanaf €19 / maand</strong>
-            </span>
-            <small>
-              Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
-              €8–€15 per maand) kun je daarna meestal opzeggen
-            </small>
+          <div className="home-hero-video" id="bekijk-de-video">
+            <p className="home-video-label">Zo houd je hem straks bij · 40 seconden</p>
+            <DemoVideo />
           </div>
         </div>
-        <div className="hero-example" id="bekijk-de-video">
-          <p className="eyebrow">ZO HOUD JE HEM STRAKS BIJ · BEKIJK HET IN 40 SECONDEN</p>
-          <DemoVideo />
-        </div>
+      </div>
       </section>
       <div className="trust-strip">
         <div className="shell">

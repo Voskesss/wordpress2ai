@@ -15,12 +15,12 @@ for (const b of bestanden) {
   assert.ok(m, `${b}: alleen .webp hoort in ${map} (klein en scherp)`);
   const slug = m[1];
   assert.ok(FOTO_ALT[slug], `${b} heeft geen beschrijving in lib/pagina-fotos.ts`);
-  assert.ok(existsSync(`app/${slug}/page.tsx`), `${b} hoort bij geen bestaande pagina`);
+  assert.ok(slug === "home" || existsSync(`app/${slug}/page.tsx`), `${b} hoort bij geen bestaande pagina`);
   assert.ok(statSync(`${map}/${b}`).size < 400_000, `${b} is groter dan 400 KB; dat maakt de pagina traag`);
   assert.deepEqual(fotoVoor(slug), { src: `/images/paginas/${b}`, alt: FOTO_ALT[slug] });
 }
 for (const [slug, alt] of Object.entries(FOTO_ALT)) {
-  assert.ok(existsSync(`app/${slug}/page.tsx`), `beschrijving voor ${slug}, maar die pagina bestaat niet`);
+  assert.ok(slug === "home" || existsSync(`app/${slug}/page.tsx`), `beschrijving voor ${slug}, maar die pagina bestaat niet`);
   assert.ok(alt.length > 20 && !alt.includes("—"), `${slug}: beschrijving te kort of met lang streepje`);
 }
 assert.equal(fotoVoor("bestaat-niet"), null);

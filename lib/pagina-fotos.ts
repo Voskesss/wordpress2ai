@@ -12,6 +12,7 @@ import { join } from "node:path";
  * waarom dat ertoe doet.
  */
 export const FOTO_ALT: Record<string, string> = {
+  home: "Lachende eigenaar van een lunchroom typt een berichtje op haar telefoon achter de toonbank",
   "website-laten-onderhouden": "Ondernemer in een groene trui werkt rustig op zijn laptop aan een eiken bureau met planten",
   "wordpress-overzetten": "Winkeleigenaar zit ontspannen met een kop koffie aan de keukentafel naast haar laptop",
   "nieuwe-website": "Twee ondernemers bekijken samen een websiteontwerp op een laptop, met schetsen en kleurstalen op tafel",
