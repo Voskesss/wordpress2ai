@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.44.3 (14 oktober 2026)
+
+- De grote foto bovenaan de homepage is nu een reeks van zes dia's, elk met een voordeel van WordSwap en een eigen foto. Je bladert met de pijltjes of puntjes, of veegt op je telefoon. Beweeg je met de muis over de foto, dan komt heel vaag het WordSwap-logo tevoorschijn.
+
 ## 1.44.2 (14 oktober 2026)
 
 - De grote foto bovenaan de homepage wisselt nu rustig tussen een paar foto's van ondernemers. De eerste staat er meteen, de rest laadt pas daarna, dus de pagina blijft snel. Wie minder beweging wil op zijn apparaat, ziet één vaste foto.
