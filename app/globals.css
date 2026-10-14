@@ -2001,3 +2001,7 @@ main p {
 .home-video-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #36614f; margin-bottom: 10px; }
 .home-intro .hero-price { margin-top: 18px; }
 .home-intro-grid { grid-template-columns: 1fr 1fr; padding-block: 56px; }
+.marketing-home .home-intro .home-video-label { font-size: 11px; line-height: 1.4; letter-spacing: .12em; margin: 0 0 10px; }
+@media (max-width: 900px) {
+  .home-intro-grid { grid-template-columns: 1fr; padding-block: 36px; }
+}
