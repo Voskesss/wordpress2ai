@@ -2037,10 +2037,12 @@ main p {
 }
 .hero-dias.hero-logo-aan .hero-logo-laag { opacity: .13; }
 .hero-dias .home-hero-grid { position: relative; z-index: 1; }
-@media (max-width: 900px) {
-  .hero-pijl { display: none; }
-  .hero-dias .home-hero-grid { padding-bottom: 64px; }
-  .hero-puntjes { bottom: 16px; }
+/* Smaller dan 1280px: pijltjes naast de puntjes onderaan, zodat ze de kop niet raken */
+@media (max-width: 1279px) {
+  .hero-pijl { top: auto; bottom: 17px; translate: none; width: 36px; height: 36px; font-size: 24px; padding-bottom: 3px; }
+  .hero-pijl-links { left: calc(50% - 145px); }
+  .hero-pijl-rechts { right: calc(50% - 145px); }
+  .hero-dias .home-hero-grid { padding-bottom: 76px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-dia, .hero-dia.is-actief { transition: none; transform: none; }
