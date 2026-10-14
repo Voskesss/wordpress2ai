@@ -49,3 +49,26 @@ for (const sleutel of ["mollie", "meta", "uptimerobot", "soverin"]) {
 }
 
 console.log("✓ gezondheid-pols: melden bij kapot, zwijgen zolang het kapot blijft, één herstelmelding");
+
+// Een hapering van één meting is geen storing: externe diensten krijgen één
+// tweede kans (les 14-10: Resend en Cloudflare gaven losse alarmen).
+{
+  const { meet } = await import("../lib/gezondheid");
+  let keer = 0;
+  const eenHapering = async () => (++keer === 1 ? { status: "fout" as const, detail: "Resend antwoordt 429." } : "Sleutel geldig.");
+  let u = await meet("resend", "Resend", eenHapering, 1);
+  assert.equal(u.status, "ok", "één hapering mag geen storing zijn");
+  assert.equal(keer, 2);
+
+  keer = 0;
+  u = await meet("resend", "Resend", async () => { keer++; throw new Error("tijd op (8 s)"); }, 1);
+  assert.equal(u.status, "fout", "twee keer mis is wél een storing");
+  assert.match(u.detail, /tweede poging/);
+  assert.equal(keer, 2);
+
+  // Onderhoudschecks mailen of ruimen op: nooit twee keer draaien
+  keer = 0;
+  u = await meet("proef-ontzorgd", "Proef", async () => { keer++; return { status: "fout" as const, detail: "x" }; }, 1);
+  assert.equal(u.status, "fout");
+  assert.equal(keer, 1);
+}

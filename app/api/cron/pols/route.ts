@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { draaiPols } from "@/lib/gezondheid";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 /** Elk kwartier: de vitale onderdelen aanraken (zie draaiPols in
  * lib/gezondheid). Alleen overgangen leveren een melding op; de volledige

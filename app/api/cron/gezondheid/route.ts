@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { draaiGezondheid } from "@/lib/gezondheid";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /** Dagelijkse gezondheidscontrole; zie lib/gezondheid.ts. */
 export async function GET(req: Request) {

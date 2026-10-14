@@ -28,7 +28,28 @@ const PAKKETTEN = ["@anthropic-ai/sdk", "next", "drizzle-orm", "resend", "playwr
 
 const TIJD_MS = 8000;
 
-async function meet(
+/** Externe diensten die bij een hapering één keer opnieuw gemeten worden.
+ * Alleen controles die niets veranderen: de onderhoudschecks (proefmaanden,
+ * WordPress-kopieën) mailen en ruimen op, die mogen nooit twee keer lopen. */
+export const OPNIEUW_METEN: ReadonlySet<string> = new Set(["database", "anthropic", "resend", "cloudflare", "github"]);
+
+/** Meet, en geeft een externe dienst bij een fout na een korte pauze nog één
+ * kans. Een time-out of drukte-antwoord van een paar seconden is dan geen
+ * storing meer; alleen wat twee keer achter elkaar misgaat telt. */
+export async function meet(
+  sleutel: string,
+  naam: string,
+  werk: () => Promise<{ status: CheckStatus; detail: string } | string>,
+  pauzeMs = 5000,
+): Promise<CheckUitslag> {
+  const eerste = await meetEenmaal(sleutel, naam, werk);
+  if (eerste.status !== "fout" || !OPNIEUW_METEN.has(sleutel)) return eerste;
+  await new Promise((r) => setTimeout(r, pauzeMs));
+  const tweede = await meetEenmaal(sleutel, naam, werk);
+  return tweede.status === "fout" ? { ...tweede, detail: `${tweede.detail} (ook bij een tweede poging)` } : tweede;
+}
+
+async function meetEenmaal(
   sleutel: string,
   naam: string,
   werk: () => Promise<{ status: CheckStatus; detail: string } | string>,
