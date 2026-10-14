@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo from "./DemoVideo";
-import HeroWisselaar from "./HeroWisselaar";
+import HeroDias from "./HeroDias";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
@@ -55,42 +55,67 @@ export default async function Home({
       {/* Hero over de volle breedte (wens Jos 14-10-2026): vrolijke foto,
           de belofte in wit, en het filmpje er meteen naast. */}
       <section className="home-hero-blok">
-      <div className="home-hero-foto">
-        <HeroWisselaar
-          eerste="/images/paginas/home.webp"
-          alt={FOTO_ALT["home"]}
-          extra={[
-            "/images/paginas/website-kapsalon.webp",
-            "/images/paginas/website-hoveniersbedrijf.webp",
-            "/images/paginas/website-abonnement.webp",
-            "/images/paginas/website-schildersbedrijf.webp",
-            "/images/paginas/website-koppelen-aan-ai.webp",
-          ]}
-        />
-        <div className="landing-breed-schaduw" aria-hidden />
-        <div className="shell home-hero-grid">
-          <div className="home-hero-tekst">
-            <p className="landing-breed-label">Voor ondernemers met een website</p>
-            {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-              <h1 className="hero-hoek">
-                {hoek.kop}
-                <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
-              </h1>
-            ) : (
-              <h1>
-                Mijn website regelt het.
-                <em>Ik hoef het alleen maar te vragen.</em>
-              </h1>
-            )}
+      <HeroDias
+        alt={FOTO_ALT["home"]}
+        dias={[
+          {
+            foto: "/images/paginas/home.webp",
+            label: "Voor ondernemers met een website",
+            kop:
+              hoek && hoek.sleutel !== "regelt-zichzelf" ? (
+                <h1 className="hero-hoek">
+                  {hoek.kop}
+                  <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
+                </h1>
+              ) : (
+                <h1>
+                  Mijn website regelt het.
+                  <em>Ik hoef het alleen maar te vragen.</em>
+                </h1>
+              ),
+          },
+          {
+            foto: "/images/paginas/website-kapsalon.webp",
+            label: "Geen onderhoud meer",
+            kop: <>Geen updates. <em>Geen plug-ins.</em></>,
+            tekst: "Hosting, beveiliging en het bijhouden van de techniek regelen wij. Jij hoeft nergens meer op te letten.",
+          },
+          {
+            foto: "/images/paginas/website-koppelen-aan-ai.webp",
+            label: "Aanpassen met AI",
+            kop: <>Typ wat er anders moet. <em>Jij keurt het goed.</em></>,
+            tekst: "Je ziet eerst een voorbeeld op je eigen site. Pas als jij het goed vindt, zet je het live.",
+          },
+          {
+            foto: "/images/paginas/website-hoveniersbedrijf.webp",
+            label: "Je site blijft van jou",
+            kop: <>Zelfde ontwerp. <em>Zelfde adressen.</em></>,
+            tekst: "We nemen je teksten, foto's en pagina-adressen over, zodat bezoekers en Google je gewoon terugvinden.",
+          },
+          {
+            foto: "/images/paginas/website-schildersbedrijf.webp",
+            label: "Eerst zien, dan beslissen",
+            kop: <>Je bekijkt eerst de kopie. <em>Dan pas overstappen.</em></>,
+            tekst: "Je legt de nieuwe versie rustig naast je huidige site. Zonder jouw akkoord betaal je niets voor de omzetting.",
+          },
+          {
+            foto: "/images/paginas/website-abonnement.webp",
+            label: "Vaste prijs",
+            kop: <>Vanaf €19 per maand. <em>Maandelijks opzegbaar.</em></>,
+            tekst: "Hosting, beveiliging en de AI-chat in één bedrag, exclusief btw. Geen losse rekeningen meer voor plug-ins.",
+          },
+        ]}
+        onder={
+          <>
             <div className="landing-breed-knoppen">
               <Link className="lift landing-breed-hoofdknop" href={checkLink}>
                 Kan mijn website overgezet worden? ↗
               </Link>
             </div>
             <p className="home-hero-zeker">Gratis en vrijblijvend · Antwoord binnen twee werkdagen</p>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
       <div className="home-intro">
         <div className="shell home-intro-grid">
           <div>
