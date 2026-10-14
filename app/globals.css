@@ -1942,7 +1942,7 @@ main p {
 
 /* Homepage vrolijker (14-10-2026): gezichten, foto-kaarten en lichtere foto's.
    De AI-foto's zijn aan de sombere kant; op de homepage tillen we ze iets op. */
-.voor-wie img, .kies-kaart img, .home-foto img { filter: brightness(1.08) saturate(1.12) contrast(.97); }
+
 .voor-wie { background: linear-gradient(180deg, #f3f7ef 0%, #fbf3e6 100%); border-block: 1px solid #e6ece0; padding-block: 72px; }
 .voor-wie h2 { margin-top: 12px; max-width: 760px; font-size: clamp(28px, 3vw, 40px); line-height: 1.15; letter-spacing: -.035em; }
 .voor-wie-grid { margin-top: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
