@@ -83,7 +83,7 @@ export const SEO_PAGINAS: SeoPagina[] = [
 
   { pad: "/over-wordswap", naam: "Over WordSwap", zin: "Jos Klijnhout, WordSwap (handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650), Oosterbeek.", groep: "vertrouwen", bijgewerkt: "2026-09-22" },
   { pad: "/veiligheid", naam: "Veiligheid en controle", zin: "Hoe een site zonder WordPress minder kwetsbaar is, en hoe je zelf de regie houdt over elke wijziging.", groep: "vertrouwen", bijgewerkt: "2026-09-22" },
-  { pad: "/contact", naam: "Gratis websitecheck", zin: "Gratis geschiktheidscheck en prijsvoorstel binnen één werkdag; telefoon 026 234 01 22, info@wordswap.nl.", groep: "vertrouwen", bijgewerkt: "2026-09-23" },
+  { pad: "/contact", naam: "Gratis websitecheck", zin: "Gratis geschiktheidscheck en prijsvoorstel binnen twee werkdagen; telefoon 026 234 01 22, info@wordswap.nl.", groep: "vertrouwen", bijgewerkt: "2026-09-23" },
   { pad: "/partners", naam: "Samenwerken", zin: "Samenwerken met webbureaus rond bestaande WordPress-klantsites.", groep: "vertrouwen", bijgewerkt: "2026-09-13" },
   { pad: "/webinar", naam: "Gratis webinar", zin: "Een korte online uitleg van hoe je je website bijhoudt door te typen wat er anders moet.", groep: "vertrouwen", bijgewerkt: "2026-09-16" },
 

@@ -1,5 +1,6 @@
 import { aanbod, aankoopVragen } from "@/lib/aanbod";
 import { SEO_PAGINAS, urlVan } from "@/lib/seo-paginas";
+import { SPREEKUUR, REACTIETERMIJN } from "@/lib/contactgegevens";
 export const dynamic = "force-static";
 const inhoud = `# WordSwap: aanbod en praktische informatie
 
@@ -20,7 +21,7 @@ Nieuwe website: AI-ontwerp €250 tot 8 pagina’s, €400 tot 20 pagina’s, �
 
 ## De overstap en goedkeuring
 ${aanbod.ontwerp}
-De gratis websitecheck geeft binnen één werkdag een beoordeling van geschiktheid, aandachtspunten en een prijsvoorstel. Mailmigratie, afwijkende functies en de planning worden vooraf besproken. Na akkoord wordt de domeinkoppeling geregeld.
+De gratis websitecheck geeft binnen twee werkdagen een beoordeling van geschiktheid, aandachtspunten en een prijsvoorstel. Mailmigratie, afwijkende functies en de planning worden vooraf besproken. Na akkoord wordt de domeinkoppeling geregeld.
 
 ## Vindbaarheid
 ${aanbod.seo}
@@ -33,7 +34,7 @@ Wijzigingen via de ingebouwde chat verschijnen als concept. De eigenaar controle
 ${aanbod.eigenAi}
 
 ## Wie zit erachter?
-Jos Klijnhout is de oprichter en het persoonlijke aanspreekpunt. WordSwap is een handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, Lebretweg 72, 6861 ZZ Oosterbeek, Nederland. Actief sinds 2026. Contact: info@wordswap.nl, telefoon 026 234 01 22 (+31 26 234 01 22).
+Jos Klijnhout is de oprichter en het persoonlijke aanspreekpunt. WordSwap is een handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650, Lebretweg 72, 6861 ZZ Oosterbeek, Nederland. Actief sinds 2026. Contact: info@wordswap.nl, telefoon 026 234 01 22 (+31 26 234 01 22). Telefonisch spreekuur op ${SPREEKUUR.dagen} van ${SPREEKUUR.tijd}; persoonlijk antwoord ${REACTIETERMIJN}. De website zelf pas je op elk moment aan via de chat.
 
 ## Veelgestelde vragen
 ${aankoopVragen.map(([q, a]) => `### ${q}\n${a}`).join("\n\n")}

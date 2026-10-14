@@ -224,8 +224,8 @@ export default function NieuweWebsite() {
             Start de intake
           </h2>
           <p className="mt-3 text-stone-600 leading-relaxed">
-            Vertel ons in vijf minuten wat je nodig hebt. Wij komen binnen één
-            werkdag terug met een voorstel en een vaste prijs.
+            Vertel ons in vijf minuten wat je nodig hebt. Wij komen binnen twee
+            werkdagen terug met een voorstel en een vaste prijs.
           </p>
           <form
             id="intake"

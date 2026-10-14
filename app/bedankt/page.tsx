@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Bedankt voor je bericht",
-  description: "We hebben je bericht ontvangen en nemen binnen één werkdag contact op.",
+  description: "We hebben je bericht ontvangen en nemen binnen twee werkdagen contact op.",
   robots: { index: false, follow: true },
 };
 
@@ -20,7 +20,7 @@ export default function Bedankt() {
       </h1>
       <p className="mt-5 text-lg text-stone-600 leading-relaxed">
         We hebben het goed ontvangen. Je krijgt zo ook een bevestiging per
-        e-mail. Binnen één werkdag hoor je van ons, met een eerlijk antwoord en
+        e-mail. Binnen twee werkdagen hoor je van ons, met een eerlijk antwoord en
         een vaste prijs.
       </p>
       <p className="mt-3 text-sm font-semibold text-emerald-700">

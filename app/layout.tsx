@@ -16,6 +16,7 @@ import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
 import { deelAfbeelding } from "./deel-afbeelding";
 import { TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
+import { SPREEKUUR } from "@/lib/contactgegevens";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -122,6 +123,12 @@ const jsonLd = {
         email: "info@wordswap.nl",
         areaServed: "NL",
         availableLanguage: "nl",
+        hoursAvailable: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [...SPREEKUUR.schemaDagen],
+          opens: SPREEKUUR.van,
+          closes: SPREEKUUR.tot,
+        },
       },
       areaServed: { "@type": "Country", name: "Nederland" },
       knowsLanguage: "nl",
@@ -270,6 +277,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   <a href="mailto:info@wordswap.nl">info@wordswap.nl ↗</a>
                   <br />
                   <a href={`tel:${TELEFOON_LINK}`}>{TELEFOON}</a>
+                  <br />
+                  <span>Spreekuur {SPREEKUUR.kort}</span>
                   <br />
                   <a href={appLink("/")} target="_blank" rel="noopener noreferrer">
                     WhatsApp ↗

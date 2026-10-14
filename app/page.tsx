@@ -89,7 +89,7 @@ export default async function Home({
             </Link>
           </div>
           <p className="hero-assurance">
-            Gratis en vrijblijvend · Antwoord binnen één werkdag
+            Gratis en vrijblijvend · Antwoord binnen twee werkdagen
           </p>
           <div className="hero-price">
             <span>
@@ -430,7 +430,7 @@ export default async function Home({
           <p>
             Ik zet je WordPress-website zelf over en controleer samen met jou
             het resultaat. Daarna pas je je website aan met AI, en heb je een
-            vraag, dan krijg je mij aan de lijn. Geen ticketsysteem, geen
+            vraag, dan bel ik je terug op maandag-, woensdag- of vrijdagavond. Geen ticketsysteem, geen
             wachtrij.
           </p>
           <Link className="button-text" href={checkLink}>
@@ -514,7 +514,7 @@ export default async function Home({
           </h2>
           <p>
             Je krijgt antwoord op drie vragen: kan mijn site mee, wat vraagt
-            aandacht en wat kost het? Binnen één werkdag, persoonlijk van Jos.
+            aandacht en wat kost het? Binnen twee werkdagen, persoonlijk van Jos.
           </p>
           <Link className="button-primary" href={checkLink}>
             Laat mijn website gratis checken ↗

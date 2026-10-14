@@ -95,7 +95,7 @@ const faq = [
   {
     vraag: "Ik heb al een goedkope AI-website. Kan die mee?",
     antwoord:
-      "Meestal wel. Stuur het adres via de websitecheck. We kijken wat er aan de site zit, wat we kunnen overnemen en wat beter opnieuw kan. Je hoort binnen één werkdag wat het zou kosten.",
+      "Meestal wel. Stuur het adres via de websitecheck. We kijken wat er aan de site zit, wat we kunnen overnemen en wat beter opnieuw kan. Je hoort binnen twee werkdagen wat het zou kosten.",
   },
   {
     vraag: "Wat kost het bij WordSwap?",
@@ -249,7 +249,7 @@ export default function AiWebsite() {
           <p className="mt-5 text-stone-600 leading-relaxed">
             Stuur je websiteadres. Jos bekijkt wat er goed geregeld is en wat
             niet: hosting, mail, domein, vindbaarheid en of je hem zelf kunt
-            bijhouden. Binnen één werkdag krijg je antwoord, ook als alles al
+            bijhouden. Binnen twee werkdagen krijg je antwoord, ook als alles al
             prima staat.
           </p>
           <ul className="mt-8 space-y-3 text-stone-600">

@@ -146,7 +146,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         <p className="mt-3 text-stone-600">
           {data.nieuweWebsite
             ? "Vertel over je bedrijf en het ontwerp dat je zoekt. Je krijgt een voorstel om te beoordelen vóór je akkoord geeft."
-            : "Stuur je websiteadres. Jos bekijkt binnen één werkdag wat er mee kan, wat aandacht vraagt en wat de overstap kost. Gratis en vrijblijvend."}
+            : "Stuur je websiteadres. Jos bekijkt binnen twee werkdagen wat er mee kan, wat aandacht vraagt en wat de overstap kost. Gratis en vrijblijvend."}
         </p>
         <div className="mt-6 flex justify-center flex-wrap gap-4">
           <Link

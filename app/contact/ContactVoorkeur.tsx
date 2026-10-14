@@ -6,7 +6,8 @@ const MANIEREN = [
   { waarde: "mailen", label: "✉️ Mailen" },
   { waarde: "bellen", label: "📞 Bellen" },
 ] as const;
-const DAGDELEN = ["ochtend", "middag", "avond"] as const;
+// Jos belt alleen op zijn avondspreekuur (lib/contactgegevens.ts, SPREEKUUR)
+const DAGDELEN = ["maandagavond", "woensdagavond", "vrijdagavond"] as const;
 
 const inputStijl =
   "mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 focus:border-[#31956B] focus:outline-none focus:ring-2 focus:ring-[#e3eedd]";
@@ -78,7 +79,7 @@ export default function ContactVoorkeur() {
               ))}
             </div>
             <p className="mt-2 text-xs leading-relaxed text-stone-500">
-              Overdag druk met je eigen werk? Geen probleem: Jos belt ook &apos;s avonds.
+              Jos belt tussen 17:00 en 20:00, als jij ook tijd hebt.
             </p>
           </div>
         )}
