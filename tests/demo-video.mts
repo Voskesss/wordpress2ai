@@ -20,7 +20,9 @@ assert.ok(!held.includes("<ProductPreview />"), "het klikbare voorbeeld staat no
 // 14-10-2026 (Jos akkoord): het klikbare voorbeeld liet hetzelfde zien als de
 // video en is van de homepage gehaald; het staat nog op /demo.
 assert.ok(!pagina.includes("<ProductPreview />"), "het klikbare voorbeeld staat weer op de homepage naast de video");
-assert.ok(held.includes('href="#bekijk-de-video"') && held.includes('id="bekijk-de-video"'), "de link bovenaan wijst niet naar de video");
+// 14-10-2026 (Jos): geen "Bekijk de video"-knop in de hero; de video staat er direct onder
+assert.ok(!held.includes('href="#bekijk-de-video"'), "de hero heeft weer een knop naar de video");
+assert.ok(pagina.includes('id="bekijk-de-video"'), "het anker van de video ontbreekt");
 assert.ok(!pagina.includes('href="#zo-werkt-aanpassen"'), "er wijst nog een link naar het verwijderde klikbare voorbeeld");
 
 // 1b. Afspeelknop over het startbeeld, met een naam voor schermlezers

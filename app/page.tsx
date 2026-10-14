@@ -82,9 +82,6 @@ export default async function Home({
               <Link className="lift landing-breed-hoofdknop" href={checkLink}>
                 Kan mijn website overgezet worden? ↗
               </Link>
-              <Link className="lift landing-breed-tweede" href="#bekijk-de-video">
-                Bekijk de video →
-              </Link>
             </div>
             <p className="home-hero-zeker">Gratis en vrijblijvend · Antwoord binnen twee werkdagen</p>
           </div>
