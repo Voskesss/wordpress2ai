@@ -3,6 +3,7 @@ import OverstapVisual from "./OverstapVisual";
 import Link from "next/link";
 import { tekstDelen, zonderLinks } from "@/lib/tekst-links";
 import LeesOok from "./LeesOok";
+import DemoVideo from "./DemoVideo";
 import Image from "next/image";
 import { fotoVoor } from "@/lib/pagina-fotos";
 
@@ -234,21 +235,31 @@ export default function SeoLanding({ data }: { data: LandingData }) {
           {eerste.length > 0 && (
             <section className="shell landing-zo">
               <div className="space-y-8">
+                <p className="landing-breed-label landing-zo-label">Zo werkt het</p>
                 {eerste.map((b) => (
                   <div key={b.kop}>
                     <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{b.kop}</h2>
                     <BlokInhoud b={b} />
                   </div>
                 ))}
+                <Link href="/demo" className="landing-zo-link">
+                  Probeer het zelf in de demo →
+                </Link>
               </div>
-              {data.nieuweWebsite ? <VerhaalBeeld onderwerp={data.beeld ?? "ondernemer"} /> : <OverstapVisual />}
+              <figure className="landing-video">
+                <DemoVideo />
+                <figcaption>Zo pas je je website aan: vier echte klussen in ruim 40 seconden.</figcaption>
+              </figure>
             </section>
           )}
           {kaarten.length > 0 && (
             <section className="landing-kaarten-band">
               <div className="shell landing-kaarten">
                 {kaarten.map((b, n) => (
-                  <article key={b.kop} className="landing-kaart">
+                  <article
+                    key={b.kop}
+                    className={`landing-kaart${kaarten.length % 2 === 1 && n === kaarten.length - 1 ? " landing-kaart-breed" : ""}`}
+                  >
                     <span className="landing-kaart-nr" aria-hidden>{String(n + 1).padStart(2, "0")}</span>
                     <h2 className="font-display text-xl font-semibold tracking-tight">{b.kop}</h2>
                     <BlokInhoud b={b} />
