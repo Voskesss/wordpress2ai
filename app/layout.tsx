@@ -7,7 +7,6 @@ import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import SiteKop from "./SiteKop";
-import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
@@ -209,27 +208,7 @@ const jsonLd = {
   ],
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const user = await currentUser();
-  const isAdmin = user?.publicMetadata?.role === "admin";
-  // Meerdere websites? Dan heet het menu-item "Mijn websites" en opent het een overzicht.
-  let meerdereSites = false;
-  if (user) {
-    try {
-      const { db } = await import("@/db");
-      const { sites } = await import("@/db/schema");
-      const { and, eq } = await import("drizzle-orm");
-      const rijen = await db
-        .select({ id: sites.id })
-        .from(sites)
-        .where(and(eq(sites.clerkUserId, user.id), eq(sites.isDemo, false)))
-        .limit(2);
-      meerdereSites = rijen.length > 1;
-    } catch {
-      meerdereSites = false;
-    }
-  }
-  const portalLabel = meerdereSites ? "Mijn websites" : "Mijn website";
+export default function RootLayout({ children }: LayoutProps<"/">) {
   // Alles wat niet de echte productie-omgeving is, krijgt een duidelijke DEV-balk
   const isDev =
     process.env.NODE_ENV !== "production" ||
@@ -269,7 +248,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/" aria-label="WordSwap home">
                   <Logo klein />
                 </Link>
-                <HeaderNav isAdmin={isAdmin} portalLabel={portalLabel} />
+                <HeaderNav />
               </div>
             </header>
           </SiteKop>
@@ -322,7 +301,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/contact">Gratis websitecheck</Link>
                 <Link href="/partners">Samenwerken</Link>
                 <Link href="/webinar">Gratis webinar</Link>
-                <Link href="/portal">{portalLabel}</Link>
+                <Link href="/portal" rel="nofollow">Mijn website</Link>
               </nav>
             </div>
             <nav className="shell footer-resources" aria-label="Onderwerpen">
