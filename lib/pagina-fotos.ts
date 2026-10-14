@@ -21,7 +21,7 @@ export const FOTO_ALT: Record<string, string> = {
   "website-kapsalon": "Kapper knipt een klant met baard in een salon met houten interieur",
   "website-schildersbedrijf": "Schilder fotografeert de net geschilderde groene kozijnen van een bakstenen huis",
   "website-hoveniersbedrijf": "Hovenier fotografeert een net aangelegde tuin met grindpad",
-  "website-installatiebedrijf": "Installateur bij zijn bus met gereedschap en koperwerk in een Nederlandse straat",
+  "website-installatiebedrijf": "Installateur stelt met een steeksleutel de kraan van een radiator in een lichte woonkamer af",
   "website-bouwbedrijf": "Aannemer met een tablet op een renovatieproject met steigers en nieuw metselwerk",
   "wordpress-gehackt": "Ondernemer belt om hulp terwijl ze bezorgd naar haar laptop kijkt",
   "wordpress-kritieke-fout": "Bakker kijkt 's ochtends fronsend naar zijn laptop achter in zijn winkel",
