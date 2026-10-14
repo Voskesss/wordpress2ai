@@ -2005,3 +2005,5 @@ main p {
 @media (max-width: 900px) {
   .home-intro-grid { grid-template-columns: 1fr; padding-block: 36px; }
 }
+.landing-auteur { max-width: 48rem; margin: 8px auto 0; padding: 0 24px; font-size: 13px; color: #6b7466; }
+.landing-auteur a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

@@ -6,6 +6,7 @@ import LeesOok from "./LeesOok";
 import DemoVideo from "./DemoVideo";
 import Image from "next/image";
 import { fotoVoor } from "@/lib/pagina-fotos";
+import { SEO_PAGINAS, datumNl, paginaJsonLd } from "@/lib/seo-paginas";
 
 /** Lopende tekst met interne links: [ankertekst](/pad) wordt een echte link. */
 function MetLinks({ tekst }: { tekst: string }) {
@@ -119,6 +120,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
   const eerste = opVolgorde ? [] : eenvoudig.slice(0, 2);
   const kaarten = opVolgorde ? [] : eenvoudig.slice(2);
   const rijk: Blok[] = [];
+  const pagina = SEO_PAGINAS.find((p) => p.pad === `/${data.slug}`);
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -135,6 +137,12 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      {pagina && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(paginaJsonLd(pagina.pad, data.kort ?? data.titel)) }}
+        />
+      )}
       {foto ? (
         <>
           {/* Hero over de volle breedte (wens Jos 14-10-2026): foto met
@@ -329,6 +337,12 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         </div>
       )}
 
+      {pagina && (
+        <p className="landing-auteur">
+          Bijgewerkt op {datumNl(pagina.bijgewerkt)} door{" "}
+          <Link href="/over-wordswap">Jos Klijnhout</Link>, oprichter van WordSwap
+        </p>
+      )}
       <LeesOok pad={`/${data.slug}`} />
 
       <div className="bg-[#eff3e8] border-y border-stone-200 mt-10">

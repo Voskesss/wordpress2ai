@@ -129,3 +129,47 @@ export function verwant(pad: string, max = 4): SeoPagina[] {
   }
   return uit;
 }
+
+/** "14 oktober 2026" uit "2026-10-14". */
+export function datumNl(iso: string): string {
+  const [j, m, d] = iso.split("-").map(Number);
+  const maanden = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
+  return `${d} ${maanden[m - 1]} ${j}`;
+}
+
+/**
+ * WebPage-gegevens met auteur, datum en kruimelpad. Zoekmachines en
+ * AI-assistenten wegen wie iets schreef en hoe vers het is mee (SEO-ronde
+ * 14-10-2026); de zichtbare regel op de pagina zegt hetzelfde.
+ */
+export function paginaJsonLd(pad: string, titel: string) {
+  const p = SEO_PAGINAS.find((x) => x.pad === pad);
+  if (!p) return null;
+  const url = urlVan(pad);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${url}#pagina`,
+        url,
+        name: titel,
+        description: p.zin,
+        inLanguage: "nl-NL",
+        dateModified: p.bijgewerkt,
+        author: { "@type": "Person", name: "Jos Klijnhout", url: `${SITE}/over-wordswap` },
+        publisher: { "@id": `${SITE}/#organisatie` },
+        isPartOf: { "@type": "WebSite", name: "WordSwap", url: SITE },
+        breadcrumb: { "@id": `${url}#kruimelpad` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${url}#kruimelpad`,
+        itemListElement: [
+          { name: "Home", item: `${SITE}/` },
+          { name: p.naam, item: url },
+        ].map((x, i) => ({ "@type": "ListItem", position: i + 1, ...x })),
+      },
+    ],
+  };
+}
