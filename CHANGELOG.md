@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.44.1 (14 oktober 2026)
+
+- Elke onderwerppagina laat zien wanneer hij is bijgewerkt en door wie. Zoekmachines en AI-assistenten zien dat ook, en vertrouwen een pagina met een duidelijke auteur en datum eerder.
+
 ## 1.44.0 (14 oktober 2026)
 
 - De website van WordSwap is flink vernieuwd om beter gevonden te worden. Pagina's die over hetzelfde gingen zijn samengevoegd (de oude adressen sturen netjes door), titels bevatten nu waar mensen echt op zoeken, en elke pagina verwijst naar verwante pagina's.
