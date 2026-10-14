@@ -280,6 +280,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <h3>Ontdek WordSwap</h3>
                 <Link href="/hoe-het-werkt">Hoe het werkt</Link>
                 <Link href="/prijzen">Prijzen</Link>
+                <Link href="/website-abonnement">Website abonnement</Link>
                 <Link href="/demo">Probeer de demo</Link>
                 <Link href="/nieuwe-website">Nieuwe website</Link>
               </nav>

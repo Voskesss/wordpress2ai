@@ -43,6 +43,7 @@ export const GROEP_KOP: Record<Groep, string> = {
 export const SEO_PAGINAS: SeoPagina[] = [
   { pad: "", naam: "Home", zin: "WordSwap zet je website over naar een snelle versie zonder WordPress en regelt hosting, onderhoud en beveiliging; jij past hem aan door in een chat te typen.", groep: "start", bijgewerkt: "2026-10-11" },
   { pad: "/prijzen", naam: "Prijzen", zin: "Overstap eenmalig €150 tot €650, daarna vanaf €19 per maand inclusief hosting en AI-chat; Optimaal ontzorgd €39 per maand met voorrang en WhatsApp. Alles excl. btw.", groep: "start", bijgewerkt: "2026-09-30" },
+  { pad: "/website-abonnement", naam: "Website abonnement", zin: "Een website-abonnement vanaf €19 per maand excl. btw met hosting, beveiliging en AI-chat; maandelijks opzegbaar en je neemt je bestanden mee.", groep: "start", bijgewerkt: "2026-10-14" },
   { pad: "/hoe-het-werkt", naam: "Hoe het werkt", zin: "Van gratis websitecheck via een kopie om te beoordelen tot de overstap na jouw akkoord.", groep: "start", bijgewerkt: "2026-09-13" },
   { pad: "/demo", naam: "Demo", zin: "Probeer zonder account hoe je een website aanpast door te typen wat er anders moet.", groep: "start", bijgewerkt: "2026-08-28" },
 
@@ -64,6 +65,10 @@ export const SEO_PAGINAS: SeoPagina[] = [
   { pad: "/wordpress-alternatief", naam: "Alternatief voor WordPress", zin: "De alternatieven voor WordPress op een rij: bouwdozen, andere systemen en overstappen met behoud van je site, of een nieuwe site die wij met AI bouwen.", groep: "kennis", bijgewerkt: "2026-10-11" },
   { pad: "/wordswap-vs-wordpress", naam: "WordSwap vs. WordPress", zin: "Wanneer WordSwap past en wanneer WordPress de betere keuze blijft.", groep: "kennis", bijgewerkt: "2026-10-11" },
   { pad: "/wordpress-website-traag", naam: "WordPress-site traag", zin: "De zeven oorzaken van een trage WordPress-site, hoe je meet en wat je eraan doet.", groep: "kennis", bijgewerkt: "2026-10-11" },
+  { pad: "/wat-kost-een-website-per-maand", naam: "Wat kost een website per maand?", zin: "Een website laten regelen kost meestal €20 tot €75 per maand, bij WordSwap €19 of €39; alle kostenposten uitgelegd, met een rekensom over 3 jaar voor vier routes.", groep: "kennis", bijgewerkt: "2026-10-14" },
+  { pad: "/wordpress-kritieke-fout", naam: "Kritieke fout in WordPress", zin: "Wat je doet bij de melding over een kritieke fout of een wit scherm, stap voor stap van veilig naar technisch.", groep: "kennis", bijgewerkt: "2026-10-14" },
+  { pad: "/wordpress-gehackt", naam: "WordPress gehackt", zin: "De signalen van een hack en de stappen in de juiste volgorde: hoster, wachtwoorden, scannen, schone back-up, Google en dichtzetten.", groep: "kennis", bijgewerkt: "2026-10-14" },
+  { pad: "/webbouwer-onbereikbaar", naam: "Webbouwer onbereikbaar", zin: "Zelf je domeinnaam, hosting en WordPress-toegang terugkrijgen als je webbouwer niet meer reageert.", groep: "kennis", bijgewerkt: "2026-10-14" },
   { pad: "/veelgestelde-vragen", naam: "Veelgestelde vragen", zin: "Alle antwoorden op één plek, waaronder wat je via de chat kunt aanpassen en dat je nooit vastzit.", groep: "kennis", bijgewerkt: "2026-09-15" },
 
   { pad: "/website-kapsalon", naam: "Website voor kappers", zin: "Een website voor je kapsalon met prijzen en openingstijden die altijd kloppen.", groep: "branche", bijgewerkt: "2026-09-22" },
@@ -71,6 +76,10 @@ export const SEO_PAGINAS: SeoPagina[] = [
   { pad: "/website-hoveniersbedrijf", naam: "Website voor hoveniers", zin: "Een website voor je hoveniersbedrijf met foto's van je werk, bij te houden vanaf je telefoon.", groep: "branche", bijgewerkt: "2026-09-22" },
   { pad: "/website-installatiebedrijf", naam: "Website voor installateurs", zin: "Een website voor je installatiebedrijf waarop diensten en storingsnummer altijd kloppen.", groep: "branche", bijgewerkt: "2026-09-22" },
   { pad: "/website-bouwbedrijf", naam: "Website voor bouwbedrijven", zin: "Een website voor je bouwbedrijf met projecten die je bijhoudt met een app.", groep: "branche", bijgewerkt: "2026-09-22" },
+  { pad: "/website-coach", naam: "Website voor coaches", zin: "Een website voor je coachpraktijk met blog, workshops en ervaringen die je zelf bijwerkt; je agendalink blijft werken.", groep: "branche", bijgewerkt: "2026-10-14" },
+  { pad: "/website-mediator", naam: "Website voor mediators", zin: "Een rustige website voor je mediationpraktijk; kennisartikelen gaan mee op hun eigen adres en tarieven pas je zelf aan.", groep: "branche", bijgewerkt: "2026-10-14" },
+  { pad: "/website-kunstenaar", naam: "Website voor kunstenaars", zin: "Een portfolio met grote foto's waar je nieuw werk en exposities zelf aan toevoegt, ook vanaf je telefoon.", groep: "branche", bijgewerkt: "2026-10-14" },
+  { pad: "/website-stichting", naam: "Website voor stichtingen", zin: "Een website voor je stichting of vereniging die meerdere mensen kunnen bijhouden, zodat je niet afhangt van één vrijwilliger.", groep: "branche", bijgewerkt: "2026-10-14" },
 
   { pad: "/over-wordswap", naam: "Over WordSwap", zin: "Jos Klijnhout, WordSwap (handelsnaam van J.K. Klijnhout Holding B.V., KvK 09190650), Oosterbeek.", groep: "vertrouwen", bijgewerkt: "2026-09-22" },
   { pad: "/veiligheid", naam: "Veiligheid en controle", zin: "Hoe een site zonder WordPress minder kwetsbaar is, en hoe je zelf de regie houdt over elke wijziging.", groep: "vertrouwen", bijgewerkt: "2026-09-22" },

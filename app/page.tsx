@@ -490,6 +490,10 @@ export default async function Home({
             ["/website-hoveniersbedrijf", "hoveniers"],
             ["/website-installatiebedrijf", "installateurs"],
             ["/website-bouwbedrijf", "bouwbedrijven"],
+            ["/website-coach", "coaches"],
+            ["/website-mediator", "mediators"],
+            ["/website-kunstenaar", "kunstenaars"],
+            ["/website-stichting", "stichtingen"],
           ].map(([href, naam], i, alle) => (
             <span key={href}>
               <Link href={href} className="font-medium text-violet-700 underline underline-offset-2">

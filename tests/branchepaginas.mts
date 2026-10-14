@@ -23,6 +23,10 @@ const slugs = [
   "website-installatiebedrijf",
   "website-bouwbedrijf",
   "website-kapsalon",
+  "website-coach",
+  "website-mediator",
+  "website-kunstenaar",
+  "website-stichting",
 ];
 
 const { SEO_PAGINAS } = await import("../lib/seo-paginas");
