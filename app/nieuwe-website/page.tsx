@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { FOTO_ALT } from "@/lib/pagina-fotos";
+
+const foto = { src: "/images/paginas/nieuwe-website.webp", alt: FOTO_ALT["nieuwe-website"] };
 
 export const metadata: Metadata = {
   title: "Nieuwe website laten maken met AI, vanaf €250",
@@ -65,19 +69,28 @@ const invoer =
 export default function NieuweWebsite() {
   return (
     <>
-      <div className="mx-auto max-w-4xl px-6 pt-20">
-        <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          EEN FRISSE START
-        </p>
-        <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
-          Een nieuwe website laten maken. Klaar voor jouw plannen.
-        </h1>
-        <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Nog geen website, of toe aan een nieuwe uitstraling? Wij bouwen hem
-          opnieuw: snel, zonder WordPress, en altijd met de AI-beheerder erbij
-          zodat je hem daarna zelf kunt aanpassen door het gewoon te typen.
-        </p>
-      </div>
+      {/* Hero over de volle breedte, net als de landingspagina's met foto */}
+      <section className="landing-breed">
+        <Image src={foto.src} alt={foto.alt} fill priority sizes="100vw" className="landing-breed-foto" />
+        <div className="landing-breed-schaduw" aria-hidden />
+        <div className="shell landing-breed-inhoud">
+          <p className="landing-breed-label">Een frisse start</p>
+          <h1 className="font-display">Een nieuwe website laten maken</h1>
+          <p className="landing-breed-onder">
+            Nog geen website, of toe aan een nieuwe uitstraling? Wij bouwen hem
+            opnieuw: snel, zonder WordPress, en met de AI-beheerder erbij zodat
+            je hem daarna zelf aanpast door het te typen.
+          </p>
+          <div className="landing-breed-knoppen">
+            <Link href="#intake" className="lift landing-breed-hoofdknop">
+              Vertel over je nieuwe website →
+            </Link>
+            <Link href="/demo" className="lift landing-breed-tweede">
+              Probeer de demo
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Twee smaken */}
       <div className="mx-auto max-w-4xl px-6 py-12 grid gap-6 sm:grid-cols-2">

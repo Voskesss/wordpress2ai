@@ -4,7 +4,7 @@ import { join } from "node:path";
 /**
  * Herofoto's per landingspagina (wens Jos 14-10-2026: "een herofoto
  * bovenaan"; rechts stond op 25 pagina's hetzelfde plaatje). Een foto staat
- * in public/images/paginas/<slug>.webp, 1536x1024. Bestaat het bestand niet,
+ * in public/images/paginas/<slug>.webp, breed formaat (1600x900); de hero snijdt zelf bij. Bestaat het bestand niet,
  * dan valt de pagina terug op de bekende overstap-illustratie, dus een
  * ontbrekende foto maakt niets stuk.
  *
@@ -12,20 +12,20 @@ import { join } from "node:path";
  * waarom dat ertoe doet.
  */
 export const FOTO_ALT: Record<string, string> = {
-  "website-laten-onderhouden": "Ondernemer klapt aan het eind van de dag ontspannen zijn laptop dicht",
-  "wordpress-overzetten": "Winkeleigenaar aan de keukentafel met haar laptop en een kop koffie, opgelucht",
-  "nieuwe-website": "Twee mensen bekijken samen een websiteontwerp op een laptop aan een werktafel",
-  "website-koppelen-aan-ai": "Bloemist typt een wijziging op haar telefoon terwijl ze een boeket vasthoudt",
-  "website-abonnement": "Ondernemer aan de keukentafel met haar laptop en een kop koffie",
+  "website-laten-onderhouden": "Ondernemer in een groene trui werkt rustig op zijn laptop aan een eiken bureau met planten",
+  "wordpress-overzetten": "Winkeleigenaar zit ontspannen met een kop koffie aan de keukentafel naast haar laptop",
+  "nieuwe-website": "Twee ondernemers bekijken samen een websiteontwerp op een laptop, met schetsen en kleurstalen op tafel",
+  "website-koppelen-aan-ai": "Bloemist met een boeket in haar hand stuurt een bericht vanaf haar telefoon in haar winkel",
+  "website-abonnement": "Meubelmaker kijkt in zijn werkplaats op een tablet naast zijn werkbank",
   "wordpress-website-traag": "Man wacht met zijn kin op zijn hand op een laptop die niet opschiet",
   "website-kapsalon": "Kapper knipt een klant met baard in een salon met houten interieur",
-  "website-schildersbedrijf": "Schilder fotografeert de net geschilderde kozijnen van een Nederlands huis",
-  "website-hoveniersbedrijf": "Hovenier fotografeert een net aangelegde tuin met zijn telefoon",
-  "website-installatiebedrijf": "Installateur bij een nieuwe warmtepomp kijkt op zijn telefoon",
-  "website-bouwbedrijf": "Aannemer op een kleine bouwplaats met een tablet in zijn hand",
-  "website-coach": "Coach schrijft in een notitieboek in een rustige praktijkruimte",
-  "website-mediator": "Ronde tafel met water en glazen in een rustige mediationruimte",
-  "website-kunstenaar": "Schilder fotografeert een afgerond doek in haar atelier",
+  "website-schildersbedrijf": "Schilder fotografeert de net geschilderde groene kozijnen van een bakstenen huis",
+  "website-hoveniersbedrijf": "Hovenier fotografeert een net aangelegde tuin met grindpad",
+  "website-installatiebedrijf": "Installateur kijkt op zijn telefoon naast een nieuw geplaatste warmtepomp",
+  "website-bouwbedrijf": "Aannemer met een tablet op een renovatieproject met steigers en nieuw metselwerk",
+  "website-coach": "Coach schrijft in een notitieboek in een rustige praktijkruimte met groene fauteuils",
+  "website-mediator": "Ronde eiken tafel met een karaf water en glazen in een rustige mediationruimte",
+  "website-kunstenaar": "Schilder fotografeert een groot afgerond doek in haar atelier",
   "website-stichting": "Vrijwilligers zetten stoelen klaar in een buurthuis, een van hen maakt een foto",
 };
 
