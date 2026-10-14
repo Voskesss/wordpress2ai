@@ -2007,3 +2007,6 @@ main p {
 }
 .landing-auteur { max-width: 48rem; margin: 8px auto 0; padding: 0 24px; font-size: 13px; color: #6b7466; }
 .landing-auteur a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+/* Wisselende hero-foto's: zacht in elkaar overvloeien */
+.hero-wissel { transition: opacity 1.4s ease-in-out; }
+@media (prefers-reduced-motion: reduce) { .hero-wissel { transition: none; } }

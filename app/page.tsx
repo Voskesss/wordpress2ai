@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo from "./DemoVideo";
+import HeroWisselaar from "./HeroWisselaar";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
@@ -55,13 +56,16 @@ export default async function Home({
           de belofte in wit, en het filmpje er meteen naast. */}
       <section className="home-hero-blok">
       <div className="home-hero-foto">
-        <Image
-          src="/images/paginas/home.webp"
+        <HeroWisselaar
+          eerste="/images/paginas/home.webp"
           alt={FOTO_ALT["home"]}
-          fill
-          priority
-          sizes="100vw"
-          className="landing-breed-foto"
+          extra={[
+            "/images/paginas/website-kapsalon.webp",
+            "/images/paginas/website-hoveniersbedrijf.webp",
+            "/images/paginas/website-abonnement.webp",
+            "/images/paginas/website-schildersbedrijf.webp",
+            "/images/paginas/website-koppelen-aan-ai.webp",
+          ]}
         />
         <div className="landing-breed-schaduw" aria-hidden />
         <div className="shell home-hero-grid">
