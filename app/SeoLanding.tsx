@@ -69,7 +69,46 @@ export default function SeoLanding({ data }: { data: LandingData }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <div className={`shell agency-landing-hero${foto ? " met-foto" : ""}`}>
+      {foto ? (
+        <>
+          {/* Hero over de volle breedte (wens Jos 14-10-2026): foto met
+              witte tekst erover, de uitleg en prijzen eronder. */}
+          <section className="landing-breed">
+            <Image src={foto.src} alt={foto.alt} fill priority sizes="100vw" className="landing-breed-foto" />
+            <div className="landing-breed-schaduw" aria-hidden />
+            <div className="shell landing-breed-inhoud">
+              <p className="landing-breed-label">{data.label}</p>
+              <h1 className="font-display">{data.kort ?? data.titel}</h1>
+              {data.kort && <p className="landing-breed-onder">{data.titel}</p>}
+              <div className="landing-breed-knoppen">
+                <Link href={data.nieuweWebsite ? "/nieuwe-website#intake" : "/contact"} className="lift landing-breed-hoofdknop">
+                  {data.nieuweWebsite ? "Bespreek mijn nieuwe website →" : "Kan mijn website overgezet worden? →"}
+                </Link>
+                <Link href="/demo" className="lift landing-breed-tweede">
+                  Probeer de demo
+                </Link>
+              </div>
+            </div>
+          </section>
+          <div className="mx-auto max-w-3xl px-6 pt-10 pb-10">
+            <p className="text-lg text-stone-600 leading-relaxed">{data.intro}</p>
+            <ul className="prijs-labels" aria-label="Prijzen">
+              {(data.nieuweWebsite
+                ? ["Nieuw ontwerp vanaf €250", "daarna vanaf €19 per maand", "excl. btw"]
+                : ["Overstap vanaf €150", "daarna vanaf €19 per maand", "excl. btw"]
+              ).map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm font-semibold text-emerald-700">
+              {data.nieuweWebsite
+                ? "✓ Eerst het voorstel bekijken, dan beslissen."
+                : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
+            </p>
+          </div>
+        </>
+      ) : (
+      <div className="shell agency-landing-hero">
         <div>
           <p className="eyebrow">{data.label} · WordSwap</p>
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.1]">
@@ -112,16 +151,13 @@ export default function SeoLanding({ data }: { data: LandingData }) {
               : "✓ Eerst de kopie bekijken. Zonder akkoord betaal je niet voor de omzetting."}
           </p>
         </div>
-        {foto ? (
-          <figure className="landing-foto">
-            <Image src={foto.src} alt={foto.alt} width={1536} height={1024} priority sizes="(max-width: 767px) 100vw, 45vw" />
-          </figure>
-        ) : data.nieuweWebsite ? (
+        {data.nieuweWebsite ? (
           <VerhaalBeeld onderwerp={data.beeld ?? "ondernemer"} />
         ) : (
           <OverstapVisual />
         )}
       </div>
+      )}
 
       <div className="mx-auto max-w-3xl px-6 pb-6 space-y-8">
         {data.blokken.map((b) => (

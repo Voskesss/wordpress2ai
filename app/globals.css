@@ -1877,3 +1877,25 @@ main p {
   .landing-foto img { aspect-ratio: 16 / 10; }
   .landing-onderkop { font-size: 17px; }
 }
+
+/* Hero over de volle breedte met foto en witte tekst (proef op /website-kapsalon) */
+.landing-breed { position: relative; isolation: isolate; min-height: clamp(460px, 62vh, 640px); display: flex; align-items: center; overflow: hidden; background: #244b3d; }
+.landing-breed-foto { object-fit: cover; object-position: center 20%; z-index: -2; }
+.landing-breed-schaduw { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(18, 38, 30, .88) 0%, rgba(18, 38, 30, .7) 38%, rgba(18, 38, 30, .25) 70%, rgba(18, 38, 30, .05) 100%); }
+.landing-breed-inhoud { padding-block: 64px; color: #fff; }
+.landing-breed-inhoud > * { max-width: 560px; }
+.landing-breed-label { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #cfe3c6; }
+.landing-breed h1 { margin-top: 14px; font-size: clamp(38px, 5vw, 64px); line-height: 1.05; letter-spacing: -.04em; font-weight: 600; color: #fff; }
+.landing-breed-onder { margin-top: 16px; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.45; color: #eef4ea; }
+.landing-breed-knoppen { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; }
+.landing-breed-hoofdknop { border-radius: 10px; background: #fff; color: #244b3d; padding: 14px 22px; font-weight: 700; }
+.landing-breed-hoofdknop:hover { background: #eef4ea; }
+.landing-breed-tweede { border-radius: 10px; border: 2px solid rgba(255, 255, 255, .7); color: #fff; padding: 12px 20px; font-weight: 600; }
+.landing-breed-tweede:hover { background: rgba(255, 255, 255, .12); }
+@media (max-width: 767px) {
+  .landing-breed { min-height: 540px; align-items: flex-end; }
+  .landing-breed-foto { object-position: 65% center; }
+  .landing-breed-schaduw { background: linear-gradient(180deg, rgba(18, 38, 30, .1) 0%, rgba(18, 38, 30, .55) 40%, rgba(18, 38, 30, .92) 100%); }
+  .landing-breed-inhoud { padding-block: 40px 32px; }
+  .landing-breed-knoppen a { flex: 1 1 100%; text-align: center; }
+}
