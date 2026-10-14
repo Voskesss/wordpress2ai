@@ -493,6 +493,10 @@ export default async function Home({
             ["/website-coach", "coaches"],
             ["/website-mediator", "mediators"],
             ["/website-kunstenaar", "kunstenaars"],
+            ["/website-adviesbureau", "adviesbureaus"],
+            ["/website-detacheringsbureau", "detacheringsbureaus"],
+            ["/website-accountant", "accountants"],
+            ["/website-financieel-adviseur", "financieel adviseurs"],
             ["/website-stichting", "stichtingen"],
           ].map(([href, naam], i, alle) => (
             <span key={href}>
