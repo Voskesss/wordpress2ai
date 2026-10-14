@@ -63,7 +63,7 @@ export default function Pagina() {
           {
             vraag: "Hoe snel staat een wijziging op mijn site?",
             antwoord:
-              "Je typt wat er anders moet en de AI bouwt het meestal binnen een paar minuten als voorbeeld. Jij bekijkt het, en met één klik op Publiceer staat het live. Niets gaat live zonder dat jij het gezien hebt.",
+              "Je typt wat er anders moet en de AI maakt er een voorbeeld van. Een kleine wijziging is snel klaar, een nieuwe pagina duurt langer. Jij bekijkt het, en met één klik op Publiceer staat het live. Niets gaat live zonder dat jij het gezien hebt.",
           },
           {
             vraag: "Wat als een wijziging verkeerd is?",

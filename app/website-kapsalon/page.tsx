@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Website kapsalon laten maken, zelf bijhouden", "description": "Prijslijst en openingstijden in een minuut aangepast, zonder webbouwer. Je afsprakensysteem blijft gewoon werken. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-kapsalon"}};
+export const metadata: Metadata = {"title": "Website kapsalon laten maken, zelf bijhouden", "description": "Prijslijst en openingstijden zelf aangepast, zonder webbouwer. Je afsprakensysteem blijft gewoon werken. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-kapsalon"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-kapsalon",
   "label": "Website voor kappers en salons",
@@ -9,7 +9,7 @@ export default function Pagina(){ return <SeoLanding data={{
   "intro": "Een prijslijst van drie jaar geleden of openingstijden die niet meer kloppen, daar heb je elke week gesprekken over aan de balie. Wij zetten je site over zoals hij is, en daarna pas je hem aan door te typen wat er anders moet.",
   "blokken": [
     {
-      "kop": "Prijzen en openingstijden, in een minuut",
+      "kop": "Prijzen en openingstijden zelf aanpassen",
       "tekst": "Prijs omhoog, een dag gesloten rond de feestdagen, een nieuwe behandeling erbij? Typ het en je ziet meteen hoe het eruitziet. Geen webbouwer bellen voor twee regels tekst."
     },
     {

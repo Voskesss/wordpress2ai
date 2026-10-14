@@ -36,7 +36,7 @@ function Uitvoering({ u }: { u: (typeof UITVOERINGEN)[number] }) {
         <button
           type="button"
           className="demo-video-knop"
-          aria-label="Speel de video af (ruim 40 seconden, zonder geluid)"
+          aria-label="Speel de video af (ingekorte opname, zonder geluid)"
           onClick={() => {
             setGestart(true);
             void video.current?.play();

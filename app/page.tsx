@@ -114,7 +114,7 @@ export default async function Home({
             </div>
           </div>
           <div className="home-hero-video" id="bekijk-de-video">
-            <p className="home-video-label">Zo houd je hem straks bij · 40 seconden</p>
+            <p className="home-video-label">Zo houd je hem straks bij · ingekorte video</p>
             <DemoVideo />
           </div>
         </div>

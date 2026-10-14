@@ -260,7 +260,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
               </div>
               <figure className="landing-video">
                 <DemoVideo />
-                <figcaption>Zo pas je je website aan: vier echte klussen in ruim 40 seconden.</figcaption>
+                <figcaption>Zo pas je je website aan: vier echte klussen, ingekort tot een korte video.</figcaption>
               </figure>
             </section>
           )}
@@ -307,7 +307,7 @@ export default function SeoLanding({ data }: { data: LandingData }) {
                   </div>
                   <figure className="landing-video">
                     <DemoVideo />
-                    <figcaption>Vier echte klussen in ruim 40 seconden.</figcaption>
+                    <figcaption>Vier echte klussen, ingekort tot een korte video.</figcaption>
                   </figure>
                 </div>
               </section>

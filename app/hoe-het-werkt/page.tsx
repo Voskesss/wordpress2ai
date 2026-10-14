@@ -55,7 +55,7 @@ const faq = [
   ],
   [
     "Hoe snel staat een wijziging live?",
-    "De AI zet je wijziging meestal binnen een minuut klaar als concept. Na jouw akkoord duurt het nog één tot twee minuten voordat het op je echte site staat.",
+    "Dat hangt af van de klus. Een tekst of openingstijd is snel klaar als concept, een nieuwe pagina duurt langer. Je ziet altijd eerst het voorbeeld. Na jouw akkoord duurt het nog één tot twee minuten voordat het op je echte site staat.",
   ],
 ];
 
