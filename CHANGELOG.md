@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.44.2 (14 oktober 2026)
+
+- De grote foto bovenaan de homepage wisselt nu rustig tussen een paar foto's van ondernemers. De eerste staat er meteen, de rest laadt pas daarna, dus de pagina blijft snel. Wie minder beweging wil op zijn apparaat, ziet één vaste foto.
+- Nergens meer beloftes over hoe snel de chat een klus klaart. De video is een ingekorte opname van echte klussen; hoe lang iets duurt hangt af van de klus.
+
 ## 1.44.1 (14 oktober 2026)
 
 - Elke onderwerppagina laat zien wanneer hij is bijgewerkt en door wie. Zoekmachines en AI-assistenten zien dat ook, en vertrouwen een pagina met een duidelijke auteur en datum eerder.
