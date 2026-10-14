@@ -20,6 +20,14 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.44.0 (14 oktober 2026)
+
+- De website van WordSwap is flink vernieuwd om beter gevonden te worden. Pagina's die over hetzelfde gingen zijn samengevoegd (de oude adressen sturen netjes door), titels bevatten nu waar mensen echt op zoeken, en elke pagina verwijst naar verwante pagina's.
+- Achttien nieuwe pagina's, onder meer over een website-abonnement, wat een website per maand kost, een kritieke fout in WordPress, een gehackte site en een webbouwer die niet meer reageert, plus pagina's voor coaches, mediators, kunstenaars, stichtingen, adviesbureaus, detacheringsbureaus, accountants en financieel adviseurs.
+- Overal nieuwe, lichte foto's, een vernieuwde homepage met een grote foto bovenaan en een blok "Voor wie we werken".
+- De pagina's laden sneller: ze worden nu vooraf klaargezet in plaats van bij elk bezoek opnieuw gemaakt.
+- Avondspreekuur: Jos belt op maandag, woensdag en vrijdag van 17:00 tot 20:00 en reageert binnen twee werkdagen.
+
 ## 1.43.6 (14 oktober 2026)
 
 - Minder loze alarmen van de bewaking. Haperde een dienst (mail, Cloudflare, AI, database, GitHub) één keer een paar seconden, dan kreeg je meteen een storingsmelding. Nu meet de bewaking na vijf seconden nog een keer, en meldt alleen als het twee keer achter elkaar misgaat.
