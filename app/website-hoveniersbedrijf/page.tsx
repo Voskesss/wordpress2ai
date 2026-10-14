@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je hoveniersbedrijf die je zelf bijhoudt", "description": "Je site over zoals hij is, en daarna zet je een tuinproject erop met een appje vanaf de klus. Vanaf 150 euro eenmalig, daarna vanaf 19 euro per maand.", "alternates": {"canonical": "/website-hoveniersbedrijf"}};
+export const metadata: Metadata = {"title": "Website hovenier laten maken, zelf bijhouden", "description": "Je site over zoals hij is, en daarna zet je een tuinproject erop met een appje vanaf de klus. Vanaf 150 euro eenmalig, daarna vanaf 19 euro per maand.", "alternates": {"canonical": "/website-hoveniersbedrijf"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-hoveniersbedrijf",
   "label": "Website voor hoveniers",
   "titel": "Een website voor je hoveniersbedrijf die je zelf bijhoudt",
+  "kort": "Website voor je hoveniersbedrijf",
   "intro": "Je maakt foto's op elke klus, en op je site staat nog het werk van twee jaar geleden. Niet omdat je het niet wilt, maar omdat er iemand aan te pas moet komen. Wij zetten je site precies zo over als hij nu is, en daarna zet je een project erop met een bericht vanaf de tuin.",
   "blokken": [
     {

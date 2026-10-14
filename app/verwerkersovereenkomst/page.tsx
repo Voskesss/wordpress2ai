@@ -43,7 +43,7 @@ export default function Verwerkersovereenkomst() {
           Gegevens die bezoekers van jouw website achterlaten: formulierinzendingen (zoals naam,
           e-mailadres, telefoonnummer en berichttekst), en de bevestigingsmails daarover. Daarnaast
           jouw eigen chatberichten in het portaal, voor zover daar persoonsgegevens in staan. Wij
-          bepalen niet wat er met deze gegevens gebeurt — dat doe jij; wij bewaren en versturen ze
+          bepalen niet wat er met deze gegevens gebeurt: dat doe jij; wij bewaren en versturen ze
           alleen in jouw opdracht.
         </p>
       </Blok>

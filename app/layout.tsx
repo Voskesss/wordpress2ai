@@ -2,11 +2,11 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import CookieKeuze from "./CookieKeuze";
 import InlogVenster from "./InlogVenster";
+import { SEO_PAGINAS, GROEP_KOP } from "@/lib/seo-paginas";
 import { Suspense } from "react";
 import HeaderNav from "./HeaderNav";
 import Logo from "./Logo";
 import SiteKop from "./SiteKop";
-import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import Link from "next/link";
@@ -16,6 +16,7 @@ import "./globals.css";
 import { aanbod } from "@/lib/aanbod";
 import { deelAfbeelding } from "./deel-afbeelding";
 import { TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
+import { SPREEKUUR } from "@/lib/contactgegevens";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +47,7 @@ const inlogTeksten = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "WordSwap — WordPress overzetten en beheren via AI-chat",
+    default: "WordSwap: WordPress overzetten en bijhouden met AI",
     template: "%s | WordSwap",
   },
   description: aanbod.omschrijving,
@@ -65,15 +66,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "nl_NL",
-    url: siteUrl,
     siteName: "WordSwap",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
-    description: aanbod.omschrijving,
     images: [deelAfbeelding],
   },
   twitter: {
     card: "summary_large_image",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
     images: [deelAfbeelding.url],
   },
   robots: { index: true, follow: true },
@@ -101,6 +98,9 @@ const jsonLd = {
         "@type": "Person",
         name: "Jos Klijnhout",
         jobTitle: "Oprichter",
+        url: `${siteUrl}/over-wordswap`,
+        image: `${siteUrl}/team/jos.webp`,
+        worksFor: { "@id": `${siteUrl}/#organisatie` },
       },
       parentOrganization: {
         "@type": "Organization",
@@ -123,6 +123,12 @@ const jsonLd = {
         email: "info@wordswap.nl",
         areaServed: "NL",
         availableLanguage: "nl",
+        hoursAvailable: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [...SPREEKUUR.schemaDagen],
+          opens: SPREEKUUR.van,
+          closes: SPREEKUUR.tot,
+        },
       },
       areaServed: { "@type": "Country", name: "Nederland" },
       knowsLanguage: "nl",
@@ -156,6 +162,14 @@ const jsonLd = {
           name: "Basispakket: hosting, beheer en AI-chat",
           price: "19",
           priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "19",
+            priceCurrency: "EUR",
+            valueAddedTaxIncluded: false,
+            unitText: "maand",
+            referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+          },
           description:
             "vanaf €19 per maand excl. btw: hosting, beveiliging, AI-chat (fair use) en hulp per e-mail; maandelijks opzegbaar",
         },
@@ -164,6 +178,14 @@ const jsonLd = {
           name: "Optimaal ontzorgd",
           price: "39",
           priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "39",
+            priceCurrency: "EUR",
+            valueAddedTaxIncluded: false,
+            unitText: "maand",
+            referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" },
+          },
           description:
             "€39 per maand excl. btw: basispakket plus voorrang bij je vragen en je website bijhouden via WhatsApp; maandelijks opzegbaar",
         },
@@ -193,27 +215,7 @@ const jsonLd = {
   ],
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const user = await currentUser();
-  const isAdmin = user?.publicMetadata?.role === "admin";
-  // Meerdere websites? Dan heet het menu-item "Mijn websites" en opent het een overzicht.
-  let meerdereSites = false;
-  if (user) {
-    try {
-      const { db } = await import("@/db");
-      const { sites } = await import("@/db/schema");
-      const { and, eq } = await import("drizzle-orm");
-      const rijen = await db
-        .select({ id: sites.id })
-        .from(sites)
-        .where(and(eq(sites.clerkUserId, user.id), eq(sites.isDemo, false)))
-        .limit(2);
-      meerdereSites = rijen.length > 1;
-    } catch {
-      meerdereSites = false;
-    }
-  }
-  const portalLabel = meerdereSites ? "Mijn websites" : "Mijn website";
+export default function RootLayout({ children }: LayoutProps<"/">) {
   // Alles wat niet de echte productie-omgeving is, krijgt een duidelijke DEV-balk
   const isDev =
     process.env.NODE_ENV !== "production" ||
@@ -253,7 +255,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/" aria-label="WordSwap home">
                   <Logo klein />
                 </Link>
-                <HeaderNav isAdmin={isAdmin} portalLabel={portalLabel} />
+                <HeaderNav />
               </div>
             </header>
           </SiteKop>
@@ -276,6 +278,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   <br />
                   <a href={`tel:${TELEFOON_LINK}`}>{TELEFOON}</a>
                   <br />
+                  <span>Spreekuur {SPREEKUUR.kort}</span>
+                  <br />
                   <a href={appLink("/")} target="_blank" rel="noopener noreferrer">
                     WhatsApp ↗
                   </a>
@@ -285,6 +289,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <h3>Ontdek WordSwap</h3>
                 <Link href="/hoe-het-werkt">Hoe het werkt</Link>
                 <Link href="/prijzen">Prijzen</Link>
+                <Link href="/website-abonnement">Website abonnement</Link>
                 <Link href="/demo">Probeer de demo</Link>
                 <Link href="/nieuwe-website">Nieuwe website</Link>
               </nav>
@@ -306,43 +311,21 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/contact">Gratis websitecheck</Link>
                 <Link href="/partners">Samenwerken</Link>
                 <Link href="/webinar">Gratis webinar</Link>
-                <Link href="/portal">{portalLabel}</Link>
+                <Link href="/portal" rel="nofollow">Mijn website</Link>
               </nav>
             </div>
-            <details className="shell footer-resources">
-              <summary>Meer over eenvoudiger websitebeheer</summary>
-              <nav>
-                {[
-                  ["website-hoveniersbedrijf", "Voor hoveniers"],
-                  ["website-schildersbedrijf", "Voor schilders"],
-                  ["website-installatiebedrijf", "Voor installateurs"],
-                  ["website-bouwbedrijf", "Voor bouwbedrijven"],
-                  ["website-kapsalon", "Voor kappers"],
-                  ["wordpress-overzetten", "WordPress overzetten"],
-                  ["wordpress-alternatief", "Alternatief voor WordPress"],
-                  ["website-zonder-onderhoud", "Zonder onderhoud"],
-                  ["website-laten-onderhouden", "Laten onderhouden"],
-                  ["website-zonder-cms", "Zonder CMS"],
-                  ["wordpress-website-traag", "Trage website"],
-                  ["wordpress-website-maken-met-ai", "Website maken met AI"],
-                  [
-                    "wordpress-omzetten-naar-gewone-website",
-                    "WordPress omzetten",
-                  ],
-                  ["wordpress-aansturen-met-ai", "Aansturen met AI"],
-                  ["website-koppelen-aan-ai", "Website koppelen aan AI"],
-                  ["wordpress-koppelen-aan-ai", "WordPress en AI"],
-                  [
-                    "wordpress-omzetten-snel-en-ai-vriendelijk",
-                    "Snel & AI-vriendelijk",
-                  ],
-                ].map(([slug, label]) => (
-                  <Link key={slug} href={`/${slug}`}>
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </details>
+            <nav className="shell footer-resources" aria-label="Onderwerpen">
+              {(["overstappen", "nieuw", "bijhouden", "kennis", "branche"] as const).map((g) => (
+                <div key={g}>
+                  <h3>{GROEP_KOP[g]}</h3>
+                  {SEO_PAGINAS.filter((p) => p.groep === g).map((p) => (
+                    <Link key={p.pad} href={p.pad}>
+                      {p.naam}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </nav>
             <div className="shell footer-bottom">
               <span>
                 © {new Date().getFullYear()} WordSwap · KvK 09190650

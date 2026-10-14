@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 export const metadata: Metadata = {
-  title: "Samenwerken: bestaande WordPress-klantsites overzetten",
+  title: "Samenwerken: WordPress-klantsites overzetten",
   description:
     "Voor IT-beheerders, ontwerpers en bureaus: verken een samenwerking voor eenvoudige WordPress-sites die klanten daarna met AI bijhouden.",
   alternates: { canonical: "/partners" },

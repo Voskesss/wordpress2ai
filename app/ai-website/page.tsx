@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import LeesOok from "../LeesOok";
 import Link from "next/link";
 import LeadForm from "../contact/LeadForm";
 import ContactVoorkeur from "../contact/ContactVoorkeur";
 import { josFoto } from "@/lib/persoonlijk";
 
 export const metadata: Metadata = {
-  title: "Een website is goedkoop geworden. Het gedoe erna niet.",
+  title: "Website met AI laten maken? Let hierop",
   description:
     "Iedereen belooft een goedkope AI-website. Bouwen is inderdaad goedkoop geworden. Maar hosting, mail, domein, vindbaarheid en aanpassen dan?",
   alternates: { canonical: "/ai-website" },
@@ -94,7 +95,7 @@ const faq = [
   {
     vraag: "Ik heb al een goedkope AI-website. Kan die mee?",
     antwoord:
-      "Meestal wel. Stuur het adres via de websitecheck. We kijken wat er aan de site zit, wat we kunnen overnemen en wat beter opnieuw kan. Je hoort binnen één werkdag wat het zou kosten.",
+      "Meestal wel. Stuur het adres via de websitecheck. We kijken wat er aan de site zit, wat we kunnen overnemen en wat beter opnieuw kan. Je hoort binnen twee werkdagen wat het zou kosten.",
   },
   {
     vraag: "Wat kost het bij WordSwap?",
@@ -104,7 +105,7 @@ const faq = [
   {
     vraag: "Wat als ik weg wil?",
     antwoord:
-      "Dan neem je je websitebestanden gewoon mee — downloaden kan op elk moment zelf in je portaal, en opzeggen ook. Je domein en mail blijven van jou, en we zorgen dat je mailinstellingen meegaan. De afschrijving stopt direct en je site blijft nog een maand extra online zodat je rustig kunt verhuizen. Er zit niets vast aan ons.",
+      "Dan neem je je websitebestanden gewoon mee: downloaden kan op elk moment zelf in je portaal, en opzeggen ook. Je domein en mail blijven van jou, en we zorgen dat je mailinstellingen meegaan. De afschrijving stopt direct en je site blijft nog een maand extra online zodat je rustig kunt verhuizen. Er zit niets vast aan ons.",
   },
 ];
 
@@ -215,12 +216,12 @@ export default function AiWebsite() {
             Een AI website builder (Wix, Hostinger, Framer en dergelijke) is prima als je klein zit, graag zelf
             klust en tijd hebt. Maar lees vóór je begint de voorwaarden op één punt: <strong>van wie is de site,
             en kun je hem meenemen?</strong> Bij veel builders bestaat je website alleen ín hun systeem. Stop je
-            abonnement, dan stopt je site — exporteren kan vaak niet of levert een half werkende kopie op. Dat
+            abonnement, dan stopt je site. Exporteren kan vaak niet of levert een half werkende kopie op. Dat
             heet lock-in: niet de prijs houdt je vast, maar de uitgang die ontbreekt.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
             Bij WordSwap is je site een map met gewone webbestanden die je op elk moment zelf downloadt in je
-            portaal — ook als je gewoon blijft. Je domein blijft van jou, waar het nu ook staat. Zeg je op, dan stopt de afschrijving
+            portaal, ook als je gewoon blijft. Je domein blijft van jou, waar het nu ook staat. Zeg je op, dan stopt de afschrijving
             direct en blijft je site nog een maand extra online zodat je rustig kunt verhuizen. Blijven moet zijn
             omdat het bevalt, niet omdat vertrekken niet kan.
           </p>
@@ -248,7 +249,7 @@ export default function AiWebsite() {
           <p className="mt-5 text-stone-600 leading-relaxed">
             Stuur je websiteadres. Jos bekijkt wat er goed geregeld is en wat
             niet: hosting, mail, domein, vindbaarheid en of je hem zelf kunt
-            bijhouden. Binnen één werkdag krijg je antwoord, ook als alles al
+            bijhouden. Binnen twee werkdagen krijg je antwoord, ook als alles al
             prima staat.
           </p>
           <ul className="mt-8 space-y-3 text-stone-600">
@@ -396,6 +397,7 @@ export default function AiWebsite() {
           ))}
         </div>
       </section>
+      <LeesOok pad="/ai-website" />
     </>
   );
 }

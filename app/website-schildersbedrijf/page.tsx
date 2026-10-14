@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je schildersbedrijf zonder onderhoud", "description": "Voor-en-na-foto's op je site zetten met een bericht vanaf de steiger. Je site gaat exact over, zonder WordPress eronder. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-schildersbedrijf"}};
+export const metadata: Metadata = {"title": "Website schilder laten maken, zonder onderhoud", "description": "Voor-en-na-foto's op je site zetten met een bericht vanaf de steiger. Je site gaat exact over, zonder WordPress eronder. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-schildersbedrijf"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-schildersbedrijf",
   "label": "Website voor schilders",
   "titel": "Een website voor je schildersbedrijf zonder onderhoud",
+  "kort": "Website voor je schildersbedrijf",
   "intro": "Voor-en-na-foto's zijn het beste wat een schilder kan laten zien, en juist die blijven op de telefoon staan. Wij zetten je site over zoals hij is, en daarna zet je een klus erop met een appje vanaf de steiger.",
   "blokken": [
     {

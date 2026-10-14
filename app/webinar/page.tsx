@@ -114,7 +114,7 @@ export default async function Webinar({
           <span className="rounded-full bg-violet-100 px-3.5 py-1.5 text-sm font-semibold text-violet-700">
             Gratis webinar
           </span>
-          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight">Weg uit WordPress — zonder gedoe</h2>
+          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight">Weg uit WordPress, zonder gedoe</h2>
           <p className="mt-4 text-stone-600 leading-relaxed">
             Jos Klijnhout, oprichter van WordSwap, begint bij de ergernis die je vast kent. Eén keer zie je met eigen
             ogen dat het anders kan. En nee, je hoeft niet opnieuw te beginnen: <strong>je eigen ontwerp, teksten en

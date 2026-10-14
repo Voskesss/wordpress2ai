@@ -1,8 +1,8 @@
 "use client";
 
-import { SignInButton, SignOutButton, Show, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, Show, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const links = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
@@ -12,8 +12,27 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function HeaderNav({ isAdmin, portalLabel = "Mijn website" }: { isAdmin: boolean; portalLabel?: string }) {
+/** Het menu bepaalt zelf, in de browser, wie er kijkt. Zo hoeft de server
+ * dat niet bij elke paginaweergave te doen en kunnen de pagina's van
+ * wordswap.nl klaargezet worden (SEO-ronde 14-10-2026). De rol in
+ * publicMetadata toont alleen de Admin-link; /admin controleert zelf. */
+export default function HeaderNav() {
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.role === "admin";
+  const [meerdere, setMeerdere] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    let weg = false;
+    fetch("/api/mijn-sites")
+      .then((r) => (r.ok ? r.json() : { meerdere: false }))
+      .then((d: { meerdere?: boolean }) => !weg && setMeerdere(Boolean(d.meerdere)))
+      .catch(() => {});
+    return () => {
+      weg = true;
+    };
+  }, [user]);
+  const portalLabel = meerdere ? "Mijn websites" : "Mijn website";
 
   return (
     <>

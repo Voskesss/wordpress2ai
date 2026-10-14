@@ -1,6 +1,6 @@
-import VerhaalBeeld from "./VerhaalBeeld";
 import Link from "next/link";
-import ProductPreview from "./ProductPreview";
+import Image from "next/image";
+import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo from "./DemoVideo";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
@@ -8,7 +8,7 @@ import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
 import { deelAfbeelding } from "./deel-afbeelding";
 export const metadata: Metadata = {
-  title: "Je website houden. WordPress loslaten. Bijhouden met AI.",
+  title: "WordPress overzetten en bijhouden met AI",
   description:
     "Wij zetten je WordPress-bedrijfswebsite over. Daarna wijzig je teksten, foto’s en pagina’s via AI-chat. Vanaf €150 en vanaf €19 per maand.",
   alternates: { canonical: "/" },
@@ -19,13 +19,27 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     url: "https://www.wordswap.nl",
     siteName: "WordSwap",
-    title: "WordSwap — Zet je WordPress-website om naar een website die het zelf regelt",
+    title: "WordSwap: je WordPress-website overzetten en bijhouden met AI",
     description:
       "Zelfde ontwerp, teksten en plek in Google. Daarna vraag je gewoon wat er anders moet. Geen updates, geen plugins, geen gedoe.",
     images: [deelAfbeelding],
   },
 };
-const faq = aankoopVragen;
+// Het FAQPage-schema staat alleen op /veelgestelde-vragen: dezelfde twaalf
+// vragen op twee pagina's als gestructureerde data is dubbele inhoud.
+const faq = aankoopVragen.slice(0, 5);
+
+// "Voor wie we werken": acht gezichten op de homepage, elk naar zijn eigen pagina
+const VOOR_WIE: [string, string][] = [
+  ["website-kapsalon", "Kappers"],
+  ["website-schildersbedrijf", "Schilders"],
+  ["website-hoveniersbedrijf", "Hoveniers"],
+  ["website-installatiebedrijf", "Installateurs"],
+  ["website-coach", "Coaches"],
+  ["website-adviesbureau", "Adviesbureaus"],
+  ["website-accountant", "Accountants"],
+  ["website-stichting", "Stichtingen"],
+];
 export default async function Home({
   searchParams,
 }: {
@@ -37,89 +51,70 @@ export default async function Home({
   const checkLink = hoek ? `/contact?hoek=${hoek.sleutel}` : "/contact";
   return (
     <div className="marketing-home">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faq.map(([name, text]) => ({
-              "@type": "Question",
-              name,
-              acceptedAnswer: { "@type": "Answer", text },
-            })),
-          }),
-        }}
-      />
-      <section className="home-hero shell">
-        <div className="hero-copy">
-          <p className="eyebrow">
-            <span className="status-dot" /> VOOR ONDERNEMERS MET EEN
-            WORDPRESS-WEBSITE
-          </p>
-          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-            <h1 className="hero-hoek">
-              {hoek.kop}
-              <br />
-              <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
-            </h1>
-          ) : (
-            <h1>
-              Mijn website regelt het.
-              <br />
-              <em>Ik hoef het alleen maar te vragen.</em>
-            </h1>
-          )}
-          {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-            <p className="hero-intro">
-              {hoek.tekst}
-              <strong className="hero-hoek-slot">
-                Behoud je website. Vervang het gedoe.
-              </strong>
+      {/* Hero over de volle breedte (wens Jos 14-10-2026): vrolijke foto,
+          de belofte in wit, en het filmpje er meteen naast. */}
+      <section className="home-hero-blok">
+      <div className="home-hero-foto">
+        <Image
+          src="/images/paginas/home.webp"
+          alt={FOTO_ALT["home"]}
+          fill
+          priority
+          sizes="100vw"
+          className="landing-breed-foto"
+        />
+        <div className="landing-breed-schaduw" aria-hidden />
+        <div className="shell home-hero-grid">
+          <div className="home-hero-tekst">
+            <p className="landing-breed-label">Voor ondernemers met een website</p>
+            {hoek && hoek.sleutel !== "regelt-zichzelf" ? (
+              <h1 className="hero-hoek">
+                {hoek.kop}
+                <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
+              </h1>
+            ) : (
+              <h1>
+                Mijn website regelt het.
+                <em>Ik hoef het alleen maar te vragen.</em>
+              </h1>
+            )}
+            <div className="landing-breed-knoppen">
+              <Link className="lift landing-breed-hoofdknop" href={checkLink}>
+                Kan mijn website overgezet worden? ↗
+              </Link>
+            </div>
+            <p className="home-hero-zeker">Gratis en vrijblijvend · Antwoord binnen twee werkdagen</p>
+          </div>
+        </div>
+      </div>
+      <div className="home-intro">
+        <div className="shell home-intro-grid">
+          <div>
+            <h2>Behoud je website. Vervang het gedoe.</h2>
+            <p>
+              {hoek && hoek.sleutel !== "regelt-zichzelf"
+                ? hoek.tekst
+                : "Je houdt je huidige website: je ontwerp, je teksten en je plek in Google. Wij zetten hem over naar een snelle versie zonder WordPress. Daarna typ je gewoon wat er anders moet, bekijk je het voorbeeld en zet je het zelf live."}
             </p>
-          ) : (
-          <p className="hero-intro">
-            <strong>Behoud je website. Vervang het gedoe.</strong> Je houdt je
-            huidige website: je ontwerp, je teksten en je plek in Google. Wij
-            vervangen de WordPress-techniek erachter (of die van een ander CMS)
-            door een razendsnelle versie zonder onderhoud. Daarna is één zin
-            als “Zet onze nieuwe openingstijden erop.” alles wat je hoeft te
-            doen.
-          </p>
-          )}
-          <p className="hero-definition">
-            Geen webbouwer meer mailen, geen updates, geen plugins. Je vraagt
-            het gewoon aan je website, bekijkt het voorstel en beslist zelf wat
-            live gaat.
-          </p>
-          <div className="button-row">
-            <Link className="button-primary" href={checkLink}>
-              Kan mijn website overgezet worden? <span>↗</span>
-            </Link>
-            <Link className="button-text" href="#bekijk-de-video">
-              Bekijk de video <span>→</span>
-            </Link>
+            <div className="hero-price">
+              <span>
+                Overstappen vanaf <strong>€150 eenmalig</strong>
+              </span>
+              <span>
+                Daarna <strong>vanaf €19 / maand</strong>
+              </span>
+              <small>
+                Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
+                €8–€15 per maand) kun je daarna meestal opzeggen
+              </small>
+            </div>
           </div>
-          <p className="hero-assurance">
-            Gratis en vrijblijvend · Antwoord binnen één werkdag
-          </p>
-          <div className="hero-price">
-            <span>
-              Overstappen vanaf <strong>€150 eenmalig</strong>
-            </span>
-            <span>
-              Daarna <strong>vanaf €19 / maand</strong>
-            </span>
-            <small>
-              Excl. btw · Hosting en AI-chat inbegrepen · Je oude hosting (vaak
-              €8–€15 per maand) kun je daarna meestal opzeggen
-            </small>
+          <div className="home-hero-video" id="bekijk-de-video">
+            <p className="home-video-label">Zo houd je hem straks bij · 40 seconden</p>
+            <DemoVideo />
           </div>
         </div>
-        <div className="hero-example" id="bekijk-de-video">
-          <p className="eyebrow">ZO HOUD JE HEM STRAKS BIJ · BEKIJK HET IN 40 SECONDEN</p>
-          <DemoVideo />
-        </div>
+      </div>
       </section>
       <div className="trust-strip">
         <div className="shell">
@@ -140,7 +135,7 @@ export default async function Home({
             </h2>
           </div>
           <p>
-            Je site ziet er prima uit — daar ligt het niet aan. Het is alles
+            Je site ziet er prima uit. Daar ligt het niet aan. Het is alles
             eromheen: updates, plugins, en dat ene tekstje dat wéér ergens diep
             in een menu verstopt zit.
           </p>
@@ -150,7 +145,7 @@ export default async function Home({
             [
               "01",
               "Waar zat het ook alweer?",
-              "Eén prijsje aanpassen betekent inloggen, zoeken door menu's en blokken, en hopen dat je niets anders verschuift. In WordSwap typ je gewoon wat er anders moet — zoeken doet de AI.",
+              "Eén prijsje aanpassen betekent inloggen, zoeken door menu's en blokken, en hopen dat je niets anders verschuift. In WordSwap typ je gewoon wat er anders moet; zoeken doet de AI.",
             ],
             [
               "02",
@@ -160,7 +155,7 @@ export default async function Home({
             [
               "03",
               "Ik durf er zelf niet aan te komen.",
-              "Dus blijft de site maanden hetzelfde, of wacht je op de webbouwer. Bij WordSwap verschijnt elke wijziging eerst als voorbeeld — en een eerdere versie terugzetten kan altijd.",
+              "Dus blijft de site maanden hetzelfde, of wacht je op de webbouwer. Bij WordSwap verschijnt elke wijziging eerst als voorbeeld, en een eerdere versie terugzetten kan altijd.",
             ],
           ].map(([n, t, d]) => (
             <article className="benefit" key={n}>
@@ -173,8 +168,51 @@ export default async function Home({
           ))}
         </div>
       </section>
+      <section className="voor-wie" aria-labelledby="voor-wie-kop">
+        <div className="shell">
+          <p className="eyebrow">VOOR WIE WE WERKEN</p>
+          <h2 id="voor-wie-kop">Ondernemers die liever ondernemen dan hun website bijhouden.</h2>
+          <div className="voor-wie-grid">
+            {VOOR_WIE.map(([slug, naam]) => (
+              <Link key={slug} href={`/${slug}`} className="voor-wie-kaart lift">
+                <Image
+                  src={`/images/paginas/${slug}.webp`}
+                  alt={FOTO_ALT[slug]}
+                  width={1600}
+                  height={900}
+                  sizes="(max-width: 767px) 50vw, 25vw"
+                />
+                <span>{naam} →</span>
+              </Link>
+            ))}
+          </div>
+          <p className="voor-wie-meer">
+            Ook voor{" "}
+            {[
+              ["website-bouwbedrijf", "bouwbedrijven"],
+              ["website-mediator", "mediators"],
+              ["website-kunstenaar", "kunstenaars"],
+              ["website-detacheringsbureau", "detacheringsbureaus"],
+              ["website-financieel-adviseur", "financieel adviseurs"],
+            ].map(([slug, naam], i, alle) => (
+              <span key={slug}>
+                <Link href={`/${slug}`}>{naam}</Link>
+                {i < alle.length - 2 ? ", " : i === alle.length - 2 ? " en " : "."}
+              </span>
+            ))}
+          </p>
+        </div>
+      </section>
       <section className="shell verhaal-section">
-        <VerhaalBeeld onderwerp="ondernemer" />
+        <figure className="verhaal-beeld home-foto">
+          <Image
+            src="/images/paginas/website-koppelen-aan-ai.webp"
+            alt={FOTO_ALT["website-koppelen-aan-ai"]}
+            width={1600}
+            height={900}
+            sizes="(max-width: 767px) 100vw, 50vw"
+          />
+        </figure>
         <div className="verhaal-copy">
           <p className="eyebrow">HET KAN OOK ZO</p>
           <h2>
@@ -196,8 +234,8 @@ export default async function Home({
           <p>
             Je bekijkt de wijziging en zet hem zelf live. Meer is het niet.
           </p>
-          <Link href="#zo-werkt-aanpassen" className="button-text">
-            Bekijk een voorbeeld →
+          <Link href="/demo" className="button-text">
+            Probeer het zelf in de demo →
           </Link>
         </div>
       </section>
@@ -214,7 +252,7 @@ export default async function Home({
           <p>
             We hebben onlangs een WordPress-site overgezet en beide versies
             gemeten met Google&rsquo;s eigen meetlat (Lighthouse). Zelfde
-            ontwerp, zelfde inhoud — alleen de techniek eronder is anders.
+            ontwerp, zelfde inhoud: alleen de techniek eronder is anders.
           </p>
         </div>
         <div className="speed-bars" role="img" aria-label="Laadtijdvergelijking: WordPress-versie 6,2 seconden, WordSwap-versie 3,2 seconden">
@@ -234,7 +272,7 @@ export default async function Home({
           </div>
           <p className="speed-note">
             Grootste inhoud in beeld (LCP), gemeten in september 2026 bij één
-            overgezette site. Resultaten verschillen per website — daarom meten
+            overgezette site. Resultaten verschillen per website. Daarom meten
             we bij elke overstap de oude en nieuwe site en krijg je beide
             uitslagen te zien.
           </p>
@@ -287,17 +325,6 @@ export default async function Home({
             </p>
           </div>
         </div>
-      </section>
-      <section className="shell demo-video-section" id="zo-werkt-aanpassen">
-        <div className="demo-video-tekst">
-          <p className="eyebrow">PROBEER HET ZELF</p>
-          <h2>Kies een vraag en kijk wat er gebeurt.</h2>
-          <p>
-            Zo voelt het om je website bij te houden. Je stelt een vraag, je
-            ziet het voorstel en je beslist zelf of het live gaat.
-          </p>
-        </div>
-        <ProductPreview />
       </section>
       <section className="shell decision-section">
         <div className="fit-yes">
@@ -441,8 +468,8 @@ export default async function Home({
           <h2>Je stapt over met hulp van Jos.</h2>
           <p>
             Ik zet je WordPress-website zelf over en controleer samen met jou
-            het resultaat. Daarna pas je je website aan met AI — en heb je een
-            vraag, dan krijg je mij aan de lijn. Geen ticketsysteem, geen
+            het resultaat. Daarna pas je je website aan met AI, en heb je een
+            vraag, dan bel ik je terug op maandag-, woensdag- of vrijdagavond. Geen ticketsysteem, geen
             wachtrij.
           </p>
           <Link className="button-text" href={checkLink}>
@@ -473,6 +500,27 @@ export default async function Home({
               <p>{a}</p>
             </details>
           ))}
+          <Link href="/veelgestelde-vragen" className="button-text">
+            Alle veelgestelde vragen →
+          </Link>
+        </div>
+      </section>
+      <section className="section-space shell" aria-labelledby="verder-kop">
+        <p className="eyebrow">WAAR WIL JE MEE VERDER?</p>
+        <h2 id="verder-kop">Kies wat bij jouw situatie past.</h2>
+        <div className="kies-grid">
+          {[
+            ["wordpress-overzetten", "WordPress overzetten", "Je huidige site houden, zonder WordPress-onderhoud. Vanaf €150."],
+            ["nieuwe-website", "Een nieuwe website laten maken", "Wij bouwen hem met AI, jij houdt hem bij. Vanaf €250."],
+            ["website-laten-onderhouden", "Website laten onderhouden", "Wat onderhoud kost, en hoe je de reden ervoor weghaalt."],
+            ["website-koppelen-aan-ai", "Website aanpassen met AI", "Typ of app wat er anders moet, bekijk het en publiceer."],
+          ].map(([slug, kop, tekst]) => (
+            <Link key={slug} href={`/${slug}`} className="kies-kaart lift">
+              <Image src={`/images/paginas/${slug}.webp`} alt={FOTO_ALT[slug]} width={1600} height={900} sizes="(max-width: 767px) 100vw, 50vw" />
+              <span className="kies-kop">{kop} →</span>
+              <span className="kies-tekst">{tekst}</span>
+            </Link>
+          ))}
         </div>
       </section>
       <section className="shell">
@@ -485,7 +533,7 @@ export default async function Home({
           </h2>
           <p>
             Je krijgt antwoord op drie vragen: kan mijn site mee, wat vraagt
-            aandacht en wat kost het? Binnen één werkdag, persoonlijk van Jos.
+            aandacht en wat kost het? Binnen twee werkdagen, persoonlijk van Jos.
           </p>
           <Link className="button-primary" href={checkLink}>
             Laat mijn website gratis checken ↗

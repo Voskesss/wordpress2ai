@@ -4,7 +4,7 @@ import Link from "next/link";
 import PersoonlijkBlok from "../PersoonlijkBlok";
 
 export const metadata: Metadata = {
-  title: "Over WordSwap — wie, wat en waarom",
+  title: "Over WordSwap: Jos Klijnhout uit Oosterbeek",
   description:
     "WordSwap is een Nederlandse dienst uit Oosterbeek die WordPress-sites omzet naar snelle sites zonder onderhoud. Opgericht door Jos Klijnhout.",
   alternates: { canonical: "/over-wordswap" },
@@ -17,7 +17,7 @@ const feiten: [string, string][] = [
   ],
   [
     "Voor wie",
-    "Nederlandse ondernemers en kleine teams met een bedrijfswebsite: schilders, administratiekantoren, fysiotherapeuten, adviseurs, bakkers — sites met pagina's, foto's, een blog en formulieren. Niet voor webshops of ledenportalen met inlog.",
+    "Nederlandse ondernemers en kleine teams met een bedrijfswebsite: schilders, administratiekantoren, fysiotherapeuten, adviseurs, bakkers. Sites met pagina's, foto's, een blog en formulieren. Niet voor webshops of ledenportalen met inlog.",
   ],
   [
     "Wie",

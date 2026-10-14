@@ -28,8 +28,7 @@ export default function VeelgesteldeVragen() {
         Eerlijke antwoorden, ook als het antwoord &quot;nee&quot; is. Staat je vraag er niet bij? Stel hem via het{" "}
         <Link href="/contact" className="text-violet-700 underline underline-offset-2">
           contactformulier
-        </Link>{" "}
-        — je krijgt binnen één werkdag antwoord van Jos zelf.
+        </Link>. Je krijgt binnen twee werkdagen antwoord van Jos zelf.
       </p>
       <div className="mt-10 space-y-4">
         {aankoopVragen.map(([v, a]) => (

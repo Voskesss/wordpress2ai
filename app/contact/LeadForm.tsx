@@ -38,7 +38,7 @@ export default function LeadForm({ children }: { children: ReactNode }) {
           Dank je. Jos kijkt met je mee.
         </h2>
         <p className="mt-5 leading-relaxed text-stone-600">
-          Binnen één werkdag krijg je persoonlijk antwoord op je aanvraag. Bij
+          Binnen twee werkdagen krijg je persoonlijk antwoord op je aanvraag. Bij
           een websitecheck hoor je wat er mee kan, wat aandacht vraagt en wat de
           overstap kost. Je hebt nog niets besteld.
         </p>

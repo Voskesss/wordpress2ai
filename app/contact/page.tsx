@@ -3,13 +3,14 @@ import { currentUser } from "@clerk/nextjs/server";
 import LeadForm from "./LeadForm";
 import ContactVoorkeur from "./ContactVoorkeur";
 import { josFoto, TELEFOON, TELEFOON_LINK } from "@/lib/persoonlijk";
+import { SPREEKUUR } from "@/lib/contactgegevens";
 import { appLink } from "@/lib/appen";
 import { vindHoek } from "@/lib/hoeken";
 
 export const metadata: Metadata = {
-  title: "Gratis WordPress-websitecheck: geschiktheid en prijs",
+  title: "Gratis websitecheck: kan jouw site mee?",
   description:
-    "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We kijken gratis mee en je krijgt binnen één werkdag antwoord.",
+    "Neem vrijblijvend contact op over het overzetten van je WordPress-site. We kijken gratis mee en je krijgt binnen twee werkdagen antwoord.",
 };
 
 const inputStijl =
@@ -40,8 +41,8 @@ export default async function Contact({
         </h1>
         <p className="mt-5 text-lg text-stone-600 leading-relaxed">
           {samenwerken
-            ? "Vertel over de klantsite die je wilt overzetten. Jos neemt binnen één werkdag contact op om de mogelijkheden en rolverdeling te bespreken."
-            : "Stuur je websiteadres. Jos bekijkt gratis of we jouw site kunnen overzetten met je bestaande uitstraling en inhoud, zodat je hem daarna zelf bijhoudt met AI. Binnen één werkdag krijg je antwoord, ook als het niet past."}
+            ? "Vertel over de klantsite die je wilt overzetten. Jos neemt binnen twee werkdagen contact op om de mogelijkheden en rolverdeling te bespreken."
+            : "Stuur je websiteadres. Jos bekijkt gratis of we jouw site kunnen overzetten met je bestaande uitstraling en inhoud, zodat je hem daarna zelf bijhoudt met AI. Binnen twee werkdagen krijg je antwoord, ook als het niet past."}
         </p>
         {!samenwerken && (
           <p className="mt-4 rounded-xl border border-[#dde7d9] bg-[#eff3e8] px-4 py-3 text-stone-700 leading-relaxed">
@@ -66,7 +67,7 @@ export default async function Contact({
             "Geschiktheid: welke pagina’s en functies kunnen mee?",
             "Aandachtspunten: je domein, mail en SEO-structuur",
             "Een voorstel met overstapprijs, maandbedrag en eventuele extra’s",
-            "Een terugbelmoment dat jou uitkomt, ook ’s avonds",
+            "Een terugbelmoment op maandag-, woensdag- of vrijdagavond",
           ].map((punt) => (
             <li key={punt} className="flex gap-3">
               <span className="mt-1 text-[#31956B] shrink-0">✓</span>
@@ -75,7 +76,7 @@ export default async function Contact({
           ))}
         </ul>
         <div className="mt-8 rounded-xl border border-stone-200 bg-white px-4 py-3">
-          <p className="text-sm font-semibold text-stone-800">Liever meteen bellen?</p>
+          <p className="text-sm font-semibold text-stone-800">Liever bellen? Avondspreekuur: {SPREEKUUR.kort}</p>
           <p className="mt-1">
             <a
               href={`tel:${TELEFOON_LINK}`}
@@ -85,8 +86,7 @@ export default async function Contact({
             </a>
           </p>
           <p className="mt-1 text-sm text-stone-500">
-            Je krijgt Jos zelf aan de lijn. Niet bereikbaar? Laat je nummer achter in het
-            formulier, dan belt hij je terug op het moment dat jou uitkomt.
+            Overdag sta jij bij je klanten, dus wij plannen gesprekken &apos;s avonds, als jij ook tijd hebt. Bel je daarbuiten? Laat je nummer achter in het formulier, dan belt Jos je op een van die avonden terug. Je website zelf pas je aan wanneer je wilt, ook &apos;s nachts.
           </p>
           <p className="mt-3 border-t border-stone-100 pt-3 text-sm text-stone-600">
             Liever appen? Dat mag op hetzelfde nummer:{" "}
@@ -111,7 +111,7 @@ export default async function Contact({
               className="h-[4.5rem] w-[4.5rem] rounded-full border-4 border-white object-cover shadow-md"
             />
             <p className="text-sm text-stone-600 leading-snug">
-              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf — geen
+              Je krijgt antwoord van <strong>Jos Klijnhout</strong> zelf. Geen
               ticketsysteem, geen supportafdeling.
             </p>
           </div>

@@ -17,9 +17,13 @@ const css = await readFile("app/globals.css", "utf8");
 const held = pagina.slice(pagina.indexOf('className="home-hero'), pagina.indexOf("</section>", pagina.indexOf('className="home-hero')));
 assert.ok(held.includes("<DemoVideo />"), "de video staat niet in het bovenste blok");
 assert.ok(!held.includes("<ProductPreview />"), "het klikbare voorbeeld staat nog bovenaan naast de video");
-assert.ok(pagina.indexOf("<ProductPreview />") > pagina.indexOf("<DemoVideo />"), "het klikbare voorbeeld is verdwenen of staat boven de video");
-assert.ok(held.includes('href="#bekijk-de-video"') && held.includes('id="bekijk-de-video"'), "de link bovenaan wijst niet naar de video");
-assert.equal((pagina.match(/id="zo-werkt-aanpassen"/g) ?? []).length, 1, "het anker van het klikbare voorbeeld ontbreekt of staat dubbel");
+// 14-10-2026 (Jos akkoord): het klikbare voorbeeld liet hetzelfde zien als de
+// video en is van de homepage gehaald; het staat nog op /demo.
+assert.ok(!pagina.includes("<ProductPreview />"), "het klikbare voorbeeld staat weer op de homepage naast de video");
+// 14-10-2026 (Jos): geen "Bekijk de video"-knop in de hero; de video staat er direct onder
+assert.ok(!held.includes('href="#bekijk-de-video"'), "de hero heeft weer een knop naar de video");
+assert.ok(pagina.includes('id="bekijk-de-video"'), "het anker van de video ontbreekt");
+assert.ok(!pagina.includes('href="#zo-werkt-aanpassen"'), "er wijst nog een link naar het verwijderde klikbare voorbeeld");
 
 // 1b. Afspeelknop over het startbeeld, met een naam voor schermlezers
 assert.ok(video.includes('className="demo-video-knop"') && video.includes("aria-label=\"Speel de video af"), "de afspeelknop ontbreekt of heeft geen naam");

@@ -1,51 +1,22 @@
 import type { MetadataRoute } from "next";
+import { SEO_PAGINAS, urlVan, type Groep } from "@/lib/seo-paginas";
 
-const base = "https://www.wordswap.nl";
+const GEWICHT: Record<Groep, number> = {
+  start: 0.9,
+  overstappen: 0.9,
+  nieuw: 0.9,
+  bijhouden: 0.9,
+  kennis: 0.7,
+  branche: 0.7,
+  vertrouwen: 0.5,
+  juridisch: 0.2,
+};
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paden = [
-    "",
-    "/hoe-het-werkt",
-    "/seo-behoud",
-    "/partners",
-    "/zelf-doen",
-    "/prijzen",
-    "/demo",
-    "/nieuwe-website",
-    "/contact",
-    "/wordpress-overzetten",
-    "/wordpress-alternatief",
-    "/website-zonder-onderhoud",
-    "/website-laten-onderhouden",
-    "/ai-website",
-    "/appen",
-    "/website-hoveniersbedrijf",
-    "/website-schildersbedrijf",
-    "/website-installatiebedrijf",
-    "/website-bouwbedrijf",
-    "/website-kapsalon",
-    "/website-zonder-cms",
-    "/website-koppelen-aan-ai",
-    "/wordpress-koppelen-aan-ai",
-    "/over-wordswap",
-    "/wordswap-vs-wordpress",
-    "/eigen-ai-koppelen",
-    "/wordpress-website-traag",
-    "/wordpress-website-maken-met-ai",
-    "/wordpress-omzetten-naar-gewone-website",
-    "/wordpress-backup-maken",
-    "/wordpress-aansturen-met-ai",
-    "/wordpress-omzetten-snel-en-ai-vriendelijk",
-    "/veiligheid",
-    "/veelgestelde-vragen",
-    "/webinar",
-    "/privacy",
-    "/voorwaarden",
-    "/verwerkersovereenkomst",
-  ];
-  return paden.map((path) => ({
-    url: `${base}${path}`,
+  return SEO_PAGINAS.map((p) => ({
+    url: urlVan(p.pad).replace(/\/$/, ""),
+    lastModified: p.bijgewerkt,
     changeFrequency: "monthly",
-    priority: path === "" ? 1 : 0.8,
+    priority: p.pad === "" ? 1 : GEWICHT[p.groep],
   }));
 }

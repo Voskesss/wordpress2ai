@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je bouwbedrijf die je bijhoudt met een app", "description": "Opgeleverde projecten op je site zetten vanaf de bouwplaats, met een appje. Je site gaat exact over, zonder updates en plugins. Vanaf 150 euro.", "alternates": {"canonical": "/website-bouwbedrijf"}};
+export const metadata: Metadata = {"title": "Website bouwbedrijf laten maken, zelf bijhouden", "description": "Opgeleverde projecten op je site zetten vanaf de bouwplaats, met een appje. Je site gaat exact over, zonder updates en plugins. Vanaf 150 euro.", "alternates": {"canonical": "/website-bouwbedrijf"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-bouwbedrijf",
   "label": "Website voor bouwbedrijven",
   "titel": "Een website voor je bouwbedrijf die je bijhoudt met een app",
+  "kort": "Website voor je bouwbedrijf",
   "intro": "Opgeleverde projecten zijn je beste verkoopargument, en die staan vaak alleen op de telefoon van de uitvoerder. Wij zetten je site over zoals hij is, en daarna zet je een project erop vanaf de bouwplaats.",
   "blokken": [
     {

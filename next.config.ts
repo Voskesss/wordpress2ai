@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
     // Standaard 1 MB; het opleverrapport (pdf) bij het koppelen moet mee kunnen
     serverActions: { bodySizeLimit: "12mb" },
   },
+  // Samengevoegde SEO-pagina's (14-10-2026): meerdere pagina's op één zoekterm
+  // lieten Google kiezen, en dan koos hij er geen. Permanent doorsturen
+  // houdt de opgebouwde waarde vast. Test: tests/seo-samenvoegen.mts.
+  async redirects() {
+    return [
+      ["/website-zonder-cms", "/wordpress-overzetten"],
+      ["/wordpress-omzetten-naar-gewone-website", "/wordpress-overzetten"],
+      ["/wordpress-omzetten-snel-en-ai-vriendelijk", "/wordpress-overzetten"],
+      ["/wordpress-aansturen-met-ai", "/website-koppelen-aan-ai"],
+      ["/wordpress-website-maken-met-ai", "/nieuwe-website"],
+    ].map(([source, destination]) => ({ source, destination, permanent: true }));
+  },
   async headers() {
     return [
       {

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
 import { aanbod } from "@/lib/aanbod";
-export const metadata: Metadata = {"title": "Alternatief voor WordPress zonder opnieuw te beginnen", "description": "Zoek je een alternatief voor WordPress? Vergelijk bouwdozen, andere systemen en een statische site die je met AI bijhoudt, zonder opnieuw te beginnen.", "alternates": {"canonical": "/wordpress-alternatief"}};
+export const metadata: Metadata = {"title": "Alternatief voor WordPress met AI-beheer", "description": "Zoek je een alternatief voor WordPress? Vergelijk bouwdozen, andere systemen en een statische site die je met AI bijhoudt, zonder opnieuw te beginnen.", "alternates": {"canonical": "/wordpress-alternatief"}};
 export default function Pagina(){ return <SeoLanding data={{
   "label": "Alternatief voor WordPress",
   "titel": "Een alternatief voor WordPress, zonder dat je opnieuw hoeft te beginnen.",
+  "kort": "Alternatief voor WordPress",
   "intro": "Wie een alternatief voor WordPress zoekt, is zelden ontevreden over zijn website. Het zit in alles eromheen: updates die iets stukmaken, plugins die elkaar in de weg zitten, een site die trager wordt, en een webbouwer die je moet mailen voor twee zinnen tekst. Hieronder staan de alternatieven eerlijk naast elkaar, met wat ze je kosten aan werk, en een route waarbij je je huidige website gewoon houdt of er een nieuwe laat maken.",
   "blokken": [
     {

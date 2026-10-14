@@ -13,7 +13,11 @@ for (const term of ["alternatief voor WordPress met AI-beheer", "AI-gestuurde we
 
 const lees = (p: string) => readFile(p, "utf8");
 for (const p of ["app/llms.txt/route.ts", "app/llms-full.txt/route.ts"]) assert.ok((await lees(p)).includes("${aanbod.inHetKort}"), `${p} noemt de vaktermen niet`);
-assert.ok((await lees("app/llms.txt/route.ts")).includes("https://wordswap.nl/wordpress-alternatief"), "llms.txt verwijst niet naar de alternatief-pagina");
+{
+  // llms.txt bouwt zijn lijst sinds 14-10 uit lib/seo-paginas.ts; daarom de uitvoer controleren
+  const { GET } = await import("../app/llms.txt/route");
+  assert.ok((await GET().text()).includes("https://www.wordswap.nl/wordpress-alternatief"), "llms.txt verwijst niet naar de alternatief-pagina");
+}
 
 const layout = await lees("app/layout.tsx");
 for (const term of ["WordPress AI-alternatief", "AI-gestuurde websitemigratie", "knowsAbout", "AI website builder"]) assert.ok(layout.includes(term), `trefwoorden of structured data missen: ${term}`);

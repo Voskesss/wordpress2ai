@@ -1,11 +1,46 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { FOTO_ALT } from "@/lib/pagina-fotos";
+
+const foto = { src: "/images/paginas/nieuwe-website.webp", alt: FOTO_ALT["nieuwe-website"] };
 
 export const metadata: Metadata = {
-  title: "Nieuwe website",
+  title: "Nieuwe website laten maken met AI, vanaf €250",
   description:
-    "Liever een compleet nieuwe website dan je WordPress-site overzetten? Kies een AI-ontwerp of een ontwerp door een designer, met de AI-beheerder erbij.",
+    "Een nieuwe website laten maken zonder WordPress: AI-ontwerp vanaf €250, designer vanaf €1.750. Daarna zelf bijhouden via een chat, vanaf €19 per maand.",
+  alternates: { canonical: "/nieuwe-website" },
 };
+
+// Vragen van de vroegere pagina wordpress-website-maken-met-ai, die hierin
+// is opgegaan en doorstuurt (next.config.ts).
+const vragen = [
+  {
+    vraag: "Ik heb al een website. Betaal ik dan ook voor een nieuw ontwerp?",
+    antwoord:
+      "Nee, dat hoeft niet. Een bestaande site één-op-één overzetten kan al vanaf €150; je houdt dan precies dezelfde site, maar zonder WordPress en met de chat. Een nieuw AI-ontwerp is een keuze die je ook later nog kunt maken.",
+  },
+  {
+    vraag: "Kan ik daarna zelf wijzigen zonder technische kennis?",
+    antwoord:
+      "Ja. Je typt in de chat wat er anders moet en bekijkt het voorstel op je eigen site. Daarvoor heb je geen eigen AI-abonnement nodig. Voor complexe nieuwe functies bespreken we eerst wat mogelijk is.",
+  },
+  {
+    vraag: "Heeft een website die met AI gemaakt is gevolgen voor Google?",
+    antwoord:
+      "De kwaliteit en juistheid van je inhoud blijven het belangrijkst. We letten op leesbare pagina's, titels, beschrijvingen en interne links. Geen enkele techniek garandeert een zoekpositie.",
+  },
+  {
+    vraag: "Wat moet ik aanleveren?",
+    antwoord:
+      "Vertel wie je helpt, wat je aanbiedt en wat bezoekers moeten kunnen doen, zoals bellen, een offerte vragen of een afspraak maken. Lever je logo, foto's en de juiste bedrijfsgegevens aan. Heb je nog geen goede foto's, dan zoeken we samen een oplossing.",
+  },
+  {
+    vraag: "Kan ik een webshop laten bouwen?",
+    antwoord:
+      "Een winkelwagen of ledenomgeving met inlog draait niet op onze sites. Heb je een webshop bij bijvoorbeeld Shopify, of een extern boekingssysteem, dan linken we daar gewoon naartoe. Een bedrijfssite met diensten, projecten, blog en formulieren bouwen we wel.",
+  },
+];
 
 const stappen = [
   {
@@ -18,7 +53,7 @@ const stappen = [
     nr: "2",
     kop: "Wij bouwen een voorstel",
     tekst:
-      "Je krijgt een werkende voorbeeldsite te zien — geen schetsen of moodboards, maar het echte ding. Feedback geef je gewoon in gewone taal.",
+      "Je krijgt een werkende voorbeeldsite te zien, geen schetsen of moodboards, maar het echte ding. Feedback geef je gewoon in gewone taal.",
   },
   {
     nr: "3",
@@ -34,19 +69,28 @@ const invoer =
 export default function NieuweWebsite() {
   return (
     <>
-      <div className="mx-auto max-w-4xl px-6 pt-20">
-        <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          EEN FRISSE START
-        </p>
-        <h1 className="font-display mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08]">
-          Een nieuwe website. Klaar voor jouw plannen.
-        </h1>
-        <p className="mt-5 text-lg text-stone-600 leading-relaxed max-w-2xl">
-          Nog geen website, of toe aan een nieuwe uitstraling? Wij bouwen hem
-          opnieuw — snel, zonder WordPress, en altijd met de AI-beheerder erbij
-          zodat je hem daarna zelf kunt aanpassen door het gewoon te typen.
-        </p>
-      </div>
+      {/* Hero over de volle breedte, net als de landingspagina's met foto */}
+      <section className="landing-breed">
+        <Image src={foto.src} alt={foto.alt} fill priority sizes="100vw" className="landing-breed-foto" />
+        <div className="landing-breed-schaduw" aria-hidden />
+        <div className="shell landing-breed-inhoud">
+          <p className="landing-breed-label">Een frisse start</p>
+          <h1 className="font-display">Een nieuwe website laten maken</h1>
+          <p className="landing-breed-onder">
+            Nog geen website, of toe aan een nieuwe uitstraling? Wij bouwen hem
+            opnieuw: snel, zonder WordPress, en met de AI-beheerder erbij zodat
+            je hem daarna zelf aanpast door het te typen.
+          </p>
+          <div className="landing-breed-knoppen">
+            <Link href="#intake" className="lift landing-breed-hoofdknop">
+              Vertel over je nieuwe website →
+            </Link>
+            <Link href="/demo" className="lift landing-breed-tweede">
+              Probeer de demo
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Twee smaken */}
       <div className="mx-auto max-w-4xl px-6 py-12 grid gap-6 sm:grid-cols-2">
@@ -92,7 +136,7 @@ export default function NieuweWebsite() {
             </span>
           </p>
           <p className="mt-2 text-sm text-stone-500">
-            Een menselijke ontwerper maakt een uniek design op maat — met
+            Een menselijke ontwerper maakt een uniek design op maat, met
             gesprekken, revisierondes en oog voor je merk. De AI bouwt het
             daarna pixel-precies.
           </p>
@@ -122,7 +166,7 @@ export default function NieuweWebsite() {
         >
           de overstap
         </Link>{" "}
-        voordeliger — dat blijft ons hoofdvak.
+        voordeliger. Dat blijft ons hoofdvak.
       </p>
 
       {/* Stappen */}
@@ -145,6 +189,47 @@ export default function NieuweWebsite() {
         </div>
       </div>
 
+      {/* Vragen */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: vragen.map((v) => ({
+              "@type": "Question",
+              name: v.vraag,
+              acceptedAnswer: { "@type": "Answer", text: v.antwoord },
+            })),
+          }),
+        }}
+      />
+      <div className="mx-auto max-w-3xl px-6 pb-14">
+        <h2 className="font-display text-2xl font-semibold tracking-tight">
+          Vragen over een nieuwe website
+        </h2>
+        <div className="mt-6 space-y-6">
+          {vragen.map((v) => (
+            <div key={v.vraag}>
+              <h3 className="font-semibold text-lg">{v.vraag}</h3>
+              <p className="mt-1.5 text-stone-600 leading-relaxed">{v.antwoord}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-8 text-sm text-stone-500">
+          Twijfel je tussen goedkope AI-bouwers en een site die iemand voor je
+          bijhoudt? Lees{" "}
+          <Link href="/ai-website" className="font-semibold text-violet-700 underline">
+            waar je op let bij een goedkope AI-website
+          </Link>
+          . Heb je al een site? Dan kun je hem ook{" "}
+          <Link href="/wordpress-overzetten" className="font-semibold text-violet-700 underline">
+            overzetten vanaf €150
+          </Link>
+          .
+        </p>
+      </div>
+
       {/* Intake */}
       <div className="bg-[#eff3e8] border-y border-stone-200">
         <div className="mx-auto max-w-2xl px-6 py-16">
@@ -152,8 +237,8 @@ export default function NieuweWebsite() {
             Start de intake
           </h2>
           <p className="mt-3 text-stone-600 leading-relaxed">
-            Vertel ons in vijf minuten wat je nodig hebt — wij komen binnen één
-            werkdag terug met een voorstel en een vaste prijs.
+            Vertel ons in vijf minuten wat je nodig hebt. Wij komen binnen twee
+            werkdagen terug met een voorstel en een vaste prijs.
           </p>
           <form
             id="intake"
@@ -226,7 +311,7 @@ export default function NieuweWebsite() {
               Verstuur intake →
             </button>
             <p className="text-xs text-stone-400">
-              Vrijblijvend — je zit nergens aan vast tot je akkoord geeft op het
+              Vrijblijvend: je zit nergens aan vast tot je akkoord geeft op het
               voorstel.
             </p>
           </form>

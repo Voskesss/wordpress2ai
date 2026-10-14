@@ -848,24 +848,26 @@ main p {
   justify-content: space-between;
   gap: 20px;
 }
+/* Alle onderwerppagina's zichtbaar in de footer, gegroepeerd. Stond in een
+   ingeklapt blok; dan telt de link voor bezoekers niet en weegt hij voor
+   zoekmachines minder (SEO-ronde 14-10-2026). */
 .footer-resources {
-  font-size: 10px;
   border-top: 1px solid #dce3d1;
-  padding-block: 15px;
+  padding-block: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 22px;
+  font-size: 13px;
 }
-.footer-resources summary {
-  cursor: pointer;
-  /* De hele blok stond op 10px, ook deze kop. Dan zie je de knop niet en
-     klapt niemand hem open. De links eronder blijven wel klein. */
-  font-size: 15px;
+.footer-resources h3 {
+  font-size: 13px;
   font-weight: 600;
   color: #244b3d;
+  margin-bottom: 8px;
 }
-.footer-resources nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 15px;
+.footer-resources a {
+  display: block;
+  padding-block: 3px;
 }
 @media (min-width: 1024px) {
   main > div:not(.marketing-home):not(.clerk-pagina):first-child h1 {
@@ -1843,4 +1845,163 @@ main p {
   .demo-video-vierkant { display: none !important; }
   .demo-video-staand { display: block !important; max-width: 340px; margin-inline: auto; }
   .demo-video-knop span { width: 76px; height: 76px; }
+}
+
+/* Landingspagina's (SEO-ronde 14-10-2026): herofoto, prijslabels in plaats
+   van een grijs blok kleine letters, en stappen, vinkjes en tabellen in de
+   lopende tekst. */
+.agency-landing-hero.met-foto { grid-template-columns: 1fr 1fr; align-items: center; }
+.landing-foto { margin: 0; min-width: 0; }
+.landing-foto img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 16px; box-shadow: 0 18px 40px -24px rgba(36, 75, 61, .45); }
+.landing-onderkop { margin-top: 14px; font-size: 19px; line-height: 1.5; font-weight: 600; color: #36614f; }
+.prijs-labels { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.prijs-labels li { border: 1px solid #cfdcc8; background: #f3f7ef; color: #244b3d; border-radius: 999px; padding: 6px 13px; font-size: 14px; font-weight: 600; }
+.prijs-labels li:last-child { background: transparent; border-color: transparent; color: #6b7466; font-weight: 500; padding-inline: 4px; }
+.landing-stappen { counter-reset: stap; list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; }
+.landing-stappen li { counter-increment: stap; position: relative; padding: 14px 16px 14px 56px; background: #fff; border: 1px solid #e3e8dd; border-radius: 12px; color: #44503f; line-height: 1.6; }
+.landing-stappen li::before { content: counter(stap); position: absolute; left: 14px; top: 13px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: #244b3d; color: #fff; font-weight: 700; font-size: 14px; }
+.landing-vinkjes { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
+.landing-vinkjes li { position: relative; padding-left: 28px; color: #44503f; line-height: 1.6; }
+.landing-vinkjes li::before { content: "✓"; position: absolute; left: 4px; color: #31956b; font-weight: 700; }
+.landing-tabel { margin-top: 18px; overflow-x: auto; border: 1px solid #e3e8dd; border-radius: 12px; background: #fff; }
+.landing-tabel table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 480px; }
+.landing-tabel th, .landing-tabel td { text-align: left; padding: 11px 14px; border-bottom: 1px solid #eef1ea; vertical-align: top; }
+.landing-tabel thead th { background: #f3f7ef; color: #244b3d; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.landing-tabel tbody th { font-weight: 600; color: #244b3d; }
+.landing-tabel tbody tr:last-child th, .landing-tabel tbody tr:last-child td { border-bottom: 0; }
+.landing-tabel-bron { padding: 8px 14px 10px; font-size: 12px; color: #6b7466; border-top: 1px solid #eef1ea; }
+@media (max-width: 767px) {
+  /* "Een herofoto bovenaan": op de telefoon eerst de foto, dan de kop */
+  .agency-landing-hero.met-foto { grid-template-columns: 1fr; gap: 22px; padding-top: 20px; }
+  .agency-landing-hero.met-foto .landing-foto { order: -1; }
+  .landing-foto img { aspect-ratio: 16 / 10; }
+  .landing-onderkop { font-size: 17px; }
+}
+
+/* Hero over de volle breedte met foto en witte tekst (proef op /website-kapsalon) */
+.landing-breed { position: relative; isolation: isolate; min-height: clamp(460px, 62vh, 640px); display: flex; align-items: center; overflow: hidden; background: #244b3d; }
+.landing-breed-foto { object-fit: cover; object-position: center 20%; z-index: -2; }
+.landing-breed-schaduw { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(18, 38, 30, .88) 0%, rgba(18, 38, 30, .7) 38%, rgba(18, 38, 30, .25) 70%, rgba(18, 38, 30, .05) 100%); }
+.landing-breed-inhoud { padding-block: 64px; color: #fff; }
+.landing-breed-inhoud > * { max-width: 560px; }
+.landing-breed-label { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #cfe3c6; }
+.landing-breed h1 { margin-top: 14px; font-size: clamp(38px, 5vw, 64px); line-height: 1.05; letter-spacing: -.04em; font-weight: 600; color: #fff; }
+.landing-breed-onder { margin-top: 16px; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.45; color: #eef4ea; }
+.landing-breed-knoppen { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; }
+.landing-breed-hoofdknop { border-radius: 10px; background: #fff; color: #244b3d; padding: 14px 22px; font-weight: 700; }
+.landing-breed-hoofdknop:hover { background: #eef4ea; }
+.landing-breed-tweede { border-radius: 10px; border: 2px solid rgba(255, 255, 255, .7); color: #fff; padding: 12px 20px; font-weight: 600; }
+.landing-breed-tweede:hover { background: rgba(255, 255, 255, .12); }
+@media (max-width: 767px) {
+  .landing-breed { min-height: 540px; align-items: flex-end; }
+  .landing-breed-foto { object-position: 65% center; }
+  .landing-breed-schaduw { background: linear-gradient(180deg, rgba(18, 38, 30, .1) 0%, rgba(18, 38, 30, .55) 40%, rgba(18, 38, 30, .92) 100%); }
+  .landing-breed-inhoud { padding-block: 40px 32px; }
+  .landing-breed-knoppen a { flex: 1 1 100%; text-align: center; }
+}
+
+/* Onder de brede hero: intro + prijskaart, "zo werkt het" naast de
+   illustratie, en de overige punten als kaarten (proef kapsalon) */
+.landing-band { background: #eff3e8; border-bottom: 1px solid #dfe7d8; }
+.landing-band-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: center; padding-block: 56px; }
+.landing-band-intro { font-size: clamp(19px, 1.7vw, 23px); line-height: 1.6; color: #2f3d33; }
+.landing-prijskaart { background: #fff; border: 1px solid #dfe7d8; border-radius: 16px; padding: 24px; box-shadow: 0 14px 30px -22px rgba(36, 75, 61, .45); }
+.landing-prijskaart-kop { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #36614f; }
+.landing-prijskaart dl { margin-top: 12px; }
+.landing-prijskaart dl div { display: flex; justify-content: space-between; gap: 12px; padding-block: 10px; border-bottom: 1px solid #eef1ea; }
+.landing-prijskaart dt { color: #5b6657; }
+.landing-prijskaart dd { font-weight: 700; color: #244b3d; text-align: right; }
+.landing-prijskaart-btw { margin-top: 10px; font-size: 13px; color: #6b7466; }
+.landing-prijskaart-vink { margin-top: 12px; font-size: 14px; font-weight: 600; color: #2f7d58; line-height: 1.5; }
+.landing-zo { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding-block: 72px; }
+.landing-zo > div:first-child p { font-size: 17px; }
+.landing-kaarten-band { background: #f6f4ec; border-block: 1px solid #ebe7da; }
+.landing-kaarten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-block: 64px; }
+.landing-kaart { position: relative; background: #fff; border: 1px solid #e6e2d4; border-radius: 16px; padding: 28px 28px 26px; }
+.landing-kaart-nr { display: inline-block; margin-bottom: 12px; font-family: var(--font-fraunces, serif); font-size: 15px; font-weight: 600; color: #fff; background: #244b3d; border-radius: 8px; padding: 3px 9px; }
+@media (max-width: 767px) {
+  .landing-band-grid, .landing-zo { grid-template-columns: 1fr; gap: 28px; padding-block: 40px; }
+  .landing-kaarten { grid-template-columns: 1fr; padding-block: 40px; }
+}
+
+/* Filmpje van de homepage in "zo werkt het", en een oneven laatste kaart
+   over de volle breedte zodat er geen leeg vak naast staat */
+.landing-zo { grid-template-columns: 1.1fr 1fr; }
+.landing-video { margin: 0; min-width: 0; }
+.landing-video figcaption { margin-top: 10px; font-size: 13px; color: #6b7466; text-align: center; }
+.landing-kaart-breed { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 22px; align-items: start; }
+.landing-kaart-breed .landing-kaart-nr { grid-row: span 3; margin-bottom: 0; margin-top: 4px; }
+@media (max-width: 767px) {
+  .landing-zo { grid-template-columns: 1fr; }
+  .landing-kaart-breed { display: block; }
+  .landing-kaart-breed .landing-kaart-nr { margin-bottom: 12px; }
+}
+.landing-zo-label { color: #36614f; margin-bottom: -16px; }
+.landing-zo-link { display: inline-block; font-weight: 700; color: #244b3d; border-bottom: 2px solid #31956b; padding-bottom: 2px; }
+.landing-zo-link:hover { color: #31956b; }
+
+/* Homepage vrolijker (14-10-2026): gezichten, foto-kaarten en lichtere foto's.
+   De AI-foto's zijn aan de sombere kant; op de homepage tillen we ze iets op. */
+
+.voor-wie { background: linear-gradient(180deg, #f3f7ef 0%, #fbf3e6 100%); border-block: 1px solid #e6ece0; padding-block: 72px; }
+.voor-wie h2 { margin-top: 12px; max-width: 760px; font-size: clamp(28px, 3vw, 40px); line-height: 1.15; letter-spacing: -.035em; }
+.voor-wie-grid { margin-top: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.voor-wie-kaart { position: relative; display: block; overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 10px 26px -18px rgba(36, 75, 61, .45); }
+.voor-wie-kaart img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .35s ease; }
+.voor-wie-kaart:hover img { transform: scale(1.04); }
+.voor-wie-kaart span { position: absolute; left: 10px; bottom: 10px; background: #fffdf8; color: #244b3d; font-weight: 700; font-size: 14px; padding: 6px 12px; border-radius: 999px; box-shadow: 0 4px 12px rgba(0, 0, 0, .12); }
+.voor-wie-meer { margin-top: 20px; font-size: 15px; color: #4f5a4b; }
+.voor-wie-meer a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home-foto img { aspect-ratio: 4 / 3; object-fit: cover; object-position: 70% center; border-radius: 18px; }
+.kies-grid { margin-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.kies-kaart { display: grid; grid-template-columns: 160px 1fr; grid-template-rows: auto 1fr; column-gap: 18px; align-items: start; background: #fff; border: 1px solid #e6e2d4; border-radius: 16px; padding: 12px; overflow: hidden; }
+.kies-kaart img { grid-row: span 2; width: 160px; height: 110px; object-fit: cover; border-radius: 10px; }
+.kies-kop { margin-top: 8px; font-weight: 700; color: #244b3d; font-size: 17px; }
+.kies-tekst { margin-top: 4px; font-size: 14px; color: #5b6657; line-height: 1.5; }
+.kies-kaart:hover { border-color: #b9d1b0; }
+@media (max-width: 1000px) {
+  .voor-wie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kies-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .voor-wie { padding-block: 48px; }
+  .kies-kaart { grid-template-columns: 110px 1fr; }
+  .kies-kaart img { width: 110px; height: 90px; }
+  /* Op de telefoon: eerst de kop, dan meteen het filmpje, dan de rest */
+  .home-hero { display: flex; flex-direction: column; }
+  .home-hero .hero-copy { display: contents; }
+  .home-hero .hero-copy > * { order: 3; }
+  .home-hero .hero-copy > .eyebrow { order: 1; }
+  .home-hero .hero-copy > h1 { order: 2; margin-bottom: 0; }
+  .home-hero .hero-example { order: 2; }
+  .home-hero .hero-example > .eyebrow { display: none; }
+}
+
+/* Homepage-hero over de volle breedte met foto en filmpje (14-10-2026) */
+.home-hero-foto { position: relative; isolation: isolate; overflow: hidden; background: #244b3d; }
+.home-hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding-block: 64px; min-height: clamp(520px, 70vh, 700px); }
+.home-hero-tekst { color: #fff; }
+.home-hero-tekst h1 { margin-top: 14px; font-size: clamp(40px, 4.6vw, 64px); line-height: 1.05; letter-spacing: -.04em; font-weight: 600; color: #fff; }
+.home-hero-tekst h1 em { display: block; font-style: normal; color: #d8ecc9; }
+.home-hero-tekst h1.hero-hoek { font-size: clamp(32px, 3.4vw, 46px); }
+.home-hero-tekst h1.hero-hoek em { margin-top: 12px; font-size: .62em; line-height: 1.3; }
+.home-hero-zeker { margin-top: 14px; font-size: 14px; color: #e5efe0; }
+.home-hero-video { min-width: 0; }
+.home-hero-video .demo-video video { box-shadow: 0 24px 60px rgba(0, 0, 0, .35); }
+.home-intro { background: #eff3e8; border-bottom: 1px solid #dfe7d8; }
+.home-intro-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: center; padding-block: 48px; }
+.home-intro h2 { font-size: clamp(26px, 2.6vw, 34px); letter-spacing: -.03em; color: #244b3d; }
+.home-intro p { margin-top: 10px; font-size: 18px; line-height: 1.6; color: #3c4a40; }
+@media (max-width: 900px) {
+  .home-hero-grid, .home-intro-grid { grid-template-columns: 1fr; gap: 28px; }
+  .home-hero-grid { padding-block: 40px 32px; min-height: 0; }
+  .home-hero-video .demo-video-staand { max-width: 300px; }
+}
+.home-hero-grid { grid-template-columns: minmax(0, 620px); }
+.home-video-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #36614f; margin-bottom: 10px; }
+.home-intro .hero-price { margin-top: 18px; }
+.home-intro-grid { grid-template-columns: 1fr 1fr; padding-block: 56px; }
+.marketing-home .home-intro .home-video-label { font-size: 11px; line-height: 1.4; letter-spacing: .12em; margin: 0 0 10px; }
+@media (max-width: 900px) {
+  .home-intro-grid { grid-template-columns: 1fr; padding-block: 36px; }
 }

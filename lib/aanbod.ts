@@ -30,7 +30,7 @@ export const aanbod = {
   wijzigen:
     "Eigenlijk alles wat je op je website ziet. Teksten, prijzen en openingstijden aanpassen; foto’s vervangen of toevoegen; nieuwe pagina’s maken, zoals een extra dienst, een actie of een blogbericht; knoppen, menu-items en formulieren toevoegen; en de titels en omschrijvingen die Google laat zien. Je typt het in gewone woorden, bijvoorbeeld: “maak een pagina over onze workshops met deze foto”. Nieuwe pagina’s en onderdelen bouwt de AI altijd op in de stijl van je eigen site, met dezelfde kleuren, lettertypes en opbouw, zodat alles bij elkaar blijft passen. Wil je bewust iets anders, zoals een andere foto bovenaan of een afwijkende kleur, dan vraag je dat gewoon. Je ziet elke wijziging eerst als voorbeeld en zet hem zelf live. Wat niet via de chat gaat: een webshop, een ledenomgeving met inlog of een compleet nieuw ontwerp; dat bespreken we apart.",
   meenemen:
-    "Nee. Je website bestaat uit gewone webbestanden die van jou zijn, en die download je op elk moment zelf in je portaal, ook als je gewoon blijft. Je domeinnaam blijft van jou, waar hij ook staat, en je e-mail houd je bij je eigen mailprovider. Het abonnement is maandelijks opzegbaar en dat regel je ook zelf in je portaal. Stop je, dan neem je alles mee: je website, je formulierberichten en je facturen — en je site blijft na de betaalde periode nog een maand extra online, zodat je rustig kunt verhuizen. Dat is precies het verschil met veel AI-websitebouwers, waar je site alleen in hun systeem bestaat en je hem vaak niet kunt meenemen.",
+    "Nee. Je website bestaat uit gewone webbestanden die van jou zijn, en die download je op elk moment zelf in je portaal, ook als je gewoon blijft. Je domeinnaam blijft van jou, waar hij ook staat, en je e-mail houd je bij je eigen mailprovider. Het abonnement is maandelijks opzegbaar en dat regel je ook zelf in je portaal. Stop je, dan neem je alles mee: je website, je formulierberichten en je facturen. En je site blijft na de betaalde periode nog een maand extra online, zodat je rustig kunt verhuizen. Dat is precies het verschil met veel AI-websitebouwers, waar je site alleen in hun systeem bestaat en je hem vaak niet kunt meenemen.",
   eigenAi:
     "De ingebouwde WordSwap-chat is beschikbaar. Teksten uit ChatGPT of Claude kun je daarin plakken. Een rechtstreekse koppeling vanuit zo’n assistent is nog gepland. Experts kunnen op afspraak eigen AI-codetools gebruiken; zij werken buiten de standaard goedkeuringsroute.",
 };
@@ -46,7 +46,7 @@ export const aankoopVragen = [
   ],
   [
     "Is WordSwap een chatbot voor mijn bezoekers?",
-    "De ingebouwde AI-chat is voor jou als eigenaar: daarmee pas je je website aan. Wil je daarnaast een chatbot óp je website die vragen van bezoekers beantwoordt? Dat kunnen we toevoegen — in je klantomgeving kun je nu al documenten over je bedrijf klaarzetten waar die chatbot straks uit put.",
+    "De ingebouwde AI-chat is voor jou als eigenaar: daarmee pas je je website aan. Wil je daarnaast een chatbot óp je website die vragen van bezoekers beantwoordt? Dat kunnen we toevoegen: in je klantomgeving kun je nu al documenten over je bedrijf klaarzetten waar die chatbot straks uit put.",
   ],
   ["Past mijn website bij WordSwap?", aanbod.geschikt],
   ["Blijven mijn ontwerp en domeinnaam behouden?", aanbod.ontwerp],
@@ -74,6 +74,6 @@ export const aankoopVragen = [
   ],
   [
     "Kan ik later weer terug naar WordPress?",
-    "Ja, dat regelen we vooraf. Je oude WordPress-site blijft gewoon bestaan zolang jij je hosting aanhoudt — teruggaan is dan alleen je domein terugwijzen. Wil je die hosting opzeggen, dan maak je eerst (met onze hulp, zonder dat wij je inloggegevens nodig hebben) een complete kopie van je WordPress-site. Die kopie houd je zelf en bewaren wij desgewenst een jaar mee. Wil je binnen dat jaar terug, dan zetten we hem voor je terug — je hebt dan alleen weer hosting nodig. En los daarvan: de koppeling met ons is maandelijks opzegbaar en je websitebestanden zijn altijd van jou.",
+    "Ja, dat regelen we vooraf. Je oude WordPress-site blijft gewoon bestaan zolang jij je hosting aanhoudt. Teruggaan is dan alleen je domein terugwijzen. Wil je die hosting opzeggen, dan maak je eerst (met onze hulp, zonder dat wij je inloggegevens nodig hebben) een complete kopie van je WordPress-site. Die kopie houd je zelf en bewaren wij desgewenst een jaar mee. Wil je binnen dat jaar terug, dan zetten we hem voor je terug. Je hebt dan alleen weer hosting nodig. En los daarvan: de koppeling met ons is maandelijks opzegbaar en je websitebestanden zijn altijd van jou.",
   ],
 ];

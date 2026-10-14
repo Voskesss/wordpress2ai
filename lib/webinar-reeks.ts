@@ -159,7 +159,7 @@ export function bouwReeksMail(
           p("Bedankt dat je je had aangemeld voor het webinar.") +
             (w.opnameLink ? p("Kon je er niet bij zijn, of wil je iets terugkijken?") + knop(w.opnameLink, "Bekijk de opname") : "") +
             p(
-              "Wil je weten of jij van het gedoe af kunt, voor jouw eigen website? Vraag dan de gratis websitecheck aan. Je krijgt binnen één werkdag een eerlijk antwoord, ook als dat ‘blijf waar je zit’ is.",
+              "Wil je weten of jij van het gedoe af kunt, voor jouw eigen website? Vraag dan de gratis websitecheck aan. Je krijgt binnen twee werkdagen een eerlijk antwoord, ook als dat ‘blijf waar je zit’ is.",
             ) +
             knop("https://wordswap.nl/contact", "Gratis websitecheck aanvragen"),
         ),

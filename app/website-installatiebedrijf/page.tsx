@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SeoLanding from "../SeoLanding";
-export const metadata: Metadata = {"title": "Een website voor je installatiebedrijf die altijd klopt", "description": "Telefoonnummer, spoeddienst en projecten altijd kloppend, zonder je webbouwer te bellen. Je site gaat exact over. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-installatiebedrijf"}};
+export const metadata: Metadata = {"title": "Website installateur laten maken, altijd actueel", "description": "Telefoonnummer, spoeddienst en projecten altijd kloppend, zonder je webbouwer te bellen. Je site gaat exact over. Vanaf 150 euro eenmalig.", "alternates": {"canonical": "/website-installatiebedrijf"}};
 export default function Pagina(){ return <SeoLanding data={{
   "slug": "website-installatiebedrijf",
   "label": "Website voor installateurs",
   "titel": "Een website voor je installatiebedrijf die altijd klopt",
+  "kort": "Website voor je installatiebedrijf",
   "intro": "Een verkeerd telefoonnummer of een oude spoeddienst op je site kost je direct werk. Wij zetten je site over zoals hij is, en daarna pas je hem aan door te typen wat er anders moet.",
   "blokken": [
     {
