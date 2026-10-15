@@ -18,7 +18,9 @@ for (const v of [
 ]) assert.ok(aankoopVragen.some(([q]) => q === v), `vraag ontbreekt in de FAQ: ${v}`);
 assert.match(aankoopVragen.find(([q]) => q === "Is WordSwap een static site generator?")![1], /^Nee\./, "we zijn geen generator");
 const home = await readFile("app/page.tsx", "utf8");
-assert.ok(home.includes("${aanbod.kernzin}"), "de kernzin staat niet in de homepage-intro");
+// Intro onder de hero (tekst Jos 15-10-2026): noemt de categorie, belooft niet het onmogelijke
+assert.ok(home.includes("statische website zonder database") && home.includes("AI-chat"), "de homepage-intro noemt niet wat WordSwap is");
+for (const fout of ["onmogelijk te hacken", "nooit meer in te loggen", "razendsnel"]) assert.ok(!home.toLowerCase().includes(fout), `te stellige belofte op de homepage: ${fout}`);
 const layout = await readFile("app/layout.tsx", "utf8");
 assert.ok(layout.includes('"@type": "WebApplication"'), "WebApplication-schema ontbreekt");
 assert.ok(!/static site generator|migration tool/i.test(layout.replace(/\/\/.*$/gm, "")), "het schema noemt ons een generator of tool");

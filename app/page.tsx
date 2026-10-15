@@ -3,7 +3,7 @@ import Image from "next/image";
 import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo, { WhatsAppVideo } from "./DemoVideo";
 import HeroDias from "./HeroDias";
-import { aanbod, aankoopVragen } from "@/lib/aanbod";
+import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
@@ -60,7 +60,7 @@ export default async function Home({
         dias={[
           {
             foto: "/images/paginas/home.webp",
-            label: "WordPress-website overzetten naar een statische website met AI-beheer",
+            label: "De makkelijkste manier om je WordPress-website sneller, veiliger en onderhoudsvrij te maken.",
             kopKlasse: hoek && hoek.sleutel !== "regelt-zichzelf" ? "hero-hoek" : undefined,
             kop:
               hoek && hoek.sleutel !== "regelt-zichzelf" ? (
@@ -124,7 +124,7 @@ export default async function Home({
             <p>
               {hoek && hoek.sleutel !== "regelt-zichzelf"
                 ? hoek.tekst
-                : `${aanbod.kernzin} Je ontwerp, je teksten en je pagina-adressen gaan mee.`}
+                : "Heb je een WordPress-website, maar word je gek van trage pagina’s, steeds weer plug-in-updates en het gedoe aan de achterkant? Met WordSwap houd je je huidige website en ontwerp, maar halen we de ingewikkelde techniek weg. We zetten je site om naar een snelle, statische website zonder database en zonder plug-ins, zodat de bekende inbraakroutes van WordPress verdwijnen. Het beste deel: geen ingewikkeld dashboard meer. Je past je website aan door te typen in onze AI-chat, alsof je een appje stuurt naar je eigen webbouwer."}
             </p>
             <div className="hero-price">
               <span>

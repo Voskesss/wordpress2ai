@@ -15,7 +15,7 @@ assert.equal((home.match(/<h1/g) ?? []).length, 0, "de homepage hoort zelf geen 
 assert.equal((c.match(/<h1/g) ?? []).length, 1, "de dia's horen precies één h1 te hebben");
 assert.ok(c.includes('i === 0 ? <h1 className="hero-h1">{d.label}</h1>'), "alleen het label van de eerste dia mag de h1 zijn");
 const h1 = home.match(/label: "([^"]+)"/)?.[1] ?? "";
-assert.ok(/WordPress/.test(h1) && /statische website/.test(h1), `de h1 zegt niet wat WordSwap is: "${h1}"`);
+assert.ok(/WordPress/.test(h1), `de h1 noemt WordPress niet: "${h1}"`);
 // Geen tijdsbeloftes in de dia's
 const diaBlok = home.slice(home.indexOf("<HeroDias"), home.indexOf("onder={"));
 assert.ok(diaBlok.length > 200, "dia's niet gevonden in de homepage");
