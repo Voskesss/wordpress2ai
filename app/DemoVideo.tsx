@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { trackMarketing } from "./MarketingEvents";
+import { volschermOpTelefoon } from "./volscherm";
 
 /**
  * De demovideo (ruim 40 s, zonder geluid) bovenaan de homepage: vier echte
@@ -45,14 +46,8 @@ function Uitvoering({ u }: { u: Uitvoering }) {
             const v = video.current;
             if (!v) return;
             void v.play();
-            // Op de telefoon is het kader te klein om iets te zien: meteen
-            // schermvullend (wens Jos 15-10-2026). iPhone kent alleen de
-            // webkit-variant op het video-element; beide moeten binnen de tik.
-            if (window.matchMedia("(max-width: 900px)").matches) {
-              const vol = v as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-              if (vol.webkitEnterFullscreen) vol.webkitEnterFullscreen();
-              else void v.requestFullscreen?.().catch(() => {});
-            }
+            // Op de telefoon meteen schermvullend: het kader is daar te klein
+            volschermOpTelefoon(v);
             trackMarketing("demo_video_start", { uitvoering: u.soort });
           }}
         >

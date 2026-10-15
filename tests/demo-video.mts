@@ -54,10 +54,20 @@ assert.ok(video.includes('trackMarketing("demo_video_start"'), "het starten van 
 
 console.log("demo-video: ok");
 
-// Op de telefoon schermvullend afspelen (15-10-2026), iPhone via webkitEnterFullscreen
+// Alle video's op de site schermvullend op de telefoon (15-10-2026), iPhone via webkitEnterFullscreen
 {
-  const dv = await (await import("node:fs/promises")).readFile("app/DemoVideo.tsx", "utf8");
-  if (!dv.includes("webkitEnterFullscreen") || !dv.includes("requestFullscreen")) throw new Error("demovideo gaat op de telefoon niet schermvullend");
+  const fs = await import("node:fs/promises");
+  const hulp = await fs.readFile("app/volscherm.ts", "utf8");
+  if (!hulp.includes("webkitEnterFullscreen") || !hulp.includes("requestFullscreen")) throw new Error("volscherm kent iPhone of Android niet");
+  // Elke openbare <video> moet de hulp gebruiken (het portaal telt niet mee)
+  for (const bestand of ["app/DemoVideo.tsx", "app/video/[naam]/TikVideo.tsx"]) {
+    if (!(await fs.readFile(bestand, "utf8")).includes("volschermOpTelefoon(")) throw new Error(`${bestand} gaat op de telefoon niet schermvullend`);
+  }
+  const { execSync } = await import("node:child_process");
+  const metVideo = execSync("grep -rl '<video' app --include=*.tsx", { encoding: "utf8" }).trim().split("\n").filter((f) => !f.startsWith("app/portal/") && !f.startsWith("app/api/"));
+  for (const f of metVideo) {
+    if (!["app/DemoVideo.tsx", "app/video/[naam]/TikVideo.tsx"].includes(f)) throw new Error(`nieuwe video zonder schermvullend op de telefoon: ${f}`);
+  }
 }
 
 // WhatsApp-blok op de homepage met filmpje (15-10-2026): eerlijk dat het bij Optimaal ontzorgd hoort
