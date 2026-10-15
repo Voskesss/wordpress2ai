@@ -5,7 +5,7 @@
  */
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-const { aanbod, aankoopVragen } = await import("../lib/aanbod.ts");
+import { aanbod, aankoopVragen } from "../lib/aanbod";
 assert.match(aanbod.kernzin, /^WordSwap is een Nederlandse dienst/, "de kernzin begint niet met wat WordSwap is");
 assert.ok(aanbod.kernzin.split(/\s+/).length < 60, "de kernzin is te lang voor een eerste alinea");
 assert.equal(aankoopVragen[0][0], "Wat is WordSwap?", "de FAQ begint niet met 'Wat is WordSwap?'");
