@@ -9,6 +9,7 @@ import { trackMarketing } from "./MarketingEvents";
  * Twee uitvoeringen: vierkant voor brede schermen, staand voor de telefoon.
  * preload="none" en een eigen afspeelknop over het startbeeld: er wordt
  * niets geladen tot iemand drukt, dus de pagina wordt er niet trager van.
+ * Op de telefoon gaat de video bij het afspelen meteen schermvullend.
  */
 const UITVOERINGEN = [
   { soort: "vierkant", video: "/social/wordswap-demo-vierkant.mp4", beeld: "/social/wordswap-demo-vierkant.webp", breedte: 1080, hoogte: 1080 },
@@ -39,7 +40,17 @@ function Uitvoering({ u }: { u: (typeof UITVOERINGEN)[number] }) {
           aria-label="Speel de video af (ingekorte opname, zonder geluid)"
           onClick={() => {
             setGestart(true);
-            void video.current?.play();
+            const v = video.current;
+            if (!v) return;
+            void v.play();
+            // Op de telefoon is het kader te klein om iets te zien: meteen
+            // schermvullend (wens Jos 15-10-2026). iPhone kent alleen de
+            // webkit-variant op het video-element; beide moeten binnen de tik.
+            if (window.matchMedia("(max-width: 900px)").matches) {
+              const vol = v as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+              if (vol.webkitEnterFullscreen) vol.webkitEnterFullscreen();
+              else void v.requestFullscreen?.().catch(() => {});
+            }
             trackMarketing("demo_video_start", { uitvoering: u.soort });
           }}
         >

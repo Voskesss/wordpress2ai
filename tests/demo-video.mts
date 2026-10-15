@@ -53,3 +53,9 @@ assert.ok(/@media \(max-width: 760px\)[\s\S]*\.demo-video-vierkant \{ display: n
 assert.ok(video.includes('trackMarketing("demo_video_start"'), "het starten van de video wordt niet gemeten");
 
 console.log("demo-video: ok");
+
+// Op de telefoon schermvullend afspelen (15-10-2026), iPhone via webkitEnterFullscreen
+{
+  const dv = await (await import("node:fs/promises")).readFile("app/DemoVideo.tsx", "utf8");
+  if (!dv.includes("webkitEnterFullscreen") || !dv.includes("requestFullscreen")) throw new Error("demovideo gaat op de telefoon niet schermvullend");
+}
