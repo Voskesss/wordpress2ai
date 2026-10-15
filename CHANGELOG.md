@@ -20,6 +20,12 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.46.0 (15 oktober 2026)
+
+- De homepage zegt nu meteen wat WordSwap doet: "De makkelijkste manier om je WordPress-website sneller, veiliger en onderhoudsvrij te maken", met eronder een nieuwe uitleg. Zo kunnen Google en AI-zoekmachines ons beter plaatsen.
+- Zes nieuwe veelgestelde vragen, zoals "Wat is WordSwap?", "Hoe veilig is een statische website?" en "Is WordSwap een static site generator?". AI-zoekmachines gebruiken zulke korte antwoorden graag als bron.
+- Zoekmachines krijgen nu ook gegevens over het portaal met de AI-chat als webapplicatie, met de prijzen en wat je ermee kunt.
+
 ## 1.45.0 (15 oktober 2026)
 
 - Nieuw blok op de homepage: "Even iets aanpassen? Gewoon appen." Met het filmpje erbij laat het zien hoe je je website onderweg via WhatsApp bijwerkt (onderdeel van Optimaal ontzorgd).
