@@ -3,7 +3,7 @@ import Image from "next/image";
 import { FOTO_ALT } from "@/lib/pagina-fotos";
 import DemoVideo, { WhatsAppVideo } from "./DemoVideo";
 import HeroDias from "./HeroDias";
-import { aankoopVragen } from "@/lib/aanbod";
+import { aanbod, aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
 import { vindHoek } from "@/lib/hoeken";
 import type { Metadata } from "next";
@@ -60,18 +60,19 @@ export default async function Home({
         dias={[
           {
             foto: "/images/paginas/home.webp",
-            label: "Voor ondernemers met een website",
+            label: "WordPress-website overzetten naar een statische website met AI-beheer",
+            kopKlasse: hoek && hoek.sleutel !== "regelt-zichzelf" ? "hero-hoek" : undefined,
             kop:
               hoek && hoek.sleutel !== "regelt-zichzelf" ? (
-                <h1 className="hero-hoek">
+                <>
                   {hoek.kop}
                   <em>Mijn website regelt het. Ik hoef het alleen maar te vragen.</em>
-                </h1>
+                </>
               ) : (
-                <h1>
+                <>
                   Mijn website regelt het.
                   <em>Ik hoef het alleen maar te vragen.</em>
-                </h1>
+                </>
               ),
           },
           {
@@ -123,7 +124,7 @@ export default async function Home({
             <p>
               {hoek && hoek.sleutel !== "regelt-zichzelf"
                 ? hoek.tekst
-                : "Je houdt je huidige website: je ontwerp, je teksten en je plek in Google. Wij zetten hem over naar een snelle versie zonder WordPress. Daarna typ je gewoon wat er anders moet, bekijk je het voorbeeld en zet je het zelf live."}
+                : `${aanbod.kernzin} Je ontwerp, je teksten en je pagina-adressen gaan mee.`}
             </p>
             <div className="hero-price">
               <span>

@@ -22,7 +22,7 @@ export default function Pagina() {
         titel: "Je website aanpassen met AI, door te vertellen wat je wilt.",
         kort: "Website aanpassen met AI",
         intro:
-          "Andere openingstijden, een nieuwe foto of een extra dienst? Bij WordSwap typ je het in de chat, of je appt het. De AI maakt een voorbeeld op je eigen site, jij bekijkt het en zet het zelf live. Je bestaande website gaat mee: we zetten hem eerst over naar een snelle versie zonder WordPress, met hetzelfde ontwerp en dezelfde adressen.",
+          "Met WordSwap pas je je website aan met AI: je typt in een chat wat er anders moet. Andere openingstijden, een nieuwe foto of een extra dienst? Typ het, of app het. De AI maakt een voorbeeld op je eigen site, jij bekijkt het en zet het zelf live. Je bestaande website gaat mee: we zetten hem eerst over naar een snelle versie zonder WordPress, met hetzelfde ontwerp en dezelfde adressen.",
         blokken: [
           {
             kop: "Drie manieren om je website met AI aan te passen",

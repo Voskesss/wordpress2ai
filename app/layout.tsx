@@ -83,6 +83,7 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${siteUrl}/#organisatie`,
       name: "WordSwap",
+      alternateName: "WordSwap.nl",
       url: siteUrl,
       logo: `${siteUrl}/logo-mail.png`,
       description: aanbod.omschrijving,
@@ -188,6 +189,46 @@ const jsonLd = {
           },
           description:
             "€39 per maand excl. btw: basispakket plus voorrang bij je vragen en je website bijhouden via WhatsApp; maandelijks opzegbaar",
+        },
+      ],
+    },
+    {
+      // Het portaal met de AI-chat is software die de klant gebruikt; de
+      // overstap zelf is een dienst (#overstap). Bewust geen "static site
+      // generator" of "migration tool": dat zijn programma's die je zelf draait.
+      "@type": "WebApplication",
+      "@id": `${siteUrl}/#portaal`,
+      name: "WordSwap",
+      url: siteUrl,
+      description:
+        "Webapplicatie om je statische website bij te houden met AI: je typt in een chat wat er anders moet, bekijkt het voorbeeld en publiceert zelf. Hoort bij de WordSwap-dienst die bestaande WordPress-websites overzet naar een statische website zonder database.",
+      applicationCategory: "BusinessApplication",
+      applicationSubCategory: "Websitebeheer met AI",
+      operatingSystem: "Web",
+      inLanguage: "nl",
+      featureList: [
+        "Website aanpassen via een AI-chat in gewone taal",
+        "Voorbeeld bekijken vóór publicatie",
+        "Eerdere versie terugzetten",
+        "Foto's, pagina's en formulieren toevoegen",
+        "Website bijhouden via WhatsApp (Optimaal ontzorgd)",
+        "Hosting en beveiliging inbegrepen",
+      ],
+      provider: { "@id": `${siteUrl}/#organisatie` },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Basispakket",
+          price: "19",
+          priceCurrency: "EUR",
+          description: "vanaf €19 per maand excl. btw, maandelijks opzegbaar",
+        },
+        {
+          "@type": "Offer",
+          name: "Optimaal ontzorgd",
+          price: "39",
+          priceCurrency: "EUR",
+          description: "€39 per maand excl. btw, met WhatsApp en voorrang, maandelijks opzegbaar",
         },
       ],
     },

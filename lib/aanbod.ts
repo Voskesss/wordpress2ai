@@ -10,6 +10,11 @@ export const PAKKETTEN = {
 export const aanbod = {
   omschrijving:
     "WordSwap zet je bestaande bedrijfswebsite over naar een versie zonder WordPress. Je ontwerp en inhoud worden zorgvuldig overgenomen, met behoud van bestaande URL’s, structuur, titels en meta-informatie als uitgangspunt. Daarna past de eigenaar teksten, foto’s en pagina’s aan via de ingebouwde AI-chat, met een voorbeeld en goedkeuring vóór publicatie.",
+  // Eén zin die zegt wát WordSwap is (15-10-2026): bovenaan de homepage, als
+  // eerste vraag in de FAQ en in de gegevens voor zoekmachines. Een dienst,
+  // geen programma dat je zelf draait (dus geen "static site generator").
+  kernzin:
+    "WordSwap is een Nederlandse dienst die bestaande WordPress-websites met AI overzet naar snelle, statische websites zonder database. Daarna houd je je website bij via een AI-chat: je typt wat er anders moet, bekijkt het voorbeeld en publiceert zelf.",
   // De vaktermen waar AI-modellen en zoekmachines op indelen (11-10-2026).
   // Bewust op een paar vaste plekken en niet in de koppen voor ondernemers.
   inHetKort:
@@ -34,7 +39,19 @@ export const aanbod = {
   eigenAi:
     "De ingebouwde WordSwap-chat is beschikbaar. Teksten uit ChatGPT of Claude kun je daarin plakken. Een rechtstreekse koppeling vanuit zo’n assistent is nog gepland. Experts kunnen op afspraak eigen AI-codetools gebruiken; zij werken buiten de standaard goedkeuringsroute.",
 };
+// De eerste twee en de "wat is"-vragen (15-10-2026) staan er letterlijk zoals
+// mensen ze aan ChatGPT of Google stellen; AI-zoekmachines citeren zulke
+// korte antwoorden. De eerste vijf staan ook op de homepage.
 export const aankoopVragen = [
+  [
+    "Wat is WordSwap?",
+    aanbod.kernzin +
+      " Je ontwerp, teksten en pagina-adressen nemen we zo nauwkeurig mogelijk over. Hosting en beveiliging regelen wij, vanaf €19 per maand exclusief btw. WordSwap is opgezet door Jos Klijnhout uit Oosterbeek.",
+  ],
+  [
+    "Hoe werkt het bewerken van een website via AI-chat?",
+    "Je opent de chat in je WordSwap-omgeving en typt in gewone woorden wat er anders moet, bijvoorbeeld “zet onze nieuwe openingstijden op de contactpagina”. De AI zoekt de juiste plek, past de pagina aan in de stijl van je site en laat je een voorbeeld zien. Klopt het, dan publiceer je zelf; klopt het niet, dan vraag je een correctie. Een eerdere versie terugzetten kan altijd. Met Optimaal ontzorgd kan het ook via WhatsApp.",
+  ],
   [
     "Wat kan ik allemaal aanpassen via de chat? Kan ik ook zelf pagina’s maken?",
     aanbod.wijzigen,
@@ -43,6 +60,19 @@ export const aankoopVragen = [
   [
     "Blijft mijn website op WordPress draaien?",
     "Nee. We bouwen je bestaande website opnieuw op als statische webpagina’s, zonder WordPress. Je herkent je eigen ontwerp en inhoud, maar past die daarna aan in het WordSwap-portaal met AI. Dit is een overstap naar een andere techniek, geen plugin in WordPress.",
+  ],
+  [
+    "Wat is een statische AI-website?",
+    "Een statische website bestaat uit kant-en-klare webpagina’s, zonder database of beheersysteem dat bij elk bezoek de pagina opbouwt. Een statische AI-website is zo’n site die je bijhoudt met AI: je typt wat er anders moet, de AI past de pagina’s aan in de stijl van je site, en jij zet het live. Je hebt dus het gemak van een beheersysteem, zonder het onderhoud van WordPress.",
+  ],
+  [
+    "Wat is het verschil tussen WordPress en een statische website?",
+    "WordPress bouwt elke pagina bij een bezoek op uit een database, met PHP en vaak een flink aantal plug-ins. Dat is flexibel, maar vraagt om updates en onderhoud, en elke plug-in is een mogelijke zwakke plek. Een statische website bestaat uit kant-en-klare pagina’s: er draait geen database of PHP onder, dus er valt minder te updaten en minder aan te vallen, en pagina’s laden meestal sneller. Het nadeel was altijd dat je voor elke wijziging een webbouwer nodig had. Bij WordSwap vang je dat op met de AI-chat.",
+  ],
+  ["Hoe veilig is een statische website?", aanbod.veiligheid],
+  [
+    "Is WordSwap een static site generator?",
+    "Nee. Een static site generator, zoals Hugo, Jekyll of een WordPress-plug-in als Simply Static, is een programma dat je zelf installeert en bedient. WordSwap is een dienst: wij zetten je bestaande website voor je over naar een statische website, en daarna houd je hem bij via de AI-chat in je eigen omgeving. Je hoeft zelf niets te installeren, te bouwen of te hosten.",
   ],
   [
     "Is WordSwap een chatbot voor mijn bezoekers?",

@@ -2054,3 +2054,8 @@ main p {
 @media (max-width: 900px) {
   .home-whatsapp .demo-video-whatsapp { max-width: 340px; }
 }
+/* De h1 is sinds 15-10-2026 de concrete omschrijving boven de belofte */
+.home-hero-tekst h1.hero-h1 { margin: 0; max-width: 520px; font-size: 15px; line-height: 1.45; letter-spacing: .01em; font-weight: 600; color: #cfe3c6; }
+.hero-dia:first-child .hero-dia-kop { font-size: clamp(40px, 4.6vw, 64px); }
+.hero-dia-kop.hero-hoek { font-size: clamp(32px, 3.4vw, 46px); }
+.hero-dia-kop.hero-hoek em { margin-top: 12px; font-size: .62em; line-height: 1.3; }

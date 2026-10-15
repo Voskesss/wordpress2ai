@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
  * Homepage-hero als dia's (wens Jos 14-10-2026): elke dia een voordeel van
  * WordSwap met een eigen foto, pijltjes aan de zijkant en puntjes onderaan.
  *
- * Snel en goed voor Google: alle teksten staan in de HTML (de eerste als h1),
+ * Snel en goed voor Google: alle teksten staan in de HTML (het label van de eerste als h1),
  * maar alleen de eerste foto laadt direct. De volgende foto wordt pas
  * opgehaald als hij bijna aan de beurt is. Automatisch doorschuiven stopt bij
  * "minder beweging", in een verborgen tabblad, als de muis erop staat en
@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
  * tevoorschijn. Alleen op apparaten met een muis; de positie gaat via
  * CSS-variabelen, dus zonder React te laten herrenderen.
  */
-export type Dia = { foto: string; label: string; kop: ReactNode; tekst?: string };
+export type Dia = { foto: string; label: string; kop: ReactNode; tekst?: string; kopKlasse?: string };
 
 const WISSEL_MS = 7000;
 
@@ -134,8 +134,10 @@ export default function HeroDias({ dias, alt, onder }: { dias: Dia[]; alt: strin
                 aria-label={`${i + 1} van ${n}`}
                 aria-hidden={i === actief ? undefined : true}
               >
-                <p className="landing-breed-label">{d.label}</p>
-                {i === 0 ? d.kop : <p className="hero-dia-kop">{d.kop}</p>}
+                {/* De h1 zegt wát WordSwap is (15-10-2026: Google en AI-zoekmachines
+                    moeten ons kunnen indelen); de grote zin eronder is de belofte. */}
+                {i === 0 ? <h1 className="hero-h1">{d.label}</h1> : <p className="landing-breed-label">{d.label}</p>}
+                <p className={`hero-dia-kop${d.kopKlasse ? ` ${d.kopKlasse}` : ""}`}>{d.kop}</p>
                 {d.tekst && <p className="hero-dia-tekst">{d.tekst}</p>}
               </div>
             ))}
