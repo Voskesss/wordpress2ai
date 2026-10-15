@@ -226,9 +226,15 @@ export default async function Home({
             ].map(([slug, naam], i, alle) => (
               <span key={slug}>
                 <Link href={`/${slug}`}>{naam}</Link>
-                {i < alle.length - 2 ? ", " : i === alle.length - 2 ? " en " : "."}
+                {i < alle.length - 1 ? ", " : " "}
               </span>
             ))}
+            en eigenlijk iedere ondernemer met een website, van garage tot fietsenmaker.
+          </p>
+          <p className="voor-wie-grens">
+            Alleen een webshop of ledenomgeving die ín WordPress zelf draait (zoals WooCommerce) kan niet mee.
+            Draait je webshop, boekingssysteem of ledenomgeving bij een andere partij, dan linken we daar gewoon
+            naartoe. Twijfel je? <Link href={checkLink}>De websitecheck is gratis.</Link>
           </p>
         </div>
       </section>

@@ -2047,3 +2047,5 @@ main p {
 @media (prefers-reduced-motion: reduce) {
   .hero-dia, .hero-dia.is-actief { transition: none; transform: none; }
 }
+.voor-wie-grens { margin-top: 10px; max-width: 760px; font-size: 13px; line-height: 1.55; color: #6b7466; }
+.voor-wie-grens a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
