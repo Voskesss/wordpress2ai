@@ -2059,3 +2059,58 @@ main p {
 .hero-dia:first-child .hero-dia-kop { font-size: clamp(40px, 4.6vw, 64px); }
 .hero-dia-kop.hero-hoek { font-size: clamp(32px, 3.4vw, 46px); }
 .hero-dia-kop.hero-hoek em { margin-top: 12px; font-size: .62em; line-height: 1.3; }
+
+/* /eigen-ai-koppelen (15-10-2026): eigen ChatGPT of Claude voor je website */
+.eai-hero { background: radial-gradient(120% 90% at 85% 10%, #3a6b58 0%, #244b3d 45%, #183a2e 100%); color: #fff; }
+.eai-label { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #cfe3c6; }
+.eai-label-donker { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #36614f; }
+.eai-h1 { margin-top: 14px; font-size: clamp(36px, 4.4vw, 58px); line-height: 1.05; letter-spacing: -.04em; font-weight: 600; color: #fff; }
+.eai-h1 em { display: block; margin-top: 10px; font-style: normal; font-size: .55em; line-height: 1.25; letter-spacing: -.02em; color: #d8ecc9; }
+.eai-intro { margin-top: 20px; max-width: 560px; font-size: 18px; line-height: 1.6; color: #eef4ea; }
+.eai-knop { border-radius: 10px; background: #fff; color: #244b3d; padding: 14px 22px; font-weight: 700; }
+.eai-knop:hover { background: #eef4ea; }
+.eai-knop-twee { border-radius: 10px; border: 2px solid rgba(255, 255, 255, .7); color: #fff; padding: 12px 20px; font-weight: 600; }
+.eai-knop-twee:hover { background: rgba(255, 255, 255, .12); }
+.eai-mock { display: grid; gap: 10px; }
+.eai-venster { border-radius: 16px; background: rgba(255, 255, 255, .96); color: #1f2a24; padding: 16px; box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .45); transform: rotate(-1.2deg); }
+.eai-venster-ws { transform: rotate(1deg); border: 2px solid #9fdcbf; }
+.eai-venster-kop { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b7466; margin-bottom: 10px; }
+.eai-bel { border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.45; margin-top: 8px; max-width: 92%; }
+.eai-bel-jij { margin-left: auto; background: #e7f3df; }
+.eai-bel-ai { background: #f2f1ec; }
+.eai-bel-ws { background: #244b3d; color: #fff; }
+.eai-pijl { text-align: center; font-size: 13px; font-weight: 600; color: #cfe3c6; }
+.eai-sectie { padding-block: 56px 8px; }
+.eai-h2 { margin-top: 10px; font-size: clamp(26px, 2.8vw, 36px); line-height: 1.15; letter-spacing: -.03em; font-weight: 600; color: #1d3a2f; }
+.eai-h3 { margin-top: 36px; font-size: 20px; font-weight: 650; color: #1d3a2f; }
+.eai-tekst { margin-top: 14px; font-size: 17px; line-height: 1.65; color: #3c4a40; }
+.eai-klein { margin-top: 14px; font-size: 15px; color: #4f5a4b; }
+.eai-klein a, .eai-tekst a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.eai-tabel-rol { margin-top: 24px; overflow-x: auto; border-radius: 16px; border: 1px solid #dfe7d8; background: #fff; }
+.eai-tabel { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+.eai-tabel th, .eai-tabel td { padding: 14px 16px; text-align: left; vertical-align: top; border-top: 1px solid #edf1e8; }
+.eai-tabel thead th { border-top: 0; background: #f5f8f1; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #4f5a4b; }
+.eai-tabel thead th:last-child { color: #244b3d; }
+.eai-tabel tbody th { width: 22%; font-weight: 650; color: #1d3a2f; }
+.eai-tabel td:last-child { background: #f4faf0; color: #1d3a2f; font-weight: 500; }
+.eai-stappen { margin-top: 22px; counter-reset: stap; display: grid; gap: 14px; }
+.eai-stappen li { position: relative; list-style: none; padding: 16px 18px 16px 62px; border-radius: 14px; background: #fff; border: 1px solid #e3eadc; line-height: 1.6; color: #3c4a40; }
+.eai-stappen li::before { counter-increment: stap; content: counter(stap); position: absolute; left: 16px; top: 14px; width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: #244b3d; color: #fff; font-weight: 700; }
+.eai-stappen strong { color: #1d3a2f; }
+.eai-prompts { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.eai-prompt { margin: 0; border-radius: 14px; background: #1d3a2f; color: #eef4ea; padding: 18px; }
+.eai-prompt figcaption { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9fdcbf; }
+.eai-prompt blockquote { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+.eai-routes { margin-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.eai-route { border-radius: 16px; background: #fff; border: 1px solid #e3eadc; padding: 20px; box-shadow: 0 10px 26px -20px rgba(36, 75, 61, .45); }
+.eai-route h3 { margin-top: 12px; font-size: 18px; font-weight: 650; color: #1d3a2f; }
+.eai-route p { margin-top: 8px; font-size: 15px; line-height: 1.6; color: #4f5a4b; }
+.eai-badge { display: inline-block; border-radius: 999px; background: #e7f3df; color: #244b3d; font-size: 12px; font-weight: 700; padding: 4px 10px; }
+.eai-komt { margin-top: 56px; background: linear-gradient(135deg, #244b3d 0%, #1b3c30 100%); color: #fff; }
+.eai-vraag { border-radius: 14px; border: 1px solid #e3eadc; background: #fff; padding: 16px 18px; }
+.eai-vraag summary { cursor: pointer; font-weight: 650; color: #1d3a2f; }
+.eai-vraag p { margin-top: 8px; line-height: 1.6; color: #4f5a4b; }
+@media (max-width: 900px) {
+  .eai-routes, .eai-prompts { grid-template-columns: 1fr; }
+  .eai-venster, .eai-venster-ws { transform: none; }
+}

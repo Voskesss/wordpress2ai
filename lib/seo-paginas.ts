@@ -59,7 +59,7 @@ export const SEO_PAGINAS: SeoPagina[] = [
   { pad: "/website-laten-onderhouden", naam: "Website laten onderhouden", zin: "Wat website-onderhoud kost (meestal €12,50 tot €25 per maand voor WordPress) en hoe je de reden voor dat onderhoud weghaalt.", groep: "bijhouden", bijgewerkt: "2026-10-11" },
   { pad: "/website-zonder-onderhoud", naam: "Website zonder onderhoud", zin: "Een website zonder WordPress-updates, plug-ins en beveiligingsonderhoud: wat daarvoor nodig is en wat je zelf nog doet.", groep: "bijhouden", bijgewerkt: "2026-09-15" },
   { pad: "/appen", naam: "Website aanpassen via WhatsApp", zin: "Je website aanpassen door een appje te sturen, met tekst, foto of spraakbericht; onderdeel van Optimaal ontzorgd.", groep: "bijhouden", bijgewerkt: "2026-09-30" },
-  { pad: "/eigen-ai-koppelen", naam: "ChatGPT of Claude koppelen", zin: "Wat er nu al kan met je eigen AI, zoals ChatGPT of Claude, naast de ingebouwde chat.", groep: "bijhouden", bijgewerkt: "2026-09-26" },
+  { pad: "/eigen-ai-koppelen", naam: "Website beheren met ChatGPT of Claude", zin: "Je eigen ChatGPT of Claude gebruiken voor je hele website, zonder API-sleutel of plug-ins; het verschil met AI in WordPress, en wat eraan komt.", groep: "bijhouden", bijgewerkt: "2026-10-15" },
   { pad: "/wordpress-koppelen-aan-ai", naam: "AI gebruiken in WordPress", zin: "AI-plug-ins binnen WordPress vergeleken met overstappen: wat elke route kost aan werk en onderhoud.", groep: "bijhouden", bijgewerkt: "2026-09-13" },
 
   { pad: "/wordpress-alternatief", naam: "Alternatief voor WordPress", zin: "De alternatieven voor WordPress op een rij: bouwdozen, andere systemen en overstappen met behoud van je site, of een nieuwe site die wij met AI bouwen.", groep: "kennis", bijgewerkt: "2026-10-11" },

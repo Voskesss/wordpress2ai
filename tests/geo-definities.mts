@@ -24,4 +24,8 @@ for (const fout of ["onmogelijk te hacken", "nooit meer in te loggen", "razendsn
 const layout = await readFile("app/layout.tsx", "utf8");
 assert.ok(layout.includes('"@type": "WebApplication"'), "WebApplication-schema ontbreekt");
 assert.ok(!/static site generator|migration tool/i.test(layout.replace(/\/\/.*$/gm, "")), "het schema noemt ons een generator of tool");
+// /eigen-ai-koppelen: de rechtstreekse koppeling (MCP) is nog niet gebouwd, dus niet als bestaand verkopen
+const eigenAi = await readFile("app/eigen-ai-koppelen/page.tsx", "utf8");
+assert.ok(eigenAi.includes("In voorbereiding") && eigenAi.includes("in voorbereiding"), "de MCP-koppeling staat niet als 'in voorbereiding' op /eigen-ai-koppelen");
+assert.ok(!/MCP[^"]*(werkt nu|is beschikbaar|vandaag al)/i.test(eigenAi), "/eigen-ai-koppelen doet alsof de MCP-koppeling al werkt");
 console.log("geo-definities: ok");
