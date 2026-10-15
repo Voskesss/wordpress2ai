@@ -59,3 +59,11 @@ console.log("demo-video: ok");
   const dv = await (await import("node:fs/promises")).readFile("app/DemoVideo.tsx", "utf8");
   if (!dv.includes("webkitEnterFullscreen") || !dv.includes("requestFullscreen")) throw new Error("demovideo gaat op de telefoon niet schermvullend");
 }
+
+// WhatsApp-blok op de homepage met filmpje (15-10-2026): eerlijk dat het bij Optimaal ontzorgd hoort
+{
+  const home = await (await import("node:fs/promises")).readFile("app/page.tsx", "utf8");
+  if (!home.includes("<WhatsAppVideo />")) throw new Error("WhatsApp-filmpje ontbreekt op de homepage");
+  if (!home.includes('href="/appen"')) throw new Error("WhatsApp-blok linkt niet naar /appen");
+  if (!/WhatsApp zit in Optimaal ontzorgd/.test(home)) throw new Error("WhatsApp-blok zegt niet dat het bij Optimaal ontzorgd hoort");
+}

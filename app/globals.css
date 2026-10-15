@@ -2049,3 +2049,8 @@ main p {
 }
 .voor-wie-grens { margin-top: 10px; max-width: 760px; font-size: 13px; line-height: 1.55; color: #6b7466; }
 .voor-wie-grens a { color: #244b3d; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home-whatsapp .demo-video-whatsapp { max-width: 460px; margin-inline: auto; }
+.home-whatsapp-pakket { margin-top: 12px; font-size: 14px; color: #6b7466; }
+@media (max-width: 900px) {
+  .home-whatsapp .demo-video-whatsapp { max-width: 340px; }
+}

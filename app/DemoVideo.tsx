@@ -16,7 +16,9 @@ const UITVOERINGEN = [
   { soort: "staand", video: "/social/wordswap-demo-reels.mp4", beeld: "/social/wordswap-demo-reels.webp", breedte: 1080, hoogte: 1920 },
 ] as const;
 
-function Uitvoering({ u }: { u: (typeof UITVOERINGEN)[number] }) {
+type Uitvoering = { soort: string; video: string; beeld: string; breedte: number; hoogte: number; label?: string };
+
+function Uitvoering({ u }: { u: Uitvoering }) {
   const video = useRef<HTMLVideoElement>(null);
   const [gestart, setGestart] = useState(false);
   return (
@@ -31,7 +33,7 @@ function Uitvoering({ u }: { u: (typeof UITVOERINGEN)[number] }) {
         muted
         playsInline
         preload="none"
-        aria-label="Demovideo: zo pas je je website aan met de WordSwap-chat"
+        aria-label={u.label ?? "Demovideo: zo pas je je website aan met de WordSwap-chat"}
       />
       {!gestart && (
         <button
@@ -67,6 +69,24 @@ export default function DemoVideo() {
       {UITVOERINGEN.map((u) => (
         <Uitvoering key={u.soort} u={u} />
       ))}
+    </div>
+  );
+}
+
+/** Filmpje "Onderweg? Gewoon via WhatsApp" (wens Jos 15-10-2026): vierkant, op elk scherm. */
+export function WhatsAppVideo() {
+  return (
+    <div className="demo-video">
+      <Uitvoering
+        u={{
+          soort: "whatsapp",
+          video: "/video/wordswap-whatsapp.mp4",
+          beeld: "/video/wordswap-whatsapp-beeld.webp",
+          breedte: 1080,
+          hoogte: 1080,
+          label: "Video: je website aanpassen door een WhatsApp-bericht te sturen",
+        }}
+      />
     </div>
   );
 }

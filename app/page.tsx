@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FOTO_ALT } from "@/lib/pagina-fotos";
-import DemoVideo from "./DemoVideo";
+import DemoVideo, { WhatsAppVideo } from "./DemoVideo";
 import HeroDias from "./HeroDias";
 import { aankoopVragen } from "@/lib/aanbod";
 import { josFoto } from "@/lib/persoonlijk";
@@ -272,6 +272,28 @@ export default async function Home({
           <Link href="/demo" className="button-text">
             Probeer het zelf in de demo →
           </Link>
+        </div>
+      </section>
+      {/* Onderweg via WhatsApp (wens Jos 15-10-2026), met het filmpje erbij */}
+      <section className="shell demo-video-section home-whatsapp" aria-labelledby="whatsapp-kop">
+        <div className="demo-video-tekst">
+          <p className="eyebrow">ONDERWEG</p>
+          <h2 id="whatsapp-kop">Even iets aanpassen? Gewoon appen.</h2>
+          <p>
+            Net een klus afgerond? Maak een foto, app hem met een zin erbij, en je krijgt een voorbeeld terug.
+            Stuur &ldquo;ja&rdquo; en het staat op je site. Een tekst, foto of spraakbericht kan allemaal.
+          </p>
+          <p className="home-whatsapp-pakket">
+            WhatsApp zit in Optimaal ontzorgd (€39 per maand, excl. btw). In het basispakket pas je je site aan via
+            de chat op je eigen website.
+          </p>
+          <Link href="/appen" className="button-text">
+            Meer over je website aanpassen via WhatsApp →
+          </Link>
+        </div>
+        <div>
+          <p className="home-video-label">Zo werkt het · ingekorte video</p>
+          <WhatsAppVideo />
         </div>
       </section>
       <section className="section-space shell speed-proof">
