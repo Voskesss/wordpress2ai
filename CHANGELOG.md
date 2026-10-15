@@ -20,6 +20,10 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.44.4 (15 oktober 2026)
+
+- Op de homepage staat nu duidelijk dat WordSwap voor iedere ondernemer met een website is, van garage tot fietsenmaker. Eronder staat in kleine letters de enige grens: een webshop of ledenomgeving die in WordPress zelf draait, kan niet mee. Draait die bij een andere partij, dan linken we er gewoon naartoe.
+
 ## 1.44.3 (14 oktober 2026)
 
 - De grote foto bovenaan de homepage is nu een reeks van zes dia's, elk met een voordeel van WordSwap en een eigen foto. Je bladert met de pijltjes of puntjes, of veegt op je telefoon. Beweeg je met de muis over de foto, dan komt heel vaag het WordSwap-logo tevoorschijn.
