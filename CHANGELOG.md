@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.45.0 (15 oktober 2026)
+
+- Nieuw blok op de homepage: "Even iets aanpassen? Gewoon appen." Met het filmpje erbij laat het zien hoe je je website onderweg via WhatsApp bijwerkt (onderdeel van Optimaal ontzorgd).
+- Op de telefoon gaan de video's op de homepage en op alle onderwerppagina's bij het afspelen meteen schermvullend open. Het kleine kader was te klein om iets te zien.
+
 ## 1.44.4 (15 oktober 2026)
 
 - Op de homepage staat nu duidelijk dat WordSwap voor iedere ondernemer met een website is, van garage tot fietsenmaker. Eronder staat in kleine letters de enige grens: een webshop of ledenomgeving die in WordPress zelf draait, kan niet mee. Draait die bij een andere partij, dan linken we er gewoon naartoe.
