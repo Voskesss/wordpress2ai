@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Nachtelijke reservekopie naar OVH. Installeren:
+     cp scripts/nl.wordswap.reservekopie.plist ~/Library/LaunchAgents/
+     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/nl.wordswap.reservekopie.plist
+     Sliep de Mac om 03:17, dan draait hij bij het wakker worden. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>nl.wordswap.reservekopie</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/josklijnhout/wordpress2ai/scripts/reservekopie.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>17</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/josklijnhout/WordSwap-reservekopie/log/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/josklijnhout/WordSwap-reservekopie/log/launchd.log</string>
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>Nice</key>
+  <integer>10</integer>
+</dict>
+</plist>

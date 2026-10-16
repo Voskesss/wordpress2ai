@@ -1,0 +1,62 @@
+WORDSWAP RESERVEKOPIE: HOE HERSTEL JE HIERUIT
+=============================================
+
+Deze bucket is een nachtelijke kopie van alles wat WordSwap nodig heeft,
+buiten GitHub, Cloudflare en Vercel om. Oude versies blijven 120 dagen
+bewaard en kunnen 90 dagen door niemand gewist worden (Object Lock).
+Zoek je een oudere stand: vraag de versies van een bestand op in de
+OVH-beheeromgeving of met "rclone ls --s3-versions".
+
+Nodig: git, openssl, PostgreSQL-gereedschap (pg_restore) en de wachtwoordzin
+"Reservekopie versleuteling" uit de wachtwoordmanager van Jos.
+
+
+1. CODE EN KLANTSITES (repos/)
+   Elk .bundle-bestand is een complete git-repository met alle historie.
+     git clone repos/wordpress2ai/roelart.bundle roelart
+   Daarna naar een nieuwe GitHub/GitLab/Codeberg-plek pushen:
+     cd roelart && git remote set-url origin <nieuwe-url> && git push --mirror
+   De app zelf staat in repos/Voskesss/wordpress2ai.bundle.
+
+2. SITEBESTANDEN EN MEDIA (r2/wordswap-sites/)
+   Per site een map, met de worker-naam als mapnaam:
+     <site>/      de live site
+     wv-<site>/   de werkversie (concept)
+   Elke map is een complete statische website. Die kan op elke hosting:
+   Cloudflare (nieuw account), Bunny, Netlify of een gewone webserver.
+   Audio en andere grote media staan alleen hier, niet in git.
+
+3. DNS (dns/)
+   Per domein een zone-bestand (BIND-formaat). Importeren bij elke DNS-
+   aanbieder ("import zone file"), of de records overtikken bij TransIP.
+   Daarna bij de registrar de nameservers omzetten.
+
+4. DATABASE (db/wordswap.dump.enc)
+   Versleuteld. Ontsleutelen en terugzetten in een lege PostgreSQL-database:
+     openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+       -in db/wordswap.dump.enc -out wordswap.dump
+     pg_restore --no-owner --dbname "<nieuwe database-url>" wordswap.dump
+
+   Klantaccounts (db/clerk-gebruikers.jsonl.enc): ontsleutelen zoals hierboven.
+   Per regel een gebruiker met Clerk-id, e-mail en naam. Wachtwoorden zitten er
+   niet in: klanten kiezen na een herstart een nieuw wachtwoord, en via het
+   e-mailadres koppel je ze weer aan hun oude id in de database.
+
+5. GEHEIMEN (geheimen/omgeving.tar.enc)
+   De .env-bestanden met alle sleutels van de app. Ontsleutelen:
+     openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+       -in geheimen/omgeving.tar.enc -out omgeving.tar && tar -xf omgeving.tar
+   Na een hack: ALLE sleutels hierin als gelekt beschouwen en vernieuwen.
+
+6. THE LAST FAREWELL (farewell/)
+   Code: repos/Voskesss/farewell.bundle. Database en Clerk-gebruikers:
+   ontsleutelen en terugzetten zoals bij punt 4. farewell/blob/ bevat de
+   uploads van families (foto's, video's), met dezelfde paden als in
+   Vercel Blob: opnieuw uploaden naar de nieuwe opslag met die paden.
+
+laatste-run.json zegt wanneer de kopie voor het laatst gelukt is.
+Het script dat dit maakt staat in script/ (met instellingen.sh en de
+launchd-planning) en ook in de wordpress2ai-repo onder scripts/. Opnieuw
+opzetten op een nieuwe Mac: instellingen.sh naar ~/WordSwap-reservekopie/,
+de sleutels reservekopie-* in de sleutelhanger zetten (zie kop van het
+script) en de plist naar ~/Library/LaunchAgents/.
