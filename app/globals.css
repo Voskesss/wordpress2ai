@@ -2114,3 +2114,22 @@ main p {
   .eai-routes, .eai-prompts { grid-template-columns: 1fr; }
   .eai-venster, .eai-venster-ws { transform: none; }
 }
+/* Gids website maken met ChatGPT of Claude (16-10-2026) */
+.eai-keten { display: grid; gap: 0; counter-reset: keten; }
+.eai-keten li { position: relative; list-style: none; padding: 16px 18px 16px 64px; border-radius: 14px; background: rgba(255, 255, 255, .96); color: #1f2a24; box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .5); }
+.eai-keten li + li { margin-top: 26px; }
+.eai-keten li + li::after { content: "↓"; position: absolute; top: -24px; left: 50%; translate: -50% 0; color: #cfe3c6; font-weight: 700; }
+.eai-keten li::before { counter-increment: keten; content: counter(keten); position: absolute; left: 16px; top: 50%; translate: 0 -50%; width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: #244b3d; color: #fff; font-weight: 700; }
+.eai-keten strong { display: block; color: #1d3a2f; }
+.eai-keten span { font-size: 14px; color: #4f5a4b; }
+.eai-nodig { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.eai-nodig > div { border-radius: 14px; background: #fff; border: 1px solid #e3eadc; padding: 16px 18px; }
+.eai-nodig dt { font-weight: 650; color: #1d3a2f; }
+.eai-nodig dd { margin: 6px 0 0; font-size: 15px; line-height: 1.55; color: #4f5a4b; }
+.eai-tabel-gelijk td:last-child { background: none; font-weight: 400; color: #3c4a40; }
+.eai-lijst { margin-top: 18px; display: grid; gap: 10px; }
+.eai-lijst li { position: relative; list-style: none; padding: 14px 16px 14px 46px; border-radius: 12px; background: #fff8ec; border: 1px solid #f1e3c8; line-height: 1.55; color: #4a3f2c; }
+.eai-lijst li::before { content: "!"; position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; background: #c9892b; color: #fff; font-size: 13px; font-weight: 800; }
+@media (max-width: 900px) {
+  .eai-nodig { grid-template-columns: 1fr; }
+}

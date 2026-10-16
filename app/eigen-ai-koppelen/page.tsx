@@ -173,7 +173,8 @@ export default function EigenAiKoppelen() {
           </div>
           <p className="eai-klein">
             Blijf je liever op WordPress? Bij <Link href="/wordpress-koppelen-aan-ai">AI gebruiken in WordPress</Link>{" "}
-            lees je wat die route kost aan werk en onderhoud.
+            lees je wat die route kost aan werk en onderhoud. Wil je juist helemaal zelf een site bouwen met AI? Lees dan
+            de gids <Link href="/website-maken-met-chatgpt-of-claude">website maken met ChatGPT of Claude</Link>.
           </p>
         </section>
 

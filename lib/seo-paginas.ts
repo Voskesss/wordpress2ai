@@ -64,6 +64,7 @@ export const SEO_PAGINAS: SeoPagina[] = [
 
   { pad: "/wordpress-alternatief", naam: "Alternatief voor WordPress", zin: "De alternatieven voor WordPress op een rij: bouwdozen, andere systemen en overstappen met behoud van je site, of een nieuwe site die wij met AI bouwen.", groep: "kennis", bijgewerkt: "2026-10-11" },
   { pad: "/wordswap-vs-wordpress", naam: "WordSwap vs. WordPress", zin: "Wanneer WordSwap past en wanneer WordPress de betere keuze blijft.", groep: "kennis", bijgewerkt: "2026-10-11" },
+  { pad: "/website-maken-met-chatgpt-of-claude", naam: "Website maken met ChatGPT of Claude", zin: "Gids: zelf een website maken en bijhouden met ChatGPT of Claude, met GitHub, hosting en domein; wat het kost en waar het misgaat.", groep: "kennis", bijgewerkt: "2026-10-16" },
   { pad: "/wordpress-website-traag", naam: "WordPress-site traag", zin: "De zeven oorzaken van een trage WordPress-site, hoe je meet en wat je eraan doet.", groep: "kennis", bijgewerkt: "2026-10-11" },
   { pad: "/wat-kost-een-website-per-maand", naam: "Wat kost een website per maand?", zin: "Een website laten regelen kost meestal €20 tot €75 per maand, bij WordSwap €19 of €39; alle kostenposten uitgelegd, met een rekensom over 3 jaar voor vier routes.", groep: "kennis", bijgewerkt: "2026-10-14" },
   { pad: "/wordpress-kritieke-fout", naam: "Kritieke fout in WordPress", zin: "Wat je doet bij de melding over een kritieke fout of een wit scherm, stap voor stap van veilig naar technisch.", groep: "kennis", bijgewerkt: "2026-10-14" },
