@@ -202,6 +202,13 @@ export default function WebsiteMakenMetAi() {
             (een &ldquo;branch&rdquo; in GitHub) automatisch een voorbeeld. Klopt het, dan voeg je hem samen en staat hij live.
             Klopt het later toch niet, dan zet je in GitHub de vorige versie terug.
           </p>
+          <p className="eai-tekst">
+            <strong>Tip: geef je AI een vaste leidraad.</strong> Een AI-codetool begint elke keer opnieuw en weet niet
+            meer wat je vorige week hebt afgesproken. Zet je regels daarom in een instructiebestand in je websitemap,
+            zoals CLAUDE.md voor Claude Code of AGENTS.md voor Codex. Bijvoorbeeld: &ldquo;verander nooit de adressen van
+            pagina&rsquo;s&rdquo;, &ldquo;neem telefoonnummers letterlijk over&rdquo; en &ldquo;controleer na elke wijziging de
+            telefoonweergave&rdquo;. Dat bestand leest de tool bij elke opdracht.
+          </p>
           <h3 className="eai-h3">Vier opdrachten om mee te beginnen</h3>
           <div className="eai-prompts">
             {prompts.map(([kop, tekst]) => (
@@ -242,14 +249,49 @@ export default function WebsiteMakenMetAi() {
         </section>
       </div>
 
+      <div className="mx-auto max-w-4xl px-6">
+        <section className="eai-sectie">
+          <p className="eai-label-donker">Het verschil</p>
+          <h2 className="eai-h2">Een AI die bij elke wijziging dezelfde leidraad doorloopt.</h2>
+          <p className="eai-tekst">
+            Doe je het zelf, dan ben jij de controle: jij moet onthouden wat de AI niet mag en na elke wijziging de hele
+            site nalopen. De chat van WordSwap is daar vanaf het begin op ingericht. Bij elke wijziging volgt hij een
+            vaste leidraad, en daarna controleert het systeem het werk automatisch, nog voordat jij het voorbeeld ziet.
+          </p>
+          <div className="eai-leidraad">
+            <div>
+              <h3>De leidraad bij elke wijziging</h3>
+              <ul>
+                <li>Verhuist of verdwijnt een pagina, dan krijgt het oude adres een doorverwijzing, zodat je plek in Google blijft.</li>
+                <li>Nooit een link naar een pagina die niet bestaat.</li>
+                <li>Telefoonnummers, adressen en prijzen letterlijk overnemen, nooit &ldquo;verbeteren&rdquo;.</li>
+                <li>Titels, omschrijvingen en koppen voor Google alleen veranderen als jij erom vraagt.</li>
+                <li>Je eigen huisstijl en aanspreekvorm (je of u) aanhouden, zodat een nieuwe pagina niet opvalt.</li>
+                <li>Staat een feit ook in de gegevens voor AI-zoekmachines, dan wordt dat meteen mee bijgewerkt.</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Daarna automatisch gecontroleerd</h3>
+              <ul>
+                <li>Werkt de gewijzigde pagina goed op een telefoon?</li>
+                <li>Staan formulieren goed ingesteld en hebben foto&rsquo;s een beschrijving?</li>
+                <li>Staat dezelfde tekst of foto nog ergens anders op de site? Dan vraagt de chat of hij het overal moet doorvoeren.</li>
+                <li>En pas als jij het voorbeeld goedkeurt, gaat de wijziging live. Een eerdere versie terugzetten kan altijd.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <section className="eai-komt">
         <div className="mx-auto max-w-4xl px-6 py-14">
           <p className="eai-label">Liever niet zelf?</p>
           <h2 className="eai-h2 text-white">Dezelfde snelle site, zonder dat je zelf GitHub en hosting regelt.</h2>
           <p className="mt-4 max-w-2xl leading-relaxed text-[#e5efe0]">
             WordSwap doet deze route voor je: we zetten je bestaande website over of bouwen een nieuwe, regelen hosting,
-            domeinkoppeling en formulieren, en daarna typ je in een chat wat er anders moet. Je ziet eerst een voorbeeld
-            en publiceert zelf. Vanaf €19 per maand, exclusief btw.
+            domeinkoppeling en formulieren, en daarna typ je in een chat wat er anders moet, die bij elke wijziging de
+            leidraad hierboven doorloopt. Je ziet eerst een voorbeeld en publiceert zelf. Vanaf €19 per maand,
+            exclusief btw.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/hoe-het-werkt" className="lift eai-knop">

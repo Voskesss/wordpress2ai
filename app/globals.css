@@ -2135,3 +2135,11 @@ main p {
 }
 .eai-komt .eai-h2 { color: #fff; }
 .eai-nodig > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.eai-leidraad { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.eai-leidraad > div { border-radius: 16px; background: #fff; border: 1px solid #e3eadc; padding: 20px; }
+.eai-leidraad > div:last-child { background: #f4faf0; border-color: #cfe3c6; }
+.eai-leidraad h3 { font-size: 18px; font-weight: 650; color: #1d3a2f; }
+.eai-leidraad ul { margin-top: 10px; display: grid; gap: 8px; }
+.eai-leidraad li { position: relative; list-style: none; padding-left: 26px; font-size: 15px; line-height: 1.55; color: #3c4a40; }
+.eai-leidraad li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #31956B; font-weight: 800; }
+@media (max-width: 900px) { .eai-leidraad { grid-template-columns: 1fr; } }
