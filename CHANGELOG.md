@@ -20,6 +20,11 @@ Nummers: het eerste cijfer gaat omhoog bij iets waar een klant zijn manier van
 werken voor moet aanpassen, het tweede bij nieuwe mogelijkheden, het derde bij
 reparaties.
 
+## 1.47.0 (16 oktober 2026)
+
+- Nieuwe gids: zelf een website maken en bijhouden met ChatGPT of Claude, met GitHub, hosting en een eigen domein. Met een stappenplan, voorbeeldopdrachten, de kosten en waar het in de praktijk misgaat. Aan het eind: hoe de WordSwap-chat bij elke wijziging een vaste leidraad doorloopt en het werk automatisch controleert.
+- De pagina over je eigen ChatGPT of Claude bij WordSwap is vernieuwd: mooier, met een vergelijking met AI in WordPress, voorbeeldopdrachten en eerlijk wat er nog aankomt (een rechtstreekse koppeling vanuit je eigen AI).
+
 ## 1.46.0 (15 oktober 2026)
 
 - De homepage zegt nu meteen wat WordSwap doet: "De makkelijkste manier om je WordPress-website sneller, veiliger en onderhoudsvrij te maken", met eronder een nieuwe uitleg. Zo kunnen Google en AI-zoekmachines ons beter plaatsen.
