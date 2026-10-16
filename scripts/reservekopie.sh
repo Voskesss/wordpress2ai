@@ -303,7 +303,7 @@ if [ "$UPLOADEN" = 1 ]; then
   jq -n --arg tijd "$(date -u +%FT%TZ)" --argjson repos "$REPOS_TOTAAL" --argjson r2 "$R2_AANTAL" \
     --argjson dns "$DNS_AANTAL" --argjson waarschuwingen "$(printf '%s\n' "${WAARSCHUWINGEN[@]:-}" | jq -R . | jq -s 'map(select(. != ""))')" \
     '{tijd: $tijd, repos: $repos, r2_bestanden: $r2, dns_zones: $dns, waarschuwingen: $waarschuwingen}' > "$UPLOAD/laatste-run.json"
-  rclone sync "$UPLOAD" "ovh:$BUCKET" --checksum --fast-list --transfers 16 --exclude "proef/**" -q
+  rclone sync "$UPLOAD" "ovh:$BUCKET" --checksum --fast-list --transfers 16 --exclude "proef/**" --exclude ".DS_Store" -q
 fi
 
 # Pas na een geslaagde run de tellingen vastleggen.
