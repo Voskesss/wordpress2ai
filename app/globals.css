@@ -2133,3 +2133,5 @@ main p {
 @media (max-width: 900px) {
   .eai-nodig { grid-template-columns: 1fr; }
 }
+.eai-komt .eai-h2 { color: #fff; }
+.eai-nodig > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
